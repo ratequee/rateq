@@ -1,0 +1,59 @@
+import type { PaginatedResponse } from './pagination';
+
+export interface CompanyPublic {
+  id: string;
+  name: string;
+  slug: string;
+  description: string | null;
+  logo: string | null;
+  country: string;
+  city: string;
+  ratingAverage: number;
+  reviewCount: number;
+  createdAt: string;
+  /** Industry category for display badges (mock / optional API field). */
+  categoryId?: string;
+}
+
+export interface CompanyDetail extends CompanyPublic {
+  updatedAt: string;
+}
+
+export type PaginatedCompaniesResponse = PaginatedResponse<CompanyPublic>;
+
+export interface CompanySearchFilters {
+  query?: string;
+  country?: string;
+  city?: string;
+  minRating?: number;
+  sort?: 'rating' | 'reviews' | 'newest' | 'name';
+}
+
+export interface CreateCompanyInput {
+  name: string;
+  description?: string;
+  logo?: string;
+  country: string;
+  city: string;
+}
+
+export interface UpdateCompanyInput {
+  name?: string;
+  description?: string;
+  logo?: string | null;
+  country?: string;
+  city?: string;
+}
+
+export interface CompanyDashboardStats {
+  totalReviews: number;
+  pendingReviews: number;
+  approvedReviews: number;
+  rejectedReviews: number;
+  averageRating: number;
+}
+
+export interface CompanyDashboard {
+  company: CompanyDetail;
+  stats: CompanyDashboardStats;
+}

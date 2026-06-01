@@ -1,0 +1,51 @@
+{
+  "common": {
+    "appName": "RateQ",
+    "search": "Search",
+    "searchPlaceholder": "Search companies...",
+    "loading": "Loading...",
+    "error": "Something went wrong",
+    "reviews": "reviews",
+    "noResults": "No results found",
+    "submit": "Submit",
+    "cancel": "Cancel"
+  },
+  "tabs": {
+    "home": "Companies",
+    "profile": "Profile"
+  },
+  "auth": {
+    "login": "Log in",
+    "register": "Sign up",
+    "logout": "Log out",
+    "email": "Email",
+    "password": "Password",
+    "accountType": "Account type",
+    "user": "Reviewer",
+    "company": "Business",
+    "loginTitle": "Welcome back",
+    "registerTitle": "Create account",
+    "verifyNotice": "Verify your email before submitting reviews."
+  },
+  "company": {
+    "reviews": "Reviews",
+    "writeReview": "Write a review",
+    "noReviews": "No reviews yet",
+    "location": "Location"
+  },
+  "review": {
+    "title": "Review title",
+    "content": "Your experience",
+    "rating": "Rating",
+    "submit": "Submit review",
+    "success": "Review submitted for moderation"
+  },
+  "profile": {
+    "title": "My profile",
+    "myReviews": "My reviews",
+    "verified": "Verified",
+    "unverified": "Not verified",
+    "reviewCount": "Reviews written",
+    "language": "Language"
+  }
+}

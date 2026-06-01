@@ -1,0 +1,7 @@
+{
+  "extends": "@rateq/config/typescript/base.json",
+  "compilerOptions": {
+    "baseUrl": "."
+  },
+  "exclude": ["node_modules", "dist", "build", ".next", ".expo"]
+}

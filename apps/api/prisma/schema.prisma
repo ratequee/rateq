@@ -1,0 +1,194 @@
+// RateQ — PostgreSQL schema
+// Modular monolith: each domain maps to a future microservice boundary.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ---------------------------------------------------------------------------
+// Enums
+// ---------------------------------------------------------------------------
+
+enum UserRole {
+  USER
+  COMPANY
+  ADMIN
+}
+
+enum ReviewStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum ModerationAction {
+  AUTO_APPROVED
+  QUEUED
+  MANUAL_APPROVED
+  MANUAL_REJECTED
+  FLAGGED
+}
+
+// ---------------------------------------------------------------------------
+// Users
+// ---------------------------------------------------------------------------
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String   @map("password_hash")
+  role         UserRole @default(USER)
+  isVerified   Boolean  @default(false) @map("is_verified")
+  reviewCount  Int      @default(0) @map("review_count")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  reviews            Review[]
+  ownedCompanies     Company[]          @relation("CompanyOwner")
+  refreshTokens      RefreshToken[]
+  emailVerifications EmailVerification[]
+  passwordResets     PasswordReset[]
+
+  @@index([role])
+  @@index([createdAt])
+  @@map("users")
+}
+
+model RefreshToken {
+  id        String   @id @default(cuid())
+  userId    String   @map("user_id")
+  tokenHash String   @unique @map("token_hash")
+  expiresAt DateTime @map("expires_at")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("refresh_tokens")
+}
+
+model EmailVerification {
+  id        String   @id @default(cuid())
+  userId    String   @map("user_id")
+  tokenHash String   @unique @map("token_hash")
+  expiresAt DateTime @map("expires_at")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("email_verifications")
+}
+
+model PasswordReset {
+  id        String   @id @default(cuid())
+  userId    String   @map("user_id")
+  tokenHash String   @unique @map("token_hash")
+  expiresAt DateTime @map("expires_at")
+  usedAt    DateTime? @map("used_at")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("password_resets")
+}
+
+// ---------------------------------------------------------------------------
+// Companies
+// ---------------------------------------------------------------------------
+
+model Company {
+  id            String   @id @default(cuid())
+  ownerId       String?  @unique @map("owner_id")
+  name          String
+  slug          String   @unique
+  description   String?  @db.Text
+  logo          String?
+  country       String
+  city          String
+  ratingAverage Decimal  @default(0) @map("rating_average") @db.Decimal(3, 2)
+  reviewCount   Int      @default(0) @map("review_count")
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  owner        User?         @relation("CompanyOwner", fields: [ownerId], references: [id], onDelete: SetNull)
+  reviews      Review[]
+  reviewReplies ReviewReply[]
+
+  @@index([country, city])
+  @@index([ratingAverage])
+  @@index([name])
+  @@map("companies")
+}
+
+// ---------------------------------------------------------------------------
+// Reviews
+// ---------------------------------------------------------------------------
+
+model Review {
+  id                String       @id @default(cuid())
+  userId            String       @map("user_id")
+  companyId         String       @map("company_id")
+  rating            Int
+  title             String
+  content           String       @db.Text
+  status            ReviewStatus @default(PENDING)
+  hashedIp          String?      @map("hashed_ip")
+  deviceFingerprint String?      @map("device_fingerprint")
+  similarityScore   Decimal?     @map("similarity_score") @db.Decimal(5, 4)
+  moderationScore   Int          @default(0) @map("moderation_score")
+  createdAt         DateTime     @default(now()) @map("created_at")
+  updatedAt         DateTime     @updatedAt @map("updated_at")
+
+  user           User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  company        Company         @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  replies        ReviewReply[]
+  moderationLogs ModerationLog[]
+
+  @@index([companyId, status, createdAt])
+  @@index([userId, createdAt])
+  @@index([status, moderationScore])
+  @@index([deviceFingerprint])
+  @@index([hashedIp])
+  @@map("reviews")
+}
+
+model ReviewReply {
+  id        String   @id @default(cuid())
+  reviewId  String   @map("review_id")
+  companyId String   @map("company_id")
+  content   String   @db.Text
+  createdAt DateTime @default(now()) @map("created_at")
+
+  review  Review  @relation(fields: [reviewId], references: [id], onDelete: Cascade)
+  company Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  @@unique([reviewId])
+  @@index([companyId])
+  @@map("review_replies")
+}
+
+// ---------------------------------------------------------------------------
+// Moderation
+// ---------------------------------------------------------------------------
+
+model ModerationLog {
+  id        String           @id @default(cuid())
+  reviewId  String           @map("review_id")
+  reason    String
+  score     Int
+  action    ModerationAction
+  createdAt DateTime         @default(now()) @map("created_at")
+
+  review Review @relation(fields: [reviewId], references: [id], onDelete: Cascade)
+
+  @@index([reviewId, createdAt])
+  @@index([action, createdAt])
+  @@map("moderation_logs")
+}

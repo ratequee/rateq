@@ -1,0 +1,27 @@
+{
+  "expo": {
+    "name": "RateQ",
+    "slug": "rateq",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "scheme": "rateq",
+    "userInterfaceStyle": "automatic",
+    "newArchEnabled": true,
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.rateq.app"
+    },
+    "android": {
+      "package": "com.rateq.app"
+    },
+    "plugins": ["expo-router", "expo-localization", "expo-secure-store"],
+    "experiments": {
+      "typedRoutes": true
+    },
+    "extra": {
+      "eas": {
+        "projectId": "rateq-mobile"
+      }
+    }
+  }
+}

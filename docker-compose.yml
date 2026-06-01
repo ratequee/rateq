@@ -1,0 +1,36 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: rateq-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: rateq
+      POSTGRES_PASSWORD: rateq_secret
+      POSTGRES_DB: rateq
+    ports:
+      - '5432:5432'
+    volumes:
+      - rateq_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U rateq -d rateq']
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: rateq-redis
+    restart: unless-stopped
+    ports:
+      - '6379:6379'
+    volumes:
+      - rateq_redis_data:/data
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  rateq_postgres_data:
+  rateq_redis_data:

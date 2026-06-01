@@ -1,0 +1,51 @@
+{
+  "common": {
+    "appName": "RateQ",
+    "search": "بحث",
+    "searchPlaceholder": "ابحث عن شركات...",
+    "loading": "جاري التحميل...",
+    "error": "حدث خطأ",
+    "reviews": "مراجعة",
+    "noResults": "لا توجد نتائج",
+    "submit": "إرسال",
+    "cancel": "إلغاء"
+  },
+  "tabs": {
+    "home": "الشركات",
+    "profile": "الملف"
+  },
+  "auth": {
+    "login": "تسجيل الدخول",
+    "register": "إنشاء حساب",
+    "logout": "تسجيل الخروج",
+    "email": "البريد الإلكتروني",
+    "password": "كلمة المرور",
+    "accountType": "نوع الحساب",
+    "user": "مُراجع",
+    "company": "شركة",
+    "loginTitle": "مرحباً بعودتك",
+    "registerTitle": "إنشاء حساب",
+    "verifyNotice": "يرجى تأكيد بريدك قبل إرسال المراجعات."
+  },
+  "company": {
+    "reviews": "المراجعات",
+    "writeReview": "اكتب مراجعة",
+    "noReviews": "لا توجد مراجعات",
+    "location": "الموقع"
+  },
+  "review": {
+    "title": "عنوان المراجعة",
+    "content": "تجربتك",
+    "rating": "التقييم",
+    "submit": "إرسال المراجعة",
+    "success": "تم إرسال المراجعة للمراجعة"
+  },
+  "profile": {
+    "title": "ملفي",
+    "myReviews": "مراجعاتي",
+    "verified": "موثق",
+    "unverified": "غير موثق",
+    "reviewCount": "المراجعات المكتوبة",
+    "language": "اللغة"
+  }
+}
