@@ -9,6 +9,8 @@ import { Link, useRouter } from '@/i18n/routing';
 import { useTranslations } from 'next-intl';
 import { useState } from 'react';
 import { toast } from 'sonner';
+import { Logo } from '@/components/brand/logo';
+import Image from 'next/image';
 
 export default function LoginPage() {
   const t = useTranslations('auth');
@@ -38,9 +40,15 @@ export default function LoginPage() {
   return (
     <AuthLayout variant="login">
       <div>
-        <h2 className="text-2xl font-bold text-ink sm:text-3xl">{t('loginTitle')}</h2>
-        <p className="mt-2 text-sm text-ink-muted sm:text-base">{tp('loginSubtitle')}</p>
-
+        <div className="flex flex-col items-center justify-between">
+        <div className="mb-4">
+          <Link href="/">
+            <Logo variant="default"/>
+          </Link>
+        </div>
+        <h2 className="text-2xl font-bold text-ink sm:text-2xl">{t('loginTitle')}</h2>
+        <p className="mt-2 text-sm text-ink-muted sm:text-center">{tp('loginSubtitle')}</p>
+        </div>
         <form onSubmit={handleSubmit} className="mt-8 space-y-5">
           <div>
             <label htmlFor="email" className="mb-1.5 block text-sm font-medium text-ink">
@@ -63,12 +71,6 @@ export default function LoginPage() {
               <label htmlFor="password" className="text-sm font-medium text-ink">
                 {t('password')}
               </label>
-              <Link
-                href="/contact"
-                className="text-sm font-medium text-brand-500 hover:text-brand-600 hover:underline"
-              >
-                {tp('forgotPassword')}
-              </Link>
             </div>
             <Input
               id="password"
@@ -81,22 +83,34 @@ export default function LoginPage() {
               className="h-11"
             />
           </div>
-
-          <label className="flex cursor-pointer items-center gap-2.5">
-            <input
-              type="checkbox"
-              checked={remember}
-              onChange={(e) => setRemember(e.target.checked)}
-              className="h-4 w-4 rounded border-slate-300 text-brand-500 focus:ring-brand-500"
-            />
-            <span className="text-sm text-ink-muted">{tp('rememberMe')}</span>
-          </label>
-
-          <Button type="submit" size="lg" className="w-full" disabled={loading}>
+          <div className="flex items-center justify-between">
+            <label className="flex cursor-pointer items-center gap-2.5">
+              <input
+                type="checkbox"
+                checked={remember}
+                onChange={(e) => setRemember(e.target.checked)}
+                className="h-4 w-4 rounded border-slate-300 text-brand-500 focus:ring-brand-500"
+              />
+              <span className="text-sm text-ink-muted">{tp('rememberMe')}</span>
+            </label>
+            <Link
+              href="/contact"
+              className="text-sm font-medium text-brand-500 hover:text-brand-600 hover:underline"
+            >
+              {tp('forgotPassword')}
+            </Link>
+          </div>
+          <Button type="submit" size="lg" className="w-full bg-gold-400 text-white hover:bg-gold-500" style={{marginTop: 50}} disabled={loading}>
             {loading ? tp('signingIn') : t('loginButton')}
           </Button>
         </form>
 
+        <p className="text-center text-sm text-ink-muted mt-4">
+          {t('noAccount')}{' '}
+          <Link href="/register" className="font-semibold text-brand-500 hover:text-brand-600 hover:underline">
+            {tn('getStarted')}
+          </Link>
+        </p>
         <div className="relative my-8">
           <div className="absolute inset-0 flex items-center">
             <div className="w-full border-t border-slate-200" />
@@ -105,13 +119,11 @@ export default function LoginPage() {
             <span className="bg-white px-3 text-ink-muted">{tp('orContinue')}</span>
           </div>
         </div>
-
-        <p className="text-center text-sm text-ink-muted">
-          {t('noAccount')}{' '}
-          <Link href="/register" className="font-semibold text-brand-500 hover:text-brand-600 hover:underline">
-            {tn('getStarted')}
-          </Link>
-        </p>
+        <div className="flex items-center justify-center gap-6">
+          <Image src="/images/fb.svg" alt="Google" width={10} height={10} />
+          <Image src="/images/x.svg" alt="Apple" width={16} height={16} />
+          <Image src="/images/google.svg" alt="Apple" width={22} height={22} />
+        </div>
       </div>
     </AuthLayout>
   );

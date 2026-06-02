@@ -1,10 +1,9 @@
 import { CompanyCard } from '@/components/company/company-card';
 import type { CompanyPublic } from '@rateq/types';
-import { Link } from '@/i18n/routing';
 import { searchMockCompanies } from '@/lib/mock-companies';
-import { ArrowRight } from 'lucide-react';
 import { getTranslations } from 'next-intl/server';
 import type { JSX } from 'react';
+import { FeaturedCompanyCard } from '../home/featured-company-card';
 
 interface RelatedCompaniesSectionProps {
   company: CompanyPublic;
@@ -14,6 +13,7 @@ export async function RelatedCompaniesSection({
   company,
 }: RelatedCompaniesSectionProps): Promise<JSX.Element> {
   const t = await getTranslations('companyPage');
+  const tc = await getTranslations('categoryPage');
 
   const params = new URLSearchParams({
     city: company.city,
@@ -23,27 +23,40 @@ export async function RelatedCompaniesSection({
 
   const result = searchMockCompanies(params);
   const related = result.data.filter((item) => item.id !== company.id).slice(0, 3);
+  const rest = result.data.filter((item) => item.id !== company.id).slice(3);
 
   if (related.length === 0) return <></>;
 
   return (
-    <section className="border-t border-slate-100 bg-slate-50/60 py-12 sm:py-16">
+    <section className="py-12 sm:py-16 lg:py-20 bg-slate-50">
       <div className="mx-auto max-w-page px-4 sm:px-6 lg:px-8">
-        <div className="mb-8 flex flex-wrap items-center justify-between gap-4">
-          <h2 className="text-2xl font-bold text-ink">{t('relatedTitle')}</h2>
-          <Link
-            href={{ pathname: '/search', query: { city: company.city } }}
-            className="inline-flex items-center gap-1 text-sm font-medium text-brand-500 hover:text-brand-600"
-          >
-            {t('viewAllInCity', { city: company.city })}
-            <ArrowRight className="h-4 w-4 rtl:rotate-180" />
-          </Link>
+        <div className="mb-8 flex flex-wrap items-end justify-between gap-4">
+          <div>
+            <h2 className="text-2xl font-bold text-ink sm:text-3xl">{t('relatedCompanies')}</h2>
+          </div>
         </div>
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {related.map((item) => (
-            <CompanyCard key={item.id} company={item} />
-          ))}
-        </div>
+
+        {related.length === 0 ? (
+          <p className="py-16 text-center text-ink-muted">{t('noResults')}</p>
+        ) : (
+          <>
+            {related.length > 0 && (
+              <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+                {related.map((company) => (
+                  <FeaturedCompanyCard key={company.id} company={company} />
+                ))}
+              </div>
+            )}
+
+            {rest.length > 0 && (
+              <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                {rest.map((company) => (
+                  <CompanyCard key={company.id} company={company} />
+                ))}
+              </div>
+            )}
+          </>
+        )}
       </div>
     </section>
   );

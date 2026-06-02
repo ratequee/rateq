@@ -326,6 +326,7 @@
     "breadcrumbAria": "مسار التنقل",
     "calculatedRating": "كيف يحسب RateQ التقييم؟",
     "home": "الرئيسية",
+    "relatedCompanies": "الشركات الأخرى التي شاهدها الأشخاص",
     "verifiedBadge": "موثق",
     "claimedBadge": "مُطالب به",
     "reviewCount": "{count} مراجعة",
@@ -346,7 +347,14 @@
     "companyReply": "رد الشركة",
     "anonymousReviewer": "مُراجع موثق",
     "relatedTitle": "شركات مشابهة",
-    "viewAllInCity": "عرض الكل في {city}"
+    "viewAllInCity": "عرض الكل في {city}",
+    "reviewsHub": {
+      "subtitle": "اقرأ ما يقوله العملاء عن {name} — {count} مراجعة على RateQ",
+      "allReviews": "جميع المراجعات",
+      "searchPlaceholder": "ابحث بالكلمة المفتاحية",
+      "topMentions": "أبرز المواضيع",
+      "noResults": "لا توجد مراجعات تطابق بحثك"
+    }
   },
   "contact": {
     "metaTitle": "اتصل بنا",
@@ -354,6 +362,21 @@
     "eyebrow": "اتصل بنا",
     "titlePrefix": "تواصل",
     "titleHighlight": "معنا",
+    "breadcrumbs": [
+      {
+        "label": "الرئيسية",
+        "href": "/"
+      },
+      {
+        "label": "اتصل بنا",
+        "href": "/contact"
+      }
+    ],
+    "breadcrumbAria": "مسار التنقل",
+    "phoneLabel": "رقم الهاتف",
+    "phonePlaceholder": "+974 0000 0000",
+    "infoTitle": "تحتاج المساعدة؟ اتصل بنا!",
+    "infoLine": "فريق الدعم هنا للمساعدة. يرجى الاتصال بنا باستخدام النموذج أو البريد الإلكتروني على support@rateq.com.",
     "titleSuffix": "",
     "subtitle": "لديك سؤال عن المراجعات أو قائمة شركتك أو منصتنا؟ يسعدنا سماعك.",
     "formTitle": "أرسل لنا رسالة",
@@ -392,7 +415,7 @@
     "faq4Answer": "نعم. RateQ ثنائي اللغة بالكامل — يمكنك استخدام المنصة والتواصل معنا بالعربية أو الإنجليزية."
   },
   "auth": {
-    "loginTitle": "مرحباً بعودتك",
+    "loginTitle": "مرحبا بك في RateQ",
     "registerTitle": "إنشاء حسابك",
     "email": "البريد الإلكتروني",
     "password": "كلمة المرور",
@@ -417,7 +440,7 @@
     "highlight2": "شركات موثوقة في جميع أنحاء قطر",
     "highlight3": "أكثر من 18 ألف عضو نشط",
     "sideFooter": "© RateQ. مراجعات موثوقة وتقييمات شفافة.",
-    "loginSubtitle": "أدخل بياناتك للوصول إلى حسابك.",
+    "loginSubtitle": "يرجى تسجيل الدخول إلى حسابك وإبدأ المغامرة.",
     "emailPlaceholder": "name@example.com",
     "passwordPlaceholder": "أدخل كلمة المرور",
     "forgotPassword": "نسيت كلمة المرور؟",

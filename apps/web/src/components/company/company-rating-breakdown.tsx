@@ -72,7 +72,7 @@ export async function CompanyRatingBreakdown({
           ))}
         </ul>
       </div>
-      <Button variant="outline" className="w-full mt-6 bg-transparent text-white border-white">
+      <Button variant="outline" className="w-full mt-6 bg-transparent text-white border-white hover:bg-transparent hover:text-white">
         {t('calculatedRating')}
       </Button>
     </section>

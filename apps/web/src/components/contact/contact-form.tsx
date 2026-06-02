@@ -22,11 +22,11 @@ export function ContactForm() {
   };
 
   return (
-    <div className="rounded-2xl border border-slate-100 bg-white p-6 shadow-card sm:p-8">
+    <div>
       <h2 className="text-xl font-bold text-ink sm:text-2xl">{t('formTitle')}</h2>
       <p className="mt-2 text-sm text-ink-muted sm:text-base">{t('formSubtitle')}</p>
 
-      <form onSubmit={handleSubmit} className="mt-6 space-y-4">
+      <form onSubmit={handleSubmit} className="mt-6 space-y-10">
         <div className="grid gap-4 sm:grid-cols-2">
           <div>
             <label htmlFor="name" className="mb-1.5 block text-sm font-medium text-ink">
@@ -47,7 +47,13 @@ export function ContactForm() {
             />
           </div>
         </div>
-
+        <div className="grid gap-4 sm:grid-cols-2">
+        <div>
+          <label htmlFor="phone" className="mb-1.5 block text-sm font-medium text-ink">
+            {t('phoneLabel')}
+          </label>
+          <Input id="phone" name="phone" required minLength={2} placeholder={t('phonePlaceholder')} />
+        </div>
         <div>
           <label htmlFor="subject" className="mb-1.5 block text-sm font-medium text-ink">
             {t('subjectLabel')}
@@ -65,7 +71,7 @@ export function ContactForm() {
             <option value="partnership">{t('subjectPartnership')}</option>
           </select>
         </div>
-
+        </div>
         <div>
           <label htmlFor="message" className="mb-1.5 block text-sm font-medium text-ink">
             {t('messageLabel')}
@@ -81,7 +87,7 @@ export function ContactForm() {
           />
         </div>
 
-        <Button type="submit" size="lg" disabled={loading} className="w-full sm:w-auto">
+        <Button type="submit" size="lg" disabled={loading} className="w-full sm:w-full bg-gold-500 text-white hover:bg-gold-600">
           {loading ? t('sending') : t('submit')}
         </Button>
       </form>

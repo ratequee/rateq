@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { StarRating } from '@/components/ui/star-rating';
 import { cn } from '@/lib/utils';
 import { useTranslations } from 'next-intl';
+import Image from 'next/image';
 
 interface CompanyReviewCardProps {
   review: ReviewPublic;
@@ -23,14 +24,15 @@ export function CompanyReviewCard({ review }: CompanyReviewCardProps) {
   const authorLabel = review.author?.email.split('@')[0] ?? tp('anonymousReviewer');
 
   return (
-    <article className="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm sm:p-6">
+    <article className="h-auto w-full self-start rounded-2xl border border-slate-100 bg-[#E5E5E5] p-5 shadow-sm sm:p-6">
       <div className="flex items-start gap-4">
-        <div
+        {/* <div
           className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-brand-100 text-sm font-bold uppercase text-brand-500"
           aria-hidden
         >
           {authorLabel.charAt(0)}
-        </div>
+        </div> */}
+        <Image src="/images/author.svg" alt="User Avatar" width={60} height={60} />
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <div>
@@ -49,14 +51,27 @@ export function CompanyReviewCard({ review }: CompanyReviewCardProps) {
               </Badge>
             )}
           </div>
-
-          <div className="mt-3 flex flex-wrap items-center gap-2">
-            <StarRating value={review.rating} size="sm" />
-            <h3 className="font-medium text-ink">{review.title}</h3>
+        </div>
+      </div>
+        <div className="w-full">
+        <div className="mt-3 flex flex-wrap items-center gap-2">
+            <StarRating value={review.rating} size="lg" />
           </div>
 
           <p className="mt-3 text-sm leading-relaxed text-ink-muted">{review.content}</p>
-
+          <hr className="my-4 border-t-1 border-slate-400" />
+          <div className="flex items-center gap-2">
+            <Image
+              src="/images/company_avatar.svg"
+              alt="Company Logo"
+              width={60}
+              height={60}
+            />
+            <div className="flex flex-col">
+            <p className="text-sm text-ink font-semibold">Company Name</p>
+            <p className="text-sm text-ink-muted">Doha, Qatar</p>
+            </div>
+          </div>
           {review.reply && (
             <div className="mt-4 rounded-xl border border-brand-100 bg-brand-50/50 p-4">
               <p className="text-xs font-semibold uppercase tracking-wide text-brand-600">
@@ -66,7 +81,6 @@ export function CompanyReviewCard({ review }: CompanyReviewCardProps) {
             </div>
           )}
         </div>
-      </div>
     </article>
   );
 }

@@ -929,8 +929,122 @@ export function getMockCompanyBySlug(slug: string): CompanyPublic | undefined {
   return company ? toPublicCompany(company) : undefined;
 }
 
+const FALLBACK_REVIEW_AUTHORS = [
+  { id: 'user-sara', email: 'sara.ahmed@example.com' },
+  { id: 'user-mohammed', email: 'mohammed.ali@example.com' },
+  { id: 'user-fatima', email: 'fatima.hassan@example.com' },
+  { id: 'user-ahmed', email: 'ahmed.khalid@example.com' },
+  { id: 'user-layla', email: 'layla.omar@example.com' },
+  { id: 'user-youssef', email: 'youssef.nasser@example.com' },
+] as const;
+
+function daysAgoIso(days: number): string {
+  const date = new Date();
+  date.setDate(date.getDate() - days);
+  return date.toISOString();
+}
+
+function buildFallbackReviews(companyId: string, companyName: string): ReviewPublic[] {
+  const templates: Omit<ReviewPublic, 'id' | 'companyId' | 'userId' | 'createdAt' | 'updatedAt' | 'author'> & {
+    userIndex: number;
+    daysAgo: number;
+    reply?: ReviewPublic['reply'];
+  }[] = [
+    {
+      userIndex: 0,
+      daysAgo: 4,
+      rating: 5,
+      title: `Excellent experience with ${companyName}`,
+      content:
+        'Everything exceeded my expectations — professional staff, clear communication, and a smooth visit from start to finish. I would happily recommend them to friends in Qatar.',
+      status: ReviewStatus.APPROVED,
+      reply: {
+        id: `reply-${companyId}-1`,
+        content: `Thank you for your kind words! The ${companyName} team appreciates your support.`,
+        createdAt: daysAgoIso(3),
+      },
+    },
+    {
+      userIndex: 1,
+      daysAgo: 12,
+      rating: 4,
+      title: 'Reliable and worth the visit',
+      content:
+        'Solid service overall. Wait times were reasonable and the quality matched what others had described online. Will return for future needs.',
+      status: ReviewStatus.APPROVED,
+    },
+    {
+      userIndex: 2,
+      daysAgo: 21,
+      rating: 5,
+      title: 'Great for families in Doha',
+      content:
+        'Took my family here last weekend and everyone left happy. Clean environment, friendly team, and fair pricing for the area.',
+      status: ReviewStatus.APPROVED,
+    },
+    {
+      userIndex: 3,
+      daysAgo: 35,
+      rating: 3,
+      title: 'Good but room to improve',
+      content:
+        'The core offering is fine, but scheduling was tighter than expected and follow-up could be faster. Still a decent option in the neighborhood.',
+      status: ReviewStatus.APPROVED,
+    },
+    {
+      userIndex: 4,
+      daysAgo: 48,
+      rating: 5,
+      title: 'Highly recommended on RateQ',
+      content:
+        `I checked reviews before choosing ${companyName} and they delivered. Transparent pricing and no surprises — exactly what you want when trying somewhere new.`,
+      status: ReviewStatus.APPROVED,
+      reply: {
+        id: `reply-${companyId}-2`,
+        content: 'We are glad RateQ helped you discover us. See you again soon!',
+        createdAt: daysAgoIso(47),
+      },
+    },
+    {
+      userIndex: 5,
+      daysAgo: 62,
+      rating: 4,
+      title: 'Consistent quality over multiple visits',
+      content:
+        'I have been back three times now and the experience has been steady each time. Staff remember returning customers, which is a nice touch.',
+      status: ReviewStatus.APPROVED,
+    },
+  ];
+
+  return templates.map((template, index) => {
+    const author = FALLBACK_REVIEW_AUTHORS[template.userIndex] ?? FALLBACK_REVIEW_AUTHORS[0];
+    const createdAt = daysAgoIso(template.daysAgo);
+
+    return {
+      id: `rev-${companyId}-fallback-${index + 1}`,
+      companyId,
+      userId: author.id,
+      rating: template.rating,
+      title: template.title,
+      content: template.content,
+      status: template.status,
+      createdAt,
+      updatedAt: createdAt,
+      author: { ...author },
+      reply: template.reply ?? null,
+    };
+  });
+}
+
 export function getMockReviewsByCompany(companyId: string): PaginatedReviewsResponse {
-  const data = MOCK_REVIEWS[companyId] ?? [];
+  const specific = MOCK_REVIEWS[companyId];
+  const company = MOCK_COMPANIES.find((item) => item.id === companyId);
+  const data =
+    specific && specific.length > 0
+      ? specific
+      : company
+        ? buildFallbackReviews(company.id, company.name)
+        : buildFallbackReviews(companyId, 'this company');
 
   return {
     data,

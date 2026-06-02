@@ -35,11 +35,13 @@ export async function CompanyReviewsSection({
           {tc('noReviews')}
         </p>
       ) : (
-        <div className="space-y-4">
+        <ul className="m-0 flex list-none flex-wrap items-start gap-4 p-0">
           {reviews.map((review) => (
-            <CompanyReviewCard key={review.id} review={review} />
+            <li key={review.id} className="w-full md:w-[calc(50%-0.5rem)]">
+              <CompanyReviewCard review={review} />
+            </li>
           ))}
-        </div>
+        </ul>
       )}
     </section>
   );

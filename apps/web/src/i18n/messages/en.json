@@ -326,6 +326,7 @@
     "breadcrumbAria": "Breadcrumb",
     "calculatedRating": "How RateQ calculates the rating?",
     "home": "Home",
+    "relatedCompanies": "People also viewed",
     "verifiedBadge": "Verified",
     "claimedBadge": "Claimed",
     "reviewCount": "{count} reviews",
@@ -346,7 +347,14 @@
     "companyReply": "Company reply",
     "anonymousReviewer": "Verified reviewer",
     "relatedTitle": "Similar companies",
-    "viewAllInCity": "View all in {city}"
+    "viewAllInCity": "View all in {city}",
+    "reviewsHub": {
+      "subtitle": "Read what customers say about {name} — {count} reviews on RateQ",
+      "allReviews": "All Reviews",
+      "searchPlaceholder": "Search By Keyword",
+      "topMentions": "Top mentions",
+      "noResults": "No reviews match your search"
+    }
   },
   "contact": {
     "metaTitle": "Contact Us",
@@ -355,11 +363,24 @@
     "titlePrefix": "Get in",
     "titleHighlight": "Touch",
     "titleSuffix": "With Us",
+    "breadcrumbs": [
+      {
+        "label": "Home",
+        "href": "/"
+      },
+      {
+        "label": "Contact",
+        "href": "/contact"
+      }
+    ],
+    "breadcrumbAria": "Breadcrumb",
     "subtitle": "Have a question about reviews, your business listing, or our platform? We'd love to hear from you.",
     "formTitle": "Send us a message",
     "formSubtitle": "Fill out the form and our team will get back to you within 1–2 business days.",
     "nameLabel": "Full name",
     "namePlaceholder": "Your name",
+    "phoneLabel": "Phone number",
+    "phonePlaceholder": "+974 0000 0000",
     "emailLabel": "Email address",
     "emailPlaceholder": "you@example.com",
     "subjectLabel": "Subject",
@@ -370,13 +391,15 @@
     "subjectPartnership": "Partnership",
     "messageLabel": "Message",
     "messagePlaceholder": "Tell us how we can help...",
-    "submit": "Send message",
+    "submit": "Send Message",
     "sending": "Sending...",
     "successMessage": "Thank you! Your message has been sent.",
     "hoursTitle": "Office hours",
     "hoursWeekdays": "Sun – Thu: 9:00 AM – 6:00 PM",
     "hoursWeekend": "Fri – Sat: Closed",
-    "mapTitle": "Find us",
+    "infoTitle": "Need Help? Contact Us!",
+    "mapTitle": "Reach Us Here",
+    "infoLine": "Our support team is here to help you. Please contact us using the form or email us at support@rateq.com.",
     "mapSubtitle": "Visit our office in West Bay, Doha",
     "mapAlt": "Map showing RateQ office location in Doha",
     "mapLocation": "West Bay, Doha, Qatar",
@@ -392,7 +415,7 @@
     "faq4Answer": "Yes. RateQ is fully bilingual — you can use the platform and contact us in English or Arabic."
   },
   "auth": {
-    "loginTitle": "Welcome back",
+    "loginTitle": "Welcome to RateQ",
     "registerTitle": "Create your account",
     "email": "Email",
     "password": "Password",
@@ -417,7 +440,7 @@
     "highlight2": "Trusted businesses across Qatar",
     "highlight3": "18K+ active community members",
     "sideFooter": "© RateQ. Trusted reviews, transparent ratings.",
-    "loginSubtitle": "Enter your credentials to access your account.",
+    "loginSubtitle": "Please sign in to your account and start the adventure.",
     "emailPlaceholder": "name@example.com",
     "passwordPlaceholder": "Enter your password",
     "forgotPassword": "Forgot password?",
