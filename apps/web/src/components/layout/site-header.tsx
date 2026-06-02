@@ -163,13 +163,12 @@ export function SiteHeader() {
           <div
             onClick={(event) => event.stopPropagation()}
             className={cn(
-              'mt-2 flex min-h-0 w-[82%] max-w-[330px] flex-1 -translate-x-full flex-col rounded-r-[34px] bg-white px-10 py-8 shadow-2xl transition-transform duration-300',
+              'mt-2 flex min-h-[calc(100vh-300px)] w-[82%] max-w-[330px] flex-1 -translate-x-full flex-col rounded-r-[34px] bg-white px-10 py-8 shadow-2xl transition-transform duration-300',
               mobileOpen ? 'translate-x-0' : '-translate-x-full',
             )}
           >
-            <Logo />
 
-            <nav className="mt-12" aria-label={t('mainNav')}>
+            <nav aria-label={t('mainNav')}>
               {NAV_LINKS.map(({ href, key }) => (
                 <Link
                   key={key}
