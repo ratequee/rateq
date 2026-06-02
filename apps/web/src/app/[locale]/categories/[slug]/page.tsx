@@ -1,7 +1,6 @@
 import { CategoryCompaniesSection } from '@/components/categories/category-companies-section';
 import { CategoryDetailHero } from '@/components/categories/category-detail-hero';
 import { CategoryFilters } from '@/components/categories/category-filters';
-import { CategoriesCtaSection } from '@/components/categories/categories-cta-section';
 import { RelatedCategoriesSection } from '@/components/categories/related-categories-section';
 import { CATEGORY_IDS, getCategoryById, type CategoryId } from '@/lib/categories';
 import { getMockCompaniesByCategory } from '@/lib/mock-companies';

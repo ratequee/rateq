@@ -13,7 +13,6 @@ export async function RelatedCompaniesSection({
   company,
 }: RelatedCompaniesSectionProps): Promise<JSX.Element> {
   const t = await getTranslations('companyPage');
-  const tc = await getTranslations('categoryPage');
 
   const params = new URLSearchParams({
     city: company.city,

@@ -945,11 +945,11 @@ function daysAgoIso(days: number): string {
 }
 
 function buildFallbackReviews(companyId: string, companyName: string): ReviewPublic[] {
-  const templates: Omit<ReviewPublic, 'id' | 'companyId' | 'userId' | 'createdAt' | 'updatedAt' | 'author'> & {
+  const templates: (Omit<ReviewPublic, 'id' | 'companyId' | 'userId' | 'createdAt' | 'updatedAt' | 'author'> & {
     userIndex: number;
     daysAgo: number;
     reply?: ReviewPublic['reply'];
-  }[] = [
+  })[] = [
     {
       userIndex: 0,
       daysAgo: 4,

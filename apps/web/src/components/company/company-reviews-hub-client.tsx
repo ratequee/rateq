@@ -19,6 +19,7 @@ interface CompanyReviewsHubClientProps {
 function authorLabel(review: ReviewPublic, fallback: string) {
   if (!review.author?.email) return fallback;
   const local = review.author.email.split('@')[0];
+  if (!local) return fallback;
   return local
     .split(/[._-]/)
     .filter(Boolean)
