@@ -136,19 +136,22 @@ export function SiteHeader() {
       <div
         id="mobile-nav"
         className={cn(
-          'fixed inset-0 z-[80] lg:hidden',
+          'fixed inset-0 z-[80] h-dvh overflow-hidden lg:hidden',
           mobileOpen ? 'pointer-events-auto' : 'pointer-events-none',
         )}
         onClick={() => setMobileOpen(false)}
+        aria-hidden={!mobileOpen}
       >
         <div
           className={cn(
-            'flex min-h-dvh w-screen flex-col bg-[#171A22]/92 px-6 pb-10 pt-7 transition-opacity duration-300',
+            'flex h-full flex-col bg-[#171A22]/92 px-6 pb-4 pt-7 transition-opacity duration-300',
             mobileOpen ? 'opacity-100' : 'opacity-0',
           )}
         >
-          <div className="mb-4 flex items-center justify-between">
-            <p className="text-[44px] font-medium leading-none tracking-tight text-white/55">{t('menu')}</p>
+          <div className="mb-3 flex shrink-0 items-center justify-between">
+            <p className="text-3xl font-medium leading-none tracking-tight text-white/55 sm:text-[44px]">
+              {t('menu')}
+            </p>
             <button
               type="button"
               onClick={() => setMobileOpen(false)}
@@ -158,50 +161,51 @@ export function SiteHeader() {
               <X className="h-6 w-6" />
             </button>
           </div>
-          <div className="mb-4 h-px w-full bg-white/20" />
+          <div className="mb-3 h-px w-full shrink-0 bg-white/20" />
 
           <div
             onClick={(event) => event.stopPropagation()}
             className={cn(
-              'mt-2 flex min-h-[calc(100vh-300px)] w-[82%] max-w-[330px] flex-1 -translate-x-full flex-col rounded-r-[34px] bg-white px-10 py-8 shadow-2xl transition-transform duration-300',
+              'flex min-h-0 w-[82%] max-w-[330px] flex-1 flex-col overflow-hidden rounded-r-[34px] bg-white shadow-2xl transition-transform duration-300',
               mobileOpen ? 'translate-x-0' : '-translate-x-full',
             )}
           >
-
-            <nav aria-label={t('mainNav')}>
-              {NAV_LINKS.map(({ href, key }) => (
-                <Link
-                  key={key}
-                  href={href}
-                  onClick={() => setMobileOpen(false)}
-                  className={cn(
-                    'block border-b border-slate-200 py-4 text-[18px] font-medium leading-[1.3] text-ink transition-colors hover:text-brand-500',
-                    isActive(href) && 'text-brand-500',
-                  )}
-                >
-                  {t(key)}
-                </Link>
-              ))}
-            </nav>
-
-            <div className="mt-auto space-y-4 pt-12">
-              <Button variant="ghost" size="sm" onClick={switchLocale} className="w-full">
-                <Globe className="h-4 w-4" />
-                {locale === 'en' ? 'العربية' : 'English'}
-              </Button>
-
-              {!isLoading && !user && (
-                <>
-                  <Link href="/login" onClick={() => setMobileOpen(false)}>
-                    <Button variant="outline-brand" className="h-12 w-full rounded-xl my-4">
-                      {t('login')}
-                    </Button>
+            <div className="flex min-h-0 flex-1 flex-col overflow-y-auto overscroll-contain px-8 py-6 pb-[max(1.5rem,env(safe-area-inset-bottom))]">
+              <nav aria-label={t('mainNav')}>
+                {NAV_LINKS.map(({ href, key }) => (
+                  <Link
+                    key={key}
+                    href={href}
+                    onClick={() => setMobileOpen(false)}
+                    className={cn(
+                      'block border-b border-slate-200 py-3 text-[18px] font-medium leading-[1.3] text-ink transition-colors hover:text-brand-500',
+                      isActive(href) && 'text-brand-500',
+                    )}
+                  >
+                    {t(key)}
                   </Link>
-                  <Link href="/register" onClick={() => setMobileOpen(false)}>
-                    <Button className="h-12 w-full rounded-xl">{t('getStarted')}</Button>
-                  </Link>
-                </>
-              )}
+                ))}
+              </nav>
+
+              <div className="mt-auto space-y-3 pt-6">
+                <Button variant="ghost" size="sm" onClick={switchLocale} className="w-full">
+                  <Globe className="h-4 w-4" />
+                  {locale === 'en' ? 'العربية' : 'English'}
+                </Button>
+
+                {!isLoading && !user && (
+                  <>
+                    <Link href="/login" onClick={() => setMobileOpen(false)}>
+                      <Button variant="outline-brand" className="h-11 w-full rounded-xl">
+                        {t('login')}
+                      </Button>
+                    </Link>
+                    <Link href="/register" onClick={() => setMobileOpen(false)}>
+                      <Button className="h-11 w-full rounded-xl">{t('getStarted')}</Button>
+                    </Link>
+                  </>
+                )}
+              </div>
             </div>
           </div>
         </div>
