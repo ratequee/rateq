@@ -28,6 +28,7 @@
     "admin": "Admin",
     "myReviews": "My reviews",
     "mainNav": "Main navigation",
+    "menu": "Menu",
     "openMenu": "Open menu",
     "closeMenu": "Close menu",
     "switchLanguage": "Switch language"
@@ -416,7 +417,8 @@
   },
   "auth": {
     "loginTitle": "Welcome to RateQ",
-    "registerTitle": "Create your account",
+    "registerTitle": "Welcome to RateQ",
+    "name": "Name",
     "email": "Email",
     "password": "Password",
     "confirmPassword": "Confirm password",
@@ -424,7 +426,7 @@
     "user": "Reviewer",
     "company": "Business",
     "loginButton": "Log in",
-    "registerButton": "Create account",
+    "registerButton": "Sign Up",
     "noAccount": "Don't have an account?",
     "hasAccount": "Already have an account?",
     "verifyNotice": "Please verify your email before submitting reviews."
@@ -441,6 +443,7 @@
     "highlight3": "18K+ active community members",
     "sideFooter": "© RateQ. Trusted reviews, transparent ratings.",
     "loginSubtitle": "Please sign in to your account and start the adventure.",
+    "namePlaceholder": "Enter your name",
     "emailPlaceholder": "name@example.com",
     "passwordPlaceholder": "Enter your password",
     "forgotPassword": "Forgot password?",
@@ -449,7 +452,7 @@
     "loginSuccess": "Welcome back!",
     "loginError": "Invalid email or password.",
     "orContinue": "or",
-    "registerSubtitle": "Choose your account type and create your RateQ profile.",
+    "registerSubtitle": "Please register and start the adventure.",
     "userDescription": "Write reviews and discover trusted companies.",
     "companyDescription": "Claim your profile and respond to customer reviews.",
     "confirmPasswordPlaceholder": "Re-enter your password",

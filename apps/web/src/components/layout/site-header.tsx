@@ -7,7 +7,7 @@ import { Link, usePathname, useRouter } from '@/i18n/routing';
 import { UserRole } from '@rateq/types';
 import { useLocale, useTranslations } from 'next-intl';
 import { Globe, X } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { cn } from '@/lib/utils';
 import Image from 'next/image';
 
@@ -31,6 +31,20 @@ export function SiteHeader() {
     const next = locale === 'en' ? 'ar' : 'en';
     router.replace(pathname, { locale: next });
   };
+
+  useEffect(() => {
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setMobileOpen(false);
+    };
+
+    document.addEventListener('keydown', onKeyDown);
+    document.body.style.overflow = mobileOpen ? 'hidden' : '';
+
+    return () => {
+      document.removeEventListener('keydown', onKeyDown);
+      document.body.style.overflow = '';
+    };
+  }, [mobileOpen]);
 
   return (
     <header className="sticky top-0 z-50 border-b border-slate-100 bg-gradient-to-b from-white via-white to-slate-50/80 backdrop-blur-md">
@@ -122,42 +136,76 @@ export function SiteHeader() {
       <div
         id="mobile-nav"
         className={cn(
-          'border-t border-slate-100 bg-white lg:hidden',
-          mobileOpen ? 'block' : 'hidden',
+          'fixed inset-0 z-[80] lg:hidden',
+          mobileOpen ? 'pointer-events-auto' : 'pointer-events-none',
         )}
+        onClick={() => setMobileOpen(false)}
       >
-        <nav className="mx-auto max-w-page space-y-1 px-4 py-4 sm:px-6" aria-label={t('mainNav')}>
-          {NAV_LINKS.map(({ href, key }) => (
-            <Link
-              key={key}
-              href={href}
-              onClick={() => setMobileOpen(false)}
-              className={cn("block rounded-lg px-3 py-2.5 text-sm font-medium text-ink hover:bg-brand-50 hover:text-brand-500 pb-2", isActive(href) && 'text-brand-500')}
-            >
-              {t(key)}
-            </Link>
-          ))}
-
-          <div className="flex items-center gap-2 border-t border-slate-100 pt-4">
-            <Button variant="ghost" size="sm" onClick={switchLocale} className="flex-1">
-              <Globe className="h-4 w-4" />
-              {locale === 'en' ? 'العربية' : 'English'}
-            </Button>
-          </div>
-
-          {!isLoading && !user && (
-            <div className="flex flex-col gap-2 pt-2">
-              <Link href="/login" onClick={() => setMobileOpen(false)}>
-                <Button variant="outline-brand" className="w-full">
-                  {t('login')}
-                </Button>
-              </Link>
-              <Link href="/register" onClick={() => setMobileOpen(false)}>
-                <Button className="w-full">{t('getStarted')}</Button>
-              </Link>
-            </div>
+        <div
+          className={cn(
+            'flex min-h-dvh w-screen flex-col bg-[#171A22]/92 px-6 pb-10 pt-7 transition-opacity duration-300',
+            mobileOpen ? 'opacity-100' : 'opacity-0',
           )}
-        </nav>
+        >
+          <div className="mb-4 flex items-center justify-between">
+            <p className="text-[44px] font-medium leading-none tracking-tight text-white/55">{t('menu')}</p>
+            <button
+              type="button"
+              onClick={() => setMobileOpen(false)}
+              aria-label={t('closeMenu')}
+              className="rounded-full p-2 text-white/80 hover:bg-white/10 hover:text-white"
+            >
+              <X className="h-6 w-6" />
+            </button>
+          </div>
+          <div className="mb-4 h-px w-full bg-white/20" />
+
+          <div
+            onClick={(event) => event.stopPropagation()}
+            className={cn(
+              'mt-2 flex min-h-0 w-[82%] max-w-[330px] flex-1 -translate-x-full flex-col rounded-r-[34px] bg-white px-10 py-8 shadow-2xl transition-transform duration-300',
+              mobileOpen ? 'translate-x-0' : '-translate-x-full',
+            )}
+          >
+            <Logo />
+
+            <nav className="mt-12" aria-label={t('mainNav')}>
+              {NAV_LINKS.map(({ href, key }) => (
+                <Link
+                  key={key}
+                  href={href}
+                  onClick={() => setMobileOpen(false)}
+                  className={cn(
+                    'block border-b border-slate-200 py-4 text-[18px] font-medium leading-[1.3] text-ink transition-colors hover:text-brand-500',
+                    isActive(href) && 'text-brand-500',
+                  )}
+                >
+                  {t(key)}
+                </Link>
+              ))}
+            </nav>
+
+            <div className="mt-auto space-y-4 pt-12">
+              <Button variant="ghost" size="sm" onClick={switchLocale} className="w-full">
+                <Globe className="h-4 w-4" />
+                {locale === 'en' ? 'العربية' : 'English'}
+              </Button>
+
+              {!isLoading && !user && (
+                <>
+                  <Link href="/login" onClick={() => setMobileOpen(false)}>
+                    <Button variant="outline-brand" className="h-12 w-full rounded-xl my-4">
+                      {t('login')}
+                    </Button>
+                  </Link>
+                  <Link href="/register" onClick={() => setMobileOpen(false)}>
+                    <Button className="h-12 w-full rounded-xl">{t('getStarted')}</Button>
+                  </Link>
+                </>
+              )}
+            </div>
+          </div>
+        </div>
       </div>
     </header>
   );

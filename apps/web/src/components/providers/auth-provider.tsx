@@ -18,7 +18,7 @@ interface AuthContextValue {
   user: AuthenticatedUser | null;
   isLoading: boolean;
   login: (email: string, password: string) => Promise<void>;
-  register: (data: { email: string; password: string; role?: string }) => Promise<void>;
+  register: (data: { email: string; password: string; name: string }) => Promise<void>;
   logout: () => void;
   setSession: (response: AuthResponse) => void;
 }
