@@ -1,4 +1,5 @@
 import type { AuthTokens, AuthenticatedUser } from '@rateq/types';
+import { clearStoredProfile } from '@/lib/profile-storage';
 
 const ACCESS_KEY = 'rateq_access_token';
 const REFRESH_KEY = 'rateq_refresh_token';
@@ -14,6 +15,7 @@ export function clearAuth(): void {
   localStorage.removeItem(ACCESS_KEY);
   localStorage.removeItem(REFRESH_KEY);
   localStorage.removeItem(USER_KEY);
+  clearStoredProfile();
 }
 
 export function getAccessToken(): string | null {

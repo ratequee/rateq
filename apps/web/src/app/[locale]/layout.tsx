@@ -1,6 +1,6 @@
 import { AuthProvider } from '@/components/providers/auth-provider';
+import { AppShell } from '@/components/layout/app-shell';
 import { SiteFooter } from '@/components/layout/site-footer';
-import { SiteHeader } from '@/components/layout/site-header';
 import { routing } from '@/i18n/routing';
 import { NextIntlClientProvider } from 'next-intl';
 import { getMessages } from 'next-intl/server';
@@ -47,11 +47,7 @@ export default async function LocaleLayout({
       >
         <NextIntlClientProvider messages={messages}>
           <AuthProvider>
-            <div className="flex min-h-screen flex-col">
-              <SiteHeader />
-              <main className="flex-1">{children}</main>
-              <SiteFooter />
-            </div>
+            <AppShell footer={<SiteFooter />}>{children}</AppShell>
             <Toaster richColors position={isRtl ? 'top-left' : 'top-right'} />
           </AuthProvider>
         </NextIntlClientProvider>

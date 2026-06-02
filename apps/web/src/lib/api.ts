@@ -105,6 +105,12 @@ export const authApi = {
       body: JSON.stringify({ refreshToken }),
       token: null,
     }),
+  forgotPassword: (email: string) =>
+    apiClient<MessageResponse>('/auth/forgot-password', {
+      method: 'POST',
+      body: JSON.stringify({ email }),
+      token: null,
+    }),
 };
 
 // Companies

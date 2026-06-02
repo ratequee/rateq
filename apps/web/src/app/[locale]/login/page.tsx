@@ -6,6 +6,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ApiError } from '@/lib/api';
 import { Link, useRouter } from '@/i18n/routing';
+import { getPostAuthRedirect } from '@/lib/profile-routing';
+import { getStoredUser } from '@/lib/auth-storage';
 import { useTranslations } from 'next-intl';
 import { useState } from 'react';
 import { toast } from 'sonner';
@@ -31,7 +33,8 @@ export default function LoginPage() {
     try {
       await login(email, password);
       toast.success(tp('loginSuccess'));
-      router.push('/');
+      const currentUser = getStoredUser();
+      router.push(currentUser ? getPostAuthRedirect(currentUser) : '/complete-profile');
     } catch (err) {
       toast.error(err instanceof ApiError ? err.message : tp('loginError'));
     } finally {
@@ -106,7 +109,7 @@ export default function LoginPage() {
               <span className="text-sm text-ink-muted">{tp('rememberMe')}</span>
             </label>
             <Link
-              href="/contact"
+              href="/forgot-password"
               className="text-sm font-medium text-brand-500 hover:text-brand-600 hover:underline"
             >
               {tp('forgotPassword')}

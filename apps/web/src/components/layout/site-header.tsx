@@ -152,14 +152,6 @@ export function SiteHeader() {
             <p className="text-3xl font-medium leading-none tracking-tight text-white/55 sm:text-[44px]">
               {t('menu')}
             </p>
-            <button
-              type="button"
-              onClick={() => setMobileOpen(false)}
-              aria-label={t('closeMenu')}
-              className="rounded-full p-2 text-white/80 hover:bg-white/10 hover:text-white"
-            >
-              <X className="h-6 w-6" />
-            </button>
           </div>
           <div className="mb-3 h-px w-full shrink-0 bg-white/20" />
 
@@ -196,7 +188,7 @@ export function SiteHeader() {
                 {!isLoading && !user && (
                   <>
                     <Link href="/login" onClick={() => setMobileOpen(false)}>
-                      <Button variant="outline-brand" className="h-11 w-full rounded-xl">
+                      <Button variant="outline-brand" className="h-11 w-full rounded-xl my-4">
                         {t('login')}
                       </Button>
                     </Link>

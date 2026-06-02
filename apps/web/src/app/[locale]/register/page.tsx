@@ -30,9 +30,12 @@ export default function RegisterPage() {
 
     setLoading(true);
     try {
+      if (name.trim()) {
+        localStorage.setItem('rateq_pending_name', name.trim());
+      }
       await register({ email, password, name });
       toast.success(tp('registerSuccess'));
-      router.push(true ? '/dashboard/company' : '/');
+      router.push('/complete-profile');
     } catch (err) {
       toast.error(err instanceof ApiError ? err.message : tp('registerError'));
     } finally {
