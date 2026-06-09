@@ -6,7 +6,6 @@ import { Input } from '@/components/ui/input';
 import { StarRating } from '@/components/ui/star-rating';
 import { ApiError, reviewsApi } from '@/lib/api';
 import { ensureValidAccessToken } from '@/lib/auth-session';
-import { cn } from '@/lib/utils';
 import type { ReviewPublic } from '@rateq/types';
 import { useTranslations } from 'next-intl';
 import { useState } from 'react';

@@ -70,7 +70,8 @@ export function latLngToOverlayPercent(
 
 export function enrichCompaniesWithNearbyLocations(companies: CompanyPublic[]): NearbyCompany[] {
   return companies.map((company, index) => {
-    const coordinate = NEARBY_COORDINATES[index % NEARBY_COORDINATES.length];
+    const coordinate =
+      NEARBY_COORDINATES[index % NEARBY_COORDINATES.length] ?? NEARBY_COORDINATES[0]!;
     const distanceMeters = haversineDistanceMeters(
       NEARBY_USER_LOCATION.latitude,
       NEARBY_USER_LOCATION.longitude,

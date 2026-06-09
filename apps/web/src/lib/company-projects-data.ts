@@ -27,6 +27,6 @@ export function getCompanyProjects(_companyId: string): CompanyProject[] {
   return PROJECT_TITLES.map((title, index) => ({
     id: `project-${index + 1}`,
     title,
-    imageUrl: PROJECT_IMAGES[index % PROJECT_IMAGES.length],
+    imageUrl: PROJECT_IMAGES[index % PROJECT_IMAGES.length] ?? PROJECT_IMAGES[0]!,
   }));
 }

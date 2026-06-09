@@ -79,7 +79,7 @@ export function LocaleSwitcher({ className, variant = 'header' }: LocaleSwitcher
   const [open, setOpen] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
 
-  const current = LOCALES.find((item) => item.code === locale) ?? LOCALES[0];
+  const current = LOCALES.find((item) => item.code === locale) ?? LOCALES[0]!;
 
   const switchTo = (next: 'en' | 'ar') => {
     setOpen(false);

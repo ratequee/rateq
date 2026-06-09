@@ -1,6 +1,5 @@
-import type { Config } from 'tailwindcss';
-
-const preset: Partial<Config> = {
+/** @type {import('tailwindcss').Config} */
+const preset = {
   theme: {
     extend: {
       colors: {
@@ -47,4 +46,4 @@ const preset: Partial<Config> = {
   plugins: [],
 };
 
-export default preset;
+module.exports = preset;

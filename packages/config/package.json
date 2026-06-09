@@ -9,7 +9,7 @@
     "./typescript/base.json": "./typescript/base.json",
     "./typescript/nest.json": "./typescript/nest.json",
     "./typescript/next.json": "./typescript/next.json",
-    "./tailwind/preset": "./tailwind/preset.ts"
+    "./tailwind/preset": "./tailwind/preset.js"
   },
   "devDependencies": {
     "@typescript-eslint/eslint-plugin": "^8.19.0",
