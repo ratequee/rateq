@@ -17,7 +17,10 @@ export class ReviewAuthorDto {
   id!: string;
 
   @ApiProperty()
-  email!: string;
+  displayName!: string;
+
+  @ApiPropertyOptional({ nullable: true })
+  avatarUrl!: string | null;
 }
 
 export class ReviewPublicDto {

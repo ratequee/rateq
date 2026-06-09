@@ -12,6 +12,7 @@ import { UsersModule } from './modules/users/users.module';
 import { CompaniesModule } from './modules/companies/companies.module';
 import { ReviewsModule } from './modules/reviews/reviews.module';
 import { ModerationModule } from './modules/moderation/moderation.module';
+import { CategoriesModule } from './modules/categories/categories.module';
 
 /**
  * Root application module — modular monolith.
@@ -41,6 +42,7 @@ import { ModerationModule } from './modules/moderation/moderation.module';
     CompaniesModule,
     ReviewsModule,
     ModerationModule,
+    CategoriesModule,
   ],
   providers: [
     {

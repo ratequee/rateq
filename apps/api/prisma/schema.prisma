@@ -34,6 +34,12 @@ enum ModerationAction {
   FLAGGED
 }
 
+enum CompanyVerificationStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
 // ---------------------------------------------------------------------------
 // Users
 // ---------------------------------------------------------------------------
@@ -41,13 +47,16 @@ enum ModerationAction {
 model User {
   id           String   @id @default(cuid())
   email        String   @unique
-  passwordHash String   @map("password_hash")
+  displayName  String?  @map("display_name")
+  firebaseUid  String?  @unique @map("firebase_uid")
+  passwordHash String?  @map("password_hash")
   role         UserRole @default(USER)
   isVerified   Boolean  @default(false) @map("is_verified")
   reviewCount  Int      @default(0) @map("review_count")
   createdAt    DateTime @default(now()) @map("created_at")
   updatedAt    DateTime @updatedAt @map("updated_at")
 
+  profile            UserProfile?
   reviews            Review[]
   ownedCompanies     Company[]          @relation("CompanyOwner")
   refreshTokens      RefreshToken[]
@@ -57,6 +66,23 @@ model User {
   @@index([role])
   @@index([createdAt])
   @@map("users")
+}
+
+model UserProfile {
+  id        String   @id @default(cuid())
+  userId    String   @unique @map("user_id")
+  fullName  String   @map("full_name")
+  phone     String
+  city      String
+  country   String
+  bio       String   @default("") @db.Text
+  avatarUrl String?  @map("avatar_url")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("user_profiles")
 }
 
 model RefreshToken {
@@ -100,28 +126,55 @@ model PasswordReset {
 }
 
 // ---------------------------------------------------------------------------
+// Categories
+// ---------------------------------------------------------------------------
+
+model Category {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  slug      String   @unique
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  companies Company[]
+
+  @@map("categories")
+}
+
+// ---------------------------------------------------------------------------
 // Companies
 // ---------------------------------------------------------------------------
 
 model Company {
-  id            String   @id @default(cuid())
-  ownerId       String?  @unique @map("owner_id")
-  name          String
-  slug          String   @unique
-  description   String?  @db.Text
-  logo          String?
-  country       String
-  city          String
-  ratingAverage Decimal  @default(0) @map("rating_average") @db.Decimal(3, 2)
-  reviewCount   Int      @default(0) @map("review_count")
-  createdAt     DateTime @default(now()) @map("created_at")
-  updatedAt     DateTime @updatedAt @map("updated_at")
+  id                 String                    @id @default(cuid())
+  ownerId            String?                   @unique @map("owner_id")
+  categoryId         String?                   @map("category_id")
+  name               String
+  slug               String                    @unique
+  email              String?
+  phone              String?
+  description        String?                   @db.Text
+  logo               String?
+  coverUrl           String?                   @map("cover_url")
+  address            String?                   @db.Text
+  crNumber           String?                   @map("cr_number")
+  validationDate     DateTime?                 @map("validation_date")
+  registrationDocUrl String?                   @map("registration_doc_url")
+  verificationStatus CompanyVerificationStatus @default(PENDING) @map("verification_status")
+  country            String
+  city               String
+  ratingAverage      Decimal                   @default(0) @map("rating_average") @db.Decimal(3, 2)
+  reviewCount        Int                       @default(0) @map("review_count")
+  createdAt          DateTime                  @default(now()) @map("created_at")
+  updatedAt          DateTime                  @updatedAt @map("updated_at")
 
-  owner        User?         @relation("CompanyOwner", fields: [ownerId], references: [id], onDelete: SetNull)
-  reviews      Review[]
+  owner         User?         @relation("CompanyOwner", fields: [ownerId], references: [id], onDelete: SetNull)
+  category      Category?     @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  reviews       Review[]
   reviewReplies ReviewReply[]
 
   @@index([country, city])
+  @@index([categoryId])
   @@index([ratingAverage])
   @@index([name])
   @@map("companies")

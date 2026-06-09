@@ -2,18 +2,19 @@
 
 import { AuthLayout } from '@/components/auth/auth-layout';
 import { Logo } from '@/components/brand/logo';
+import { useAuth } from '@/components/providers/auth-provider';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Link } from '@/i18n/routing';
-import { ApiError, authApi } from '@/lib/api';
+import { getFirebaseAuthErrorMessage } from '@/lib/firebase/errors';
 import { useTranslations } from 'next-intl';
-import Image from 'next/image';
 import { useState } from 'react';
 import { toast } from 'sonner';
 
 export default function ForgotPasswordPage() {
   const t = useTranslations('auth');
   const tp = useTranslations('authPage');
+  const { resetPassword } = useAuth();
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
@@ -23,11 +24,11 @@ export default function ForgotPasswordPage() {
     setLoading(true);
 
     try {
-      await authApi.forgotPassword(email);
+      await resetPassword(email);
       setSubmitted(true);
       toast.success(tp('forgotPasswordSuccess'));
     } catch (err) {
-      toast.error(err instanceof ApiError ? err.message : tp('forgotPasswordError'));
+      toast.error(getFirebaseAuthErrorMessage(err, tp('forgotPasswordError')));
     } finally {
       setLoading(false);
     }
@@ -43,7 +44,9 @@ export default function ForgotPasswordPage() {
             </Link>
           </div>
           <h2 className="text-2xl font-bold text-ink sm:text-2xl">{t('forgotPasswordTitle')}</h2>
-          <p className="mt-2 text-sm text-ink-muted sm:text-center">{tp('forgotPasswordSubtitle')}</p>
+          <p className="mt-2 text-sm text-ink-muted sm:text-center">
+            {tp('forgotPasswordSubtitle')}
+          </p>
         </div>
 
         {submitted ? (
@@ -98,20 +101,6 @@ export default function ForgotPasswordPage() {
             </Link>
           </p>
         )}
-
-        <div className="relative my-8">
-          <div className="absolute inset-0 flex items-center">
-            <div className="w-full border-t border-slate-200" />
-          </div>
-          <div className="relative flex justify-center text-xs uppercase">
-            <span className="bg-white px-3 text-ink-muted">{tp('orContinue')}</span>
-          </div>
-        </div>
-        <div className="flex items-center justify-center gap-6">
-          <Image src="/images/fb.svg" alt="Facebook" width={10} height={10} />
-          <Image src="/images/x.svg" alt="X" width={16} height={16} />
-          <Image src="/images/google.svg" alt="Google" width={22} height={22} />
-        </div>
       </div>
     </AuthLayout>
   );

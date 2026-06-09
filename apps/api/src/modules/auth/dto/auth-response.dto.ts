@@ -8,6 +8,9 @@ export class AuthenticatedUserDto {
   @ApiProperty()
   email!: string;
 
+  @ApiProperty({ nullable: true })
+  displayName!: string | null;
+
   @ApiProperty({ enum: UserRole })
   role!: UserRole;
 

@@ -1,15 +1,24 @@
 'use client';
 
 import { AuthLayout } from '@/components/auth/auth-layout';
+import { GoogleSignInButton } from '@/components/auth/google-sign-in-button';
 import { useAuth } from '@/components/providers/auth-provider';
+import { useProfile } from '@/components/providers/profile-provider';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { ApiError } from '@/lib/api';
 import { Link, useRouter } from '@/i18n/routing';
+import { isEmailVerificationPendingError } from '@/lib/auth-flow-errors';
+import { getPostAuthRedirect } from '@/lib/profile-routing';
+import type { AuthenticatedUser } from '@rateq/types';
+import { getFirebaseAuthErrorMessage } from '@/lib/firebase/errors';
+import {
+  sanitizeDisplayName,
+  validateRegisterFields,
+  type RegisterFieldErrors,
+} from '@/lib/validation/auth-fields';
 import { useTranslations } from 'next-intl';
 import { useState } from 'react';
 import { toast } from 'sonner';
-import Image from 'next/image';
 import { Logo } from '@/components/brand/logo';
 import { Eye, EyeOff } from 'lucide-react';
 
@@ -24,20 +33,64 @@ export default function RegisterPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [name, setName] = useState('');
   const [loading, setLoading] = useState(false);
+  const [fieldErrors, setFieldErrors] = useState<RegisterFieldErrors>({});
+
+  const validationMessages = {
+    name: {
+      required: tp('validationNameRequired'),
+      invalid: tp('validationNameInvalid'),
+      min: tp('validationNameMin'),
+      max: tp('validationNameMax'),
+    },
+    email: {
+      required: tp('validationEmailRequired'),
+      invalid: tp('validationEmailInvalid'),
+    },
+    password: {
+      required: tp('validationPasswordRequired'),
+      min: tp('validationPasswordMin'),
+      max: tp('validationPasswordMax'),
+      weak: tp('validationPasswordWeak'),
+    },
+  };
+
+  const { refreshOnboarding } = useProfile();
+
+  const redirectAfterAuth = async (sessionUser: AuthenticatedUser) => {
+    const status = await refreshOnboarding();
+    await router.push(getPostAuthRedirect(sessionUser, status));
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    const errors = validateRegisterFields({ name, email, password }, validationMessages);
+
+    if (Object.keys(errors).length > 0) {
+      setFieldErrors(errors);
+      return;
+    }
+
+    setFieldErrors({});
     setLoading(true);
+
     try {
-      if (name.trim()) {
-        localStorage.setItem('rateq_pending_name', name.trim());
-      }
-      await register({ email, password, name });
-      toast.success(tp('registerSuccess'));
-      router.push('/complete-profile');
+      const trimmedName = name.trim();
+      localStorage.setItem('rateq_pending_name', trimmedName);
+
+      await register({
+        email: email.trim().toLowerCase(),
+        password,
+        name: trimmedName,
+      });
     } catch (err) {
-      toast.error(err instanceof ApiError ? err.message : tp('registerError'));
+      if (isEmailVerificationPendingError(err)) {
+        toast.success(tp('registerVerificationSent'));
+        router.push(`/check-email?email=${encodeURIComponent(err.email)}`);
+        return;
+      }
+
+      toast.error(getFirebaseAuthErrorMessage(err, tp('registerError')));
     } finally {
       setLoading(false);
     }
@@ -47,13 +100,13 @@ export default function RegisterPage() {
     <AuthLayout variant="register">
       <div>
         <div className="flex flex-col items-center justify-between">
-        <div className="mb-4">
-          <Link href="/">
-            <Logo variant="default"/>
-          </Link>
-        </div>
-        <h2 className="text-2xl font-bold text-ink sm:text-2xl">{t('registerTitle')}</h2>
-        <p className="mt-2 text-sm text-ink-muted sm:text-center">{tp('registerSubtitle')}</p>
+          <div className="mb-4">
+            <Link href="/">
+              <Logo variant="default" />
+            </Link>
+          </div>
+          <h2 className="text-2xl font-bold text-ink sm:text-2xl">{t('registerTitle')}</h2>
+          <p className="mt-2 text-sm text-ink-muted sm:text-center">{tp('registerSubtitle')}</p>
         </div>
         <form onSubmit={handleSubmit} className="mt-8 space-y-5">
           <div>
@@ -61,15 +114,18 @@ export default function RegisterPage() {
               {t('name')}
             </label>
             <Input
-              id="email"
+              id="name"
               type="text"
-              autoComplete='name'
+              autoComplete="name"
               value={name}
-              onChange={(e) => setName(e.target.value)}
+              onChange={(e) => setName(sanitizeDisplayName(e.target.value))}
+              onBlur={() => setName((prev) => prev.trim())}
               placeholder={tp('namePlaceholder')}
               required
               className="h-11"
+              aria-invalid={Boolean(fieldErrors.name)}
             />
+            {fieldErrors.name && <p className="mt-1 text-sm text-red-600">{fieldErrors.name}</p>}
           </div>
           <div>
             <label htmlFor="email" className="mb-1.5 block text-sm font-medium text-ink">
@@ -84,7 +140,9 @@ export default function RegisterPage() {
               placeholder={tp('emailPlaceholder')}
               required
               className="h-11"
+              aria-invalid={Boolean(fieldErrors.email)}
             />
+            {fieldErrors.email && <p className="mt-1 text-sm text-red-600">{fieldErrors.email}</p>}
           </div>
 
           <div>
@@ -97,31 +155,45 @@ export default function RegisterPage() {
               <Input
                 id="password"
                 type={showPassword ? 'text' : 'password'}
-                autoComplete="current-password"
+                autoComplete="new-password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder={tp('passwordPlaceholder')}
                 required
                 className="h-11 pe-10"
+                aria-invalid={Boolean(fieldErrors.password)}
               />
               <button
                 type="button"
                 onClick={() => setShowPassword((prev) => !prev)}
                 className="absolute end-3 top-1/2 -translate-y-1/2 text-ink-muted transition-colors hover:text-ink"
-                aria-label={showPassword ? 'Hide password' : 'Show password'}
+                aria-label={showPassword ? tp('hidePassword') : tp('showPassword')}
               >
                 {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
               </button>
             </div>
+            {fieldErrors.password && (
+              <p className="mt-1 text-sm text-red-600">{fieldErrors.password}</p>
+            )}
+            <p className="mt-1 text-xs text-ink-muted">{tp('passwordHint')}</p>
           </div>
-          <Button type="submit" size="lg" className="w-full bg-gold-400 text-white hover:bg-gold-500" style={{marginTop: 50}} disabled={loading}>
-          {loading ? tp('creatingAccount') : t('registerButton')}
+          <Button
+            type="submit"
+            size="lg"
+            className="w-full bg-gold-400 text-white hover:bg-gold-500"
+            style={{ marginTop: 50 }}
+            disabled={loading}
+          >
+            {loading ? tp('creatingAccount') : t('registerButton')}
           </Button>
         </form>
 
-        <p className="text-center text-sm text-ink-muted mt-4">
+        <p className="mt-4 text-center text-sm text-ink-muted">
           {t('hasAccount')}{' '}
-          <Link href="/login" className="font-semibold text-brand-500 hover:text-brand-600 hover:underline">
+          <Link
+            href="/login"
+            className="font-semibold text-brand-500 hover:text-brand-600 hover:underline"
+          >
             {tn('login')}
           </Link>
         </p>
@@ -134,9 +206,11 @@ export default function RegisterPage() {
           </div>
         </div>
         <div className="flex items-center justify-center gap-6">
-          <Image src="/images/fb.svg" alt="Google" width={10} height={10} />
-          <Image src="/images/x.svg" alt="Apple" width={16} height={16} />
-          <Image src="/images/google.svg" alt="Apple" width={22} height={22} />
+          <GoogleSignInButton
+            onSuccess={async (sessionUser) => {
+              await redirectAfterAuth(sessionUser);
+            }}
+          />
         </div>
       </div>
     </AuthLayout>

@@ -1,19 +1,23 @@
 import { CategoryCard } from '@/components/categories/category-card';
-import { getRelatedCategories, type CategoryDefinition } from '@/lib/categories';
+import { fetchCategories, getRelatedCategories } from '@/lib/categories-data';
 import { Link } from '@/i18n/routing';
+import type { CategoryPublic } from '@rateq/types';
 import { ArrowRight } from 'lucide-react';
 import { getTranslations } from 'next-intl/server';
 import type { JSX } from 'react';
 
 interface RelatedCategoriesSectionProps {
-  category: CategoryDefinition;
+  category: CategoryPublic;
 }
 
 export async function RelatedCategoriesSection({
   category,
 }: RelatedCategoriesSectionProps): Promise<JSX.Element> {
   const t = await getTranslations('categoryPage');
-  const related = getRelatedCategories(category.id);
+  const categories = await fetchCategories();
+  const related = getRelatedCategories(categories, category.slug);
+
+  if (related.length === 0) return <></>;
 
   return (
     <section className="border-t border-slate-100 bg-slate-50/60 py-12 sm:py-16">

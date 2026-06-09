@@ -1,0 +1,70 @@
+rules_version = '2';
+
+// RateQ — Firebase Storage rules
+// Paste into Firebase Console → Storage → Rules → Publish
+//
+// Paths (from apps/web/src/lib/firebase/storage.ts):
+//   users/{firebaseUid}/avatar/{file}
+//   users/{firebaseUid}/company/logo/{file}
+//   users/{firebaseUid}/company/cover/{file}
+//   users/{firebaseUid}/company/registration/{file}
+//
+// Requires Firebase Authentication (email/Google) — uploads use request.auth.uid.
+
+service firebase.storage {
+  match /b/{bucket}/o {
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function max10MB() {
+      return request.resource.size < 10 * 1024 * 1024;
+    }
+
+    function isImage() {
+      return request.resource.contentType.matches('image/.*');
+    }
+
+    function isRegistrationDoc() {
+      return request.resource.contentType.matches('image/.*')
+        || request.resource.contentType == 'application/pdf';
+    }
+
+    // Profile avatar (reviewer)
+    match /users/{userId}/avatar/{fileName} {
+      allow read: if isSignedIn();
+      allow create, update: if isOwner(userId) && max10MB() && isImage();
+      allow delete: if isOwner(userId);
+    }
+
+    // Company logo
+    match /users/{userId}/company/logo/{fileName} {
+      allow read: if isSignedIn();
+      allow create, update: if isOwner(userId) && max10MB() && isImage();
+      allow delete: if isOwner(userId);
+    }
+
+    // Company cover
+    match /users/{userId}/company/cover/{fileName} {
+      allow read: if isSignedIn();
+      allow create, update: if isOwner(userId) && max10MB() && isImage();
+      allow delete: if isOwner(userId);
+    }
+
+    // Company registration document (PDF or image)
+    match /users/{userId}/company/registration/{fileName} {
+      allow read: if isSignedIn();
+      allow create, update: if isOwner(userId) && max10MB() && isRegistrationDoc();
+      allow delete: if isOwner(userId);
+    }
+
+    // Deny everything else
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}

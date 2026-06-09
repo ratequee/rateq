@@ -4,6 +4,7 @@ import {
   Injectable,
   UnauthorizedException,
 } from '@nestjs/common';
+import type { User } from '@prisma/client';
 import { UserRole as PrismaUserRole } from '@prisma/client';
 import type { AuthResponse, AuthenticatedUser, AuthTokens, MessageResponse } from '@rateq/types';
 import { UserRole } from '@rateq/types';
@@ -15,6 +16,9 @@ import { toAuthenticatedUser } from './mappers/user.mapper';
 import { generateSecureToken, hashToken } from './utils/token-hash.util';
 import type { RegisterDto } from './dto/register.dto';
 import type { LoginDto } from './dto/login.dto';
+import { FirebaseAdminService } from './services/firebase-admin.service';
+import { FirebaseAdminAccessService } from './services/firebase-admin-access.service';
+import type { FirebaseLoginDto } from './dto/firebase-login.dto';
 
 const BCRYPT_ROUNDS = 12;
 
@@ -24,6 +28,8 @@ export class AuthService {
     private readonly authRepository: AuthRepository,
     private readonly tokenService: TokenService,
     private readonly emailService: EmailService,
+    private readonly firebaseAdmin: FirebaseAdminService,
+    private readonly firebaseAdminAccess: FirebaseAdminAccessService,
   ) {}
 
   async register(dto: RegisterDto): Promise<AuthResponse> {
@@ -56,7 +62,7 @@ export class AuthService {
   async login(dto: LoginDto): Promise<AuthResponse> {
     const user = await this.authRepository.findUserByEmail(dto.email.toLowerCase());
 
-    if (!user) {
+    if (!user || !user.passwordHash) {
       throw new UnauthorizedException('Invalid email or password');
     }
 
@@ -65,6 +71,45 @@ export class AuthService {
     if (!passwordValid) {
       throw new UnauthorizedException('Invalid email or password');
     }
+
+    const tokens = await this.tokenService.createTokenPair(user);
+
+    return {
+      user: toAuthenticatedUser(user),
+      tokens,
+    };
+  }
+
+  async loginWithFirebase(dto: FirebaseLoginDto): Promise<AuthResponse> {
+    const firebaseUser = await this.firebaseAdmin.verifyIdToken(dto.idToken);
+    const displayName = firebaseUser.name?.trim();
+
+    let user =
+      (await this.authRepository.findUserByFirebaseUid(firebaseUser.uid)) ??
+      (await this.authRepository.findUserByEmail(firebaseUser.email));
+
+    if (user && !user.firebaseUid) {
+      user = await this.authRepository.linkFirebaseUser(user.id, {
+        firebaseUid: firebaseUser.uid,
+        isVerified: firebaseUser.emailVerified,
+      });
+    } else if (!user) {
+      user = await this.authRepository.createUser({
+        email: firebaseUser.email,
+        firebaseUid: firebaseUser.uid,
+        displayName,
+        role: PrismaUserRole.USER,
+        isVerified: firebaseUser.emailVerified,
+      });
+    } else if (firebaseUser.emailVerified && !user.isVerified) {
+      user = await this.authRepository.markUserVerified(user.id);
+    }
+
+    if (displayName && !user.displayName) {
+      user = await this.authRepository.updateDisplayNameIfEmpty(user.id, displayName);
+    }
+
+    user = await this.syncFirebaseAdminRole(user, firebaseUser.uid);
 
     const tokens = await this.tokenService.createTokenPair(user);
 
@@ -96,6 +141,35 @@ export class AuthService {
   }
 
   getProfile(user: AuthenticatedUser): AuthenticatedUser {
+    return user;
+  }
+
+  async getFirebaseAdminAccess(userId: string): Promise<{ allowed: boolean }> {
+    const user = await this.authRepository.findUserById(userId);
+
+    if (!user?.firebaseUid) {
+      return { allowed: false };
+    }
+
+    return { allowed: this.firebaseAdminAccess.isWhitelisted(user.firebaseUid) };
+  }
+
+  private async syncFirebaseAdminRole(user: User, firebaseUid: string): Promise<User> {
+    const shouldBeAdmin = this.firebaseAdminAccess.isWhitelisted(firebaseUid);
+
+    if (shouldBeAdmin && user.role !== PrismaUserRole.ADMIN) {
+      return this.authRepository.updateUserRole(user.id, PrismaUserRole.ADMIN);
+    }
+
+    if (
+      !shouldBeAdmin &&
+      user.role === PrismaUserRole.ADMIN &&
+      user.firebaseUid &&
+      this.firebaseAdminAccess.hasAnyAdmin()
+    ) {
+      return this.authRepository.updateUserRole(user.id, PrismaUserRole.USER);
+    }
+
     return user;
   }
 

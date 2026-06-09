@@ -18,7 +18,16 @@ export class ReviewsRepository {
     return this.prisma.review.findUnique({
       where: { id },
       include: {
-        user: { select: { id: true, email: true, createdAt: true, isVerified: true } },
+        user: {
+          select: {
+            id: true,
+            email: true,
+            displayName: true,
+            createdAt: true,
+            isVerified: true,
+            profile: { select: { fullName: true, avatarUrl: true } },
+          },
+        },
         company: true,
         replies: true,
       },
@@ -55,7 +64,14 @@ export class ReviewsRepository {
       take: limit,
       orderBy: [{ moderationScore: 'desc' }, { createdAt: 'asc' }],
       include: {
-        user: { select: { id: true, email: true } },
+        user: {
+          select: {
+            id: true,
+            email: true,
+            displayName: true,
+            profile: { select: { fullName: true, avatarUrl: true } },
+          },
+        },
         company: { select: { id: true, name: true, slug: true } },
       },
     });
@@ -77,7 +93,14 @@ export class ReviewsRepository {
       take: filters.limit,
       orderBy: { createdAt: 'desc' },
       include: {
-        user: { select: { id: true, email: true } },
+        user: {
+          select: {
+            id: true,
+            email: true,
+            displayName: true,
+            profile: { select: { fullName: true, avatarUrl: true } },
+          },
+        },
         replies: true,
       },
     });
@@ -99,7 +122,14 @@ export class ReviewsRepository {
       take: limit,
       orderBy: { createdAt: 'desc' },
       include: {
-        user: { select: { id: true, email: true } },
+        user: {
+          select: {
+            id: true,
+            email: true,
+            displayName: true,
+            profile: { select: { fullName: true, avatarUrl: true } },
+          },
+        },
         replies: true,
         company: { select: { id: true, name: true, slug: true } },
       },

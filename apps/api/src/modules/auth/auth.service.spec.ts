@@ -5,6 +5,8 @@ import * as bcrypt from 'bcrypt';
 import { AuthService } from './auth.service';
 import { AuthRepository } from './repositories/auth.repository';
 import { EmailService } from './services/email.service';
+import { FirebaseAdminService } from './services/firebase-admin.service';
+import { FirebaseAdminAccessService } from './services/firebase-admin-access.service';
 import { TokenService } from './services/token.service';
 
 describe('AuthService', () => {
@@ -20,14 +22,14 @@ describe('AuthService', () => {
       | 'markUserVerified'
     >
   >;
-  let tokenService: jest.Mocked<
-    Pick<TokenService, 'createTokenPair' | 'getVerificationExpiry'>
-  >;
+  let tokenService: jest.Mocked<Pick<TokenService, 'createTokenPair' | 'getVerificationExpiry'>>;
   let emailService: jest.Mocked<Pick<EmailService, 'sendVerificationEmail'>>;
 
   const mockUser = {
     id: 'user-1',
     email: 'test@example.com',
+    displayName: null,
+    firebaseUid: null,
     passwordHash: '',
     role: UserRole.USER,
     isVerified: false,
@@ -66,6 +68,17 @@ describe('AuthService', () => {
         { provide: AuthRepository, useValue: authRepository },
         { provide: TokenService, useValue: tokenService },
         { provide: EmailService, useValue: emailService },
+        {
+          provide: FirebaseAdminService,
+          useValue: { verifyIdToken: jest.fn() },
+        },
+        {
+          provide: FirebaseAdminAccessService,
+          useValue: {
+            isWhitelisted: jest.fn().mockReturnValue(false),
+            hasAnyAdmin: jest.fn().mockReturnValue(false),
+          },
+        },
       ],
     }).compile();
 

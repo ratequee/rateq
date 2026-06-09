@@ -1,6 +1,6 @@
 import { CompanyCard } from '@/components/company/company-card';
 import type { CompanyPublic } from '@rateq/types';
-import { searchMockCompanies } from '@/lib/mock-companies';
+import { fetchCompanies } from '@/lib/companies-data';
 import { getTranslations } from 'next-intl/server';
 import type { JSX } from 'react';
 import { FeaturedCompanyCard } from '../home/featured-company-card';
@@ -15,12 +15,13 @@ export async function RelatedCompaniesSection({
   const t = await getTranslations('companyPage');
 
   const params = new URLSearchParams({
-    city: company.city,
     sort: 'rating',
     limit: '4',
   });
+  if (company.categoryId) params.set('categoryId', company.categoryId);
+  else params.set('city', company.city);
 
-  const result = searchMockCompanies(params);
+  const result = await fetchCompanies(params);
   const related = result.data.filter((item) => item.id !== company.id).slice(0, 3);
   const rest = result.data.filter((item) => item.id !== company.id).slice(3);
 

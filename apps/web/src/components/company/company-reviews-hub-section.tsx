@@ -1,5 +1,4 @@
-import { CompanyReviewsHubClient } from '@/components/company/company-reviews-hub-client';
-import { CompanyReviewsSummaryCard } from '@/components/company/company-reviews-summary-card';
+import { CompanyReviewsHubLayout } from '@/components/company/company-reviews-hub-layout';
 import type { CompanyPublic } from '@rateq/types';
 import type { ReviewPublic } from '@rateq/types';
 import { getTranslations } from 'next-intl/server';
@@ -31,7 +30,7 @@ export async function CompanyReviewsHubSection({
   return (
     <section
       id="reviews-hub"
-      className="scroll-mt-24 py-12 sm:py-16 lg:py-20"
+      className="scroll-mt-14 pb-12 sm:pb-16 lg:pb-20"
       aria-labelledby="reviews-hub-heading"
     >
       <div className="mx-auto max-w-page px-4 sm:px-6 lg:px-8">
@@ -44,14 +43,11 @@ export async function CompanyReviewsHubSection({
           </p>
         </div>
 
-        <div className="flex flex-col items-stretch gap-8 lg:flex-row lg:items-start lg:gap-10">
-          <div className="w-full shrink-0 lg:w-[280px] xl:w-[300px]">
-            <CompanyReviewsSummaryCard reviews={reviews} average={company.ratingAverage} />
-          </div>
-          <div className="min-w-0 flex-1">
-            <CompanyReviewsHubClient reviews={reviews} topMentions={topMentions} />
-          </div>
-        </div>
+        <CompanyReviewsHubLayout
+          reviews={reviews}
+          topMentions={topMentions}
+          average={company.ratingAverage}
+        />
       </div>
     </section>
   );

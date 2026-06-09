@@ -3,11 +3,15 @@
 import { CategoryCard } from '@/components/categories/category-card';
 import { CarouselControls } from '@/components/home/carousel-controls';
 import { SectionHeader } from '@/components/home/section-header';
-import { HOME_CATEGORIES } from '@/lib/categories';
+import type { CategoryPublic } from '@rateq/types';
 import { useTranslations } from 'next-intl';
 import { useRef } from 'react';
 
-export function CategoryCarousel() {
+interface CategoryCarouselProps {
+  categories: CategoryPublic[];
+}
+
+export function CategoryCarousel({ categories }: CategoryCarouselProps) {
   const t = useTranslations('home');
   const scrollRef = useRef<HTMLDivElement>(null);
 
@@ -36,14 +40,18 @@ export function CategoryCarousel() {
           }
         />
 
-        <div
-          ref={scrollRef}
-          className="scrollbar-hide -mx-4 flex gap-4 overflow-x-auto px-4 pb-2 sm:mx-0 sm:px-0"
-        >
-          {HOME_CATEGORIES.map((category) => (
-            <CategoryCard key={category.id} category={category} variant="compact" />
-          ))}
-        </div>
+        {categories.length === 0 ? (
+          <p className="py-8 text-center text-sm text-ink-muted">{t('noCategories')}</p>
+        ) : (
+          <div
+            ref={scrollRef}
+            className="scrollbar-hide -mx-4 flex gap-4 overflow-x-auto px-4 pb-2 sm:mx-0 sm:px-0"
+          >
+            {categories.map((category) => (
+              <CategoryCard key={category.id} category={category} variant="compact" />
+            ))}
+          </div>
+        )}
       </div>
     </section>
   );

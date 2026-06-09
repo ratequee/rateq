@@ -1,35 +1,53 @@
 'use client';
 
 import { Logo } from '@/components/brand/logo';
+import { AuthHeaderButtons, UserAccountMenu } from '@/components/layout/user-account-menu';
+import { LocaleSwitcher } from '@/components/layout/locale-switcher';
 import { useAuth } from '@/components/providers/auth-provider';
 import { Button } from '@/components/ui/button';
 import { Link, usePathname, useRouter } from '@/i18n/routing';
-import { UserRole } from '@rateq/types';
-import { useLocale, useTranslations } from 'next-intl';
-import { Globe, X } from 'lucide-react';
+import { useTranslations } from 'next-intl';
+import { X } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { cn } from '@/lib/utils';
 import Image from 'next/image';
+import { LayoutDashboard, LogOut } from 'lucide-react';
+import { useProfile } from '@/components/providers/profile-provider';
+import { canAccessDashboard, getDashboardPath } from '@/lib/profile-routing';
 
 const NAV_LINKS = [
   { href: '/', key: 'home' as const },
   { href: '/about', key: 'about' as const },
   { href: '/categories', key: 'category' as const },
-  { href: '/register', key: 'writeReview' as const },
   { href: '/contact', key: 'contact' as const },
 ];
 
 export function SiteHeader() {
   const t = useTranslations('nav');
-  const { user, logout, isLoading } = useAuth();
+  const { user, logout, isLoading, isFirebaseAdmin, firebaseAdminLoading } = useAuth();
+  const { onboarding, isLoading: profileLoading } = useProfile();
   const pathname = usePathname();
   const router = useRouter();
-  const locale = useLocale();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [loggingOut, setLoggingOut] = useState(false);
   const isActive = (href: string) => pathname === href;
-  const switchLocale = () => {
-    const next = locale === 'en' ? 'ar' : 'en';
-    router.replace(pathname, { locale: next });
+
+  const profileBusy = profileLoading || firebaseAdminLoading;
+  const dashboardEnabled =
+    Boolean(user) &&
+    !profileBusy &&
+    user!.isVerified &&
+    canAccessDashboard(user!, onboarding, isFirebaseAdmin);
+
+  const handleMobileLogout = async () => {
+    setMobileOpen(false);
+    setLoggingOut(true);
+    try {
+      await logout();
+      router.replace('/');
+    } finally {
+      setLoggingOut(false);
+    }
   };
 
   useEffect(() => {
@@ -58,9 +76,13 @@ export function SiteHeader() {
           aria-controls="mobile-nav"
           aria-label={mobileOpen ? t('closeMenu') : t('openMenu')}
         >
-          {mobileOpen ? <X className="h-5 w-5" /> : <Image src="/images/menu.svg" alt="Menu" width={20} height={20} />}
+          {mobileOpen ? (
+            <X className="h-5 w-5" />
+          ) : (
+            <Image src="/images/menu.svg" alt="Menu" width={20} height={20} />
+          )}
         </Button>
-        <Link href="/" className="shrink-0 ml-[-40px] md:ml-0" onClick={() => setMobileOpen(false)}>
+        <Link href="/" className="shrink-0 md:ml-0" onClick={() => setMobileOpen(false)}>
           <Logo />
           <span className="sr-only">{t('home')}</span>
         </Link>
@@ -73,7 +95,10 @@ export function SiteHeader() {
             <Link
               key={key}
               href={href}
-              className={cn("transition-colors hover:text-brand-500 border-b-2 border-transparent hover:border-brand-500 pb-2", isActive(href) ? 'border-brand-500 text-brand-500' : 'border-transparent')}
+              className={cn(
+                'transition-colors hover:text-brand-500 border-b-2 border-transparent hover:border-brand-500 pb-2',
+                isActive(href) ? 'border-brand-500 text-brand-500' : 'border-transparent',
+              )}
             >
               {t(key)}
             </Link>
@@ -81,53 +106,23 @@ export function SiteHeader() {
         </nav>
 
         <div className="flex items-center gap-2 sm:gap-3">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={switchLocale}
-            aria-label={t('switchLanguage')}
-            className="hidden text-ink-muted sm:inline-flex"
-          >
-            <Globe className="h-4 w-4" />
-            <span className="uppercase">{locale}</span>
-          </Button>
+          <LocaleSwitcher className="hidden sm:block" />
 
-          {!isLoading && (
+          {isLoading ? (
+            <div className="h-10 w-10 animate-pulse rounded-full bg-slate-200" aria-hidden />
+          ) : user ? (
+            <UserAccountMenu />
+          ) : (
             <>
-              {user ? (
-                <div className="hidden items-center gap-2 sm:flex">
-                  {user.role === UserRole.COMPANY && (
-                    <Link href="/dashboard/company">
-                      <Button variant="ghost" size="sm">
-                        {t('dashboard')}
-                      </Button>
-                    </Link>
-                  )}
-                  {user.role === UserRole.ADMIN && (
-                    <Link href="/dashboard/admin">
-                      <Button variant="ghost" size="sm">
-                        {t('admin')}
-                      </Button>
-                    </Link>
-                  )}
-                  <Button variant="outline-brand" size="sm" onClick={logout}>
-                    {t('logout')}
-                  </Button>
-                </div>
-              ) : (
-                <div className="hidden items-center gap-2 sm:flex">
-                  <Link href="/login">
-                    <Button variant="outline-brand" size="sm" className="min-w-[90px]">
-                      {t('login')}
-                    </Button>
-                  </Link>
-                  <Link href="/register">
-                    <Button size="sm" className="min-w-[110px]">
-                      {t('getStarted')}
-                    </Button>
-                  </Link>
-                </div>
-              )}
+              <AuthHeaderButtons className="hidden sm:flex" />
+              <Link href="/login" className="sm:hidden">
+                <button
+                  type="button"
+                  className="text-sm font-medium text-brand-600 hover:text-brand-700"
+                >
+                  {t('login')}
+                </button>
+              </Link>
             </>
           )}
         </div>
@@ -180,22 +175,54 @@ export function SiteHeader() {
               </nav>
 
               <div className="mt-auto space-y-3 pt-6">
-                <Button variant="ghost" size="sm" onClick={switchLocale} className="w-full">
-                  <Globe className="h-4 w-4" />
-                  {locale === 'en' ? 'العربية' : 'English'}
-                </Button>
+                <LocaleSwitcher variant="mobile" />
+
+                {!isLoading && user && (
+                  <>
+                    {dashboardEnabled ? (
+                      <Link
+                        href={
+                          isFirebaseAdmin ? '/dashboard/admin' : getDashboardPath(user, onboarding)
+                        }
+                        onClick={() => setMobileOpen(false)}
+                      >
+                        <Button variant="outline-brand" className="h-11 w-full gap-2 rounded-xl">
+                          <LayoutDashboard className="h-4 w-4" />
+                          {t('dashboard')}
+                        </Button>
+                      </Link>
+                    ) : (
+                      <Button
+                        variant="outline-brand"
+                        disabled
+                        title={
+                          !user.isVerified
+                            ? t('dashboardDisabledUnverified')
+                            : t('dashboardDisabledIncomplete')
+                        }
+                        className="h-11 w-full gap-2 rounded-xl opacity-60"
+                      >
+                        <LayoutDashboard className="h-4 w-4" />
+                        {t('dashboard')}
+                      </Button>
+                    )}
+                    <Button
+                      variant="ghost"
+                      className="h-11 w-full gap-2 rounded-xl text-red-600 hover:bg-red-50 hover:text-red-700"
+                      disabled={loggingOut}
+                      onClick={() => void handleMobileLogout()}
+                    >
+                      <LogOut className="h-4 w-4" />
+                      {loggingOut ? t('loggingOut') : t('logout')}
+                    </Button>
+                  </>
+                )}
 
                 {!isLoading && !user && (
-                  <>
-                    <Link href="/login" onClick={() => setMobileOpen(false)}>
-                      <Button variant="outline-brand" className="h-11 w-full rounded-xl my-4">
-                        {t('login')}
-                      </Button>
-                    </Link>
-                    <Link href="/register" onClick={() => setMobileOpen(false)}>
-                      <Button className="h-11 w-full rounded-xl">{t('getStarted')}</Button>
-                    </Link>
-                  </>
+                  <AuthHeaderButtons
+                    className="flex w-full flex-col gap-3 sm:hidden"
+                    onNavigate={() => setMobileOpen(false)}
+                  />
                 )}
               </div>
             </div>

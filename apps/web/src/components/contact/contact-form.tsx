@@ -32,7 +32,13 @@ export function ContactForm() {
             <label htmlFor="name" className="mb-1.5 block text-sm font-medium text-ink">
               {t('nameLabel')}
             </label>
-            <Input id="name" name="name" required minLength={2} placeholder={t('namePlaceholder')} />
+            <Input
+              id="name"
+              name="name"
+              required
+              minLength={2}
+              placeholder={t('namePlaceholder')}
+            />
           </div>
           <div>
             <label htmlFor="email" className="mb-1.5 block text-sm font-medium text-ink">
@@ -48,29 +54,35 @@ export function ContactForm() {
           </div>
         </div>
         <div className="grid gap-4 sm:grid-cols-2">
-        <div>
-          <label htmlFor="phone" className="mb-1.5 block text-sm font-medium text-ink">
-            {t('phoneLabel')}
-          </label>
-          <Input id="phone" name="phone" required minLength={2} placeholder={t('phonePlaceholder')} />
-        </div>
-        <div>
-          <label htmlFor="subject" className="mb-1.5 block text-sm font-medium text-ink">
-            {t('subjectLabel')}
-          </label>
-          <select
-            id="subject"
-            name="subject"
-            required
-            className="h-10 w-full rounded-md border border-slate-200 bg-white px-3 text-sm text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
-          >
-            <option value="">{t('subjectPlaceholder')}</option>
-            <option value="general">{t('subjectGeneral')}</option>
-            <option value="support">{t('subjectSupport')}</option>
-            <option value="business">{t('subjectBusiness')}</option>
-            <option value="partnership">{t('subjectPartnership')}</option>
-          </select>
-        </div>
+          <div>
+            <label htmlFor="phone" className="mb-1.5 block text-sm font-medium text-ink">
+              {t('phoneLabel')}
+            </label>
+            <Input
+              id="phone"
+              name="phone"
+              required
+              minLength={2}
+              placeholder={t('phonePlaceholder')}
+            />
+          </div>
+          <div>
+            <label htmlFor="subject" className="mb-1.5 block text-sm font-medium text-ink">
+              {t('subjectLabel')}
+            </label>
+            <select
+              id="subject"
+              name="subject"
+              required
+              className="h-10 w-full rounded-md border border-slate-200 bg-white px-3 text-sm text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
+            >
+              <option value="">{t('subjectPlaceholder')}</option>
+              <option value="general">{t('subjectGeneral')}</option>
+              <option value="support">{t('subjectSupport')}</option>
+              <option value="business">{t('subjectBusiness')}</option>
+              <option value="partnership">{t('subjectPartnership')}</option>
+            </select>
+          </div>
         </div>
         <div>
           <label htmlFor="message" className="mb-1.5 block text-sm font-medium text-ink">
@@ -87,7 +99,12 @@ export function ContactForm() {
           />
         </div>
 
-        <Button type="submit" size="lg" disabled={loading} className="w-full sm:w-full bg-gold-500 text-white hover:bg-gold-600">
+        <Button
+          type="submit"
+          size="lg"
+          disabled={loading}
+          className="w-full sm:w-full bg-gold-500 text-black font-bold hover:bg-gold-600"
+        >
           {loading ? t('sending') : t('submit')}
         </Button>
       </form>

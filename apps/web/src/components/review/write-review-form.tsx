@@ -1,13 +1,13 @@
 'use client';
 
-import { useAuth } from '@/components/providers/auth-provider';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { StarRating } from '@/components/ui/star-rating';
 import { ApiError, reviewsApi } from '@/lib/api';
+import { ensureValidAccessToken } from '@/lib/auth-session';
 import { cn } from '@/lib/utils';
-import { UserRole } from '@rateq/types';
+import type { ReviewPublic } from '@rateq/types';
 import { useTranslations } from 'next-intl';
 import { useState } from 'react';
 import { toast } from 'sonner';
@@ -15,44 +15,40 @@ import { toast } from 'sonner';
 interface WriteReviewFormProps {
   companyId: string;
   className?: string;
+  onSubmitted?: (review: ReviewPublic) => void;
+  onCancel?: () => void;
 }
 
-export function WriteReviewForm({ companyId, className }: WriteReviewFormProps) {
+export function WriteReviewForm({
+  companyId,
+  className,
+  onSubmitted,
+  onCancel,
+}: WriteReviewFormProps) {
   const t = useTranslations('review');
-  const ta = useTranslations('auth');
-  const { user } = useAuth();
   const [rating, setRating] = useState(5);
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [loading, setLoading] = useState(false);
 
-  if (!user) return null;
-  if (user.role === UserRole.COMPANY) return null;
-  if (!user.isVerified) {
-    return (
-      <Card className={cn('border-amber-200 bg-amber-50', className)}>
-        <CardContent className="p-4 text-sm text-amber-800">{ta('verifyNotice')}</CardContent>
-      </Card>
-    );
-  }
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     try {
-      const token = localStorage.getItem('rateq_access_token');
+      const token = await ensureValidAccessToken();
       if (!token) throw new Error('Not authenticated');
 
-      await reviewsApi.submit(token, {
+      const review = await reviewsApi.submit(token, {
         companyId,
         rating,
         title,
         content,
       });
-      toast.success(t('pending'));
+      toast.success(t('submittedSuccess'));
       setTitle('');
       setContent('');
-      window.location.reload();
+      setRating(5);
+      onSubmitted?.(review);
     } catch (err) {
       const message = err instanceof ApiError ? err.message : t('submit');
       toast.error(message);
@@ -63,8 +59,13 @@ export function WriteReviewForm({ companyId, className }: WriteReviewFormProps) 
 
   return (
     <Card className={className}>
-      <CardHeader>
+      <CardHeader className="flex flex-row items-center justify-between gap-4 space-y-0">
         <CardTitle>{t('submit')}</CardTitle>
+        {onCancel && (
+          <Button type="button" variant="ghost" size="sm" onClick={onCancel}>
+            {t('cancel')}
+          </Button>
+        )}
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -74,7 +75,12 @@ export function WriteReviewForm({ companyId, className }: WriteReviewFormProps) 
           </div>
           <div>
             <label className="text-sm font-medium">{t('title')}</label>
-            <Input value={title} onChange={(e) => setTitle(e.target.value)} required minLength={3} />
+            <Input
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              required
+              minLength={3}
+            />
           </div>
           <div>
             <label className="text-sm font-medium">{t('content')}</label>

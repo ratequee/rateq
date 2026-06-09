@@ -1,24 +1,102 @@
-import type { AuthenticatedUser } from '@rateq/types';
+import type { AuthenticatedUser, OnboardingStatus } from '@rateq/types';
 import { UserRole } from '@rateq/types';
-import { getStoredProfile, isProfileComplete } from '@/lib/profile-storage';
+import { getStoredProfile } from '@/lib/profile-storage';
 
-export function getDashboardPath(user: AuthenticatedUser): string {
-  if (user.role === UserRole.ADMIN) return '/dashboard/admin';
+export function getCompanyVerificationStatus(
+  onboarding?: OnboardingStatus | null,
+): 'pending' | 'approved' | 'rejected' | null {
+  return onboarding?.company?.verificationStatus ?? null;
+}
 
-  const profile = getStoredProfile();
-  if (profile?.userId === user.id && profile.isComplete) {
-    return profile.accountType === 'company' ? '/dashboard/company' : '/dashboard/reviewer';
+export function getLockedAccountType(
+  onboarding?: OnboardingStatus | null,
+): 'reviewer' | 'company' | null {
+  if (!onboarding?.isProfileComplete) return null;
+  return onboarding.accountType ?? null;
+}
+
+export function isCompanyPendingApproval(onboarding?: OnboardingStatus | null): boolean {
+  return (
+    getLockedAccountType(onboarding) === 'company' &&
+    getCompanyVerificationStatus(onboarding) === 'pending'
+  );
+}
+
+export function isCompanyRejected(onboarding?: OnboardingStatus | null): boolean {
+  return (
+    getLockedAccountType(onboarding) === 'company' &&
+    getCompanyVerificationStatus(onboarding) === 'rejected'
+  );
+}
+
+export function canAccessDashboard(
+  user: AuthenticatedUser,
+  onboarding?: OnboardingStatus | null,
+  isFirebaseAdmin = false,
+): boolean {
+  if (user.role === UserRole.ADMIN && isFirebaseAdmin) return true;
+
+  const locked = getLockedAccountType(onboarding);
+  if (!locked) {
+    const profile = getStoredProfile();
+    if (profile?.userId !== user.id || !profile.isComplete) return false;
+    if (profile.accountType === 'company') {
+      return profile.companyVerificationStatus === 'approved';
+    }
+    return true;
   }
 
-  if (user.role === UserRole.COMPANY) return '/dashboard/company';
+  if (locked === 'reviewer') return true;
+  return getCompanyVerificationStatus(onboarding) === 'approved';
+}
+
+export function getDashboardPath(
+  user: AuthenticatedUser,
+  onboarding?: OnboardingStatus | null,
+): string {
+  if (user.role === UserRole.ADMIN) return '/dashboard/admin';
+
+  const accountType =
+    onboarding?.accountType ??
+    (getStoredProfile()?.userId === user.id ? getStoredProfile()?.accountType : null);
+
+  if (user.role === UserRole.COMPANY || accountType === 'company') {
+    return '/dashboard/company';
+  }
+
   return '/dashboard/reviewer';
 }
 
-export function getPostAuthRedirect(user: AuthenticatedUser): string {
-  if (!isProfileComplete(user.id)) {
+export function isOnboardingComplete(
+  userId: string,
+  onboarding?: OnboardingStatus | null,
+): boolean {
+  if (onboarding) {
+    return onboarding.isProfileComplete;
+  }
+
+  const profile = getStoredProfile();
+  return profile?.userId === userId && profile.isComplete;
+}
+
+export function getPostAuthRedirect(
+  user: AuthenticatedUser,
+  onboarding?: OnboardingStatus | null,
+  isFirebaseAdmin = false,
+): string {
+  if (!user.isVerified) {
+    return '/check-email';
+  }
+
+  if (isFirebaseAdmin) {
+    return '/dashboard/admin';
+  }
+
+  if (!canAccessDashboard(user, onboarding, isFirebaseAdmin)) {
     return '/complete-profile';
   }
-  return getDashboardPath(user);
+
+  return getDashboardPath(user, onboarding);
 }
 
 export function getProfileRedirect(user: AuthenticatedUser): string | null {
@@ -27,7 +105,7 @@ export function getProfileRedirect(user: AuthenticatedUser): string | null {
     return null;
   }
 
-  if (profile.accountType === 'company' && profile.companyVerificationStatus === 'rejected') {
+  if (profile.accountType === 'company' && profile.companyVerificationStatus !== 'approved') {
     return '/complete-profile';
   }
 

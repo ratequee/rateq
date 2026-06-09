@@ -6,13 +6,16 @@ export interface CompanyPublic {
   slug: string;
   description: string | null;
   logo: string | null;
+  coverUrl: string | null;
+  email: string | null;
+  phone: string | null;
   country: string;
   city: string;
   ratingAverage: number;
   reviewCount: number;
   createdAt: string;
-  /** Industry category for display badges (mock / optional API field). */
-  categoryId?: string;
+  categoryId?: string | null;
+  categoryName?: string | null;
 }
 
 export interface CompanyDetail extends CompanyPublic {
@@ -25,6 +28,7 @@ export interface CompanySearchFilters {
   query?: string;
   country?: string;
   city?: string;
+  categoryId?: string;
   minRating?: number;
   sort?: 'rating' | 'reviews' | 'newest' | 'name';
 }
@@ -32,7 +36,14 @@ export interface CompanySearchFilters {
 export interface CreateCompanyInput {
   name: string;
   description?: string;
-  logo?: string;
+  logo: string;
+  coverUrl: string;
+  address: string;
+  phone: string;
+  categoryId: string;
+  crNumber: string;
+  validationDate: string;
+  registrationDocUrl: string;
   country: string;
   city: string;
 }
@@ -41,6 +52,13 @@ export interface UpdateCompanyInput {
   name?: string;
   description?: string;
   logo?: string | null;
+  coverUrl?: string;
+  address?: string;
+  phone?: string;
+  categoryId?: string;
+  crNumber?: string;
+  validationDate?: string;
+  registrationDocUrl?: string;
   country?: string;
   city?: string;
 }

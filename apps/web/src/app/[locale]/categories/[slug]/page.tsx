@@ -2,13 +2,14 @@ import { CategoryCompaniesSection } from '@/components/categories/category-compa
 import { CategoryDetailHero } from '@/components/categories/category-detail-hero';
 import { CategoryFilters } from '@/components/categories/category-filters';
 import { RelatedCategoriesSection } from '@/components/categories/related-categories-section';
-import { CATEGORY_IDS, getCategoryById, type CategoryId } from '@/lib/categories';
-import { getMockCompaniesByCategory } from '@/lib/mock-companies';
-import { getTranslations } from 'next-intl/server';
+import { fetchCompanies } from '@/lib/companies-data';
+import { fetchCategoryBySlug } from '@/lib/categories-data';
 import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
 import type { JSX } from 'react';
 import { MobileAppsCta } from '@/components/home/mobile-apps-cta';
+
+export const dynamic = 'force-dynamic';
 
 interface CategoryDetailPageProps {
   params: Promise<{ locale: string; slug: string }>;
@@ -21,24 +22,17 @@ interface CategoryDetailPageProps {
   }>;
 }
 
-export function generateStaticParams() {
-  return CATEGORY_IDS.flatMap((slug) =>
-    ['en', 'ar'].map((locale) => ({ locale, slug })),
-  );
-}
-
 export async function generateMetadata({ params }: CategoryDetailPageProps): Promise<Metadata> {
   const { slug } = await params;
-  const category = getCategoryById(slug);
-  const t = await getTranslations('categories');
+  const category = await fetchCategoryBySlug(slug);
 
   if (!category) {
     return { title: 'Category' };
   }
 
   return {
-    title: t(`items.${category.id}.name`),
-    description: t(`items.${category.id}.description`),
+    title: category.name,
+    description: `${category.name} companies on RateQ`,
   };
 }
 
@@ -48,19 +42,22 @@ export default async function CategoryDetailPage({
 }: CategoryDetailPageProps): Promise<JSX.Element> {
   const { slug } = await params;
   const filters = await searchParams;
-  const category = getCategoryById(slug);
+  const category = await fetchCategoryBySlug(slug);
 
   if (!category) {
     notFound();
   }
 
-  const result = getMockCompaniesByCategory(category.id as CategoryId, {
-    query: filters.query?.trim() || undefined,
-    minRating: filters.minRating ? Number(filters.minRating) : undefined,
+  const query = new URLSearchParams({
     sort: filters.sort ?? 'rating',
-    page: Number(filters.page ?? 1),
-    limit: 12,
+    page: filters.page ?? '1',
+    limit: '12',
+    categoryId: category.id,
   });
+  if (filters.query?.trim()) query.set('query', filters.query.trim());
+  if (filters.minRating) query.set('minRating', filters.minRating);
+
+  const result = await fetchCompanies(query);
   const companies = result.data;
   const total = result.meta.total;
 
@@ -75,7 +72,7 @@ export default async function CategoryDetailPage({
           sort: filters.sort,
         }}
       />
-      <CategoryCompaniesSection companies={companies} total={total || category.count} />
+      <CategoryCompaniesSection companies={companies} total={total} />
       <RelatedCategoriesSection category={category} />
       <MobileAppsCta />
     </>

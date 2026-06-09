@@ -57,10 +57,11 @@ export class ReviewsService {
       throw new NotFoundException('Company not found');
     }
 
-    const existing = await this.reviewsRepository.findByUserAndCompany(
-      user.id,
-      input.companyId,
-    );
+    if (company.ownerId === user.id) {
+      throw new ForbiddenException('You cannot review your own company');
+    }
+
+    const existing = await this.reviewsRepository.findByUserAndCompany(user.id, input.companyId);
 
     if (existing) {
       throw new ConflictException('You have already reviewed this company');

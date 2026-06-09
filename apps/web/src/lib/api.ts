@@ -11,6 +11,8 @@ import type {
   UserProfile,
 } from '@rateq/types';
 import type { MessageResponse } from '@rateq/types';
+import { refreshAccessToken } from '@/lib/auth-session';
+import { getRefreshToken } from '@/lib/auth-storage';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000/api/v1';
 
@@ -49,17 +51,39 @@ export async function apiClient<T>(
     (headers as Record<string, string>)['Authorization'] = `Bearer ${token}`;
   }
 
-  const response = await fetch(`${API_URL}${path}`, {
+  let response = await fetch(`${API_URL}${path}`, {
     ...init,
     headers,
     cache: 'no-store',
   });
 
+  if (
+    response.status === 401 &&
+    token &&
+    getRefreshToken() &&
+    !path.includes('/auth/refresh') &&
+    !path.includes('/auth/firebase')
+  ) {
+    const newAccessToken = await refreshAccessToken();
+    if (newAccessToken) {
+      (headers as Record<string, string>)['Authorization'] = `Bearer ${newAccessToken}`;
+      response = await fetch(`${API_URL}${path}`, {
+        ...init,
+        headers,
+        cache: 'no-store',
+      });
+    }
+  }
+
   const body = (await response.json()) as ApiEnvelope<T> | { message: string; statusCode: number };
 
   if (!response.ok) {
     const err = body as { message: string; statusCode: number; errors?: Record<string, string[]> };
-    throw new ApiError(err.message ?? 'Request failed', err.statusCode ?? response.status, err.errors);
+    throw new ApiError(
+      err.message ?? 'Request failed',
+      err.statusCode ?? response.status,
+      err.errors,
+    );
   }
 
   if (unwrap && body && typeof body === 'object' && 'data' in body) {
@@ -111,6 +135,20 @@ export const authApi = {
       body: JSON.stringify({ email }),
       token: null,
     }),
+  firebaseLogin: (idToken: string) =>
+    apiClient<AuthResponse>('/auth/firebase', {
+      method: 'POST',
+      body: JSON.stringify({ idToken }),
+      token: null,
+    }),
+  logout: (token: string) =>
+    apiClient<MessageResponse>('/auth/logout', {
+      method: 'POST',
+      body: JSON.stringify({}),
+      token,
+    }),
+  firebaseAdminAccess: (token: string) =>
+    apiClient<{ allowed: boolean }>('/auth/firebase-admin-access', { token }),
 };
 
 // Companies
@@ -124,6 +162,29 @@ export const companiesApi = {
     apiClient<CompanyDashboard>('/companies/me/dashboard', { token }),
   getMyProfile: (token: string) =>
     apiClient<import('@rateq/types').CompanyDetail>('/companies/me/profile', { token }),
+  updateMyProfile: (token: string, data: import('@rateq/types').UpdateCompanyInput) =>
+    apiClient<import('@rateq/types').CompanyDetail>('/companies/me', {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+      token,
+    }),
+  register: (token: string, data: import('@rateq/types').CreateCompanyInput) =>
+    apiClient<import('@rateq/types').CompanyDetail>('/companies', {
+      method: 'POST',
+      body: JSON.stringify(data),
+      token,
+    }),
+};
+
+export const usersOnboardingApi = {
+  getStatus: (token: string) =>
+    apiClient<import('@rateq/types').OnboardingStatus>('/users/me/onboarding', { token }),
+  completeReviewer: (token: string, data: import('@rateq/types').CompleteReviewerProfileInput) =>
+    apiClient<import('@rateq/types').OnboardingStatus>('/users/me/profile/reviewer', {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+      token,
+    }),
 };
 
 // Reviews
@@ -160,6 +221,12 @@ export const reviewsApi = {
     apiClient<MessageResponse>(`/moderation/reviews/${id}/approve`, { method: 'PATCH', token }),
   reject: (token: string, id: string) =>
     apiClient<MessageResponse>(`/moderation/reviews/${id}/reject`, { method: 'PATCH', token }),
+  reply: (token: string, reviewId: string, content: string) =>
+    apiClient<ReviewPublic>(`/reviews/${reviewId}/reply`, {
+      method: 'POST',
+      body: JSON.stringify({ content }),
+      token,
+    }),
 };
 
 // Users

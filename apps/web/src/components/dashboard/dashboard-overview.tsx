@@ -2,18 +2,69 @@
 
 import { DashboardReviewsTable } from '@/components/dashboard/dashboard-reviews-table';
 import { DashboardStatCard } from '@/components/dashboard/dashboard-stat-card';
-import { chartBars, dashboardStats, latestReviews, topCompanies, topReviewers } from '@/lib/dashboard-mock-data';
+import {
+  chartBars,
+  dashboardStats,
+  latestReviews,
+  topCompanies,
+  topReviewers,
+} from '@/lib/dashboard-mock-data';
 import { ClipboardList, Database, ShoppingCart, Star, Users } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 
 const statIcons = [ClipboardList, ShoppingCart, Users, Star, Database] as const;
 
+import type { CompanyDashboardStats } from '@rateq/types';
+
 interface DashboardOverviewProps {
   title: string;
+  reviewCount?: number;
+  companyStats?: CompanyDashboardStats;
 }
 
-export function DashboardOverview({ title }: DashboardOverviewProps) {
+export function DashboardOverview({
+  title,
+  reviewCount = 0,
+  companyStats,
+}: DashboardOverviewProps) {
   const t = useTranslations('dashboardShell');
+
+  const stats = companyStats
+    ? [
+        {
+          key: 'totalReviews',
+          value: String(companyStats.totalReviews),
+          change: '',
+          positive: true,
+        },
+        {
+          key: 'pendingReviews',
+          value: String(companyStats.pendingReviews),
+          change: '',
+          positive: false,
+        },
+        {
+          key: 'approvedReviews',
+          value: String(companyStats.approvedReviews),
+          change: '',
+          positive: true,
+        },
+        {
+          key: 'rejectedReviews',
+          value: String(companyStats.rejectedReviews),
+          change: '',
+          positive: false,
+        },
+        {
+          key: 'averageRating',
+          value: companyStats.averageRating.toFixed(1),
+          change: '',
+          positive: true,
+        },
+      ]
+    : dashboardStats.map((stat, index) =>
+        index === 0 ? { ...stat, value: String(reviewCount) } : stat,
+      );
 
   return (
     <div className="space-y-6">
@@ -23,7 +74,7 @@ export function DashboardOverview({ title }: DashboardOverviewProps) {
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
-        {dashboardStats.map((stat, index) => (
+        {stats.map((stat, index) => (
           <DashboardStatCard
             key={stat.key}
             label={t(`stats.${stat.key}`)}
@@ -48,7 +99,10 @@ export function DashboardOverview({ title }: DashboardOverviewProps) {
               <div key={index} className="flex flex-1 flex-col items-center gap-2">
                 <div className="flex w-full items-end justify-center gap-1">
                   <div className="w-3 rounded-t bg-brand-500" style={{ height: `${height}%` }} />
-                  <div className="w-3 rounded-t bg-gold-400" style={{ height: `${Math.max(20, height - 15)}%` }} />
+                  <div
+                    className="w-3 rounded-t bg-gold-400"
+                    style={{ height: `${Math.max(20, height - 15)}%` }}
+                  />
                 </div>
                 <span className="text-[10px] text-ink-muted">{index + 1}</span>
               </div>
@@ -112,11 +166,15 @@ export function DashboardOverview({ title }: DashboardOverviewProps) {
           <div className="space-y-3 text-sm">
             <div className="flex items-center justify-between gap-3 rounded-xl bg-slate-50 px-3 py-3">
               <span>{t('notificationItem')}</span>
-              <button type="button" className="text-brand-500">{t('cancel')}</button>
+              <button type="button" className="text-brand-500">
+                {t('cancel')}
+              </button>
             </div>
             <div className="flex items-center justify-between gap-3 rounded-xl bg-slate-50 px-3 py-3">
               <span>{t('notificationItem')}</span>
-              <button type="button" className="text-brand-500">{t('cancel')}</button>
+              <button type="button" className="text-brand-500">
+                {t('cancel')}
+              </button>
             </div>
           </div>
         </div>

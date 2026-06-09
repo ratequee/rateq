@@ -10,21 +10,51 @@ export class AuthRepository {
     return this.prisma.user.findUnique({ where: { email: email.toLowerCase() } });
   }
 
+  findUserByFirebaseUid(firebaseUid: string): Promise<User | null> {
+    return this.prisma.user.findUnique({ where: { firebaseUid } });
+  }
+
   findUserById(id: string): Promise<User | null> {
     return this.prisma.user.findUnique({ where: { id } });
   }
 
   createUser(data: {
     email: string;
-    passwordHash: string;
+    passwordHash?: string;
+    firebaseUid?: string;
+    displayName?: string;
     role: UserRole;
+    isVerified?: boolean;
   }): Promise<User> {
     return this.prisma.user.create({
       data: {
         email: data.email.toLowerCase(),
         passwordHash: data.passwordHash,
+        firebaseUid: data.firebaseUid,
+        displayName: data.displayName?.trim() || null,
         role: data.role,
+        isVerified: data.isVerified ?? false,
       },
+    });
+  }
+
+  linkFirebaseUser(
+    userId: string,
+    data: { firebaseUid: string; isVerified?: boolean },
+  ): Promise<User> {
+    return this.prisma.user.update({
+      where: { id: userId },
+      data: {
+        firebaseUid: data.firebaseUid,
+        ...(data.isVerified ? { isVerified: true } : {}),
+      },
+    });
+  }
+
+  updateDisplayNameIfEmpty(userId: string, displayName: string): Promise<User> {
+    return this.prisma.user.update({
+      where: { id: userId },
+      data: { displayName: displayName.trim() },
     });
   }
 
@@ -35,6 +65,13 @@ export class AuthRepository {
     });
   }
 
+  updateUserRole(userId: string, role: UserRole): Promise<User> {
+    return this.prisma.user.update({
+      where: { id: userId },
+      data: { role },
+    });
+  }
+
   updatePassword(userId: string, passwordHash: string): Promise<User> {
     return this.prisma.user.update({
       where: { id: userId },
@@ -42,14 +79,8 @@ export class AuthRepository {
     });
   }
 
-  createRefreshToken(data: {
-    userId: string;
-    tokenHash: string;
-    expiresAt: Date;
-  }): Promise<void> {
-    return this.prisma.refreshToken
-      .create({ data })
-      .then(() => undefined);
+  createRefreshToken(data: { userId: string; tokenHash: string; expiresAt: Date }): Promise<void> {
+    return this.prisma.refreshToken.create({ data }).then(() => undefined);
   }
 
   findRefreshTokenByHash(tokenHash: string) {
@@ -67,9 +98,7 @@ export class AuthRepository {
   }
 
   deleteRefreshTokensByUserId(userId: string): Promise<void> {
-    return this.prisma.refreshToken
-      .deleteMany({ where: { userId } })
-      .then(() => undefined);
+    return this.prisma.refreshToken.deleteMany({ where: { userId } }).then(() => undefined);
   }
 
   deleteExpiredRefreshTokens(): Promise<void> {
@@ -95,9 +124,7 @@ export class AuthRepository {
   }
 
   deleteEmailVerificationsByUserId(userId: string): Promise<void> {
-    return this.prisma.emailVerification
-      .deleteMany({ where: { userId } })
-      .then(() => undefined);
+    return this.prisma.emailVerification.deleteMany({ where: { userId } }).then(() => undefined);
   }
 
   replacePasswordReset(userId: string, tokenHash: string, expiresAt: Date): Promise<void> {

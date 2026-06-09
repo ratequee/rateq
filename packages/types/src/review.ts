@@ -3,7 +3,8 @@ import type { PaginatedResponse } from './pagination';
 
 export interface ReviewAuthor {
   id: string;
-  email: string;
+  displayName: string;
+  avatarUrl: string | null;
 }
 
 export interface ReviewPublic {

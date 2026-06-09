@@ -1,9 +1,11 @@
-import type { Review, ReviewReply, User } from '@prisma/client';
+import type { Review, ReviewReply, User, UserProfile } from '@prisma/client';
 import type { ReviewPublic, ReviewReplyPublic } from '@rateq/types';
 import { ReviewStatus } from '@rateq/types';
 
 type ReviewWithRelations = Review & {
-  user?: Pick<User, 'id' | 'email'>;
+  user?: Pick<User, 'id' | 'email' | 'displayName'> & {
+    profile?: Pick<UserProfile, 'fullName' | 'avatarUrl'> | null;
+  };
   replies?: ReviewReply[];
 };
 
@@ -13,6 +15,17 @@ export function toReviewReplyPublic(reply: ReviewReply): ReviewReplyPublic {
     content: reply.content,
     createdAt: reply.createdAt.toISOString(),
   };
+}
+
+function resolveAuthorDisplayName(user: NonNullable<ReviewWithRelations['user']>): string {
+  const fromProfile = user.profile?.fullName?.trim();
+  if (fromProfile) return fromProfile;
+
+  const fromAccount = user.displayName?.trim();
+  if (fromAccount) return fromAccount;
+
+  const localPart = user.email.split('@')[0]?.trim();
+  return localPart || user.email;
 }
 
 export function toReviewPublic(review: ReviewWithRelations): ReviewPublic {
@@ -31,16 +44,10 @@ export function toReviewPublic(review: ReviewWithRelations): ReviewPublic {
     ...(review.user && {
       author: {
         id: review.user.id,
-        email: maskEmail(review.user.email),
+        displayName: resolveAuthorDisplayName(review.user),
+        avatarUrl: review.user.profile?.avatarUrl ?? null,
       },
     }),
     reply: reply ? toReviewReplyPublic(reply) : null,
   };
-}
-
-function maskEmail(email: string): string {
-  const [local, domain] = email.split('@');
-  if (!local || !domain) return '***';
-  const visible = local.slice(0, 2);
-  return `${visible}***@${domain}`;
 }

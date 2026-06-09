@@ -29,6 +29,12 @@ export class SearchCompaniesQueryDto extends PaginationDto {
   @MaxLength(100)
   city?: string;
 
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  @MaxLength(100)
+  categoryId?: string;
+
   @ApiPropertyOptional({ minimum: 0, maximum: 5 })
   @IsOptional()
   @Type(() => Number)

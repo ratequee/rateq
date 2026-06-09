@@ -1,5 +1,16 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { IsOptional, IsString, IsUrl, MaxLength, MinLength, ValidateIf } from 'class-validator';
+import {
+  IsDateString,
+  IsOptional,
+  IsString,
+  IsUrl,
+  Matches,
+  MaxLength,
+  MinLength,
+  ValidateIf,
+} from 'class-validator';
+
+const PHONE_PATTERN = /^[+]?[\d\s()-]{6,30}$/;
 
 export class UpdateCompanyDto {
   @ApiPropertyOptional()
@@ -21,6 +32,49 @@ export class UpdateCompanyDto {
   @IsUrl()
   @MaxLength(2048)
   logo?: string | null;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsUrl()
+  @MaxLength(2048)
+  coverUrl?: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  @MinLength(5)
+  @MaxLength(500)
+  address?: string;
+
+  @ApiPropertyOptional({ example: '+974 5555 1234' })
+  @IsOptional()
+  @IsString()
+  @Matches(PHONE_PATTERN, { message: 'Phone number format is invalid' })
+  phone?: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  @MaxLength(100)
+  categoryId?: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  @MinLength(3)
+  @MaxLength(50)
+  crNumber?: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsDateString()
+  validationDate?: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsUrl()
+  @MaxLength(2048)
+  registrationDocUrl?: string;
 
   @ApiPropertyOptional()
   @IsOptional()

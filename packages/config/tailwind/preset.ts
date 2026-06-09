@@ -32,7 +32,7 @@ const preset: Partial<Config> = {
         },
       },
       fontFamily: {
-        sans: ['var(--font-avenir)', 'system-ui', 'sans-serif'],
+        sans: ['var(--font-nunito)', 'system-ui', 'sans-serif'],
         arabic: ['var(--font-noto-arabic)', 'system-ui', 'sans-serif'],
       },
       maxWidth: {

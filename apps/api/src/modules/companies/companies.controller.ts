@@ -44,8 +44,8 @@ export class CompaniesController {
   @Post()
   @HttpCode(HttpStatus.CREATED)
   @ApiBearerAuth()
-  @Roles(UserRole.COMPANY, UserRole.ADMIN)
-  @ApiOperation({ summary: 'Register a company profile (company account)' })
+  @Roles(UserRole.USER, UserRole.COMPANY, UserRole.ADMIN)
+  @ApiOperation({ summary: 'Register a company profile (onboarding)' })
   @ApiResponse({ status: 201, type: CompanyDetailDto })
   register(@CurrentUser() user: AuthenticatedUser, @Body() dto: CreateCompanyDto) {
     return this.companiesService.register(user, dto);

@@ -6,9 +6,45 @@ export async function WhyChooseSection(): Promise<JSX.Element> {
   const t = await getTranslations('home');
 
   const values = [
-    { icon: <Image src={"/images/tick_badge.svg"} alt={t('whyImageCaption')} width={40} height={40} className='object-cover' />, titleKey: 'whyValue1Title' as const, descKey: 'whyValue1Desc' as const },
-    { icon: <Image src={"/images/chart.svg"} alt={t('whyImageCaption')} width={55} height={55} className='object-cover' />, titleKey: 'whyValue2Title' as const, descKey: 'whyValue2Desc' as const },
-    { icon: <Image src={"/images/decision.svg"} alt={t('whyImageCaption')} width={40} height={40} className='object-cover' />, titleKey: 'whyValue3Title' as const, descKey: 'whyValue3Desc' as const },
+    {
+      icon: (
+        <Image
+          src={'/images/tick_badge.svg'}
+          alt={t('whyImageCaption')}
+          width={40}
+          height={40}
+          className="object-cover"
+        />
+      ),
+      titleKey: 'whyValue1Title' as const,
+      descKey: 'whyValue1Desc' as const,
+    },
+    {
+      icon: (
+        <Image
+          src={'/images/chart.svg'}
+          alt={t('whyImageCaption')}
+          width={55}
+          height={55}
+          className="object-cover"
+        />
+      ),
+      titleKey: 'whyValue2Title' as const,
+      descKey: 'whyValue2Desc' as const,
+    },
+    {
+      icon: (
+        <Image
+          src={'/images/decision.svg'}
+          alt={t('whyImageCaption')}
+          width={40}
+          height={40}
+          className="object-cover"
+        />
+      ),
+      titleKey: 'whyValue3Title' as const,
+      descKey: 'whyValue3Desc' as const,
+    },
   ];
 
   return (
@@ -16,7 +52,13 @@ export async function WhyChooseSection(): Promise<JSX.Element> {
       <div className="mx-auto max-w-page px-4 sm:px-6 lg:px-8">
         <div className="grid items-center gap-10 lg:grid-cols-2 lg:gap-16">
           <div className="w-full h-full">
-              <Image src={"/images/choose.svg"} alt={t('whyImageCaption')} width={0} height={0} className='w-full h-full object-cover' />
+            <Image
+              src={'/images/choose.svg'}
+              alt={t('whyImageCaption')}
+              width={0}
+              height={0}
+              className="w-full h-full object-cover rounded-tr-3xl rounded-br-3xl"
+            />
           </div>
 
           <div>

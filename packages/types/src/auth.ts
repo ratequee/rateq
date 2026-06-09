@@ -15,6 +15,7 @@ export interface JwtPayload {
 export interface AuthenticatedUser {
   id: string;
   email: string;
+  displayName: string | null;
   role: UserRole;
   isVerified: boolean;
 }

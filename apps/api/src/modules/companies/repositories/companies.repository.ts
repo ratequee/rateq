@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import type { Company, Prisma, ReviewStatus } from '@prisma/client';
+import type { Company, CompanyVerificationStatus, Prisma, ReviewStatus } from '@prisma/client';
 import { PrismaService } from '../../../infrastructure/database/prisma.service';
 import { paginationSkip } from '../../../common/utils/pagination.util';
 import type { CompanySortOption } from '../dto/search-companies-query.dto';
@@ -8,6 +8,7 @@ export interface SearchCompaniesFilters {
   query?: string;
   country?: string;
   city?: string;
+  categoryId?: string;
   minRating?: number;
   sort?: CompanySortOption;
   page: number;
@@ -25,16 +26,34 @@ export interface CompanyReviewStats {
 export class CompaniesRepository {
   constructor(private readonly prisma: PrismaService) {}
 
-  findBySlug(slug: string): Promise<Company | null> {
-    return this.prisma.company.findUnique({ where: { slug } });
+  findBySlug(slug: string) {
+    return this.prisma.company.findUnique({
+      where: { slug },
+      include: {
+        owner: { select: { email: true } },
+        category: { select: { id: true, name: true, slug: true } },
+      },
+    });
   }
 
-  findById(id: string): Promise<Company | null> {
-    return this.prisma.company.findUnique({ where: { id } });
+  findById(id: string) {
+    return this.prisma.company.findUnique({
+      where: { id },
+      include: {
+        owner: { select: { email: true } },
+        category: { select: { id: true, name: true, slug: true } },
+      },
+    });
   }
 
-  findByOwnerId(ownerId: string): Promise<Company | null> {
-    return this.prisma.company.findUnique({ where: { ownerId } });
+  findByOwnerId(ownerId: string) {
+    return this.prisma.company.findUnique({
+      where: { ownerId },
+      include: {
+        owner: { select: { email: true } },
+        category: { select: { id: true, name: true, slug: true } },
+      },
+    });
   }
 
   slugExists(slug: string, excludeId?: string): Promise<boolean> {
@@ -68,12 +87,49 @@ export class CompaniesRepository {
       skip: paginationSkip(filters.page, filters.limit),
       take: filters.limit,
       orderBy: this.buildOrderBy(filters.sort),
+      include: {
+        category: { select: { id: true, name: true, slug: true } },
+      },
     });
   }
 
   count(filters: Omit<SearchCompaniesFilters, 'page' | 'limit'>): Promise<number> {
     const where = this.buildWhereClause({ ...filters, page: 1, limit: 1 });
     return this.prisma.company.count({ where });
+  }
+
+  findManyForAdminVerification(input: {
+    status?: CompanyVerificationStatus;
+    page: number;
+    limit: number;
+  }) {
+    const where: Prisma.CompanyWhereInput = input.status
+      ? { verificationStatus: input.status }
+      : {};
+
+    return this.prisma.company.findMany({
+      where,
+      skip: paginationSkip(input.page, input.limit),
+      take: input.limit,
+      orderBy: { createdAt: 'desc' },
+      include: {
+        owner: { select: { id: true, email: true } },
+      },
+    });
+  }
+
+  countForAdminVerification(status?: CompanyVerificationStatus): Promise<number> {
+    const where: Prisma.CompanyWhereInput = status ? { verificationStatus: status } : {};
+    return this.prisma.company.count({ where });
+  }
+
+  findByIdWithOwner(id: string) {
+    return this.prisma.company.findUnique({
+      where: { id },
+      include: {
+        owner: { select: { id: true, email: true } },
+      },
+    });
   }
 
   getReviewStats(companyId: string): Promise<CompanyReviewStats> {
@@ -113,7 +169,9 @@ export class CompaniesRepository {
   }
 
   private buildWhereClause(filters: SearchCompaniesFilters): Prisma.CompanyWhereInput {
-    const where: Prisma.CompanyWhereInput = {};
+    const where: Prisma.CompanyWhereInput = {
+      verificationStatus: 'APPROVED',
+    };
 
     if (filters.country) {
       where.country = { equals: filters.country, mode: 'insensitive' };
@@ -125,6 +183,10 @@ export class CompaniesRepository {
 
     if (filters.minRating !== undefined) {
       where.ratingAverage = { gte: filters.minRating };
+    }
+
+    if (filters.categoryId) {
+      where.categoryId = filters.categoryId;
     }
 
     if (filters.query) {

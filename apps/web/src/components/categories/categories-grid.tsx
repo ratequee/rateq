@@ -1,30 +1,31 @@
 'use client';
 
 import { CategoryCard } from '@/components/categories/category-card';
-import { CATEGORIES, type CategoryId } from '@/lib/categories';
+import type { CategoryPublic } from '@rateq/types';
 import { useTranslations } from 'next-intl';
 
 interface CategoriesGridProps {
+  categories: CategoryPublic[];
   initialQuery?: string;
-  activeCategory?: CategoryId;
+  activeCategorySlug?: string;
 }
 
-function matchesQuery(name: string, description: string, query: string) {
+function matchesQuery(name: string, query: string) {
   const normalized = query.trim().toLowerCase();
   if (!normalized) return true;
-  return (
-    name.toLowerCase().includes(normalized) || description.toLowerCase().includes(normalized)
-  );
+  return name.toLowerCase().includes(normalized);
 }
 
-export function CategoriesGrid({ initialQuery = '', activeCategory }: CategoriesGridProps) {
+export function CategoriesGrid({
+  categories,
+  initialQuery = '',
+  activeCategorySlug,
+}: CategoriesGridProps) {
   const t = useTranslations('categories');
 
-  const filtered = CATEGORIES.filter((category) => {
-    if (activeCategory && category.id !== activeCategory) return false;
-    const name = t(`items.${category.id}.name`);
-    const description = t(`items.${category.id}.description`);
-    return matchesQuery(name, description, initialQuery);
+  const filtered = categories.filter((category) => {
+    if (activeCategorySlug && category.slug !== activeCategorySlug) return false;
+    return matchesQuery(category.name, initialQuery);
   });
 
   return (

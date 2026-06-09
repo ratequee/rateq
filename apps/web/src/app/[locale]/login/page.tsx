@@ -1,18 +1,23 @@
 'use client';
 
 import { AuthLayout } from '@/components/auth/auth-layout';
+import { GoogleSignInButton } from '@/components/auth/google-sign-in-button';
 import { useAuth } from '@/components/providers/auth-provider';
+import { useProfile } from '@/components/providers/profile-provider';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { ApiError } from '@/lib/api';
 import { Link, useRouter } from '@/i18n/routing';
+import { isEmailNotVerifiedError } from '@/lib/auth-flow-errors';
+import { authApi } from '@/lib/api';
+import { getAccessToken } from '@/lib/auth-storage';
 import { getPostAuthRedirect } from '@/lib/profile-routing';
-import { getStoredUser } from '@/lib/auth-storage';
+import type { AuthenticatedUser } from '@rateq/types';
+import { getFirebaseAuthErrorMessage } from '@/lib/firebase/errors';
+import { validateLoginFields, type LoginFieldErrors } from '@/lib/validation/auth-fields';
 import { useTranslations } from 'next-intl';
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { Logo } from '@/components/brand/logo';
-import Image from 'next/image';
 import { Eye, EyeOff } from 'lucide-react';
 
 export default function LoginPage() {
@@ -20,23 +25,69 @@ export default function LoginPage() {
   const tp = useTranslations('authPage');
   const tn = useTranslations('nav');
   const { login } = useAuth();
+  const { refreshOnboarding } = useProfile();
   const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [remember, setRemember] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [fieldErrors, setFieldErrors] = useState<LoginFieldErrors>({});
+
+  const redirectAfterAuth = async (sessionUser: AuthenticatedUser) => {
+    const [status, token] = await Promise.all([
+      refreshOnboarding(),
+      Promise.resolve(getAccessToken()),
+    ]);
+    let isFirebaseAdmin = false;
+    if (token) {
+      try {
+        const access = await authApi.firebaseAdminAccess(token);
+        isFirebaseAdmin = access.allowed;
+      } catch {
+        isFirebaseAdmin = false;
+      }
+    }
+    router.push(getPostAuthRedirect(sessionUser, status, isFirebaseAdmin));
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    const errors = validateLoginFields(
+      { email, password },
+      {
+        email: {
+          required: tp('validationEmailRequired'),
+          invalid: tp('validationEmailInvalid'),
+        },
+        password: {
+          required: tp('validationPasswordRequired'),
+          min: tp('validationPasswordMin'),
+        },
+      },
+    );
+
+    if (Object.keys(errors).length > 0) {
+      setFieldErrors(errors);
+      return;
+    }
+
+    setFieldErrors({});
     setLoading(true);
+
     try {
-      await login(email, password);
+      const sessionUser = await login(email, password);
       toast.success(tp('loginSuccess'));
-      const currentUser = getStoredUser();
-      router.push(currentUser ? getPostAuthRedirect(currentUser) : '/complete-profile');
+      await redirectAfterAuth(sessionUser);
     } catch (err) {
-      toast.error(err instanceof ApiError ? err.message : tp('loginError'));
+      if (isEmailNotVerifiedError(err)) {
+        toast.error(tp('loginEmailNotVerified'));
+        router.push(`/check-email?email=${encodeURIComponent(err.email)}`);
+        return;
+      }
+
+      toast.error(getFirebaseAuthErrorMessage(err, tp('loginError')));
     } finally {
       setLoading(false);
     }
@@ -46,13 +97,13 @@ export default function LoginPage() {
     <AuthLayout variant="login">
       <div>
         <div className="flex flex-col items-center justify-between">
-        <div className="mb-4">
-          <Link href="/">
-            <Logo variant="default"/>
-          </Link>
-        </div>
-        <h2 className="text-2xl font-bold text-ink sm:text-2xl">{t('loginTitle')}</h2>
-        <p className="mt-2 text-sm text-ink-muted sm:text-center">{tp('loginSubtitle')}</p>
+          <div className="mb-4">
+            <Link href="/">
+              <Logo variant="default" />
+            </Link>
+          </div>
+          <h2 className="text-2xl font-bold text-ink sm:text-2xl">{t('loginTitle')}</h2>
+          <p className="mt-2 text-sm text-ink-muted sm:text-center">{tp('loginSubtitle')}</p>
         </div>
         <form onSubmit={handleSubmit} className="mt-8 space-y-5">
           <div>
@@ -68,7 +119,9 @@ export default function LoginPage() {
               placeholder={tp('emailPlaceholder')}
               required
               className="h-11"
+              aria-invalid={Boolean(fieldErrors.email)}
             />
+            {fieldErrors.email && <p className="mt-1 text-sm text-red-600">{fieldErrors.email}</p>}
           </div>
 
           <div>
@@ -87,16 +140,20 @@ export default function LoginPage() {
                 placeholder={tp('passwordPlaceholder')}
                 required
                 className="h-11 pe-10"
+                aria-invalid={Boolean(fieldErrors.password)}
               />
               <button
                 type="button"
                 onClick={() => setShowPassword((prev) => !prev)}
                 className="absolute end-3 top-1/2 -translate-y-1/2 text-ink-muted transition-colors hover:text-ink"
-                aria-label={showPassword ? 'Hide password' : 'Show password'}
+                aria-label={showPassword ? tp('hidePassword') : tp('showPassword')}
               >
                 {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
               </button>
             </div>
+            {fieldErrors.password && (
+              <p className="mt-1 text-sm text-red-600">{fieldErrors.password}</p>
+            )}
           </div>
           <div className="flex items-center justify-between">
             <label className="flex cursor-pointer items-center gap-2.5">
@@ -115,14 +172,23 @@ export default function LoginPage() {
               {tp('forgotPassword')}
             </Link>
           </div>
-          <Button type="submit" size="lg" className="w-full bg-gold-400 text-white hover:bg-gold-500" style={{marginTop: 50}} disabled={loading}>
+          <Button
+            type="submit"
+            size="lg"
+            className="w-full bg-gold-400 text-white hover:bg-gold-500"
+            style={{ marginTop: 50 }}
+            disabled={loading}
+          >
             {loading ? tp('signingIn') : t('loginButton')}
           </Button>
         </form>
 
-        <p className="text-center text-sm text-ink-muted mt-4">
+        <p className="mt-4 text-center text-sm text-ink-muted">
           {t('noAccount')}{' '}
-          <Link href="/register" className="font-semibold text-brand-500 hover:text-brand-600 hover:underline">
+          <Link
+            href="/register"
+            className="font-semibold text-brand-500 hover:text-brand-600 hover:underline"
+          >
             {tn('getStarted')}
           </Link>
         </p>
@@ -135,9 +201,11 @@ export default function LoginPage() {
           </div>
         </div>
         <div className="flex items-center justify-center gap-6">
-          <Image src="/images/fb.svg" alt="Google" width={10} height={10} />
-          <Image src="/images/x.svg" alt="Apple" width={16} height={16} />
-          <Image src="/images/google.svg" alt="Apple" width={22} height={22} />
+          <GoogleSignInButton
+            onSuccess={async (sessionUser) => {
+              await redirectAfterAuth(sessionUser);
+            }}
+          />
         </div>
       </div>
     </AuthLayout>

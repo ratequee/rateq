@@ -1,11 +1,12 @@
 import { AuthProvider } from '@/components/providers/auth-provider';
+import { ProfileProvider } from '@/components/providers/profile-provider';
 import { AppShell } from '@/components/layout/app-shell';
 import { SiteFooter } from '@/components/layout/site-footer';
 import { routing } from '@/i18n/routing';
 import { NextIntlClientProvider } from 'next-intl';
 import { getMessages } from 'next-intl/server';
 import { notFound } from 'next/navigation';
-import { avenirNextRounded } from '@/lib/fonts';
+import { nunito } from '@/lib/fonts';
 import { Noto_Sans_Arabic } from 'next/font/google';
 import { Toaster } from 'sonner';
 import '../globals.css';
@@ -41,14 +42,21 @@ export default async function LocaleLayout({
   const isRtl = locale === 'ar';
 
   return (
-    <html lang={locale} dir={isRtl ? 'rtl' : 'ltr'} suppressHydrationWarning>
+    <html
+      lang={locale}
+      dir={isRtl ? 'rtl' : 'ltr'}
+      className={`${nunito.variable} ${notoArabic.variable}`}
+      suppressHydrationWarning
+    >
       <body
-        className={`${avenirNextRounded.variable} ${notoArabic.variable} ${isRtl ? 'font-arabic' : 'font-sans'}`}
+        className={isRtl ? `${notoArabic.className} font-arabic` : `${nunito.className} font-sans`}
       >
         <NextIntlClientProvider messages={messages}>
           <AuthProvider>
-            <AppShell footer={<SiteFooter />}>{children}</AppShell>
-            <Toaster richColors position={isRtl ? 'top-left' : 'top-right'} />
+            <ProfileProvider>
+              <AppShell footer={<SiteFooter />}>{children}</AppShell>
+              <Toaster richColors position={isRtl ? 'top-left' : 'top-right'} />
+            </ProfileProvider>
           </AuthProvider>
         </NextIntlClientProvider>
       </body>

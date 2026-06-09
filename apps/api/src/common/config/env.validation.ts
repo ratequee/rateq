@@ -155,6 +155,15 @@ export class AppConfig {
   @Transform(toBoolean)
   @IsBoolean()
   SWAGGER_ENABLED!: boolean;
+
+  @IsOptional()
+  @IsString()
+  FIREBASE_SERVICE_ACCOUNT_JSON?: string;
+
+  /** Comma-separated Firebase Auth UIDs allowed to use the admin dashboard */
+  @IsOptional()
+  @IsString()
+  FIREBASE_ADMIN_UIDS?: string;
 }
 
 export function validateEnv(config: Record<string, unknown>): AppConfig {
@@ -168,9 +177,7 @@ export function validateEnv(config: Record<string, unknown>): AppConfig {
   });
 
   if (errors.length > 0) {
-    const messages = errors
-      .flatMap((error) => Object.values(error.constraints ?? {}))
-      .join('\n');
+    const messages = errors.flatMap((error) => Object.values(error.constraints ?? {})).join('\n');
     throw new Error(`Environment validation failed:\n${messages}`);
   }
 

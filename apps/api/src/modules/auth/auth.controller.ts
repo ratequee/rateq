@@ -11,6 +11,7 @@ import { RefreshTokenDto } from './dto/refresh-token.dto';
 import { VerifyEmailDto } from './dto/verify-email.dto';
 import { ForgotPasswordDto } from './dto/forgot-password.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
+import { FirebaseLoginDto } from './dto/firebase-login.dto';
 import { LogoutDto } from './dto/logout.dto';
 import {
   AuthResponseDto,
@@ -45,6 +46,16 @@ export class AuthController {
   }
 
   @Public()
+  @Post('firebase')
+  @HttpCode(HttpStatus.OK)
+  @Throttle({ default: { limit: 20, ttl: 60_000 } })
+  @ApiOperation({ summary: 'Exchange Firebase ID token for RateQ session' })
+  @ApiResponse({ status: 200, type: AuthResponseDto })
+  loginWithFirebase(@Body() dto: FirebaseLoginDto) {
+    return this.authService.loginWithFirebase(dto);
+  }
+
+  @Public()
   @Post('refresh')
   @HttpCode(HttpStatus.OK)
   @Throttle({ default: { limit: 20, ttl: 60_000 } })
@@ -69,6 +80,13 @@ export class AuthController {
   @ApiResponse({ status: 200, type: AuthenticatedUserDto })
   me(@CurrentUser() user: AuthenticatedUser) {
     return this.authService.getProfile(user);
+  }
+
+  @Get('firebase-admin-access')
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Check if the current Firebase-linked user may access admin features' })
+  firebaseAdminAccess(@CurrentUser() user: AuthenticatedUser) {
+    return this.authService.getFirebaseAdminAccess(user.id);
   }
 
   @Public()

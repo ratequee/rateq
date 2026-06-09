@@ -10,7 +10,7 @@ interface AppShellProps {
 }
 
 function shouldHidePublicChrome(pathname: string): boolean {
-  return pathname.includes('/dashboard') || pathname.includes('/complete-profile');
+  return pathname.includes('/dashboard');
 }
 
 export function AppShell({ children, footer }: AppShellProps) {

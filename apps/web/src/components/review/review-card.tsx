@@ -33,9 +33,7 @@ export function ReviewCard({ review }: ReviewCardProps) {
           )}
         </div>
         <p className="text-sm text-slate-600 leading-relaxed">{review.content}</p>
-        {review.author && (
-          <p className="text-xs text-slate-400">{review.author.email}</p>
-        )}
+        {review.author && <p className="text-xs text-slate-500">{review.author.displayName}</p>}
         {review.reply && (
           <div className="mt-3 rounded-lg border border-slate-100 bg-slate-50 p-3">
             <p className="text-xs font-medium text-slate-500 mb-1">Company response</p>

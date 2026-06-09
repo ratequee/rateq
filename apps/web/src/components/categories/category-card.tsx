@@ -1,25 +1,23 @@
+'use client';
+
 import { Link } from '@/i18n/routing';
-import type { CategoryDefinition } from '@/lib/categories';
+import { getCategoryIcon } from '@/lib/category-icons';
 import { cn } from '@/lib/utils';
+import type { CategoryPublic } from '@rateq/types';
 import { ArrowRight } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 
 interface CategoryCardProps {
-  category: CategoryDefinition;
+  category: CategoryPublic;
   variant?: 'default' | 'compact' | 'featured';
   className?: string;
-}
-const serviceComponent = (services: string[]) => {
-  return services.map((service) => (
-    <li key={service} className='border-b-2 border-slate-100 pb-2 last:border-b-0'>{service}</li>
-  ))
 }
 
 export function CategoryCard({ category, variant = 'default', className }: CategoryCardProps) {
   const t = useTranslations('categories');
-  const Icon = category.icon;
-
-  const href = `/categories/${category.id}`;
+  const Icon = getCategoryIcon(category.slug);
+  const href = `/categories/${category.slug}`;
+  const count = category.companyCount ?? 0;
 
   if (variant === 'compact') {
     return (
@@ -34,11 +32,9 @@ export function CategoryCard({ category, variant = 'default', className }: Categ
           <Icon className="h-7 w-7" aria-hidden />
         </div>
         <h3 className="mt-4 text-center text-sm font-semibold leading-snug text-ink">
-          {t(`items.${category.id}.name`)}
+          {category.name}
         </h3>
-        <p className="mt-1 text-xs text-ink-muted">
-          {t('companyCount', { count: category.count })}
-        </p>
+        <p className="mt-1 text-xs text-ink-muted">{t('companyCount', { count })}</p>
       </Link>
     );
   }
@@ -60,14 +56,12 @@ export function CategoryCard({ category, variant = 'default', className }: Categ
             {t('popularBadge')}
           </span>
         </div>
-        <h3 className="mt-5 text-lg font-semibold text-ink">{t(`items.${category.id}.name`)}</h3>
+        <h3 className="mt-5 text-lg font-semibold text-ink">{category.name}</h3>
         <p className="mt-2 line-clamp-2 text-sm leading-relaxed text-ink-muted">
-          {t(`items.${category.id}.description`)}
+          {t('categoryDescription', { name: category.name })}
         </p>
         <div className="mt-5 flex items-center justify-between border-t border-slate-100 pt-4">
-          <span className="text-sm text-ink-muted">
-            {t('companyCount', { count: category.count })}
-          </span>
+          <span className="text-sm text-ink-muted">{t('companyCount', { count })}</span>
           <span className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-brand-50 text-brand-500 transition-colors group-hover:bg-brand-500 group-hover:text-white">
             <ArrowRight className="h-4 w-4 rtl:rotate-180" />
           </span>
@@ -80,24 +74,21 @@ export function CategoryCard({ category, variant = 'default', className }: Categ
     <Link
       href={href}
       className={cn(
-        'group flex flex-col mt-20 rounded-2xl border border-slate-100 bg-white p-6 shadow-sm transition-all hover:border-gold-500 hover:shadow-card sm:p-8',
+        'group mt-20 flex flex-col rounded-2xl border border-slate-100 bg-white p-6 shadow-sm transition-all hover:border-gold-500 hover:shadow-card sm:p-8',
         className,
       )}
     >
       <div className="flex flex-col items-center">
-      <div className="flex h-[100px] w-[100px] mt-[-50px] items-center justify-center rounded-lg bg-gold-300 text-white transition-colors group-hover:bg-gold-500 group-hover:text-white">
-        <Icon className="h-10 w-10" aria-hidden />
-      </div>
+        <div className="mt-[-50px] flex h-[100px] w-[100px] items-center justify-center rounded-lg bg-gold-300 text-white transition-colors group-hover:bg-gold-500 group-hover:text-white">
+          <Icon className="h-10 w-10" aria-hidden />
+        </div>
       </div>
       <h3 className="mt-5 text-center text-sm font-semibold leading-snug text-ink sm:text-base">
-        {t(`items.${category.id}.name`)}
+        {category.name}
       </h3>
       <p className="mt-2 text-center text-xs text-ink-muted sm:text-sm">
-        {t('companyCount', { count: category.count })}
+        {t('companyCount', { count })}
       </p>
-      <ul className="mt-8 text-xs text-ink-muted sm:text-sm">
-        {serviceComponent(["Service 01", "Service 02", "Service 03", "Service 04", "Service 05", "Service 06"])}
-      </ul>
     </Link>
   );
 }

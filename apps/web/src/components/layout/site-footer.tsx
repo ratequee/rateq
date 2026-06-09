@@ -10,31 +10,28 @@ export async function SiteFooter(): Promise<JSX.Element> {
   const tc = await getTranslations('common');
   const year = new Date().getFullYear();
 
-  const companyLinks = [
+  const mainLinks = [
+    { href: '/', label: t('home') },
     { href: '/about', label: t('about') },
-    { href: '/search', label: t('pricing') },
-    { href: '/search', label: t('services') },
-    { href: '/search', label: t('team') },
-    { href: '/search', label: t('privacy') },
+    { href: '/categories', label: t('categories') },
+    { href: '/register', label: t('register') },
   ];
 
   const supportLinks = [
-    { href: '/search', label: t('support') },
-    { href: '/search', label: t('locate') },
-    { href: '/search', label: t('booking') },
-    { href: '/contact', label: t('contact') },
-    { href: '/search', label: t('faq') },
+    { href: '/contact', label: t('contactUs') },
+    { href: '/contact', label: t('privacy') },
+    { href: '/contact', label: t('faq') },
   ];
 
   const social = [
-    { icon: "/images/fb.svg", label: 'Facebook', href: '#' },
-    { icon: "/images/x.svg", label: 'X', href: '#' },
-    { icon: "/images/utube.svg", label: 'Youtube', href: '#' },
-    { icon: "/images/in.svg", label: 'LinkedIn', href: '#' },
+    { icon: '/images/fb.svg', label: 'Facebook', href: '#' },
+    { icon: '/images/x.svg', label: 'X', href: '#' },
+    { icon: '/images/utube.svg', label: 'Youtube', href: '#' },
+    { icon: '/images/in.svg', label: 'LinkedIn', href: '#' },
   ];
 
   return (
-    <footer className="bg-black text-white pt-[100px]">
+    <footer className="bg-black pt-[100px] text-white">
       <div className="mx-auto max-w-page px-4 py-12 sm:px-6 sm:py-16 lg:px-8">
         <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-4 lg:gap-8">
           <div className="sm:col-span-2 lg:col-span-1">
@@ -49,7 +46,12 @@ export async function SiteFooter(): Promise<JSX.Element> {
                     aria-label={label}
                     className="flex h-9 w-9 items-center justify-center rounded-full bg-white text-white transition-colors hover:bg-gold-300 hover:text-brand-800"
                   >
-                    <Image src={Icon} alt={label} width={label === 'Facebook' ? 10 : 15} height={15} />
+                    <Image
+                      src={Icon}
+                      alt={label}
+                      width={label === 'Facebook' ? 10 : 15}
+                      height={15}
+                    />
                   </a>
                 </li>
               ))}
@@ -57,7 +59,7 @@ export async function SiteFooter(): Promise<JSX.Element> {
           </div>
 
           <div>
-            <h3 className="text-xl font-bold uppercase text-white">{t('ourAddress')}</h3>
+            <h3 className="text-xl font-bold uppercase text-white">{t('contactTitle')}</h3>
             <ul className="mt-4 space-y-3 text-sm text-white">
               <li className="flex items-start gap-2">
                 <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-gold-300" aria-hidden />
@@ -71,25 +73,28 @@ export async function SiteFooter(): Promise<JSX.Element> {
               </li>
               <li className="flex items-center gap-2">
                 <Mail className="h-4 w-4 shrink-0 text-gold-300" aria-hidden />
-                <a href="mailto:support@rateq.com" className="hover:text-gold-300">
+                <a href="mailto:support@RateQ.com" className="hover:text-gold-300">
                   {t('email')}
                 </a>
               </li>
               <li className="flex items-center gap-2">
                 <Globe className="h-4 w-4 shrink-0 text-gold-300" aria-hidden />
-                <a href="https://www.rateq.com" className="hover:text-gold-300">
-                  www.rateq.com
+                <a href="https://www.RateQ.com" className="hover:text-gold-300">
+                  {t('website')}
                 </a>
               </li>
             </ul>
           </div>
 
           <div>
-            <h3 className="text-xl font-bold uppercase text-white">{t('company')}</h3>
+            <h3 className="text-xl font-bold uppercase text-white">{t('main')}</h3>
             <ul className="mt-4 space-y-2.5">
-              {companyLinks.map(({ href, label }) => (
+              {mainLinks.map(({ href, label }) => (
                 <li key={label}>
-                  <Link href={href} className="text-sm text-white transition-colors hover:text-gold-300">
+                  <Link
+                    href={href}
+                    className="text-sm text-white transition-colors hover:text-gold-300"
+                  >
                     {label}
                   </Link>
                 </li>
@@ -102,7 +107,10 @@ export async function SiteFooter(): Promise<JSX.Element> {
             <ul className="mt-4 space-y-2.5">
               {supportLinks.map(({ href, label }) => (
                 <li key={label}>
-                  <Link href={href} className="text-sm text-white transition-colors hover:text-gold-300">
+                  <Link
+                    href={href}
+                    className="text-sm text-white transition-colors hover:text-gold-300"
+                  >
                     {label}
                   </Link>
                 </li>
@@ -117,13 +125,13 @@ export async function SiteFooter(): Promise<JSX.Element> {
               © {year} {tc('appName')}. {t('rights')}
             </p>
             <div className="flex flex-wrap justify-center gap-4">
-              <Link href="/search" className="hover:text-gold-300">
+              <Link href="/contact" className="hover:text-gold-300">
                 {t('privacy')}
               </Link>
-              <Link href="/search" className="hover:text-gold-300">
+              <Link href="/contact" className="hover:text-gold-300">
                 {t('terms')}
               </Link>
-              <Link href="/search" className="hover:text-gold-300">
+              <Link href="/contact" className="hover:text-gold-300">
                 {t('cookies')}
               </Link>
             </div>

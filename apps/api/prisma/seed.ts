@@ -3,6 +3,21 @@ import * as bcrypt from 'bcrypt';
 
 const prisma = new PrismaClient();
 
+const DEFAULT_CATEGORIES = [
+  'Business Services',
+  'Automotive',
+  'Luxury Goods',
+  'Healthcare',
+  'Real Estate',
+  'Technology',
+  'Retail',
+  'Dining & Restaurants',
+  'Education',
+  'Finance',
+  'Travel',
+  'Fitness',
+];
+
 async function main(): Promise<void> {
   const passwordHash = await bcrypt.hash('Admin123!', 12);
 
@@ -17,7 +32,21 @@ async function main(): Promise<void> {
     },
   });
 
+  for (const name of DEFAULT_CATEGORIES) {
+    const slug = name
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-|-$/g, '');
+
+    await prisma.category.upsert({
+      where: { slug },
+      update: { name },
+      create: { name, slug },
+    });
+  }
+
   console.log('Seed completed: admin@rateq.local / Admin123!');
+  console.log(`Seeded ${DEFAULT_CATEGORIES.length} categories`);
 }
 
 main()

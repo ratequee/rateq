@@ -15,11 +15,17 @@ async function bootstrap(): Promise<void> {
   const configService = app.get(ConfigService<AppConfig, true>);
   const port = configService.get('PORT', { infer: true });
   const apiPrefix = configService.get('API_PREFIX', { infer: true });
-  const corsOrigins = configService.get('CORS_ORIGINS', { infer: true });
+  // API_PREFIX is often "api/v1" while URI versioning also adds "/v1" — strip trailing version to avoid /api/v1/v1/...
+  const globalPrefix = apiPrefix.replace(/\/v\d+$/, '') || 'api';
+  const corsOrigins = configService
+    .get('CORS_ORIGINS', { infer: true })
+    .split(',')
+    .map((origin) => origin.trim())
+    .filter(Boolean);
   const swaggerEnabled = configService.get('SWAGGER_ENABLED', { infer: true });
   const nodeEnv = configService.get('NODE_ENV', { infer: true });
 
-  app.setGlobalPrefix(apiPrefix);
+  app.setGlobalPrefix(globalPrefix);
   app.enableVersioning({ type: VersioningType.URI, defaultVersion: '1' });
 
   app.enableCors({
@@ -52,7 +58,7 @@ async function bootstrap(): Promise<void> {
   }
 
   await app.listen(port);
-  console.log(`RateQ API running on http://localhost:${port}/${apiPrefix}`);
+  console.log(`RateQ API running on http://localhost:${port}/${globalPrefix}/v1`);
   if (swaggerEnabled) {
     console.log(`Swagger docs: http://localhost:${port}/docs`);
   }

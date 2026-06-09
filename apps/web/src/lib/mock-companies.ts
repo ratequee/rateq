@@ -7,7 +7,10 @@ import type {
 import { ReviewStatus } from '@rateq/types';
 import { CATEGORY_IDS, type CategoryId } from '@/lib/categories';
 
-interface MockCompany extends CompanyPublic {
+interface MockCompany extends Omit<CompanyPublic, 'email' | 'phone' | 'coverUrl'> {
+  email?: string | null;
+  phone?: string | null;
+  coverUrl?: string | null;
   categoryId: CategoryId;
   keywords: string[];
 }
@@ -304,8 +307,7 @@ export const MOCK_COMPANIES: MockCompany[] = [
     id: 'mock-collection-qatar',
     name: 'The Collection Qatar',
     slug: 'the-collection-qatar',
-    description:
-      'High-end home décor, art pieces, and bespoke furniture for premium residences.',
+    description: 'High-end home décor, art pieces, and bespoke furniture for premium residences.',
     logo: null,
     country: 'Qatar',
     city: 'Doha',
@@ -394,8 +396,7 @@ export const MOCK_COMPANIES: MockCompany[] = [
     id: 'mock-regency-travel',
     name: 'Regency Travel Agency',
     slug: 'regency-travel-agency',
-    description:
-      'Holiday packages, visa assistance, and corporate travel management from Doha.',
+    description: 'Holiday packages, visa assistance, and corporate travel management from Doha.',
     logo: 'https://picsum.photos/seed/regency-travel/200/200',
     country: 'Qatar',
     city: 'Doha',
@@ -424,8 +425,7 @@ export const MOCK_COMPANIES: MockCompany[] = [
     id: 'mock-fitness-first',
     name: 'Fitness First Doha',
     slug: 'fitness-first-doha',
-    description:
-      'Large fitness club with pool, classes, and personal trainers in central Doha.',
+    description: 'Large fitness club with pool, classes, and personal trainers in central Doha.',
     logo: 'https://picsum.photos/seed/fitness-first/200/200',
     country: 'Qatar',
     city: 'Doha',
@@ -439,8 +439,7 @@ export const MOCK_COMPANIES: MockCompany[] = [
     id: 'mock-sultans-tent',
     name: "Sultan's Tent Restaurant",
     slug: 'sultans-tent-restaurant',
-    description:
-      'Arabic and Lebanese cuisine with outdoor seating and live music on weekends.',
+    description: 'Arabic and Lebanese cuisine with outdoor seating and live music on weekends.',
     logo: 'https://picsum.photos/seed/sultans-tent/200/200',
     country: 'Qatar',
     city: 'Doha',
@@ -482,7 +481,7 @@ const MOCK_REVIEWS: Record<string, ReviewPublic[]> = {
       status: ReviewStatus.APPROVED,
       createdAt: '2025-05-19T10:00:00.000Z',
       updatedAt: '2025-05-19T10:00:00.000Z',
-      author: { id: 'user-sara', email: 'sara.ahmed@example.com' },
+      author: { id: 'user-sara', displayName: 'Sara Ahmed', avatarUrl: null },
       reply: {
         id: 'reply-ooredoo-1',
         content: 'Thank you Sara! We are glad our team could help quickly.',
@@ -500,7 +499,7 @@ const MOCK_REVIEWS: Record<string, ReviewPublic[]> = {
       status: ReviewStatus.APPROVED,
       createdAt: '2025-05-03T10:00:00.000Z',
       updatedAt: '2025-05-03T10:00:00.000Z',
-      author: { id: 'user-mohammed', email: 'mohammed.ali@example.com' },
+      author: { id: 'user-mohammed', displayName: 'Mohammed Ali', avatarUrl: null },
     },
     {
       id: 'rev-ooredoo-3',
@@ -508,11 +507,12 @@ const MOCK_REVIEWS: Record<string, ReviewPublic[]> = {
       userId: 'user-fatima',
       rating: 5,
       title: 'Smooth store experience in City Center',
-      content: 'Staff helped me pick the right plan and transferred my number same day. Very professional.',
+      content:
+        'Staff helped me pick the right plan and transferred my number same day. Very professional.',
       status: ReviewStatus.APPROVED,
       createdAt: '2025-04-16T10:00:00.000Z',
       updatedAt: '2025-04-16T10:00:00.000Z',
-      author: { id: 'user-fatima', email: 'fatima.hassan@example.com' },
+      author: { id: 'user-fatima', displayName: 'Fatima Hassan', avatarUrl: null },
     },
     {
       id: 'rev-ooredoo-4',
@@ -520,11 +520,12 @@ const MOCK_REVIEWS: Record<string, ReviewPublic[]> = {
       userId: 'user-ahmed',
       rating: 3,
       title: 'Good network, slow installation wait',
-      content: 'Internet quality is great once installed, but I waited two weeks for a technician slot.',
+      content:
+        'Internet quality is great once installed, but I waited two weeks for a technician slot.',
       status: ReviewStatus.APPROVED,
       createdAt: '2025-04-01T10:00:00.000Z',
       updatedAt: '2025-04-01T10:00:00.000Z',
-      author: { id: 'user-ahmed', email: 'ahmed.khalid@example.com' },
+      author: { id: 'user-ahmed', displayName: 'Ahmed Khalid', avatarUrl: null },
     },
   ],
   'mock-qatar-airways': [
@@ -539,7 +540,7 @@ const MOCK_REVIEWS: Record<string, ReviewPublic[]> = {
       status: ReviewStatus.APPROVED,
       createdAt: '2025-05-23T10:00:00.000Z',
       updatedAt: '2025-05-23T10:00:00.000Z',
-      author: { id: 'user-mohammed', email: 'mohammed.ali@example.com' },
+      author: { id: 'user-mohammed', displayName: 'Mohammed Ali', avatarUrl: null },
       reply: {
         id: 'reply-qa-1',
         content: 'We appreciate your feedback and look forward to welcoming you onboard again.',
@@ -556,7 +557,7 @@ const MOCK_REVIEWS: Record<string, ReviewPublic[]> = {
       status: ReviewStatus.APPROVED,
       createdAt: '2025-05-11T10:00:00.000Z',
       updatedAt: '2025-05-11T10:00:00.000Z',
-      author: { id: 'user-sara', email: 'sara.ahmed@example.com' },
+      author: { id: 'user-sara', displayName: 'Sara Ahmed', avatarUrl: null },
     },
     {
       id: 'rev-qa-3',
@@ -568,7 +569,7 @@ const MOCK_REVIEWS: Record<string, ReviewPublic[]> = {
       status: ReviewStatus.APPROVED,
       createdAt: '2025-04-11T10:00:00.000Z',
       updatedAt: '2025-04-11T10:00:00.000Z',
-      author: { id: 'user-layla', email: 'layla.omar@example.com' },
+      author: { id: 'user-layla', displayName: 'Layla Omar', avatarUrl: null },
     },
     {
       id: 'rev-qa-4',
@@ -580,7 +581,7 @@ const MOCK_REVIEWS: Record<string, ReviewPublic[]> = {
       status: ReviewStatus.APPROVED,
       createdAt: '2025-03-20T10:00:00.000Z',
       updatedAt: '2025-03-20T10:00:00.000Z',
-      author: { id: 'user-ahmed', email: 'ahmed.khalid@example.com' },
+      author: { id: 'user-ahmed', displayName: 'Ahmed Khalid', avatarUrl: null },
     },
     {
       id: 'rev-qa-5',
@@ -588,11 +589,12 @@ const MOCK_REVIEWS: Record<string, ReviewPublic[]> = {
       userId: 'user-youssef',
       rating: 4,
       title: 'Reliable for frequent travel',
-      content: 'Fly this route monthly for work. Consistent schedule and professional ground staff.',
+      content:
+        'Fly this route monthly for work. Consistent schedule and professional ground staff.',
       status: ReviewStatus.APPROVED,
       createdAt: '2025-02-10T10:00:00.000Z',
       updatedAt: '2025-02-10T10:00:00.000Z',
-      author: { id: 'user-youssef', email: 'youssef.nasser@example.com' },
+      author: { id: 'user-youssef', displayName: 'Youssef Nasser', avatarUrl: null },
     },
   ],
   'mock-al-meera': [
@@ -602,11 +604,12 @@ const MOCK_REVIEWS: Record<string, ReviewPublic[]> = {
       userId: 'user-fatima',
       rating: 4,
       title: 'Always find what I need nearby',
-      content: 'Clean aisles, good variety of local and imported goods, and shorter queues than megastores.',
+      content:
+        'Clean aisles, good variety of local and imported goods, and shorter queues than megastores.',
       status: ReviewStatus.APPROVED,
       createdAt: '2025-05-16T10:00:00.000Z',
       updatedAt: '2025-05-16T10:00:00.000Z',
-      author: { id: 'user-fatima', email: 'fatima.hassan@example.com' },
+      author: { id: 'user-fatima', displayName: 'Fatima Hassan', avatarUrl: null },
       reply: {
         id: 'reply-almeera-1',
         content: 'Thanks for shopping with Al Meera! We work hard to keep shelves stocked daily.',
@@ -619,11 +622,12 @@ const MOCK_REVIEWS: Record<string, ReviewPublic[]> = {
       userId: 'user-sara',
       rating: 4,
       title: 'Fresh bakery every morning',
-      content: 'Bread and pastries section is consistently fresh. Great for weekend breakfast runs.',
+      content:
+        'Bread and pastries section is consistently fresh. Great for weekend breakfast runs.',
       status: ReviewStatus.APPROVED,
       createdAt: '2025-04-29T10:00:00.000Z',
       updatedAt: '2025-04-29T10:00:00.000Z',
-      author: { id: 'user-sara', email: 'sara.ahmed@example.com' },
+      author: { id: 'user-sara', displayName: 'Sara Ahmed', avatarUrl: null },
     },
   ],
   'mock-viva-fitness': [
@@ -637,7 +641,7 @@ const MOCK_REVIEWS: Record<string, ReviewPublic[]> = {
       status: ReviewStatus.APPROVED,
       createdAt: '2025-05-13T10:00:00.000Z',
       updatedAt: '2025-05-13T10:00:00.000Z',
-      author: { id: 'user-youssef', email: 'youssef.nasser@example.com' },
+      author: { id: 'user-youssef', displayName: 'Youssef Nasser', avatarUrl: null },
     },
     {
       id: 'rev-viva-2',
@@ -649,7 +653,7 @@ const MOCK_REVIEWS: Record<string, ReviewPublic[]> = {
       status: ReviewStatus.APPROVED,
       createdAt: '2025-04-06T10:00:00.000Z',
       updatedAt: '2025-04-06T10:00:00.000Z',
-      author: { id: 'user-mohammed', email: 'mohammed.ali@example.com' },
+      author: { id: 'user-mohammed', displayName: 'Mohammed Ali', avatarUrl: null },
     },
   ],
   'mock-parisa': [
@@ -659,11 +663,12 @@ const MOCK_REVIEWS: Record<string, ReviewPublic[]> = {
       userId: 'user-layla',
       rating: 5,
       title: 'Unforgettable atmosphere',
-      content: 'Dining under the stars in the souq courtyard felt special. Fesenjan was rich and flavorful.',
+      content:
+        'Dining under the stars in the souq courtyard felt special. Fesenjan was rich and flavorful.',
       status: ReviewStatus.APPROVED,
       createdAt: '2025-05-25T10:00:00.000Z',
       updatedAt: '2025-05-25T10:00:00.000Z',
-      author: { id: 'user-layla', email: 'layla.omar@example.com' },
+      author: { id: 'user-layla', displayName: 'Layla Omar', avatarUrl: null },
     },
     {
       id: 'rev-parisa-2',
@@ -675,7 +680,7 @@ const MOCK_REVIEWS: Record<string, ReviewPublic[]> = {
       status: ReviewStatus.APPROVED,
       createdAt: '2025-05-09T10:00:00.000Z',
       updatedAt: '2025-05-09T10:00:00.000Z',
-      author: { id: 'user-ahmed', email: 'ahmed.khalid@example.com' },
+      author: { id: 'user-ahmed', displayName: 'Ahmed Khalid', avatarUrl: null },
     },
     {
       id: 'rev-parisa-3',
@@ -687,7 +692,7 @@ const MOCK_REVIEWS: Record<string, ReviewPublic[]> = {
       status: ReviewStatus.APPROVED,
       createdAt: '2025-04-23T10:00:00.000Z',
       updatedAt: '2025-04-23T10:00:00.000Z',
-      author: { id: 'user-sara', email: 'sara.ahmed@example.com' },
+      author: { id: 'user-sara', displayName: 'Sara Ahmed', avatarUrl: null },
     },
   ],
   'mock-doha-clinic': [
@@ -697,11 +702,12 @@ const MOCK_REVIEWS: Record<string, ReviewPublic[]> = {
       userId: 'user-fatima',
       rating: 5,
       title: 'Thorough pediatric visit',
-      content: 'Doctor spent time explaining treatment options and follow-up clearly for our child.',
+      content:
+        'Doctor spent time explaining treatment options and follow-up clearly for our child.',
       status: ReviewStatus.APPROVED,
       createdAt: '2025-05-20T10:00:00.000Z',
       updatedAt: '2025-05-20T10:00:00.000Z',
-      author: { id: 'user-fatima', email: 'fatima.hassan@example.com' },
+      author: { id: 'user-fatima', displayName: 'Fatima Hassan', avatarUrl: null },
     },
     {
       id: 'rev-clinic-2',
@@ -709,11 +715,12 @@ const MOCK_REVIEWS: Record<string, ReviewPublic[]> = {
       userId: 'user-sara',
       rating: 4,
       title: 'Efficient lab turnaround',
-      content: 'Blood work results were available online the next morning. Reception was organized.',
+      content:
+        'Blood work results were available online the next morning. Reception was organized.',
       status: ReviewStatus.APPROVED,
       createdAt: '2025-05-02T10:00:00.000Z',
       updatedAt: '2025-05-02T10:00:00.000Z',
-      author: { id: 'user-sara', email: 'sara.ahmed@example.com' },
+      author: { id: 'user-sara', displayName: 'Sara Ahmed', avatarUrl: null },
     },
   ],
   'mock-carrefour': [
@@ -727,7 +734,7 @@ const MOCK_REVIEWS: Record<string, ReviewPublic[]> = {
       status: ReviewStatus.APPROVED,
       createdAt: '2025-05-17T10:00:00.000Z',
       updatedAt: '2025-05-17T10:00:00.000Z',
-      author: { id: 'user-mohammed', email: 'mohammed.ali@example.com' },
+      author: { id: 'user-mohammed', displayName: 'Mohammed Ali', avatarUrl: null },
     },
   ],
   'mock-msheireb': [
@@ -741,7 +748,7 @@ const MOCK_REVIEWS: Record<string, ReviewPublic[]> = {
       status: ReviewStatus.APPROVED,
       createdAt: '2025-05-22T10:00:00.000Z',
       updatedAt: '2025-05-22T10:00:00.000Z',
-      author: { id: 'user-youssef', email: 'youssef.nasser@example.com' },
+      author: { id: 'user-youssef', displayName: 'Youssef Nasser', avatarUrl: null },
     },
     {
       id: 'rev-msheireb-2',
@@ -749,11 +756,12 @@ const MOCK_REVIEWS: Record<string, ReviewPublic[]> = {
       userId: 'user-sara',
       rating: 5,
       title: 'High-quality apartment finish',
-      content: 'Move-in was smooth and building management responds quickly to maintenance requests.',
+      content:
+        'Move-in was smooth and building management responds quickly to maintenance requests.',
       status: ReviewStatus.APPROVED,
       createdAt: '2025-04-20T10:00:00.000Z',
       updatedAt: '2025-04-20T10:00:00.000Z',
-      author: { id: 'user-sara', email: 'sara.ahmed@example.com' },
+      author: { id: 'user-sara', displayName: 'Sara Ahmed', avatarUrl: null },
     },
   ],
   'mock-vodafone': [
@@ -767,7 +775,7 @@ const MOCK_REVIEWS: Record<string, ReviewPublic[]> = {
       status: ReviewStatus.APPROVED,
       createdAt: '2025-05-15T10:00:00.000Z',
       updatedAt: '2025-05-15T10:00:00.000Z',
-      author: { id: 'user-ahmed', email: 'ahmed.khalid@example.com' },
+      author: { id: 'user-ahmed', displayName: 'Ahmed Khalid', avatarUrl: null },
     },
     {
       id: 'rev-vodafone-2',
@@ -779,7 +787,7 @@ const MOCK_REVIEWS: Record<string, ReviewPublic[]> = {
       status: ReviewStatus.APPROVED,
       createdAt: '2025-04-03T10:00:00.000Z',
       updatedAt: '2025-04-03T10:00:00.000Z',
-      author: { id: 'user-layla', email: 'layla.omar@example.com' },
+      author: { id: 'user-layla', displayName: 'Layla Omar', avatarUrl: null },
     },
   ],
   'mock-texas-chicken': [
@@ -793,7 +801,7 @@ const MOCK_REVIEWS: Record<string, ReviewPublic[]> = {
       status: ReviewStatus.APPROVED,
       createdAt: '2025-05-26T10:00:00.000Z',
       updatedAt: '2025-05-26T10:00:00.000Z',
-      author: { id: 'user-sara', email: 'sara.ahmed@example.com' },
+      author: { id: 'user-sara', displayName: 'Sara Ahmed', avatarUrl: null },
     },
     {
       id: 'rev-texas-2',
@@ -805,14 +813,19 @@ const MOCK_REVIEWS: Record<string, ReviewPublic[]> = {
       status: ReviewStatus.APPROVED,
       createdAt: '2025-05-07T10:00:00.000Z',
       updatedAt: '2025-05-07T10:00:00.000Z',
-      author: { id: 'user-youssef', email: 'youssef.nasser@example.com' },
+      author: { id: 'user-youssef', displayName: 'Youssef Nasser', avatarUrl: null },
     },
   ],
 };
 
 function toPublicCompany(company: MockCompany): CompanyPublic {
   const { keywords: _keywords, ...publicCompany } = company;
-  return publicCompany;
+  return {
+    email: null,
+    phone: null,
+    coverUrl: null,
+    ...publicCompany,
+  };
 }
 
 function matchesQuery(company: MockCompany, query: string): boolean {
@@ -930,12 +943,20 @@ export function getMockCompanyBySlug(slug: string): CompanyPublic | undefined {
 }
 
 const FALLBACK_REVIEW_AUTHORS = [
-  { id: 'user-sara', email: 'sara.ahmed@example.com' },
-  { id: 'user-mohammed', email: 'mohammed.ali@example.com' },
-  { id: 'user-fatima', email: 'fatima.hassan@example.com' },
-  { id: 'user-ahmed', email: 'ahmed.khalid@example.com' },
-  { id: 'user-layla', email: 'layla.omar@example.com' },
-  { id: 'user-youssef', email: 'youssef.nasser@example.com' },
+  { id: 'user-sara', displayName: 'Sara Ahmed', avatarUrl: 'https://i.pravatar.cc/150?img=47' },
+  {
+    id: 'user-mohammed',
+    displayName: 'Mohammed Ali',
+    avatarUrl: 'https://i.pravatar.cc/150?img=12',
+  },
+  { id: 'user-fatima', displayName: 'Fatima Hassan', avatarUrl: 'https://i.pravatar.cc/150?img=5' },
+  { id: 'user-ahmed', displayName: 'Ahmed Khalid', avatarUrl: 'https://i.pravatar.cc/150?img=33' },
+  { id: 'user-layla', displayName: 'Layla Omar', avatarUrl: 'https://i.pravatar.cc/150?img=9' },
+  {
+    id: 'user-youssef',
+    displayName: 'Youssef Nasser',
+    avatarUrl: 'https://i.pravatar.cc/150?img=15',
+  },
 ] as const;
 
 function daysAgoIso(days: number): string {
@@ -945,7 +966,10 @@ function daysAgoIso(days: number): string {
 }
 
 function buildFallbackReviews(companyId: string, companyName: string): ReviewPublic[] {
-  const templates: (Omit<ReviewPublic, 'id' | 'companyId' | 'userId' | 'createdAt' | 'updatedAt' | 'author'> & {
+  const templates: (Omit<
+    ReviewPublic,
+    'id' | 'companyId' | 'userId' | 'createdAt' | 'updatedAt' | 'author'
+  > & {
     userIndex: number;
     daysAgo: number;
     reply?: ReviewPublic['reply'];
@@ -996,8 +1020,7 @@ function buildFallbackReviews(companyId: string, companyName: string): ReviewPub
       daysAgo: 48,
       rating: 5,
       title: 'Highly recommended on RateQ',
-      content:
-        `I checked reviews before choosing ${companyName} and they delivered. Transparent pricing and no surprises — exactly what you want when trying somewhere new.`,
+      content: `I checked reviews before choosing ${companyName} and they delivered. Transparent pricing and no surprises — exactly what you want when trying somewhere new.`,
       status: ReviewStatus.APPROVED,
       reply: {
         id: `reply-${companyId}-2`,
