@@ -61,10 +61,21 @@ export class CreateCompanyDto {
   @IsDateString()
   validationDate!: string;
 
-  @ApiProperty({ example: 'https://cdn.example.com/registration.pdf' })
+  @ApiPropertyOptional({ example: 'https://cdn.example.com/registration.pdf' })
+  @IsOptional()
   @IsUrl()
   @MaxLength(2048)
-  registrationDocUrl!: string;
+  registrationDocUrl?: string;
+
+  @ApiProperty({ example: 'https://cdn.example.com/establishment-card.pdf' })
+  @IsUrl()
+  @MaxLength(2048)
+  establishmentCardUrl!: string;
+
+  @ApiProperty({ example: 'https://cdn.example.com/trade-license.pdf' })
+  @IsUrl()
+  @MaxLength(2048)
+  tradeLicenseUrl!: string;
 
   @ApiProperty({ example: 'Qatar' })
   @IsString()

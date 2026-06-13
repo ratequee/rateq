@@ -8,10 +8,8 @@ import {
   useRequireCompleteProfile,
   useRequireVerifiedAuth,
 } from '@/hooks/use-require-verified-auth';
-import { isCompanyPendingApproval, isCompanyRejected } from '@/lib/profile-routing';
-import { Link } from '@/i18n/routing';
+import { isCompanyPendingApproval, isCompanyRevisionRequested } from '@/lib/profile-routing';
 import { companiesApi } from '@/lib/api';
-import { Button } from '@/components/ui/button';
 import type { CompanyDashboard } from '@rateq/types';
 import { useRouter } from '@/i18n/routing';
 import { useTranslations } from 'next-intl';
@@ -28,7 +26,7 @@ export default function CompanyDashboardPage() {
 
   useEffect(() => {
     if (profileLoading || !user) return;
-    if (isCompanyPendingApproval(onboarding) || isCompanyRejected(onboarding)) {
+    if (isCompanyPendingApproval(onboarding) || isCompanyRevisionRequested(onboarding)) {
       router.replace('/complete-profile');
     }
   }, [onboarding, profileLoading, router, user]);
@@ -57,17 +55,6 @@ export default function CompanyDashboardPage() {
       {status === 'pending' && (
         <div className="mb-6 rounded-2xl border border-amber-200 bg-amber-50 px-5 py-4 text-sm text-amber-800">
           {tp('companyPendingBanner')}
-        </div>
-      )}
-
-      {status === 'rejected' && (
-        <div className="mb-6 flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-red-200 bg-red-50 px-5 py-4 text-sm text-red-700">
-          <span>{tp('companyRejectedBanner')}</span>
-          <Link href="/complete-profile">
-            <Button variant="outline-brand" size="sm">
-              {tp('editProfile')}
-            </Button>
-          </Link>
         </div>
       )}
 

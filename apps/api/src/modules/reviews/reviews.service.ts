@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   ConflictException,
   ForbiddenException,
   Injectable,
@@ -17,6 +18,7 @@ import { ConfigService } from '@nestjs/config';
 import type { AppConfig } from '../../common/config/env.validation';
 import { buildPaginationMeta } from '../../common/utils/pagination.util';
 import { CompaniesRepository } from '../companies/repositories/companies.repository';
+import { CategoriesService } from '../categories/categories.service';
 import { ReviewsRepository } from './repositories/reviews.repository';
 import { InjectQueue } from '@nestjs/bullmq';
 import { Queue } from 'bullmq';
@@ -32,6 +34,7 @@ export class ReviewsService {
   constructor(
     private readonly reviewsRepository: ReviewsRepository,
     private readonly companiesRepository: CompaniesRepository,
+    private readonly categoriesService: CategoriesService,
     @InjectQueue(REVIEW_MODERATION_QUEUE)
     private readonly moderationQueue: Queue<ReviewModerationJobPayload>,
     private readonly rateLimitService: ReviewRateLimitService,
@@ -69,6 +72,49 @@ export class ReviewsService {
 
     await this.rateLimitService.assertWithinLimit(user.id);
 
+    const categoryServices = company.categoryId
+      ? await this.categoriesService.listServices(company.categoryId)
+      : [];
+
+    let aggregateRating = input.rating;
+    let serviceRatings = input.serviceRatings;
+
+    if (categoryServices.length > 0) {
+      if (!serviceRatings?.length) {
+        throw new BadRequestException('Rate each service for this company category');
+      }
+
+      const expectedIds = new Set(categoryServices.map((service) => service.id));
+      const providedIds = new Set(serviceRatings.map((entry) => entry.categoryServiceId));
+
+      if (providedIds.size !== expectedIds.size) {
+        throw new BadRequestException('Provide a rating for every service in this category');
+      }
+
+      for (const serviceId of expectedIds) {
+        if (!providedIds.has(serviceId)) {
+          throw new BadRequestException('Provide a rating for every service in this category');
+        }
+      }
+
+      for (const entry of serviceRatings) {
+        if (!expectedIds.has(entry.categoryServiceId)) {
+          throw new BadRequestException(
+            'One or more service ratings are invalid for this category',
+          );
+        }
+      }
+
+      aggregateRating = Math.round(
+        serviceRatings.reduce((sum, entry) => sum + entry.rating, 0) / serviceRatings.length,
+      );
+    } else {
+      if (!aggregateRating) {
+        throw new BadRequestException('Overall rating is required');
+      }
+      serviceRatings = undefined;
+    }
+
     const clientIp = this.extractClientIp(request);
     const ipSecret = this.configService.get('IP_HASH_SECRET', { infer: true });
     const hashedIp = clientIp ? hashIp(clientIp, ipSecret) : undefined;
@@ -76,11 +122,13 @@ export class ReviewsService {
     const review = await this.reviewsRepository.create({
       userId: user.id,
       companyId: input.companyId,
-      rating: input.rating,
+      rating: aggregateRating,
       title: input.title.trim(),
       content: input.content.trim(),
       hashedIp,
       deviceFingerprint: input.deviceFingerprint,
+      serviceRatings,
+      proofUrls: input.proofUrls,
     });
 
     await this.moderationQueue.add(

@@ -11,6 +11,7 @@ export function isProfileFileWithinLimit(file: File | null): boolean {
 export type ReviewerProfileErrors = {
   fullName?: string;
   phone?: string;
+  phoneVerification?: string;
   city?: string;
   country?: string;
   bio?: string;
@@ -21,12 +22,14 @@ export type CompanyProfileErrors = {
   companyName?: string;
   companyAddress?: string;
   companyPhone?: string;
+  companyPhoneVerification?: string;
   categoryId?: string;
   crNumber?: string;
   validationDate?: string;
   city?: string;
   country?: string;
-  registrationFile?: string;
+  establishmentCardFile?: string;
+  tradeLicenseFile?: string;
   logoFile?: string;
   coverFile?: string;
 };
@@ -40,6 +43,7 @@ export function validateReviewerProfileFields(
     bio: string;
     avatar: File | null;
     hasExistingAvatar: boolean;
+    phoneVerified?: boolean;
   },
   messages: {
     name: { required: string; invalid: string; min: string; max: string };
@@ -47,6 +51,7 @@ export function validateReviewerProfileFields(
     location: { required: string };
     bio: { max: string };
     avatar: { required: string; fileTooLarge: string };
+    phoneVerification: { required: string };
   },
 ): ReviewerProfileErrors {
   const errors: ReviewerProfileErrors = {};
@@ -54,11 +59,15 @@ export function validateReviewerProfileFields(
   const nameError = validateDisplayName(fields.fullName, messages.name);
   if (nameError) errors.fullName = nameError;
 
-  const phone = fields.phone.trim();
-  if (!phone) {
-    errors.phone = messages.phone.required;
-  } else if (!PHONE_PATTERN.test(phone)) {
-    errors.phone = messages.phone.invalid;
+  if (!fields.phoneVerified) {
+    const phone = fields.phone.trim();
+    if (!phone) {
+      errors.phone = messages.phone.required;
+    } else if (!PHONE_PATTERN.test(phone)) {
+      errors.phone = messages.phone.invalid;
+    } else {
+      errors.phoneVerification = messages.phoneVerification.required;
+    }
   }
 
   if (!fields.city.trim()) errors.city = messages.location.required;
@@ -87,12 +96,15 @@ export function validateCompanyProfileFields(
     validationDate: string;
     city: string;
     country: string;
-    registrationFile: File | null;
+    establishmentCardFile: File | null;
+    tradeLicenseFile: File | null;
     logoFile: File | null;
     coverFile: File | null;
-    hasExistingRegistration: boolean;
+    hasExistingEstablishmentCard: boolean;
+    hasExistingTradeLicense: boolean;
     hasExistingLogo: boolean;
     hasExistingCover: boolean;
+    companyPhoneVerified?: boolean;
   },
   messages: {
     required: string;
@@ -100,6 +112,7 @@ export function validateCompanyProfileFields(
     companyName: { min: string; max: string };
     crNumber: { invalid: string };
     phone: { required: string; invalid: string };
+    phoneVerification: { required: string };
   },
 ): CompanyProfileErrors {
   const errors: CompanyProfileErrors = {};
@@ -120,6 +133,8 @@ export function validateCompanyProfileFields(
     errors.companyPhone = messages.phone.required;
   } else if (!PHONE_PATTERN.test(phone)) {
     errors.companyPhone = messages.phone.invalid;
+  } else if (!fields.companyPhoneVerified) {
+    errors.companyPhoneVerification = messages.phoneVerification.required;
   }
 
   if (!fields.categoryId.trim()) errors.categoryId = messages.required;
@@ -134,10 +149,19 @@ export function validateCompanyProfileFields(
   if (!fields.city.trim()) errors.city = messages.required;
   if (!fields.country.trim()) errors.country = messages.required;
 
-  if (!fields.registrationFile && !fields.hasExistingRegistration) {
-    errors.registrationFile = messages.required;
-  } else if (fields.registrationFile && !isProfileFileWithinLimit(fields.registrationFile)) {
-    errors.registrationFile = messages.fileTooLarge;
+  if (!fields.establishmentCardFile && !fields.hasExistingEstablishmentCard) {
+    errors.establishmentCardFile = messages.required;
+  } else if (
+    fields.establishmentCardFile &&
+    !isProfileFileWithinLimit(fields.establishmentCardFile)
+  ) {
+    errors.establishmentCardFile = messages.fileTooLarge;
+  }
+
+  if (!fields.tradeLicenseFile && !fields.hasExistingTradeLicense) {
+    errors.tradeLicenseFile = messages.required;
+  } else if (fields.tradeLicenseFile && !isProfileFileWithinLimit(fields.tradeLicenseFile)) {
+    errors.tradeLicenseFile = messages.fileTooLarge;
   }
 
   if (!fields.logoFile && !fields.hasExistingLogo) {

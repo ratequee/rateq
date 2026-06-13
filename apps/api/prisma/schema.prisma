@@ -38,6 +38,7 @@ enum CompanyVerificationStatus {
   PENDING
   APPROVED
   REJECTED
+  REVISION_REQUESTED
 }
 
 // ---------------------------------------------------------------------------
@@ -50,9 +51,11 @@ model User {
   displayName  String?  @map("display_name")
   firebaseUid  String?  @unique @map("firebase_uid")
   passwordHash String?  @map("password_hash")
-  role         UserRole @default(USER)
-  isVerified   Boolean  @default(false) @map("is_verified")
-  reviewCount  Int      @default(0) @map("review_count")
+  role          UserRole @default(USER)
+  phone         String?
+  phoneVerified Boolean  @default(false) @map("phone_verified")
+  isVerified    Boolean  @default(false) @map("is_verified")
+  reviewCount   Int      @default(0) @map("review_count")
   createdAt    DateTime @default(now()) @map("created_at")
   updatedAt    DateTime @updatedAt @map("updated_at")
 
@@ -137,8 +140,26 @@ model Category {
   updatedAt DateTime @updatedAt @map("updated_at")
 
   companies Company[]
+  services  CategoryService[]
 
   @@map("categories")
+}
+
+model CategoryService {
+  id         String   @id @default(cuid())
+  categoryId String   @map("category_id")
+  name       String
+  slug       String
+  sortOrder  Int      @default(0) @map("sort_order")
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  category            Category             @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  reviewServiceRatings ReviewServiceRating[]
+
+  @@unique([categoryId, slug])
+  @@index([categoryId, sortOrder])
+  @@map("category_services")
 }
 
 // ---------------------------------------------------------------------------
@@ -159,8 +180,11 @@ model Company {
   address            String?                   @db.Text
   crNumber           String?                   @map("cr_number")
   validationDate     DateTime?                 @map("validation_date")
-  registrationDocUrl String?                   @map("registration_doc_url")
-  verificationStatus CompanyVerificationStatus @default(PENDING) @map("verification_status")
+  registrationDocUrl   String?                   @map("registration_doc_url")
+  establishmentCardUrl String?                   @map("establishment_card_url")
+  tradeLicenseUrl      String?                   @map("trade_license_url")
+  verificationStatus   CompanyVerificationStatus @default(PENDING) @map("verification_status")
+  revisionNotes        String?                   @map("revision_notes") @db.Text
   country            String
   city               String
   ratingAverage      Decimal                   @default(0) @map("rating_average") @db.Decimal(3, 2)
@@ -203,6 +227,8 @@ model Review {
   company        Company         @relation(fields: [companyId], references: [id], onDelete: Cascade)
   replies        ReviewReply[]
   moderationLogs ModerationLog[]
+  attachments    ReviewAttachment[]
+  serviceRatings ReviewServiceRating[]
 
   @@index([companyId, status, createdAt])
   @@index([userId, createdAt])
@@ -210,6 +236,33 @@ model Review {
   @@index([deviceFingerprint])
   @@index([hashedIp])
   @@map("reviews")
+}
+
+model ReviewAttachment {
+  id        String   @id @default(cuid())
+  reviewId  String   @map("review_id")
+  url       String
+  fileName  String?  @map("file_name")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  review Review @relation(fields: [reviewId], references: [id], onDelete: Cascade)
+
+  @@index([reviewId])
+  @@map("review_attachments")
+}
+
+model ReviewServiceRating {
+  id                String @id @default(cuid())
+  reviewId          String @map("review_id")
+  categoryServiceId String @map("category_service_id")
+  rating            Int
+
+  review          Review          @relation(fields: [reviewId], references: [id], onDelete: Cascade)
+  categoryService CategoryService @relation(fields: [categoryServiceId], references: [id], onDelete: Cascade)
+
+  @@unique([reviewId, categoryServiceId])
+  @@index([categoryServiceId])
+  @@map("review_service_ratings")
 }
 
 model ReviewReply {

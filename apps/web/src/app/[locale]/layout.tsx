@@ -42,24 +42,19 @@ export default async function LocaleLayout({
   const isRtl = locale === 'ar';
 
   return (
-    <html
+    <div
       lang={locale}
       dir={isRtl ? 'rtl' : 'ltr'}
-      className={`${nunito.variable} ${notoArabic.variable}`}
-      suppressHydrationWarning
+      className={`min-h-screen ${isRtl ? `${notoArabic.className} font-arabic` : `${nunito.className} font-sans`} ${notoArabic.variable}`}
     >
-      <body
-        className={isRtl ? `${notoArabic.className} font-arabic` : `${nunito.className} font-sans`}
-      >
-        <NextIntlClientProvider messages={messages}>
-          <AuthProvider>
-            <ProfileProvider>
-              <AppShell footer={<SiteFooter />}>{children}</AppShell>
-              <Toaster richColors position={isRtl ? 'top-left' : 'top-right'} />
-            </ProfileProvider>
-          </AuthProvider>
-        </NextIntlClientProvider>
-      </body>
-    </html>
+      <NextIntlClientProvider messages={messages}>
+        <AuthProvider>
+          <ProfileProvider>
+            <AppShell footer={<SiteFooter />}>{children}</AppShell>
+            <Toaster richColors position={isRtl ? 'top-left' : 'top-right'} />
+          </ProfileProvider>
+        </AuthProvider>
+      </NextIntlClientProvider>
+    </div>
   );
 }

@@ -50,6 +50,59 @@ export class EmailService {
     });
   }
 
+  async sendCompanyVerificationApprovedEmail(email: string, companyName: string): Promise<void> {
+    const appUrl = this.configService.get('APP_URL', { infer: true });
+    const dashboardUrl = `${appUrl}/dashboard/company`;
+
+    await this.send({
+      to: email,
+      subject: 'Your RateQ company profile has been approved',
+      text: `Good news! Your company profile for "${companyName}" has been approved.\n\nSign in to access your dashboard: ${dashboardUrl}`,
+      html: `
+        <p>Good news! Your company profile for <strong>${companyName}</strong> has been approved.</p>
+        <p><a href="${dashboardUrl}">Go to your company dashboard</a></p>
+      `,
+    });
+  }
+
+  async sendCompanyVerificationRejectedEmail(email: string, companyName: string): Promise<void> {
+    const appUrl = this.configService.get('APP_URL', { infer: true });
+    const profileUrl = `${appUrl}/complete-profile`;
+
+    await this.send({
+      to: email,
+      subject: 'Your RateQ company profile was not approved',
+      text: `Your company profile submission for "${companyName}" was not approved and has been removed.\n\nYou may register a new company profile after signing in: ${profileUrl}`,
+      html: `
+        <p>Your company profile submission for <strong>${companyName}</strong> was not approved and has been removed.</p>
+        <p>You may register a new company profile after signing in.</p>
+        <p><a href="${profileUrl}">Complete profile</a></p>
+      `,
+    });
+  }
+
+  async sendCompanyRevisionRequestedEmail(
+    email: string,
+    companyName: string,
+    revisionNotes: string,
+  ): Promise<void> {
+    const appUrl = this.configService.get('APP_URL', { infer: true });
+    const profileUrl = `${appUrl}/complete-profile`;
+    const escapedNotes = revisionNotes.replace(/\n/g, '<br/>');
+
+    await this.send({
+      to: email,
+      subject: 'Updates required for your RateQ company profile',
+      text: `Your company profile for "${companyName}" requires updates before it can be approved.\n\nRequested changes:\n${revisionNotes}\n\nUpdate your profile: ${profileUrl}`,
+      html: `
+        <p>Your company profile for <strong>${companyName}</strong> requires updates before it can be approved.</p>
+        <p><strong>Requested changes:</strong></p>
+        <p>${escapedNotes}</p>
+        <p><a href="${profileUrl}">Update your profile</a></p>
+      `,
+    });
+  }
+
   private async send(options: {
     to: string;
     subject: string;

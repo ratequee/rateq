@@ -11,6 +11,7 @@ import {
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { FirebaseAdminGuard } from '../auth/guards/firebase-admin.guard';
 import { CreateCategoryDto } from './dto/create-category.dto';
+import { CreateCategoryServiceDto } from './dto/create-category-service.dto';
 import { CategoriesService } from './categories.service';
 
 @ApiTags('admin-categories')
@@ -24,6 +25,19 @@ export class AdminCategoriesController {
   @ApiOperation({ summary: 'Create a business category (Firebase admin)' })
   create(@Body() dto: CreateCategoryDto) {
     return this.categoriesService.create(dto);
+  }
+
+  @Post(':categoryId/services')
+  @ApiOperation({ summary: 'Add a service to a category (Firebase admin)' })
+  addService(@Param('categoryId') categoryId: string, @Body() dto: CreateCategoryServiceDto) {
+    return this.categoriesService.addService(categoryId, dto);
+  }
+
+  @Delete(':categoryId/services/:serviceId')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Remove a service from a category (Firebase admin)' })
+  removeService(@Param('categoryId') categoryId: string, @Param('serviceId') serviceId: string) {
+    return this.categoriesService.removeService(categoryId, serviceId);
   }
 
   @Delete(':id')

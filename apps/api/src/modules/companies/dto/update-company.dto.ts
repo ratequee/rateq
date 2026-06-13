@@ -78,6 +78,18 @@ export class UpdateCompanyDto {
 
   @ApiPropertyOptional()
   @IsOptional()
+  @IsUrl()
+  @MaxLength(2048)
+  establishmentCardUrl?: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsUrl()
+  @MaxLength(2048)
+  tradeLicenseUrl?: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
   @IsString()
   @MinLength(2)
   @MaxLength(100)

@@ -9,5 +9,7 @@ export function toAuthenticatedUser(user: User): AuthenticatedUser {
     displayName: user.displayName,
     role: user.role as UserRole,
     isVerified: user.isVerified,
+    phone: user.phone,
+    phoneVerified: user.phoneVerified,
   };
 }

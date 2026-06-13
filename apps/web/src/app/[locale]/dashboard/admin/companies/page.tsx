@@ -9,6 +9,7 @@ import type {
   AdminCompanyVerificationDetail,
   AdminCompanyVerificationSummary,
   CompanyVerificationStatus,
+  UpdateCompanyVerificationInput,
 } from '@rateq/types';
 import { cn } from '@/lib/utils';
 import { Building2, ExternalLink, FileText, ImageIcon, Loader2 } from 'lucide-react';
@@ -27,6 +28,8 @@ export default function AdminCompanyVerificationsPage() {
   const [listLoading, setListLoading] = useState(true);
   const [detailLoading, setDetailLoading] = useState(false);
   const [acting, setActing] = useState(false);
+  const [revisionOpen, setRevisionOpen] = useState(false);
+  const [revisionNotes, setRevisionNotes] = useState('');
 
   useRequireFirebaseAdmin();
 
@@ -89,14 +92,28 @@ export default function AdminCompanyVerificationsPage() {
     };
   }, [selectedId, t]);
 
-  const handleDecision = async (status: 'approved' | 'rejected') => {
+  const handleDecision = async (status: UpdateCompanyVerificationInput['status']) => {
     if (!selectedId) return;
+
+    if (status === 'revision_requested' && revisionNotes.trim().length < 10) {
+      toast.error(t('revisionNotesRequired'));
+      return;
+    }
 
     setActing(true);
     try {
-      const updated = await adminApi.updateCompanyVerification(selectedId, { status });
+      const updated = await adminApi.updateCompanyVerification(selectedId, {
+        status,
+        ...(status === 'revision_requested' ? { revisionNotes: revisionNotes.trim() } : {}),
+      });
       setDetail(updated);
-      toast.success(status === 'approved' ? t('approvedSuccess') : t('rejectedSuccess'));
+      if (status === 'approved') toast.success(t('approvedSuccess'));
+      if (status === 'rejected') toast.success(t('rejectedSuccess'));
+      if (status === 'revision_requested') {
+        toast.success(t('revisionRequestedSuccess'));
+        setRevisionOpen(false);
+        setRevisionNotes('');
+      }
       await loadList();
     } catch (err) {
       const message = err instanceof ApiError ? err.message : t('actionError');
@@ -108,6 +125,7 @@ export default function AdminCompanyVerificationsPage() {
 
   const filters: { key: FilterStatus; label: string }[] = [
     { key: 'pending', label: t('filterPending') },
+    { key: 'revision_requested', label: t('filterRevisionRequested') },
     { key: 'approved', label: t('filterApproved') },
     { key: 'rejected', label: t('filterRejected') },
     { key: 'all', label: t('filterAll') },
@@ -195,8 +213,14 @@ export default function AdminCompanyVerificationsPage() {
             <CompanyDetailPanel
               detail={detail}
               acting={acting}
-              onApprove={() => handleDecision('approved')}
-              onReject={() => handleDecision('rejected')}
+              revisionOpen={revisionOpen}
+              revisionNotes={revisionNotes}
+              onRevisionNotesChange={setRevisionNotes}
+              onOpenRevision={() => setRevisionOpen(true)}
+              onCloseRevision={() => setRevisionOpen(false)}
+              onApprove={() => void handleDecision('approved')}
+              onReject={() => void handleDecision('rejected')}
+              onSendRevision={() => void handleDecision('revision_requested')}
               t={t}
             />
           )}
@@ -212,6 +236,7 @@ function StatusBadge({ status, label }: { status: CompanyVerificationStatus; lab
       className={cn(
         'mt-1 inline-block rounded-full px-2 py-0.5 text-xs font-medium',
         status === 'pending' && 'bg-amber-100 text-amber-800',
+        status === 'revision_requested' && 'bg-blue-100 text-blue-800',
         status === 'approved' && 'bg-green-100 text-green-800',
         status === 'rejected' && 'bg-red-100 text-red-700',
       )}
@@ -224,14 +249,26 @@ function StatusBadge({ status, label }: { status: CompanyVerificationStatus; lab
 function CompanyDetailPanel({
   detail,
   acting,
+  revisionOpen,
+  revisionNotes,
+  onRevisionNotesChange,
+  onOpenRevision,
+  onCloseRevision,
   onApprove,
   onReject,
+  onSendRevision,
   t,
 }: {
   detail: AdminCompanyVerificationDetail;
   acting: boolean;
+  revisionOpen: boolean;
+  revisionNotes: string;
+  onRevisionNotesChange: (value: string) => void;
+  onOpenRevision: () => void;
+  onCloseRevision: () => void;
   onApprove: () => void;
   onReject: () => void;
+  onSendRevision: () => void;
   t: ReturnType<typeof useTranslations<'adminCompanies'>>;
 }) {
   const canDecide = detail.verificationStatus === 'pending';
@@ -254,12 +291,45 @@ function CompanyDetailPanel({
             <Button variant="outline-brand" disabled={acting} onClick={onReject}>
               {t('reject')}
             </Button>
+            <Button variant="outline" disabled={acting} onClick={onOpenRevision}>
+              {t('sendForReview')}
+            </Button>
             <Button disabled={acting} onClick={onApprove}>
               {acting ? t('acting') : t('approve')}
             </Button>
           </div>
         )}
       </div>
+
+      {detail.revisionNotes && (
+        <div className="rounded-xl border border-blue-200 bg-blue-50 p-4 text-sm text-blue-900">
+          <p className="font-medium">{t('revisionNotesLabel')}</p>
+          <p className="mt-2 whitespace-pre-wrap">{detail.revisionNotes}</p>
+        </div>
+      )}
+
+      {revisionOpen && (
+        <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
+          <label className="mb-2 block text-sm font-medium text-ink">
+            {t('revisionModalLabel')}
+          </label>
+          <textarea
+            value={revisionNotes}
+            onChange={(e) => onRevisionNotesChange(e.target.value)}
+            rows={5}
+            className="w-full rounded-md border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500"
+            placeholder={t('revisionModalPlaceholder')}
+          />
+          <div className="mt-3 flex flex-wrap gap-2">
+            <Button variant="outline" disabled={acting} onClick={onCloseRevision}>
+              {t('cancelRevision')}
+            </Button>
+            <Button disabled={acting} onClick={onSendRevision}>
+              {acting ? t('acting') : t('sendRevisionEmail')}
+            </Button>
+          </div>
+        </div>
+      )}
 
       <dl className="grid gap-4 sm:grid-cols-2">
         <DetailItem label={t('ownerEmail')} value={detail.owner?.email ?? t('unknownOwner')} />
@@ -274,7 +344,17 @@ function CompanyDetailPanel({
 
       <section>
         <h3 className="mb-3 text-sm font-semibold text-ink">{t('documents')}</h3>
-        <div className="grid gap-4 sm:grid-cols-3">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <DocumentCard
+            label={t('establishmentCard')}
+            url={detail.establishmentCardUrl}
+            icon={<FileText className="h-8 w-8 text-brand-500" />}
+          />
+          <DocumentCard
+            label={t('tradeLicense')}
+            url={detail.tradeLicenseUrl}
+            icon={<FileText className="h-8 w-8 text-brand-500" />}
+          />
           <DocumentCard
             label={t('registrationDoc')}
             url={detail.registrationDocUrl}

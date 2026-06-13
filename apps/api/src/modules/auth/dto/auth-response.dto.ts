@@ -16,6 +16,12 @@ export class AuthenticatedUserDto {
 
   @ApiProperty()
   isVerified!: boolean;
+
+  @ApiProperty({ nullable: true })
+  phone!: string | null;
+
+  @ApiProperty()
+  phoneVerified!: boolean;
 }
 
 export class AuthTokensDto {

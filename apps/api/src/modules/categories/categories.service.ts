@@ -7,16 +7,23 @@ import {
 import type {
   CategoriesListResponse,
   CategoryPublic,
+  CategoryServicePublic,
   CreateCategoryInput,
+  CreateCategoryServiceInput,
   MessageResponse,
 } from '@rateq/types';
 import { slugify, withSlugSuffix } from '@rateq/utils';
 import { CategoriesRepository } from './repositories/categories.repository';
+import { CategoryServicesRepository } from './repositories/category-services.repository';
 import { toCategoryPublic } from './mappers/category.mapper';
+import { toCategoryServicePublic } from './mappers/category-service.mapper';
 
 @Injectable()
 export class CategoriesService {
-  constructor(private readonly categoriesRepository: CategoriesRepository) {}
+  constructor(
+    private readonly categoriesRepository: CategoriesRepository,
+    private readonly categoryServicesRepository: CategoryServicesRepository,
+  ) {}
 
   async listPublic(): Promise<CategoriesListResponse> {
     const categories = await this.categoriesRepository.findAll();
@@ -62,6 +69,71 @@ export class CategoriesService {
     if (!category) {
       throw new BadRequestException('Selected category does not exist');
     }
+  }
+
+  async listServices(categoryId: string): Promise<CategoryServicePublic[]> {
+    await this.assertExists(categoryId);
+    const services = await this.categoryServicesRepository.findByCategoryId(categoryId);
+    return services.map(toCategoryServicePublic);
+  }
+
+  async addService(
+    categoryId: string,
+    input: CreateCategoryServiceInput,
+  ): Promise<CategoryServicePublic> {
+    await this.assertExists(categoryId);
+
+    const name = input.name.trim();
+    if (!name) {
+      throw new BadRequestException('Service name is required');
+    }
+
+    const slug = await this.generateUniqueServiceSlug(categoryId, name);
+    const sortOrder = await this.categoryServicesRepository.countByCategoryId(categoryId);
+
+    const service = await this.categoryServicesRepository.create({
+      name,
+      slug,
+      sortOrder,
+      category: { connect: { id: categoryId } },
+    });
+
+    return toCategoryServicePublic(service);
+  }
+
+  async removeService(categoryId: string, serviceId: string): Promise<MessageResponse> {
+    await this.assertExists(categoryId);
+
+    const service = await this.categoryServicesRepository.findById(serviceId);
+
+    if (!service || service.categoryId !== categoryId) {
+      throw new NotFoundException('Service not found for this category');
+    }
+
+    await this.categoryServicesRepository.delete(serviceId);
+    return { message: 'Service deleted successfully' };
+  }
+
+  private async generateUniqueServiceSlug(categoryId: string, name: string): Promise<string> {
+    const base = slugify(name);
+
+    if (!base) {
+      throw new BadRequestException('Service name cannot produce a valid URL slug');
+    }
+
+    let attempt = 0;
+    let candidate = base;
+
+    while (await this.categoryServicesRepository.slugExists(categoryId, candidate)) {
+      attempt += 1;
+      candidate = withSlugSuffix(base, attempt);
+
+      if (attempt > 100) {
+        throw new ConflictException('Unable to generate a unique service slug');
+      }
+    }
+
+    return candidate;
   }
 
   private async generateUniqueSlug(name: string): Promise<string> {

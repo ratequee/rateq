@@ -30,6 +30,7 @@ export function createMockConfig(overrides: Partial<AppConfig> = {}): AppConfig 
     APP_URL: 'http://localhost:3000',
     AUTH_VERIFICATION_EXPIRES_HOURS: 24,
     AUTH_PASSWORD_RESET_EXPIRES_HOURS: 1,
+    AUTH_PHONE_OTP_TTL_SECONDS: 900,
     SWAGGER_ENABLED: false,
     ...overrides,
   };

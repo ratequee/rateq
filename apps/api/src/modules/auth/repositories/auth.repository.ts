@@ -23,6 +23,8 @@ export class AuthRepository {
     passwordHash?: string;
     firebaseUid?: string;
     displayName?: string;
+    phone?: string;
+    phoneVerified?: boolean;
     role: UserRole;
     isVerified?: boolean;
   }): Promise<User> {
@@ -32,6 +34,8 @@ export class AuthRepository {
         passwordHash: data.passwordHash,
         firebaseUid: data.firebaseUid,
         displayName: data.displayName?.trim() || null,
+        phone: data.phone?.trim() || null,
+        phoneVerified: data.phoneVerified ?? false,
         role: data.role,
         isVerified: data.isVerified ?? false,
       },

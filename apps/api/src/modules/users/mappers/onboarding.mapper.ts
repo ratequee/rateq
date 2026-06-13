@@ -31,8 +31,11 @@ export function toCompanyProfileDetail(company: Company): CompanyProfileDetail {
     crNumber: company.crNumber,
     validationDate: company.validationDate?.toISOString() ?? null,
     registrationDocUrl: company.registrationDocUrl,
+    establishmentCardUrl: company.establishmentCardUrl,
+    tradeLicenseUrl: company.tradeLicenseUrl,
     coverUrl: company.coverUrl,
     verificationStatus: toApiVerificationStatus(company.verificationStatus),
+    revisionNotes: company.revisionNotes,
   };
 }
 

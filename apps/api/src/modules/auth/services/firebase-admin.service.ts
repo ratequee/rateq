@@ -41,6 +41,31 @@ export class FirebaseAdminService implements OnModuleInit {
     }
   }
 
+  isConfigured(): boolean {
+    return this.initialized;
+  }
+
+  async createUser(input: {
+    email: string;
+    password: string;
+    displayName?: string;
+  }): Promise<{ uid: string }> {
+    if (!this.initialized) {
+      throw new ServiceUnavailableException(
+        'Firebase authentication is not configured on the server',
+      );
+    }
+
+    const record = await admin.auth().createUser({
+      email: input.email.toLowerCase(),
+      password: input.password,
+      displayName: input.displayName?.trim() || undefined,
+      emailVerified: true,
+    });
+
+    return { uid: record.uid };
+  }
+
   async verifyIdToken(idToken: string): Promise<VerifiedFirebaseUser> {
     if (!this.initialized) {
       throw new ServiceUnavailableException(

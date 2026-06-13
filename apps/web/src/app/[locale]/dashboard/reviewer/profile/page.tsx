@@ -60,6 +60,7 @@ export default function ReviewerProfileSettingsPage() {
         bio,
         avatar,
         hasExistingAvatar: Boolean(avatarUrl),
+        phoneVerified: true,
       },
       {
         name: {
@@ -72,6 +73,7 @@ export default function ReviewerProfileSettingsPage() {
         location: { required: t('errors.required') },
         bio: { max: t('errors.bioMax') },
         avatar: { required: t('errors.required'), fileTooLarge: t('errors.fileTooLarge') },
+        phoneVerification: { required: t('errors.phoneNotVerified') },
       },
     );
 

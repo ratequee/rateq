@@ -4,6 +4,7 @@ import type {
   AuthTokens,
   CompanyDashboard,
   CompanyPublic,
+  CreateReviewInput,
   PaginatedCompaniesResponse,
   PaginatedReviewsResponse,
   PaginatedUsersResponse,
@@ -198,16 +199,7 @@ export const reviewsApi = {
       `/reviews/company/${companyId}/manage${params ? `?${params}` : ''}`,
       { token },
     ),
-  submit: (
-    token: string,
-    data: {
-      companyId: string;
-      rating: number;
-      title: string;
-      content: string;
-      deviceFingerprint?: string;
-    },
-  ) =>
+  submit: (token: string, data: CreateReviewInput) =>
     apiClient<ReviewPublic>('/reviews', {
       method: 'POST',
       body: JSON.stringify(data),

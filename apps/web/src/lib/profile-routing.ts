@@ -4,7 +4,7 @@ import { getStoredProfile } from '@/lib/profile-storage';
 
 export function getCompanyVerificationStatus(
   onboarding?: OnboardingStatus | null,
-): 'pending' | 'approved' | 'rejected' | null {
+): 'pending' | 'approved' | 'rejected' | 'revision_requested' | null {
   return onboarding?.company?.verificationStatus ?? null;
 }
 
@@ -26,6 +26,13 @@ export function isCompanyRejected(onboarding?: OnboardingStatus | null): boolean
   return (
     getLockedAccountType(onboarding) === 'company' &&
     getCompanyVerificationStatus(onboarding) === 'rejected'
+  );
+}
+
+export function isCompanyRevisionRequested(onboarding?: OnboardingStatus | null): boolean {
+  return (
+    getLockedAccountType(onboarding) === 'company' &&
+    getCompanyVerificationStatus(onboarding) === 'revision_requested'
   );
 }
 

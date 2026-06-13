@@ -2,7 +2,7 @@ import type { OnboardingStatus } from '@rateq/types';
 
 export type AccountType = 'reviewer' | 'company';
 
-export type CompanyVerificationStatus = 'pending' | 'approved' | 'rejected';
+export type CompanyVerificationStatus = 'pending' | 'approved' | 'rejected' | 'revision_requested';
 
 export interface ReviewerProfileData {
   fullName: string;
@@ -20,11 +20,15 @@ export interface CompanyProfileData {
   crNumber: string;
   validationDate: string;
   registrationFileName: string;
+  establishmentCardFileName: string;
+  tradeLicenseFileName: string;
   logoFileName: string;
   coverFileName: string;
   logoUrl?: string;
   coverUrl?: string;
   registrationDocUrl?: string;
+  establishmentCardUrl?: string;
+  tradeLicenseUrl?: string;
 }
 
 export interface StoredUserProfile {
@@ -93,11 +97,15 @@ export function syncStoredProfileFromOnboarding(userId: string, status: Onboardi
         crNumber: status.company.crNumber ?? '',
         validationDate: status.company.validationDate ?? '',
         registrationFileName: 'registration',
+        establishmentCardFileName: 'establishment-card',
+        tradeLicenseFileName: 'trade-license',
         logoFileName: 'logo',
         coverFileName: 'cover',
         logoUrl: status.company.logo ?? undefined,
         coverUrl: status.company.coverUrl ?? undefined,
         registrationDocUrl: status.company.registrationDocUrl ?? undefined,
+        establishmentCardUrl: status.company.establishmentCardUrl ?? undefined,
+        tradeLicenseUrl: status.company.tradeLicenseUrl ?? undefined,
       },
     });
   }
@@ -113,11 +121,11 @@ export function canEditCompanyProfile(
   onboarding?: import('@rateq/types').OnboardingStatus | null,
 ): boolean {
   if (onboarding?.company) {
-    return onboarding.company.verificationStatus === 'rejected';
+    return onboarding.company.verificationStatus === 'revision_requested';
   }
 
   const profile = getStoredProfile();
   if (!profile || profile.userId !== userId || profile.accountType !== 'company') return true;
   if (!profile.isComplete) return true;
-  return profile.companyVerificationStatus === 'rejected';
+  return profile.companyVerificationStatus === 'revision_requested';
 }

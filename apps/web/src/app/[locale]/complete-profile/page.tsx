@@ -20,7 +20,7 @@ import {
   canAccessDashboard,
   getLockedAccountType,
   isCompanyPendingApproval,
-  isCompanyRejected,
+  isCompanyRevisionRequested,
 } from '@/lib/profile-routing';
 import { canEditCompanyProfile, getStoredProfile, type AccountType } from '@/lib/profile-storage';
 import { sanitizeDisplayName } from '@/lib/validation/auth-fields';
@@ -33,6 +33,7 @@ import {
 import { cn } from '@/lib/utils';
 import { isRemoteImage, isRemotePdf } from '@/lib/profile-company-assets';
 import { getSuggestedDisplayName } from '@/lib/user-display-name';
+import { PhoneVerificationField } from '@/components/profile/phone-verification-field';
 import { Building2, ExternalLink, FileText, Upload, UserRound, X } from 'lucide-react';
 import type { CategoryPublic } from '@rateq/types';
 import { useTranslations } from 'next-intl';
@@ -49,9 +50,9 @@ export default function CompleteProfilePage() {
 
   const lockedAccountType = getLockedAccountType(onboarding);
   const companyPending = isCompanyPendingApproval(onboarding);
-  const companyRejected = isCompanyRejected(onboarding);
+  const companyRevisionRequested = isCompanyRevisionRequested(onboarding);
   const showProfileForm =
-    !profileLoading && !companyPending && (!lockedAccountType || companyRejected);
+    !profileLoading && !companyPending && (!lockedAccountType || companyRevisionRequested);
 
   useEffect(() => {
     if (!user || profileLoading) return;
@@ -80,15 +81,28 @@ export default function CompleteProfilePage() {
   const [companyCountry, setCompanyCountry] = useState('Qatar');
   const [crNumber, setCrNumber] = useState('');
   const [validationDate, setValidationDate] = useState('');
-  const [registrationFile, setRegistrationFile] = useState<File | null>(null);
+  const [establishmentCardFile, setEstablishmentCardFile] = useState<File | null>(null);
+  const [tradeLicenseFile, setTradeLicenseFile] = useState<File | null>(null);
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const [coverFile, setCoverFile] = useState<File | null>(null);
   const [clearedExisting, setClearedExisting] = useState({
-    registration: false,
+    establishmentCard: false,
+    tradeLicense: false,
     logo: false,
     cover: false,
     avatar: false,
   });
+
+  const [reviewerPhoneVerified, setReviewerPhoneVerified] = useState(false);
+  const [companyPhoneVerified, setCompanyPhoneVerified] = useState(false);
+
+  useEffect(() => {
+    if (!user) return;
+    if (user.phoneVerified && user.phone) {
+      setPhone(user.phone);
+      setReviewerPhoneVerified(true);
+    }
+  }, [user]);
 
   useEffect(() => {
     if (accountType !== 'company') return;
@@ -119,7 +133,13 @@ export default function CompleteProfilePage() {
       setValidationDate(onboarding.company.validationDate?.slice(0, 10) ?? '');
       setCompanyCountry(onboarding.company.country);
       setCompanyCity(onboarding.company.city);
-      setClearedExisting({ registration: false, logo: false, cover: false, avatar: false });
+      setClearedExisting({
+        establishmentCard: false,
+        tradeLicense: false,
+        logo: false,
+        cover: false,
+        avatar: false,
+      });
       return;
     }
 
@@ -151,10 +171,12 @@ export default function CompleteProfilePage() {
     () => ({
       avatarUrl:
         onboarding?.reviewerProfile?.avatarUrl ?? existingProfile?.reviewer?.avatarUrl ?? null,
-      registrationDocUrl:
-        onboarding?.company?.registrationDocUrl ??
-        existingProfile?.company?.registrationDocUrl ??
+      establishmentCardUrl:
+        onboarding?.company?.establishmentCardUrl ??
+        existingProfile?.company?.establishmentCardUrl ??
         null,
+      tradeLicenseUrl:
+        onboarding?.company?.tradeLicenseUrl ?? existingProfile?.company?.tradeLicenseUrl ?? null,
       logoUrl: onboarding?.company?.logo ?? existingProfile?.company?.logoUrl ?? null,
       coverUrl: onboarding?.company?.coverUrl ?? existingProfile?.company?.coverUrl ?? null,
     }),
@@ -163,7 +185,10 @@ export default function CompleteProfilePage() {
 
   const companyExistingAssets = useMemo<CompanyExistingAssets>(
     () => ({
-      registrationDocUrl: clearedExisting.registration ? null : existingAssets.registrationDocUrl,
+      establishmentCardUrl: clearedExisting.establishmentCard
+        ? null
+        : existingAssets.establishmentCardUrl,
+      tradeLicenseUrl: clearedExisting.tradeLicense ? null : existingAssets.tradeLicenseUrl,
       logoUrl: clearedExisting.logo ? null : existingAssets.logoUrl,
       coverUrl: clearedExisting.cover ? null : existingAssets.coverUrl,
     }),
@@ -190,6 +215,7 @@ export default function CompleteProfilePage() {
         bio,
         avatar,
         hasExistingAvatar: Boolean(reviewerAvatarUrl),
+        phoneVerified: reviewerPhoneVerified,
       },
       {
         name: {
@@ -202,6 +228,7 @@ export default function CompleteProfilePage() {
         location: { required: t('errors.required') },
         bio: { max: t('errors.bioMax') },
         avatar: { required: t('errors.required'), fileTooLarge: t('errors.fileTooLarge') },
+        phoneVerification: { required: t('errors.phoneNotVerified') },
       },
     );
 
@@ -224,12 +251,15 @@ export default function CompleteProfilePage() {
         validationDate,
         city: companyCity,
         country: companyCountry,
-        registrationFile,
+        establishmentCardFile,
+        tradeLicenseFile,
         logoFile,
         coverFile,
-        hasExistingRegistration: Boolean(companyExistingAssets.registrationDocUrl),
+        hasExistingEstablishmentCard: Boolean(companyExistingAssets.establishmentCardUrl),
+        hasExistingTradeLicense: Boolean(companyExistingAssets.tradeLicenseUrl),
         hasExistingLogo: Boolean(companyExistingAssets.logoUrl),
         hasExistingCover: Boolean(companyExistingAssets.coverUrl),
+        companyPhoneVerified,
       },
       {
         required: t('errors.required'),
@@ -237,6 +267,7 @@ export default function CompleteProfilePage() {
         companyName: { min: t('errors.companyNameMin'), max: t('errors.companyNameMax') },
         crNumber: { invalid: t('errors.crNumberInvalid') },
         phone: { required: t('errors.required'), invalid: t('errors.invalidPhone') },
+        phoneVerification: { required: t('errors.phoneNotVerified') },
       },
     );
 
@@ -320,21 +351,18 @@ export default function CompleteProfilePage() {
 
     if (!validateCompany()) return;
 
-    if (companyRejected && !onboarding?.company) {
-      toast.error(t('errors.profileLoading'));
-      return;
-    }
-
     setSubmitting(true);
     try {
-      const { registrationDocUrl, logoUrl, coverUrl } = await resolveCompanyDocumentUrls({
-        registrationFile,
-        logoFile,
-        coverFile,
-        existing: companyExistingAssets,
-      });
+      const { establishmentCardUrl, tradeLicenseUrl, logoUrl, coverUrl } =
+        await resolveCompanyDocumentUrls({
+          establishmentCardFile,
+          tradeLicenseFile,
+          logoFile,
+          coverFile,
+          existing: companyExistingAssets,
+        });
 
-      if (!logoUrl || !coverUrl || !registrationDocUrl) {
+      if (!logoUrl || !coverUrl || !establishmentCardUrl || !tradeLicenseUrl) {
         throw new Error(t('errors.required'));
       }
 
@@ -345,14 +373,15 @@ export default function CompleteProfilePage() {
         categoryId,
         crNumber: crNumber.trim(),
         validationDate,
-        registrationDocUrl,
+        establishmentCardUrl,
+        tradeLicenseUrl,
         logo: logoUrl,
         coverUrl,
         country: companyCountry.trim(),
         city: companyCity.trim(),
       };
 
-      if (companyRejected) {
+      if (onboarding?.company && companyRevisionRequested) {
         await onboardingApi.updateCompany(payload);
       } else {
         await onboardingApi.registerCompany(payload);
@@ -360,7 +389,7 @@ export default function CompleteProfilePage() {
       }
 
       await refreshOnboarding();
-      toast.success(companyRejected ? t('companyResubmitted') : t('companySubmitted'));
+      toast.success(companyRevisionRequested ? t('companyResubmitted') : t('companySubmitted'));
     } catch (err) {
       if (err instanceof ApiError && err.statusCode === 401) {
         toast.error(t('sessionExpired'));
@@ -433,10 +462,13 @@ export default function CompleteProfilePage() {
             <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800">
               {t('companyPendingMessage')}
             </div>
-          ) : companyRejected ? (
-            <p className="mb-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-              {t('companyRejectedEditMessage')}
-            </p>
+          ) : companyRevisionRequested ? (
+            <div className="mb-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+              <p className="font-medium">{t('companyRevisionTitle')}</p>
+              {onboarding?.company?.revisionNotes ? (
+                <p className="mt-2 whitespace-pre-wrap">{onboarding.company.revisionNotes}</p>
+              ) : null}
+            </div>
           ) : null}
 
           {showProfileForm && (
@@ -451,14 +483,17 @@ export default function CompleteProfilePage() {
                       className="h-11"
                     />
                   </Field>
-                  <Field label={t('phone')} error={errors.phone} fieldKey="phone" required>
-                    <Input
-                      type="tel"
-                      value={phone}
-                      onChange={(e) => setPhone(e.target.value)}
-                      className="h-11"
-                    />
-                  </Field>
+                  <PhoneVerificationField
+                    phone={phone}
+                    onPhoneChange={setPhone}
+                    context="reviewer"
+                    verified={reviewerPhoneVerified}
+                    onVerifiedChange={setReviewerPhoneVerified}
+                    onVerified={() => void refreshSession()}
+                    error={errors.phone || errors.phoneVerification}
+                    label={t('phone')}
+                    fieldKey="phone"
+                  />
                   <div className="grid gap-4 sm:grid-cols-2">
                     <Field label={t('city')} error={errors.city} fieldKey="city" required>
                       <Input
@@ -529,19 +564,16 @@ export default function CompleteProfilePage() {
                       className="h-11"
                     />
                   </Field>
-                  <Field
+                  <PhoneVerificationField
+                    phone={companyPhone}
+                    onPhoneChange={setCompanyPhone}
+                    context="company"
+                    verified={companyPhoneVerified}
+                    onVerifiedChange={setCompanyPhoneVerified}
+                    error={errors.companyPhone || errors.companyPhoneVerification}
                     label={t('phone')}
-                    error={errors.companyPhone}
                     fieldKey="companyPhone"
-                    required
-                  >
-                    <Input
-                      type="tel"
-                      value={companyPhone}
-                      onChange={(e) => setCompanyPhone(e.target.value)}
-                      className="h-11"
-                    />
-                  </Field>
+                  />
                   <Field
                     label={t('category')}
                     error={errors.categoryId}
@@ -597,15 +629,30 @@ export default function CompleteProfilePage() {
                       className="h-11"
                     />
                   </Field>
-                  <div data-field="registrationFile">
+                  <div data-field="establishmentCardFile">
                     <FileField
-                      label={t('registrationFile')}
-                      error={errors.registrationFile}
-                      file={registrationFile}
-                      onChange={setRegistrationFile}
-                      existingUrl={companyExistingAssets.registrationDocUrl}
+                      label={t('establishmentCardFile')}
+                      error={errors.establishmentCardFile}
+                      file={establishmentCardFile}
+                      onChange={setEstablishmentCardFile}
+                      existingUrl={companyExistingAssets.establishmentCardUrl}
                       onClearExisting={() =>
-                        setClearedExisting((s) => ({ ...s, registration: true }))
+                        setClearedExisting((s) => ({ ...s, establishmentCard: true }))
+                      }
+                      accept=".pdf,.jpg,.jpeg,.png"
+                      previewVariant="document"
+                      required
+                    />
+                  </div>
+                  <div data-field="tradeLicenseFile">
+                    <FileField
+                      label={t('tradeLicenseFile')}
+                      error={errors.tradeLicenseFile}
+                      file={tradeLicenseFile}
+                      onChange={setTradeLicenseFile}
+                      existingUrl={companyExistingAssets.tradeLicenseUrl}
+                      onClearExisting={() =>
+                        setClearedExisting((s) => ({ ...s, tradeLicense: true }))
                       }
                       accept=".pdf,.jpg,.jpeg,.png"
                       previewVariant="document"
@@ -651,7 +698,7 @@ export default function CompleteProfilePage() {
                   ? t('saving')
                   : accountType === 'reviewer'
                     ? t('saveReviewerProfile')
-                    : companyRejected
+                    : companyRevisionRequested
                       ? t('resubmitCompanyProfile')
                       : t('submitCompanyProfile')}
               </Button>

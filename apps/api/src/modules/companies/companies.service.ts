@@ -25,6 +25,8 @@ import { PrismaService } from '../../infrastructure/database/prisma.service';
 import { buildPaginationMeta } from '../../common/utils/pagination.util';
 import { CompaniesRepository } from './repositories/companies.repository';
 import { CategoriesService } from '../categories/categories.service';
+import { PhoneOtpService } from '../phone-verification/phone-otp.service';
+import { EmailService } from '../auth/services/email.service';
 import { toCompanyDetail, toCompanyPublic } from './mappers/company.mapper';
 import {
   toAdminCompanyVerificationDetail,
@@ -41,6 +43,8 @@ export class CompaniesService {
     private readonly companiesRepository: CompaniesRepository,
     private readonly prisma: PrismaService,
     private readonly categoriesService: CategoriesService,
+    private readonly phoneOtpService: PhoneOtpService,
+    private readonly emailService: EmailService,
   ) {}
 
   async search(query: SearchCompaniesQueryDto): Promise<PaginatedCompaniesResponse> {
@@ -103,6 +107,7 @@ export class CompaniesService {
 
     const slug = await this.generateUniqueSlug(input.name);
     await this.categoriesService.assertExists(input.categoryId);
+    await this.phoneOtpService.assertPhoneVerified(user.id, input.phone, 'company');
 
     await this.companiesRepository.create({
       name: input.name.trim(),
@@ -115,7 +120,9 @@ export class CompaniesService {
       address: input.address.trim(),
       crNumber: input.crNumber.trim(),
       validationDate: new Date(input.validationDate),
-      registrationDocUrl: input.registrationDocUrl,
+      registrationDocUrl: input.registrationDocUrl ?? null,
+      establishmentCardUrl: input.establishmentCardUrl,
+      tradeLicenseUrl: input.tradeLicenseUrl,
       verificationStatus: 'PENDING',
       country: input.country.trim(),
       city: input.city.trim(),
@@ -129,6 +136,8 @@ export class CompaniesService {
         data: { role: PrismaUserRole.COMPANY },
       });
     }
+
+    await this.phoneOtpService.clearSession(user.id, 'company');
 
     const withRelations = await this.companiesRepository.findByOwnerId(user.id);
     return toCompanyDetail(withRelations!);
@@ -169,13 +178,42 @@ export class CompaniesService {
       throw new NotFoundException('No company profile found for this account');
     }
 
-    const resubmitAfterRejection = company.verificationStatus === 'REJECTED';
+    const resubmitAfterRevision = company.verificationStatus === 'REVISION_REQUESTED';
+
+    if (input.phone !== undefined) {
+      await this.phoneOtpService.assertPhoneVerified(userId, input.phone, 'company');
+    }
+
+    if (company.verificationStatus === 'PENDING') {
+      throw new ForbiddenException(
+        'Your company profile is awaiting admin review and cannot be edited',
+      );
+    }
+
+    if (company.verificationStatus === 'APPROVED') {
+      const hasDocumentUpdate =
+        input.logo !== undefined ||
+        input.coverUrl !== undefined ||
+        input.registrationDocUrl !== undefined ||
+        input.establishmentCardUrl !== undefined ||
+        input.tradeLicenseUrl !== undefined;
+
+      if (hasDocumentUpdate) {
+        throw new ForbiddenException(
+          'Document uploads cannot be changed from the profile settings page',
+        );
+      }
+    }
 
     const updated = await this.applyUpdate(company.id, company.slug, input);
 
-    if (resubmitAfterRejection) {
+    if (resubmitAfterRevision) {
+      if (input.phone !== undefined) {
+        await this.phoneOtpService.clearSession(userId, 'company');
+      }
       const reset = await this.companiesRepository.update(company.id, {
         verificationStatus: 'PENDING',
+        revisionNotes: null,
       });
       return toCompanyDetail(reset);
     }
@@ -194,7 +232,7 @@ export class CompaniesService {
   }
 
   async listAdminVerifications(input: {
-    status?: 'pending' | 'approved' | 'rejected';
+    status?: 'pending' | 'approved' | 'rejected' | 'revision_requested';
     page: number;
     limit: number;
   }): Promise<PaginatedAdminCompanyVerifications> {
@@ -237,19 +275,65 @@ export class CompaniesService {
       throw new NotFoundException('Company not found');
     }
 
-    const nextStatus = input.status.toUpperCase() as CompanyVerificationStatus;
+    const ownerEmail = company.owner?.email;
+    const companyName = company.name;
 
-    const updated = await this.companiesRepository.update(companyId, {
-      verificationStatus: nextStatus,
-    });
+    if (input.status === 'approved') {
+      const updated = await this.companiesRepository.update(companyId, {
+        verificationStatus: 'APPROVED',
+        revisionNotes: null,
+      });
 
-    const withOwner = await this.companiesRepository.findByIdWithOwner(updated.id);
+      if (ownerEmail) {
+        await this.emailService.sendCompanyVerificationApprovedEmail(ownerEmail, companyName);
+      }
 
-    if (!withOwner) {
-      throw new NotFoundException('Company not found');
+      const withOwner = await this.companiesRepository.findByIdWithOwner(updated.id);
+      return toAdminCompanyVerificationDetail(withOwner!);
     }
 
-    return toAdminCompanyVerificationDetail(withOwner);
+    if (input.status === 'rejected') {
+      if (ownerEmail) {
+        await this.emailService.sendCompanyVerificationRejectedEmail(ownerEmail, companyName);
+      }
+
+      const ownerId = company.ownerId;
+      await this.companiesRepository.delete(companyId);
+
+      if (ownerId) {
+        await this.prisma.user.update({
+          where: { id: ownerId },
+          data: { role: PrismaUserRole.USER },
+        });
+      }
+
+      return {
+        ...toAdminCompanyVerificationDetail(company),
+        verificationStatus: 'rejected',
+        revisionNotes: null,
+      };
+    }
+
+    const revisionNotes = input.revisionNotes?.trim();
+    if (!revisionNotes) {
+      throw new BadRequestException('Revision notes are required when sending for review');
+    }
+
+    const updated = await this.companiesRepository.update(companyId, {
+      verificationStatus: 'REVISION_REQUESTED',
+      revisionNotes,
+    });
+
+    if (ownerEmail) {
+      await this.emailService.sendCompanyRevisionRequestedEmail(
+        ownerEmail,
+        companyName,
+        revisionNotes,
+      );
+    }
+
+    const withOwner = await this.companiesRepository.findByIdWithOwner(updated.id);
+    return toAdminCompanyVerificationDetail(withOwner!);
   }
 
   async adminDelete(companyId: string): Promise<MessageResponse> {
@@ -297,6 +381,12 @@ export class CompaniesService {
       }),
       ...(input.registrationDocUrl !== undefined && {
         registrationDocUrl: input.registrationDocUrl,
+      }),
+      ...(input.establishmentCardUrl !== undefined && {
+        establishmentCardUrl: input.establishmentCardUrl,
+      }),
+      ...(input.tradeLicenseUrl !== undefined && {
+        tradeLicenseUrl: input.tradeLicenseUrl,
       }),
       ...(input.country !== undefined && { country: input.country.trim() }),
       ...(input.city !== undefined && { city: input.city.trim() }),

@@ -4,6 +4,10 @@ export function hashToken(rawToken: string): string {
   return createHash('sha256').update(rawToken).digest('hex');
 }
 
+export function verifyTokenHash(rawToken: string, tokenHash: string): boolean {
+  return hashToken(rawToken) === tokenHash;
+}
+
 export function generateSecureToken(): string {
   return randomBytes(32).toString('hex');
 }

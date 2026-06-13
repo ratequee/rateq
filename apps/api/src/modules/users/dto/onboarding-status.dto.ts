@@ -51,6 +51,12 @@ export class CompanyProfileDetailDto {
   @ApiPropertyOptional({ nullable: true })
   registrationDocUrl!: string | null;
 
+  @ApiProperty({ nullable: true })
+  establishmentCardUrl!: string | null;
+
+  @ApiProperty({ nullable: true })
+  tradeLicenseUrl!: string | null;
+
   @ApiProperty({ enum: ['pending', 'approved', 'rejected'] })
   verificationStatus!: 'pending' | 'approved' | 'rejected';
 

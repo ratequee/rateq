@@ -30,6 +30,10 @@ export class ReviewsRepository {
         },
         company: true,
         replies: true,
+        attachments: true,
+        serviceRatings: {
+          include: { categoryService: { select: { id: true, name: true } } },
+        },
       },
     });
   }
@@ -48,11 +52,32 @@ export class ReviewsRepository {
     content: string;
     hashedIp?: string;
     deviceFingerprint?: string;
+    serviceRatings?: { categoryServiceId: string; rating: number }[];
+    proofUrls?: string[];
   }): Promise<Review> {
+    const { serviceRatings, proofUrls, ...reviewData } = data;
+
     return this.prisma.review.create({
       data: {
-        ...data,
+        ...reviewData,
         status: 'PENDING',
+        ...(serviceRatings?.length
+          ? {
+              serviceRatings: {
+                create: serviceRatings.map((entry) => ({
+                  categoryServiceId: entry.categoryServiceId,
+                  rating: entry.rating,
+                })),
+              },
+            }
+          : {}),
+        ...(proofUrls?.length
+          ? {
+              attachments: {
+                create: proofUrls.map((url) => ({ url })),
+              },
+            }
+          : {}),
       },
     });
   }
@@ -102,6 +127,10 @@ export class ReviewsRepository {
           },
         },
         replies: true,
+        attachments: true,
+        serviceRatings: {
+          include: { categoryService: { select: { id: true, name: true } } },
+        },
       },
     });
   }

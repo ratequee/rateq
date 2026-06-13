@@ -6,13 +6,16 @@ import { Input } from '@/components/ui/input';
 import { StarRating } from '@/components/ui/star-rating';
 import { ApiError, reviewsApi } from '@/lib/api';
 import { ensureValidAccessToken } from '@/lib/auth-session';
-import type { ReviewPublic } from '@rateq/types';
+import { fetchCategoriesClient } from '@/lib/categories-api';
+import { uploadReviewProofFiles } from '@/lib/review-proof-upload';
+import type { CategoryServicePublic, ReviewPublic } from '@rateq/types';
 import { useTranslations } from 'next-intl';
-import { useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 
 interface WriteReviewFormProps {
   companyId: string;
+  categoryId?: string | null;
   className?: string;
   onSubmitted?: (review: ReviewPublic) => void;
   onCancel?: () => void;
@@ -20,15 +23,53 @@ interface WriteReviewFormProps {
 
 export function WriteReviewForm({
   companyId,
+  categoryId,
   className,
   onSubmitted,
   onCancel,
 }: WriteReviewFormProps) {
   const t = useTranslations('review');
-  const [rating, setRating] = useState(5);
+  const [overallRating, setOverallRating] = useState(5);
+  const [serviceRatings, setServiceRatings] = useState<Record<string, number>>({});
+  const [categoryServices, setCategoryServices] = useState<CategoryServicePublic[]>([]);
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
+  const [proofFiles, setProofFiles] = useState<File[]>([]);
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    void fetchCategoriesClient().then((categories) => {
+      if (cancelled || !categoryId) {
+        setCategoryServices([]);
+        return;
+      }
+
+      const category = categories.find((entry) => entry.id === categoryId);
+      const services = category?.services ?? [];
+      setCategoryServices(services);
+      setServiceRatings(Object.fromEntries(services.map((service) => [service.id, 5])));
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [categoryId]);
+
+  const usesServiceRatings = categoryServices.length > 0;
+
+  const aggregatedPreview = useMemo(() => {
+    if (!usesServiceRatings) return overallRating;
+    const values = categoryServices.map((service) => serviceRatings[service.id] ?? 0);
+    if (values.some((value) => value < 1)) return 0;
+    return Math.round(values.reduce((sum, value) => sum + value, 0) / values.length);
+  }, [categoryServices, overallRating, serviceRatings, usesServiceRatings]);
+
+  const handleProofChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(event.target.files ?? []);
+    setProofFiles(files.slice(0, 10));
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -37,19 +78,32 @@ export function WriteReviewForm({
       const token = await ensureValidAccessToken();
       if (!token) throw new Error('Not authenticated');
 
+      const proofUrls = proofFiles.length ? await uploadReviewProofFiles(proofFiles) : undefined;
+
       const review = await reviewsApi.submit(token, {
         companyId,
-        rating,
         title,
         content,
+        ...(usesServiceRatings
+          ? {
+              serviceRatings: categoryServices.map((service) => ({
+                categoryServiceId: service.id,
+                rating: serviceRatings[service.id] ?? 5,
+              })),
+            }
+          : { rating: overallRating }),
+        ...(proofUrls?.length ? { proofUrls } : {}),
       });
+
       toast.success(t('submittedSuccess'));
       setTitle('');
       setContent('');
-      setRating(5);
+      setOverallRating(5);
+      setProofFiles([]);
+      setServiceRatings(Object.fromEntries(categoryServices.map((service) => [service.id, 5])));
       onSubmitted?.(review);
     } catch (err) {
-      const message = err instanceof ApiError ? err.message : t('submit');
+      const message = err instanceof ApiError ? err.message : t('submitError');
       toast.error(message);
     } finally {
       setLoading(false);
@@ -68,10 +122,32 @@ export function WriteReviewForm({
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="text-sm font-medium">{t('rating')}</label>
-            <StarRating value={rating} interactive onChange={setRating} />
-          </div>
+          {usesServiceRatings ? (
+            <div className="space-y-4">
+              <p className="text-sm text-ink-muted">{t('serviceRatingsHint')}</p>
+              {categoryServices.map((service) => (
+                <div key={service.id}>
+                  <label className="text-sm font-medium">{service.name}</label>
+                  <StarRating
+                    value={serviceRatings[service.id] ?? 5}
+                    interactive
+                    onChange={(value) =>
+                      setServiceRatings((current) => ({ ...current, [service.id]: value }))
+                    }
+                  />
+                </div>
+              ))}
+              <p className="text-sm text-ink-muted">
+                {t('aggregatedRating', { rating: aggregatedPreview })}
+              </p>
+            </div>
+          ) : (
+            <div>
+              <label className="text-sm font-medium">{t('rating')}</label>
+              <StarRating value={overallRating} interactive onChange={setOverallRating} />
+            </div>
+          )}
+
           <div>
             <label className="text-sm font-medium">{t('title')}</label>
             <Input
@@ -92,6 +168,20 @@ export function WriteReviewForm({
               className="mt-1 w-full rounded-md border border-slate-200 px-3 py-2 text-sm focus:ring-2 focus:ring-brand-500"
             />
           </div>
+
+          <div>
+            <label className="mb-1.5 block text-sm font-medium">{t('proofFiles')}</label>
+            <Input type="file" multiple accept="image/*,.pdf" onChange={handleProofChange} />
+            <p className="mt-1 text-xs text-ink-muted">{t('proofFilesHint')}</p>
+            {proofFiles.length > 0 && (
+              <ul className="mt-2 space-y-1 text-xs text-ink-muted">
+                {proofFiles.map((file) => (
+                  <li key={`${file.name}-${file.size}`}>{file.name}</li>
+                ))}
+              </ul>
+            )}
+          </div>
+
           <Button type="submit" disabled={loading}>
             {loading ? '...' : t('submit')}
           </Button>

@@ -1,6 +1,7 @@
 'use client';
 
 import { DashboardShell } from '@/components/dashboard/dashboard-shell';
+import { PhoneVerificationField } from '@/components/profile/phone-verification-field';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useProfile } from '@/components/providers/profile-provider';
@@ -9,10 +10,12 @@ import { onboardingApi } from '@/lib/onboarding-api';
 import { fetchCategoriesClient } from '@/lib/categories-api';
 import { ApiError } from '@/lib/api';
 import { ensureValidAccessToken } from '@/lib/auth-session';
+import { isRemoteImage, isRemotePdf } from '@/lib/profile-company-assets';
 import { hasValidationErrors, validateCompanyProfileFields } from '@/lib/validation/profile-fields';
 import type { CategoryPublic } from '@rateq/types';
+import { ExternalLink, FileText } from 'lucide-react';
 import { useTranslations } from 'next-intl';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 
 export default function CompanyProfileSettingsPage() {
@@ -26,6 +29,8 @@ export default function CompanyProfileSettingsPage() {
 
   const [companyName, setCompanyName] = useState('');
   const [companyPhone, setCompanyPhone] = useState('');
+  const [originalPhone, setOriginalPhone] = useState('');
+  const [companyPhoneVerified, setCompanyPhoneVerified] = useState(true);
   const [categoryId, setCategoryId] = useState('');
   const [companyAddress, setCompanyAddress] = useState('');
   const [companyCity, setCompanyCity] = useState('');
@@ -33,22 +38,44 @@ export default function CompanyProfileSettingsPage() {
   const [crNumber, setCrNumber] = useState('');
   const [validationDate, setValidationDate] = useState('');
 
+  const company = onboarding?.company;
+  const phoneChanged = companyPhone.trim() !== originalPhone.trim();
+
   useEffect(() => {
     void fetchCategoriesClient().then(setCategories);
   }, []);
 
   useEffect(() => {
-    if (!onboarding?.company) return;
-    const company = onboarding.company;
+    if (!company) return;
     setCompanyName(company.name);
     setCompanyPhone(company.phone ?? '');
+    setOriginalPhone(company.phone ?? '');
+    setCompanyPhoneVerified(true);
     setCategoryId(company.categoryId ?? '');
     setCompanyAddress(company.address ?? '');
     setCompanyCity(company.city);
     setCompanyCountry(company.country);
     setCrNumber(company.crNumber ?? '');
     setValidationDate(company.validationDate?.slice(0, 10) ?? '');
-  }, [onboarding?.company]);
+  }, [company]);
+
+  useEffect(() => {
+    if (!phoneChanged) {
+      setCompanyPhoneVerified(true);
+    }
+  }, [phoneChanged]);
+
+  const documents = useMemo(
+    () =>
+      [
+        { label: t('establishmentCardFile'), url: company?.establishmentCardUrl },
+        { label: t('tradeLicenseFile'), url: company?.tradeLicenseUrl },
+        { label: t('registrationFile'), url: company?.registrationDocUrl },
+        { label: t('companyLogo'), url: company?.logo },
+        { label: t('companyCover'), url: company?.coverUrl },
+      ].filter((entry) => Boolean(entry.url)),
+    [company, t],
+  );
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -63,12 +90,15 @@ export default function CompanyProfileSettingsPage() {
         validationDate,
         city: companyCity,
         country: companyCountry,
-        registrationFile: null,
+        establishmentCardFile: null,
+        tradeLicenseFile: null,
         logoFile: null,
         coverFile: null,
-        hasExistingRegistration: true,
+        hasExistingEstablishmentCard: true,
+        hasExistingTradeLicense: true,
         hasExistingLogo: true,
         hasExistingCover: true,
+        companyPhoneVerified: !phoneChanged || companyPhoneVerified,
       },
       {
         required: t('errors.required'),
@@ -76,6 +106,7 @@ export default function CompanyProfileSettingsPage() {
         companyName: { min: t('errors.companyNameMin'), max: t('errors.companyNameMax') },
         crNumber: { invalid: t('errors.crNumberInvalid') },
         phone: { required: t('errors.required'), invalid: t('errors.invalidPhone') },
+        phoneVerification: { required: t('errors.phoneNotVerified') },
       },
     );
 
@@ -101,6 +132,8 @@ export default function CompanyProfileSettingsPage() {
         city: companyCity.trim(),
       });
 
+      setOriginalPhone(companyPhone.trim());
+      setCompanyPhoneVerified(true);
       await refreshOnboarding();
       toast.success(t('profileUpdated'));
     } catch (err) {
@@ -117,12 +150,28 @@ export default function CompanyProfileSettingsPage() {
         <div className="mb-6">
           <h1 className="text-2xl font-bold text-ink">{t('profileSettingsTitle')}</h1>
           <p className="mt-1 text-sm text-ink-muted">{t('profileSettingsSubtitle')}</p>
-          {onboarding?.company?.email && (
+          {company?.email && (
             <p className="mt-2 text-sm text-ink-muted">
-              Email: <span className="font-medium text-ink">{onboarding.company.email}</span>
+              Email: <span className="font-medium text-ink">{company.email}</span>
             </p>
           )}
         </div>
+
+        {documents.length > 0 && (
+          <section className="mb-6 rounded-2xl border border-slate-100 bg-white p-6 shadow-sm">
+            <h2 className="text-lg font-semibold text-ink">{t('submittedDocumentsTitle')}</h2>
+            <p className="mt-1 text-sm text-ink-muted">{t('submittedDocumentsHint')}</p>
+            <div className="mt-4 grid gap-4 sm:grid-cols-2">
+              {documents.map((document) => (
+                <DocumentPreviewCard
+                  key={document.label}
+                  label={document.label}
+                  url={document.url!}
+                />
+              ))}
+            </div>
+          </section>
+        )}
 
         <form
           onSubmit={handleSubmit}
@@ -142,14 +191,30 @@ export default function CompanyProfileSettingsPage() {
               className="h-11"
             />
           </Field>
-          <Field label={t('phone')} error={errors.companyPhone} required>
-            <Input
-              type="tel"
-              value={companyPhone}
-              onChange={(e) => setCompanyPhone(e.target.value)}
-              className="h-11"
+
+          {phoneChanged ? (
+            <PhoneVerificationField
+              phone={companyPhone}
+              onPhoneChange={setCompanyPhone}
+              context="company"
+              verified={companyPhoneVerified}
+              onVerifiedChange={setCompanyPhoneVerified}
+              error={errors.companyPhone || errors.companyPhoneVerification}
+              label={t('phone')}
+              fieldKey="companyPhone"
             />
-          </Field>
+          ) : (
+            <Field label={t('phone')} error={errors.companyPhone} required>
+              <Input
+                type="tel"
+                value={companyPhone}
+                onChange={(e) => setCompanyPhone(e.target.value)}
+                placeholder={t('phonePlaceholder')}
+                className="h-11"
+              />
+            </Field>
+          )}
+
           <Field label={t('category')} error={errors.categoryId} required>
             <select
               value={categoryId}
@@ -201,6 +266,36 @@ export default function CompanyProfileSettingsPage() {
         </form>
       </div>
     </DashboardShell>
+  );
+}
+
+function DocumentPreviewCard({ label, url }: { label: string; url: string }) {
+  const t = useTranslations('profilePage');
+
+  return (
+    <div className="overflow-hidden rounded-xl border border-slate-200">
+      <div className="border-b border-slate-100 bg-slate-50 px-3 py-2 text-xs font-medium text-ink">
+        {label}
+      </div>
+      {isRemoteImage(url) ? (
+        <a href={url} target="_blank" rel="noopener noreferrer" className="block">
+          <img src={url} alt={label} className="h-36 w-full object-cover" />
+        </a>
+      ) : (
+        <a
+          href={url}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex items-center justify-center gap-2 p-6 text-sm font-medium text-brand-600 hover:bg-brand-50"
+        >
+          <FileText className="h-8 w-8 text-brand-500" />
+          <span className="flex items-center gap-1">
+            {isRemotePdf(url) ? t('viewExistingFile') : t('viewExistingFile')}
+            <ExternalLink className="h-3.5 w-3.5" />
+          </span>
+        </a>
+      )}
+    </div>
   );
 }
 

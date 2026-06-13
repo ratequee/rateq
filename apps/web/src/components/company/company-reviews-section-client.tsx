@@ -145,6 +145,7 @@ export function CompanyReviewsSectionClient({
         return (
           <WriteReviewForm
             companyId={company.id}
+            categoryId={company.categoryId}
             onSubmitted={handleReviewSubmitted}
             onCancel={() => setPanel(null)}
           />

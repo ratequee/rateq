@@ -6,10 +6,18 @@ import { PrismaService } from '../../../infrastructure/database/prisma.service';
 export class CategoriesRepository {
   constructor(private readonly prisma: PrismaService) {}
 
-  findAll(): Promise<(Category & { _count: { companies: number } })[]> {
+  findAll(): Promise<
+    (Category & {
+      _count: { companies: number };
+      services: import('@prisma/client').CategoryService[];
+    })[]
+  > {
     return this.prisma.category.findMany({
       orderBy: { name: 'asc' },
-      include: { _count: { select: { companies: true } } },
+      include: {
+        _count: { select: { companies: true } },
+        services: { orderBy: [{ sortOrder: 'asc' }, { name: 'asc' }] },
+      },
     });
   }
 
@@ -20,7 +28,10 @@ export class CategoriesRepository {
   findBySlug(slug: string) {
     return this.prisma.category.findUnique({
       where: { slug },
-      include: { _count: { select: { companies: true } } },
+      include: {
+        _count: { select: { companies: true } },
+        services: { orderBy: [{ sortOrder: 'asc' }, { name: 'asc' }] },
+      },
     });
   }
 

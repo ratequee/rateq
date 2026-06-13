@@ -43,7 +43,9 @@ export interface CreateCompanyInput {
   categoryId: string;
   crNumber: string;
   validationDate: string;
-  registrationDocUrl: string;
+  registrationDocUrl?: string;
+  establishmentCardUrl: string;
+  tradeLicenseUrl: string;
   country: string;
   city: string;
 }
@@ -59,6 +61,8 @@ export interface UpdateCompanyInput {
   crNumber?: string;
   validationDate?: string;
   registrationDocUrl?: string;
+  establishmentCardUrl?: string;
+  tradeLicenseUrl?: string;
   country?: string;
   city?: string;
 }

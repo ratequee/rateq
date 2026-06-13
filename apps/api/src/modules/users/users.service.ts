@@ -24,6 +24,8 @@ import { UserProfilesRepository } from './repositories/user-profiles.repository'
 import { UsersRepository } from './repositories/users.repository';
 import { buildOnboardingStatus } from './mappers/onboarding.mapper';
 import { toUserProfile } from './mappers/user.mapper';
+import { PhoneOtpService } from '../phone-verification/phone-otp.service';
+import type { SendPhoneOtpDto, VerifyPhoneOtpDto } from './dto/phone-otp.dto';
 import type { ListUsersQueryDto } from './dto/list-users-query.dto';
 import type { ChangePasswordDto } from './dto/change-password.dto';
 
@@ -35,7 +37,16 @@ export class UsersService {
     private readonly usersRepository: UsersRepository,
     private readonly userProfilesRepository: UserProfilesRepository,
     private readonly companiesRepository: CompaniesRepository,
+    private readonly phoneOtpService: PhoneOtpService,
   ) {}
+
+  async sendPhoneOtp(userId: string, dto: SendPhoneOtpDto): Promise<MessageResponse> {
+    return this.phoneOtpService.sendOtp(userId, dto.phone, dto.context);
+  }
+
+  async verifyPhoneOtp(userId: string, dto: VerifyPhoneOtpDto): Promise<MessageResponse> {
+    return this.phoneOtpService.verifyOtp(userId, dto.code, dto.context);
+  }
 
   async getOnboardingStatus(userId: string): Promise<OnboardingStatus> {
     const [reviewerProfile, company] = await Promise.all([
@@ -66,9 +77,12 @@ export class UsersService {
       throw new ConflictException('A company profile already exists for this account');
     }
 
+    const phone = dto.phone.trim();
+    await this.phoneOtpService.assertPhoneVerified(userId, phone, 'reviewer');
+
     await this.userProfilesRepository.upsert(userId, {
       fullName: dto.fullName.trim(),
-      phone: dto.phone.trim(),
+      phone,
       city: dto.city.trim(),
       country: dto.country.trim(),
       bio: dto.bio?.trim() ?? '',

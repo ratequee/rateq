@@ -29,9 +29,12 @@ export interface AdminCompanyVerificationDetail {
   crNumber: string | null;
   validationDate: string | null;
   registrationDocUrl: string | null;
+  establishmentCardUrl: string | null;
+  tradeLicenseUrl: string | null;
   country: string;
   city: string;
   verificationStatus: CompanyVerificationStatus;
+  revisionNotes: string | null;
   createdAt: string;
   updatedAt: string;
   owner: AdminCompanyOwner | null;
@@ -40,5 +43,6 @@ export interface AdminCompanyVerificationDetail {
 export type PaginatedAdminCompanyVerifications = PaginatedResponse<AdminCompanyVerificationSummary>;
 
 export interface UpdateCompanyVerificationInput {
-  status: 'approved' | 'rejected';
+  status: 'approved' | 'rejected' | 'revision_requested';
+  revisionNotes?: string;
 }

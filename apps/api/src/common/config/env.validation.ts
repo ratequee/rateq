@@ -152,6 +152,23 @@ export class AppConfig {
   @Min(1)
   AUTH_PASSWORD_RESET_EXPIRES_HOURS!: number;
 
+  @Type(() => Number)
+  @IsInt()
+  @Min(60)
+  AUTH_PHONE_OTP_TTL_SECONDS!: number;
+
+  @IsOptional()
+  @IsString()
+  TWILIO_ACCOUNT_SID?: string;
+
+  @IsOptional()
+  @IsString()
+  TWILIO_AUTH_TOKEN?: string;
+
+  @IsOptional()
+  @IsString()
+  TWILIO_WHATSAPP_FROM?: string;
+
   @Transform(toBoolean)
   @IsBoolean()
   SWAGGER_ENABLED!: boolean;

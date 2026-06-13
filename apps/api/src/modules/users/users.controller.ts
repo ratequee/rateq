@@ -7,6 +7,7 @@ import {
   HttpStatus,
   Param,
   Patch,
+  Post,
   Query,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
@@ -14,6 +15,7 @@ import type { AuthenticatedUser } from '@rateq/types';
 import { UserRole } from '@rateq/types';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { Roles } from '../../common/decorators/roles.decorator';
+import { SendPhoneOtpDto, VerifyPhoneOtpDto } from './dto/phone-otp.dto';
 import { MessageResponseDto } from '../auth/dto/auth-response.dto';
 import { UsersService } from './users.service';
 import { ChangePasswordDto } from './dto/change-password.dto';
@@ -52,6 +54,22 @@ export class UsersController {
     @Body() dto: CompleteReviewerProfileDto,
   ) {
     return this.usersService.completeReviewerProfile(user.id, dto);
+  }
+
+  @Post('me/phone/send-otp')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Send WhatsApp verification code for profile phone' })
+  @ApiResponse({ status: 200, type: MessageResponseDto })
+  sendPhoneOtp(@CurrentUser() user: AuthenticatedUser, @Body() dto: SendPhoneOtpDto) {
+    return this.usersService.sendPhoneOtp(user.id, dto);
+  }
+
+  @Post('me/phone/verify-otp')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Verify WhatsApp code for profile phone' })
+  @ApiResponse({ status: 200, type: MessageResponseDto })
+  verifyPhoneOtp(@CurrentUser() user: AuthenticatedUser, @Body() dto: VerifyPhoneOtpDto) {
+    return this.usersService.verifyPhoneOtp(user.id, dto);
   }
 
   @Patch('me/password')

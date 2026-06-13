@@ -32,11 +32,7 @@ interface AuthContextValue {
   isFirebaseAdmin: boolean;
   firebaseAdminLoading: boolean;
   login: (email: string, password: string) => Promise<AuthenticatedUser>;
-  register: (data: {
-    email: string;
-    password: string;
-    name?: string;
-  }) => Promise<AuthenticatedUser>;
+  register: (data: { email: string; password: string; name?: string }) => Promise<void>;
   loginWithGoogle: () => Promise<AuthenticatedUser>;
   resetPassword: (email: string) => Promise<void>;
   resendVerificationEmail: (email: string, password: string) => Promise<void>;

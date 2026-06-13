@@ -18,6 +18,8 @@ export interface AuthenticatedUser {
   displayName: string | null;
   role: UserRole;
   isVerified: boolean;
+  phone: string | null;
+  phoneVerified: boolean;
 }
 
 export interface AuthResponse {
