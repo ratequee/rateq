@@ -7,7 +7,7 @@ import type { AppConfig } from '../../common/config/env.validation';
 import { UsersModule } from '../users/users.module';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
-import { EmailService } from './services/email.service';
+import { EmailModule } from './email.module';
 import { TokenService } from './services/token.service';
 import { FirebaseAdminModule } from './firebase-admin.module';
 import { JwtStrategy } from './strategies/jwt.strategy';
@@ -16,6 +16,7 @@ import { RolesGuard } from './guards/roles.guard';
 
 @Module({
   imports: [
+    EmailModule,
     FirebaseAdminModule,
     UsersModule,
     PassportModule.register({ defaultStrategy: 'jwt' }),
@@ -34,11 +35,10 @@ import { RolesGuard } from './guards/roles.guard';
   providers: [
     AuthService,
     TokenService,
-    EmailService,
     JwtStrategy,
     { provide: APP_GUARD, useClass: JwtAuthGuard },
     { provide: APP_GUARD, useClass: RolesGuard },
   ],
-  exports: [AuthService, JwtModule, EmailService],
+  exports: [AuthService, JwtModule, EmailModule],
 })
 export class AuthModule {}
