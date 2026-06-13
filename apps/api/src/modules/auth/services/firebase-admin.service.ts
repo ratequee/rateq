@@ -87,4 +87,15 @@ export class FirebaseAdminService implements OnModuleInit {
       name: decoded.name,
     };
   }
+
+  async getVerifiedPhoneNumber(firebaseUid: string): Promise<string | null> {
+    if (!this.initialized) {
+      throw new ServiceUnavailableException(
+        'Firebase authentication is not configured on the server',
+      );
+    }
+
+    const record = await admin.auth().getUser(firebaseUid);
+    return record.phoneNumber ?? null;
+  }
 }

@@ -7,12 +7,11 @@ import { AdminCompaniesController } from './admin-companies.controller';
 import { CompaniesController } from './companies.controller';
 import { CompaniesService } from './companies.service';
 import { CompaniesRepository } from './repositories/companies.repository';
-import { EmailService } from '../auth/services/email.service';
 
 @Module({
   imports: [DatabaseModule, FirebaseAdminModule, CategoriesModule, PhoneVerificationModule],
   controllers: [CompaniesController, AdminCompaniesController],
-  providers: [CompaniesService, CompaniesRepository, EmailService],
+  providers: [CompaniesService, CompaniesRepository],
   exports: [CompaniesService, CompaniesRepository],
 })
 export class CompaniesModule {}

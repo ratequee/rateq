@@ -3,15 +3,36 @@
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { phoneVerificationApi } from '@/lib/phone-verification-api';
+import {
+  confirmFirebasePhoneVerification,
+  normalizePhoneNumber,
+  resetFirebasePhoneVerification,
+  startFirebasePhoneVerification,
+} from '@/lib/firebase/phone-auth';
 import { ApiError } from '@/lib/api';
+import { isFirebasePhoneAlreadyLinkedError } from '@/lib/firebase/errors';
 import { cn } from '@/lib/utils';
 import { CheckCircle2 } from 'lucide-react';
 import { useTranslations } from 'next-intl';
-import { useEffect, useState } from 'react';
+import { useEffect, useId, useState } from 'react';
 import { toast } from 'sonner';
 
 const PHONE_PATTERN = /^[+]?[\d\s()-]{6,30}$/;
 const RESEND_COOLDOWN_SECONDS = 60;
+
+function getPhoneVerificationErrorMessage(
+  err: unknown,
+  t: (key: string) => string,
+  fallbackKey: 'phoneOtpSendError' | 'phoneOtpVerifyError',
+): string {
+  if (isFirebasePhoneAlreadyLinkedError(err)) {
+    return t('phoneAlreadyLinked');
+  }
+  if (err instanceof ApiError) {
+    return err.message;
+  }
+  return t(fallbackKey);
+}
 
 type PhoneVerificationContext = 'reviewer' | 'company';
 
@@ -42,6 +63,7 @@ export function PhoneVerificationField({
 }: PhoneVerificationFieldProps) {
   const t = useTranslations('profilePage');
   const ta = useTranslations('authPage');
+  const recaptchaContainerId = useId().replace(/:/g, '');
   const [otpCode, setOtpCode] = useState('');
   const [sending, setSending] = useState(false);
   const [verifying, setVerifying] = useState(false);
@@ -56,12 +78,19 @@ export function PhoneVerificationField({
     return () => window.clearInterval(timerId);
   }, [resendCooldown]);
 
+  useEffect(() => {
+    return () => {
+      resetFirebasePhoneVerification();
+    };
+  }, []);
+
   const handlePhoneChange = (value: string) => {
     onPhoneChange(value);
     onVerifiedChange(false);
     setOtpSent(false);
     setOtpCode('');
     setResendCooldown(0);
+    resetFirebasePhoneVerification();
   };
 
   const handleSendOtp = async () => {
@@ -77,12 +106,19 @@ export function PhoneVerificationField({
 
     setSending(true);
     try {
-      await phoneVerificationApi.sendOtp(trimmed, context);
+      const { smsRequired } = await startFirebasePhoneVerification(trimmed, recaptchaContainerId);
+      if (!smsRequired) {
+        await phoneVerificationApi.syncPhone(normalizePhoneNumber(trimmed), context);
+        onVerifiedChange(true);
+        onVerified?.();
+        toast.success(t('phoneVerifiedSuccess'));
+        return;
+      }
       setOtpSent(true);
       setResendCooldown(RESEND_COOLDOWN_SECONDS);
       toast.success(t('phoneOtpSent'));
     } catch (err) {
-      toast.error(err instanceof ApiError ? err.message : t('phoneOtpSendError'));
+      toast.error(getPhoneVerificationErrorMessage(err, t, 'phoneOtpSendError'));
     } finally {
       setSending(false);
     }
@@ -96,15 +132,17 @@ export function PhoneVerificationField({
 
     setVerifying(true);
     try {
-      await phoneVerificationApi.verifyOtp(otpCode.trim(), context);
+      await confirmFirebasePhoneVerification(otpCode.trim());
+      await phoneVerificationApi.syncPhone(normalizePhoneNumber(phone), context);
       onVerifiedChange(true);
       setOtpSent(false);
       setOtpCode('');
       setResendCooldown(0);
+      resetFirebasePhoneVerification();
       onVerified?.();
       toast.success(t('phoneVerifiedSuccess'));
     } catch (err) {
-      toast.error(err instanceof ApiError ? err.message : t('phoneOtpVerifyError'));
+      toast.error(getPhoneVerificationErrorMessage(err, t, 'phoneOtpVerifyError'));
     } finally {
       setVerifying(false);
     }
@@ -121,6 +159,7 @@ export function PhoneVerificationField({
 
   return (
     <div data-field={fieldKey} className="space-y-3">
+      <div id={recaptchaContainerId} className="hidden" aria-hidden />
       <div>
         <label htmlFor={`${fieldKey}-phone`} className="mb-1.5 block text-sm font-medium text-ink">
           {label}

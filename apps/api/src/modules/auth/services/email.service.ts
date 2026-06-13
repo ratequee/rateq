@@ -1,20 +1,20 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import * as nodemailer from 'nodemailer';
-import type { Transporter } from 'nodemailer';
+import { Resend } from 'resend';
 import type { AppConfig } from '../../../common/config/env.validation';
 
 @Injectable()
 export class EmailService {
   private readonly logger = new Logger(EmailService.name);
-  private transporter: Transporter | null = null;
+  private readonly resend: Resend | null;
 
   constructor(private readonly configService: ConfigService<AppConfig, true>) {
-    this.initializeTransporter();
+    const apiKey = this.configService.get('RESEND_API_KEY', { infer: true });
+    this.resend = apiKey ? new Resend(apiKey) : null;
   }
 
   isConfigured(): boolean {
-    return this.transporter !== null;
+    return this.resend !== null;
   }
 
   async sendVerificationEmail(email: string, token: string): Promise<void> {
@@ -111,15 +111,15 @@ export class EmailService {
   }): Promise<void> {
     const from = this.configService.get('EMAIL_FROM', { infer: true });
 
-    if (!this.transporter) {
+    if (!this.resend) {
       this.logger.warn(
-        `SMTP not configured — email not sent to ${options.to}. Subject: ${options.subject}`,
+        `Resend not configured — email not sent to ${options.to}. Subject: ${options.subject}`,
       );
       this.logger.log(`Email preview:\n${options.text}`);
       return;
     }
 
-    await this.transporter.sendMail({
+    const { error } = await this.resend.emails.send({
       from,
       to: options.to,
       subject: options.subject,
@@ -127,25 +127,11 @@ export class EmailService {
       html: options.html,
     });
 
-    this.logger.log(`Email sent to ${options.to}: ${options.subject}`);
-  }
-
-  private initializeTransporter(): void {
-    const host = this.configService.get('SMTP_HOST', { infer: true });
-
-    if (!host) {
-      return;
+    if (error) {
+      this.logger.error(`Resend failed for ${options.to}: ${error.message}`);
+      throw new Error('Could not send email');
     }
 
-    const port = this.configService.get('SMTP_PORT', { infer: true }) ?? 587;
-    const user = this.configService.get('SMTP_USER', { infer: true });
-    const pass = this.configService.get('SMTP_PASSWORD', { infer: true });
-
-    this.transporter = nodemailer.createTransport({
-      host,
-      port,
-      secure: port === 465,
-      auth: user && pass ? { user, pass } : undefined,
-    });
+    this.logger.log(`Email sent to ${options.to}: ${options.subject}`);
   }
 }

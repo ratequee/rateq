@@ -1,29 +1,37 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { randomInt } from 'crypto';
 import type { MessageResponse } from '@rateq/types';
 import { PrismaService } from '../../infrastructure/database/prisma.service';
 import { RedisService } from '../../infrastructure/redis/redis.service';
 import type { AppConfig } from '../../common/config/env.validation';
-import { hashToken, verifyTokenHash } from '../auth/utils/token-hash.util';
-import { WhatsAppService } from '../auth/services/whatsapp.service';
+import { FirebaseAdminService } from '../auth/services/firebase-admin.service';
 
 export type PhoneVerificationContext = 'reviewer' | 'company';
 
-interface PhoneOtpSession {
+interface PhoneVerificationSession {
   phone: string;
-  otpHash: string;
   verified: boolean;
 }
 
 const SESSION_PREFIX = 'phone-otp:';
+
+function normalizePhone(phone: string): string {
+  const trimmed = phone.trim();
+  const digits = trimmed.replace(/[^\d+]/g, '');
+  if (digits.startsWith('+')) return digits;
+  return `+${digits.replace(/^\+/, '')}`;
+}
+
+function phonesMatch(left: string, right: string): boolean {
+  return normalizePhone(left) === normalizePhone(right);
+}
 
 @Injectable()
 export class PhoneOtpService {
   constructor(
     private readonly redis: RedisService,
     private readonly configService: ConfigService<AppConfig, true>,
-    private readonly whatsAppService: WhatsAppService,
+    private readonly firebaseAdmin: FirebaseAdminService,
     private readonly prisma: PrismaService,
   ) {}
 
@@ -35,53 +43,33 @@ export class PhoneOtpService {
     return `${SESSION_PREFIX}${userId}:${context}`;
   }
 
-  generateOtp(): string {
-    return String(randomInt(100_000, 1_000_000));
-  }
-
-  async sendOtp(
+  async syncVerifiedPhone(
     userId: string,
     phone: string,
     context: PhoneVerificationContext,
   ): Promise<MessageResponse> {
-    const normalizedPhone = phone.trim();
-    if (!normalizedPhone) {
+    const normalizedPhone = normalizePhone(phone);
+    if (!normalizedPhone || normalizedPhone.length < 8) {
       throw new BadRequestException('Phone number is required');
     }
 
-    const otp = this.generateOtp();
-    const session: PhoneOtpSession = {
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    if (!user?.firebaseUid) {
+      throw new BadRequestException('Sign in with Firebase before verifying your phone number');
+    }
+
+    const firebasePhone = await this.firebaseAdmin.getVerifiedPhoneNumber(user.firebaseUid);
+    if (!firebasePhone || !phonesMatch(firebasePhone, normalizedPhone)) {
+      throw new BadRequestException(
+        'Phone number is not verified in Firebase. Complete SMS verification first.',
+      );
+    }
+
+    const session: PhoneVerificationSession = {
       phone: normalizedPhone,
-      otpHash: hashToken(otp),
-      verified: false,
+      verified: true,
     };
 
-    await this.redis
-      .getClient()
-      .setex(this.sessionKey(userId, context), this.ttlSeconds, JSON.stringify(session));
-
-    await this.whatsAppService.sendOtp(normalizedPhone, otp);
-
-    return { message: 'Verification code sent to your WhatsApp' };
-  }
-
-  async verifyOtp(
-    userId: string,
-    code: string,
-    context: PhoneVerificationContext,
-  ): Promise<MessageResponse> {
-    const raw = await this.redis.getClient().get(this.sessionKey(userId, context));
-    if (!raw) {
-      throw new BadRequestException('Verification session expired. Please request a new code.');
-    }
-
-    const session = JSON.parse(raw) as PhoneOtpSession;
-
-    if (!verifyTokenHash(code.trim(), session.otpHash)) {
-      throw new BadRequestException('Invalid verification code');
-    }
-
-    session.verified = true;
     await this.redis
       .getClient()
       .setex(this.sessionKey(userId, context), this.ttlSeconds, JSON.stringify(session));
@@ -89,7 +77,7 @@ export class PhoneOtpService {
     if (context === 'reviewer') {
       await this.prisma.user.update({
         where: { id: userId },
-        data: { phone: session.phone, phoneVerified: true },
+        data: { phone: normalizedPhone, phoneVerified: true },
       });
     }
 
@@ -101,13 +89,13 @@ export class PhoneOtpService {
     phone: string,
     context: PhoneVerificationContext,
   ): Promise<void> {
-    const normalizedPhone = phone.trim();
+    const normalizedPhone = normalizePhone(phone);
 
     if (context === 'reviewer') {
       const user = await this.prisma.user.findUnique({ where: { id: userId } });
-      if (!user?.phoneVerified || !user.phone || user.phone.trim() !== normalizedPhone) {
+      if (!user?.phoneVerified || !user.phone || !phonesMatch(user.phone, normalizedPhone)) {
         throw new BadRequestException(
-          'Verify your phone number via WhatsApp before completing your profile',
+          'Verify your phone number via SMS before completing your profile',
         );
       }
       return;
@@ -115,16 +103,12 @@ export class PhoneOtpService {
 
     const raw = await this.redis.getClient().get(this.sessionKey(userId, context));
     if (!raw) {
-      throw new BadRequestException(
-        'Verify your company phone number via WhatsApp before submitting',
-      );
+      throw new BadRequestException('Verify your company phone number via SMS before submitting');
     }
 
-    const session = JSON.parse(raw) as PhoneOtpSession;
-    if (!session.verified || session.phone.trim() !== normalizedPhone) {
-      throw new BadRequestException(
-        'Verify your company phone number via WhatsApp before submitting',
-      );
+    const session = JSON.parse(raw) as PhoneVerificationSession;
+    if (!session.verified || !phonesMatch(session.phone, normalizedPhone)) {
+      throw new BadRequestException('Verify your company phone number via SMS before submitting');
     }
   }
 

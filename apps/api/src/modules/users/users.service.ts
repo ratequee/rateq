@@ -25,7 +25,7 @@ import { UsersRepository } from './repositories/users.repository';
 import { buildOnboardingStatus } from './mappers/onboarding.mapper';
 import { toUserProfile } from './mappers/user.mapper';
 import { PhoneOtpService } from '../phone-verification/phone-otp.service';
-import type { SendPhoneOtpDto, VerifyPhoneOtpDto } from './dto/phone-otp.dto';
+import type { SyncPhoneVerificationDto } from './dto/phone-otp.dto';
 import type { ListUsersQueryDto } from './dto/list-users-query.dto';
 import type { ChangePasswordDto } from './dto/change-password.dto';
 
@@ -40,12 +40,11 @@ export class UsersService {
     private readonly phoneOtpService: PhoneOtpService,
   ) {}
 
-  async sendPhoneOtp(userId: string, dto: SendPhoneOtpDto): Promise<MessageResponse> {
-    return this.phoneOtpService.sendOtp(userId, dto.phone, dto.context);
-  }
-
-  async verifyPhoneOtp(userId: string, dto: VerifyPhoneOtpDto): Promise<MessageResponse> {
-    return this.phoneOtpService.verifyOtp(userId, dto.code, dto.context);
+  async syncPhoneVerification(
+    userId: string,
+    dto: SyncPhoneVerificationDto,
+  ): Promise<MessageResponse> {
+    return this.phoneOtpService.syncVerifiedPhone(userId, dto.phone, dto.context);
   }
 
   async getOnboardingStatus(userId: string): Promise<OnboardingStatus> {

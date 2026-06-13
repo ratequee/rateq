@@ -2,6 +2,8 @@ import { apiClient } from '@/lib/api';
 import { ensureValidAccessToken } from '@/lib/auth-session';
 import type { MessageResponse } from '@rateq/types';
 
+type PhoneVerificationContext = 'reviewer' | 'company';
+
 async function token(): Promise<string> {
   const accessToken = await ensureValidAccessToken();
   if (!accessToken) {
@@ -11,17 +13,10 @@ async function token(): Promise<string> {
 }
 
 export const phoneVerificationApi = {
-  sendOtp: async (phone: string, context: 'reviewer' | 'company') =>
-    apiClient<MessageResponse>('/users/me/phone/send-otp', {
+  syncPhone: async (phone: string, context: PhoneVerificationContext) =>
+    apiClient<MessageResponse>('/users/me/phone/sync', {
       method: 'POST',
       body: JSON.stringify({ phone, context }),
-      token: await token(),
-    }),
-
-  verifyOtp: async (code: string, context: 'reviewer' | 'company') =>
-    apiClient<MessageResponse>('/users/me/phone/verify-otp', {
-      method: 'POST',
-      body: JSON.stringify({ code, context }),
       token: await token(),
     }),
 };

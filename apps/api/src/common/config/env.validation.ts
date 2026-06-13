@@ -121,20 +121,7 @@ export class AppConfig {
 
   @IsOptional()
   @IsString()
-  SMTP_HOST?: string;
-
-  @IsOptional()
-  @Type(() => Number)
-  @IsInt()
-  SMTP_PORT?: number;
-
-  @IsOptional()
-  @IsString()
-  SMTP_USER?: string;
-
-  @IsOptional()
-  @IsString()
-  SMTP_PASSWORD?: string;
+  RESEND_API_KEY?: string;
 
   @IsString()
   EMAIL_FROM!: string;
@@ -156,18 +143,6 @@ export class AppConfig {
   @IsInt()
   @Min(60)
   AUTH_PHONE_OTP_TTL_SECONDS!: number;
-
-  @IsOptional()
-  @IsString()
-  TWILIO_ACCOUNT_SID?: string;
-
-  @IsOptional()
-  @IsString()
-  TWILIO_AUTH_TOKEN?: string;
-
-  @IsOptional()
-  @IsString()
-  TWILIO_WHATSAPP_FROM?: string;
 
   @Transform(toBoolean)
   @IsBoolean()
