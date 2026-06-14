@@ -140,8 +140,10 @@ export default function ReviewerProfileSettingsPage() {
             <Input
               type="tel"
               value={phone}
-              onChange={(e) => setPhone(e.target.value)}
-              className="h-11"
+              placeholder={t('phonePlaceholder')}
+              className="h-11 bg-slate-50"
+              disabled
+              readOnly
             />
           </Field>
           <div className="grid gap-4 sm:grid-cols-2">

@@ -23,6 +23,8 @@ export function toCompanyPublic(company: CompanyWithPublicRelations): CompanyPub
     createdAt: company.createdAt.toISOString(),
     categoryId: company.categoryId ?? undefined,
     categoryName: company.category?.name ?? undefined,
+    latitude: company.latitude ?? null,
+    longitude: company.longitude ?? null,
   };
 }
 

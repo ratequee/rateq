@@ -25,6 +25,46 @@ export function isFirebasePhoneAlreadyLinkedError(error: unknown): boolean {
   return error instanceof FirebaseError && PHONE_ALREADY_LINKED_ERROR_CODES.has(error.code);
 }
 
+export function isFirebasePhoneRegionNotEnabledError(error: unknown): boolean {
+  if (!(error instanceof FirebaseError)) return false;
+
+  const message = error.message.toLowerCase();
+  return (
+    message.includes('sms unable to be sent until this region enabled') ||
+    message.includes('region enabled by the app developer')
+  );
+}
+
+export function isFirebaseInvalidAppCredentialError(error: unknown): boolean {
+  if (!(error instanceof FirebaseError)) return false;
+
+  return (
+    error.code === 'auth/invalid-app-credential' ||
+    error.message.toLowerCase().includes('invalid_app_credential')
+  );
+}
+
+export function isFirebaseStorageUnauthorizedError(error: unknown): boolean {
+  if (!(error instanceof FirebaseError)) return false;
+
+  return error.code === 'storage/unauthorized' || error.code === 'storage/unauthenticated';
+}
+
+export function getFirebaseStorageErrorMessage(error: unknown, fallback: string): string {
+  if (error instanceof FirebaseError) {
+    if (isFirebaseStorageUnauthorizedError(error)) {
+      return fallback;
+    }
+    return error.message || fallback;
+  }
+
+  if (error instanceof Error && error.message.toLowerCase().includes('permission denied')) {
+    return fallback;
+  }
+
+  return fallback;
+}
+
 export function getFirebaseAuthErrorMessage(error: unknown, fallback: string): string {
   if (isEmailVerificationPendingError(error) || isEmailNotVerifiedError(error)) {
     return fallback;

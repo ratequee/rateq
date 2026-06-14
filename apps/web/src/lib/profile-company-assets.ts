@@ -9,6 +9,7 @@ export type CompanyAssetKey =
   | 'cover';
 
 export interface CompanyExistingAssets {
+  registrationDocUrl: string | null;
   establishmentCardUrl: string | null;
   tradeLicenseUrl: string | null;
   logoUrl: string | null;
@@ -41,31 +42,39 @@ export async function resolveCompanyAssetUrl(
 }
 
 export async function resolveCompanyDocumentUrls(input: {
+  registrationDocFile: File | null;
   establishmentCardFile: File | null;
   tradeLicenseFile: File | null;
   logoFile: File | null;
   coverFile: File | null;
   existing: CompanyExistingAssets;
 }): Promise<{
+  registrationDocUrl: string | null;
   establishmentCardUrl: string | null;
   tradeLicenseUrl: string | null;
   logoUrl: string | null;
   coverUrl: string | null;
 }> {
-  const [establishmentCardUrl, tradeLicenseUrl, logoUrl, coverUrl] = await Promise.all([
-    resolveCompanyAssetUrl(
-      input.establishmentCardFile,
-      input.existing.establishmentCardUrl,
-      'company/establishment-card',
-    ),
-    resolveCompanyAssetUrl(
-      input.tradeLicenseFile,
-      input.existing.tradeLicenseUrl,
-      'company/trade-license',
-    ),
-    resolveCompanyAssetUrl(input.logoFile, input.existing.logoUrl, 'company/logo'),
-    resolveCompanyAssetUrl(input.coverFile, input.existing.coverUrl, 'company/cover'),
-  ]);
+  const [registrationDocUrl, establishmentCardUrl, tradeLicenseUrl, logoUrl, coverUrl] =
+    await Promise.all([
+      resolveCompanyAssetUrl(
+        input.registrationDocFile,
+        input.existing.registrationDocUrl,
+        'company/registration',
+      ),
+      resolveCompanyAssetUrl(
+        input.establishmentCardFile,
+        input.existing.establishmentCardUrl,
+        'company/establishment-card',
+      ),
+      resolveCompanyAssetUrl(
+        input.tradeLicenseFile,
+        input.existing.tradeLicenseUrl,
+        'company/trade-license',
+      ),
+      resolveCompanyAssetUrl(input.logoFile, input.existing.logoUrl, 'company/logo'),
+      resolveCompanyAssetUrl(input.coverFile, input.existing.coverUrl, 'company/cover'),
+    ]);
 
-  return { establishmentCardUrl, tradeLicenseUrl, logoUrl, coverUrl };
+  return { registrationDocUrl, establishmentCardUrl, tradeLicenseUrl, logoUrl, coverUrl };
 }

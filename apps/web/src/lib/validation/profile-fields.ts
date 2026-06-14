@@ -1,3 +1,5 @@
+import type { CompanyMapLocation } from '@/lib/company-location';
+import { isValidMapLocation } from '@/lib/company-location';
 import { validateDisplayName } from '@/lib/validation/auth-fields';
 
 const PHONE_PATTERN = /^[+]?[\d\s()-]{6,30}$/;
@@ -21,6 +23,7 @@ export type ReviewerProfileErrors = {
 export type CompanyProfileErrors = {
   companyName?: string;
   companyAddress?: string;
+  companyLocation?: string;
   companyPhone?: string;
   companyPhoneVerification?: string;
   categoryId?: string;
@@ -28,6 +31,7 @@ export type CompanyProfileErrors = {
   validationDate?: string;
   city?: string;
   country?: string;
+  registrationDocFile?: string;
   establishmentCardFile?: string;
   tradeLicenseFile?: string;
   logoFile?: string;
@@ -90,16 +94,19 @@ export function validateCompanyProfileFields(
   fields: {
     companyName: string;
     companyAddress: string;
+    companyLocation: CompanyMapLocation | null;
     companyPhone: string;
     categoryId: string;
     crNumber: string;
     validationDate: string;
     city: string;
     country: string;
+    registrationDocFile: File | null;
     establishmentCardFile: File | null;
     tradeLicenseFile: File | null;
     logoFile: File | null;
     coverFile: File | null;
+    hasExistingRegistrationDoc: boolean;
     hasExistingEstablishmentCard: boolean;
     hasExistingTradeLicense: boolean;
     hasExistingLogo: boolean;
@@ -113,6 +120,7 @@ export function validateCompanyProfileFields(
     crNumber: { invalid: string };
     phone: { required: string; invalid: string };
     phoneVerification: { required: string };
+    locationRequired: string;
   },
 ): CompanyProfileErrors {
   const errors: CompanyProfileErrors = {};
@@ -146,8 +154,19 @@ export function validateCompanyProfileFields(
   }
 
   if (!fields.validationDate) errors.validationDate = messages.required;
-  if (!fields.city.trim()) errors.city = messages.required;
-  if (!fields.country.trim()) errors.country = messages.required;
+  if (
+    !isValidMapLocation(fields.companyLocation) ||
+    !fields.city.trim() ||
+    !fields.country.trim()
+  ) {
+    errors.companyLocation = messages.locationRequired;
+  }
+
+  if (!fields.registrationDocFile && !fields.hasExistingRegistrationDoc) {
+    errors.registrationDocFile = messages.required;
+  } else if (fields.registrationDocFile && !isProfileFileWithinLimit(fields.registrationDocFile)) {
+    errors.registrationDocFile = messages.fileTooLarge;
+  }
 
   if (!fields.establishmentCardFile && !fields.hasExistingEstablishmentCard) {
     errors.establishmentCardFile = messages.required;

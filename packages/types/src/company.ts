@@ -16,6 +16,8 @@ export interface CompanyPublic {
   createdAt: string;
   categoryId?: string | null;
   categoryName?: string | null;
+  latitude?: number | null;
+  longitude?: number | null;
 }
 
 export interface CompanyDetail extends CompanyPublic {
@@ -39,11 +41,13 @@ export interface CreateCompanyInput {
   logo: string;
   coverUrl: string;
   address: string;
+  latitude: number;
+  longitude: number;
   phone: string;
   categoryId: string;
   crNumber: string;
   validationDate: string;
-  registrationDocUrl?: string;
+  registrationDocUrl: string;
   establishmentCardUrl: string;
   tradeLicenseUrl: string;
   country: string;
@@ -56,6 +60,8 @@ export interface UpdateCompanyInput {
   logo?: string | null;
   coverUrl?: string;
   address?: string;
+  latitude?: number;
+  longitude?: number;
   phone?: string;
   categoryId?: string;
   crNumber?: string;

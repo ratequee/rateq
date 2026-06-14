@@ -13,6 +13,7 @@ import {
 import { onboardingApi } from '@/lib/onboarding-api';
 import { fetchCategoriesClient } from '@/lib/categories-api';
 import { ApiError } from '@/lib/api';
+import { getFirebaseStorageErrorMessage } from '@/lib/firebase/errors';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useRouter } from '@/i18n/routing';
@@ -34,6 +35,8 @@ import { cn } from '@/lib/utils';
 import { isRemoteImage, isRemotePdf } from '@/lib/profile-company-assets';
 import { getSuggestedDisplayName } from '@/lib/user-display-name';
 import { PhoneVerificationField } from '@/components/profile/phone-verification-field';
+import { CompanyAddressMapField } from '@/components/profile/company-address-map-field';
+import type { CompanyMapLocation } from '@/lib/company-location';
 import { Building2, ExternalLink, FileText, Upload, UserRound, X } from 'lucide-react';
 import type { CategoryPublic } from '@rateq/types';
 import { useTranslations } from 'next-intl';
@@ -77,15 +80,18 @@ export default function CompleteProfilePage() {
   const [categoryId, setCategoryId] = useState('');
   const [categories, setCategories] = useState<CategoryPublic[]>([]);
   const [companyAddress, setCompanyAddress] = useState('');
+  const [companyLocation, setCompanyLocation] = useState<CompanyMapLocation | null>(null);
   const [companyCity, setCompanyCity] = useState('');
   const [companyCountry, setCompanyCountry] = useState('Qatar');
   const [crNumber, setCrNumber] = useState('');
   const [validationDate, setValidationDate] = useState('');
   const [establishmentCardFile, setEstablishmentCardFile] = useState<File | null>(null);
+  const [registrationDocFile, setRegistrationDocFile] = useState<File | null>(null);
   const [tradeLicenseFile, setTradeLicenseFile] = useState<File | null>(null);
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const [coverFile, setCoverFile] = useState<File | null>(null);
   const [clearedExisting, setClearedExisting] = useState({
+    registrationDoc: false,
     establishmentCard: false,
     tradeLicense: false,
     logo: false,
@@ -129,11 +135,18 @@ export default function CompleteProfilePage() {
       setCompanyPhone(onboarding.company.phone ?? '');
       setCategoryId(onboarding.company.categoryId ?? '');
       setCompanyAddress(onboarding.company.address ?? '');
+      if (onboarding.company.latitude != null && onboarding.company.longitude != null) {
+        setCompanyLocation({
+          latitude: onboarding.company.latitude,
+          longitude: onboarding.company.longitude,
+        });
+      }
       setCrNumber(onboarding.company.crNumber ?? '');
       setValidationDate(onboarding.company.validationDate?.slice(0, 10) ?? '');
       setCompanyCountry(onboarding.company.country);
       setCompanyCity(onboarding.company.city);
       setClearedExisting({
+        registrationDoc: false,
         establishmentCard: false,
         tradeLicense: false,
         logo: false,
@@ -171,6 +184,10 @@ export default function CompleteProfilePage() {
     () => ({
       avatarUrl:
         onboarding?.reviewerProfile?.avatarUrl ?? existingProfile?.reviewer?.avatarUrl ?? null,
+      registrationDocUrl:
+        onboarding?.company?.registrationDocUrl ??
+        existingProfile?.company?.registrationDocUrl ??
+        null,
       establishmentCardUrl:
         onboarding?.company?.establishmentCardUrl ??
         existingProfile?.company?.establishmentCardUrl ??
@@ -185,6 +202,9 @@ export default function CompleteProfilePage() {
 
   const companyExistingAssets = useMemo<CompanyExistingAssets>(
     () => ({
+      registrationDocUrl: clearedExisting.registrationDoc
+        ? null
+        : existingAssets.registrationDocUrl,
       establishmentCardUrl: clearedExisting.establishmentCard
         ? null
         : existingAssets.establishmentCardUrl,
@@ -245,16 +265,19 @@ export default function CompleteProfilePage() {
       {
         companyName,
         companyAddress,
+        companyLocation,
         companyPhone,
         categoryId,
         crNumber,
         validationDate,
         city: companyCity,
         country: companyCountry,
+        registrationDocFile,
         establishmentCardFile,
         tradeLicenseFile,
         logoFile,
         coverFile,
+        hasExistingRegistrationDoc: Boolean(companyExistingAssets.registrationDocUrl),
         hasExistingEstablishmentCard: Boolean(companyExistingAssets.establishmentCardUrl),
         hasExistingTradeLicense: Boolean(companyExistingAssets.tradeLicenseUrl),
         hasExistingLogo: Boolean(companyExistingAssets.logoUrl),
@@ -268,6 +291,7 @@ export default function CompleteProfilePage() {
         crNumber: { invalid: t('errors.crNumberInvalid') },
         phone: { required: t('errors.required'), invalid: t('errors.invalidPhone') },
         phoneVerification: { required: t('errors.phoneNotVerified') },
+        locationRequired: t('errors.locationRequired'),
       },
     );
 
@@ -336,7 +360,12 @@ export default function CompleteProfilePage() {
           router.push('/login');
           return;
         }
-        const message = err instanceof ApiError ? err.message : t('saveError');
+        const message =
+          err instanceof ApiError
+            ? err.message
+            : err instanceof Error && err.message === t('errors.required')
+              ? err.message
+              : getFirebaseStorageErrorMessage(err, t('errors.uploadPermissionDenied'));
         toast.error(message);
       } finally {
         setSubmitting(false);
@@ -353,8 +382,9 @@ export default function CompleteProfilePage() {
 
     setSubmitting(true);
     try {
-      const { establishmentCardUrl, tradeLicenseUrl, logoUrl, coverUrl } =
+      const { registrationDocUrl, establishmentCardUrl, tradeLicenseUrl, logoUrl, coverUrl } =
         await resolveCompanyDocumentUrls({
+          registrationDocFile,
           establishmentCardFile,
           tradeLicenseFile,
           logoFile,
@@ -362,17 +392,27 @@ export default function CompleteProfilePage() {
           existing: companyExistingAssets,
         });
 
-      if (!logoUrl || !coverUrl || !establishmentCardUrl || !tradeLicenseUrl) {
+      if (
+        !registrationDocUrl ||
+        !logoUrl ||
+        !coverUrl ||
+        !establishmentCardUrl ||
+        !tradeLicenseUrl ||
+        !companyLocation
+      ) {
         throw new Error(t('errors.required'));
       }
 
       const payload = {
         name: companyName.trim(),
         address: companyAddress.trim(),
+        latitude: companyLocation.latitude,
+        longitude: companyLocation.longitude,
         phone: companyPhone.trim(),
         categoryId,
         crNumber: crNumber.trim(),
         validationDate,
+        registrationDocUrl,
         establishmentCardUrl,
         tradeLicenseUrl,
         logo: logoUrl,
@@ -396,7 +436,12 @@ export default function CompleteProfilePage() {
         router.push('/login');
         return;
       }
-      const message = err instanceof ApiError ? err.message : t('saveError');
+      const message =
+        err instanceof ApiError
+          ? err.message
+          : err instanceof Error && err.message === t('errors.required')
+            ? err.message
+            : getFirebaseStorageErrorMessage(err, t('errors.uploadPermissionDenied'));
       toast.error(message);
     } finally {
       setSubmitting(false);
@@ -552,18 +597,19 @@ export default function CompleteProfilePage() {
                       className="h-11"
                     />
                   </Field>
-                  <Field
-                    label={t('companyAddress')}
-                    error={errors.companyAddress}
+                  <CompanyAddressMapField
+                    address={companyAddress}
+                    city={companyCity}
+                    country={companyCountry}
+                    location={companyLocation}
+                    onAddressChange={setCompanyAddress}
+                    onCityChange={setCompanyCity}
+                    onCountryChange={setCompanyCountry}
+                    onLocationChange={setCompanyLocation}
+                    addressError={errors.companyAddress}
+                    locationError={errors.companyLocation}
                     fieldKey="companyAddress"
-                    required
-                  >
-                    <Input
-                      value={companyAddress}
-                      onChange={(e) => setCompanyAddress(e.target.value)}
-                      className="h-11"
-                    />
-                  </Field>
+                  />
                   <PhoneVerificationField
                     phone={companyPhone}
                     onPhoneChange={setCompanyPhone}
@@ -593,22 +639,6 @@ export default function CompleteProfilePage() {
                       ))}
                     </select>
                   </Field>
-                  <div className="grid gap-4 sm:grid-cols-2">
-                    <Field label={t('city')} error={errors.city} fieldKey="city" required>
-                      <Input
-                        value={companyCity}
-                        onChange={(e) => setCompanyCity(e.target.value)}
-                        className="h-11"
-                      />
-                    </Field>
-                    <Field label={t('country')} error={errors.country} fieldKey="country" required>
-                      <Input
-                        value={companyCountry}
-                        onChange={(e) => setCompanyCountry(e.target.value)}
-                        className="h-11"
-                      />
-                    </Field>
-                  </div>
                   <Field label={t('crNumber')} error={errors.crNumber} fieldKey="crNumber" required>
                     <Input
                       value={crNumber}
@@ -629,6 +659,21 @@ export default function CompleteProfilePage() {
                       className="h-11"
                     />
                   </Field>
+                  <div data-field="registrationDocFile">
+                    <FileField
+                      label={t('registrationFile')}
+                      error={errors.registrationDocFile}
+                      file={registrationDocFile}
+                      onChange={setRegistrationDocFile}
+                      existingUrl={companyExistingAssets.registrationDocUrl}
+                      onClearExisting={() =>
+                        setClearedExisting((s) => ({ ...s, registrationDoc: true }))
+                      }
+                      accept=".pdf,.jpg,.jpeg,.png"
+                      previewVariant="document"
+                      required
+                    />
+                  </div>
                   <div data-field="establishmentCardFile">
                     <FileField
                       label={t('establishmentCardFile')}

@@ -1,11 +1,14 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import {
   IsDateString,
+  IsNumber,
   IsOptional,
   IsString,
   IsUrl,
   Matches,
+  Max,
   MaxLength,
+  Min,
   MinLength,
 } from 'class-validator';
 
@@ -40,6 +43,18 @@ export class CreateCompanyDto {
   @MaxLength(500)
   address!: string;
 
+  @ApiProperty({ example: 25.2854 })
+  @IsNumber()
+  @Min(-90)
+  @Max(90)
+  latitude!: number;
+
+  @ApiProperty({ example: 51.531 })
+  @IsNumber()
+  @Min(-180)
+  @Max(180)
+  longitude!: number;
+
   @ApiProperty({ example: '+974 5555 1234' })
   @IsString()
   @Matches(PHONE_PATTERN, { message: 'Phone number format is invalid' })
@@ -61,11 +76,10 @@ export class CreateCompanyDto {
   @IsDateString()
   validationDate!: string;
 
-  @ApiPropertyOptional({ example: 'https://cdn.example.com/registration.pdf' })
-  @IsOptional()
+  @ApiProperty({ example: 'https://cdn.example.com/registration.pdf' })
   @IsUrl()
   @MaxLength(2048)
-  registrationDocUrl?: string;
+  registrationDocUrl!: string;
 
   @ApiProperty({ example: 'https://cdn.example.com/establishment-card.pdf' })
   @IsUrl()

@@ -2,6 +2,18 @@ import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Resend } from 'resend';
 import type { AppConfig } from '../../../common/config/env.validation';
+import {
+  buildCompanyApprovedEmailHtml,
+  buildCompanyApprovedEmailText,
+  buildCompanyRejectedEmailHtml,
+  buildCompanyRejectedEmailText,
+  buildCompanyRevisionEmailHtml,
+  buildCompanyRevisionEmailText,
+  buildPasswordResetEmailHtml,
+  buildPasswordResetEmailText,
+  buildVerificationEmailHtml,
+  buildVerificationEmailText,
+} from '../email/email-templates';
 
 @Injectable()
 export class EmailService {
@@ -20,64 +32,56 @@ export class EmailService {
   async sendVerificationEmail(email: string, token: string): Promise<void> {
     const appUrl = this.configService.get('APP_URL', { infer: true });
     const verifyUrl = `${appUrl}/verify-email?token=${encodeURIComponent(token)}`;
+    const expiresHours = this.configService.get('AUTH_VERIFICATION_EXPIRES_HOURS', { infer: true });
+    const content = { appUrl, verifyUrl, expiresHours };
 
     await this.send({
       to: email,
       subject: 'Verify your RateQ account',
-      text: `Verify your email by visiting: ${verifyUrl}\n\nThis link expires in ${this.configService.get('AUTH_VERIFICATION_EXPIRES_HOURS', { infer: true })} hours.`,
-      html: `
-        <p>Welcome to RateQ.</p>
-        <p><a href="${verifyUrl}">Verify your email address</a></p>
-        <p>This link expires in ${this.configService.get('AUTH_VERIFICATION_EXPIRES_HOURS', { infer: true })} hours.</p>
-      `,
+      text: buildVerificationEmailText(content),
+      html: buildVerificationEmailHtml(content),
     });
   }
 
   async sendPasswordResetEmail(email: string, token: string): Promise<void> {
     const appUrl = this.configService.get('APP_URL', { infer: true });
     const resetUrl = `${appUrl}/reset-password?token=${encodeURIComponent(token)}`;
+    const expiresHours = this.configService.get('AUTH_PASSWORD_RESET_EXPIRES_HOURS', {
+      infer: true,
+    });
+    const content = { appUrl, resetUrl, expiresHours };
 
     await this.send({
       to: email,
       subject: 'Reset your RateQ password',
-      text: `Reset your password: ${resetUrl}\n\nThis link expires in ${this.configService.get('AUTH_PASSWORD_RESET_EXPIRES_HOURS', { infer: true })} hour(s).`,
-      html: `
-        <p>You requested a password reset.</p>
-        <p><a href="${resetUrl}">Reset your password</a></p>
-        <p>This link expires in ${this.configService.get('AUTH_PASSWORD_RESET_EXPIRES_HOURS', { infer: true })} hour(s).</p>
-        <p>If you did not request this, ignore this email.</p>
-      `,
+      text: buildPasswordResetEmailText(content),
+      html: buildPasswordResetEmailHtml(content),
     });
   }
 
   async sendCompanyVerificationApprovedEmail(email: string, companyName: string): Promise<void> {
     const appUrl = this.configService.get('APP_URL', { infer: true });
     const dashboardUrl = `${appUrl}/dashboard/company`;
+    const content = { appUrl, dashboardUrl, companyName };
 
     await this.send({
       to: email,
       subject: 'Your RateQ company profile has been approved',
-      text: `Good news! Your company profile for "${companyName}" has been approved.\n\nSign in to access your dashboard: ${dashboardUrl}`,
-      html: `
-        <p>Good news! Your company profile for <strong>${companyName}</strong> has been approved.</p>
-        <p><a href="${dashboardUrl}">Go to your company dashboard</a></p>
-      `,
+      text: buildCompanyApprovedEmailText(content),
+      html: buildCompanyApprovedEmailHtml(content),
     });
   }
 
   async sendCompanyVerificationRejectedEmail(email: string, companyName: string): Promise<void> {
     const appUrl = this.configService.get('APP_URL', { infer: true });
     const profileUrl = `${appUrl}/complete-profile`;
+    const content = { appUrl, profileUrl, companyName };
 
     await this.send({
       to: email,
       subject: 'Your RateQ company profile was not approved',
-      text: `Your company profile submission for "${companyName}" was not approved and has been removed.\n\nYou may register a new company profile after signing in: ${profileUrl}`,
-      html: `
-        <p>Your company profile submission for <strong>${companyName}</strong> was not approved and has been removed.</p>
-        <p>You may register a new company profile after signing in.</p>
-        <p><a href="${profileUrl}">Complete profile</a></p>
-      `,
+      text: buildCompanyRejectedEmailText(content),
+      html: buildCompanyRejectedEmailHtml(content),
     });
   }
 
@@ -88,18 +92,13 @@ export class EmailService {
   ): Promise<void> {
     const appUrl = this.configService.get('APP_URL', { infer: true });
     const profileUrl = `${appUrl}/complete-profile`;
-    const escapedNotes = revisionNotes.replace(/\n/g, '<br/>');
+    const content = { appUrl, profileUrl, companyName, revisionNotes };
 
     await this.send({
       to: email,
       subject: 'Updates required for your RateQ company profile',
-      text: `Your company profile for "${companyName}" requires updates before it can be approved.\n\nRequested changes:\n${revisionNotes}\n\nUpdate your profile: ${profileUrl}`,
-      html: `
-        <p>Your company profile for <strong>${companyName}</strong> requires updates before it can be approved.</p>
-        <p><strong>Requested changes:</strong></p>
-        <p>${escapedNotes}</p>
-        <p><a href="${profileUrl}">Update your profile</a></p>
-      `,
+      text: buildCompanyRevisionEmailText(content),
+      html: buildCompanyRevisionEmailHtml(content),
     });
   }
 

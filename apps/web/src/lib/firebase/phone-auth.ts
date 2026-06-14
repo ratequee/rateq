@@ -21,14 +21,34 @@ export function normalizePhoneNumber(phone: string): string {
   return `+${digits.replace(/^\+/, '')}`;
 }
 
+function clearRecaptchaVerifier(): void {
+  if (!recaptchaVerifier) return;
+
+  const verifier = recaptchaVerifier;
+  recaptchaVerifier = null;
+
+  // reCAPTCHA may still touch the container after confirm(); defer teardown to avoid
+  // "Cannot read properties of null (reading 'style')" from recaptcha__en.js.
+  const teardown = () => {
+    try {
+      verifier.clear();
+    } catch {
+      // Ignore teardown errors after successful verification.
+    }
+  };
+
+  if (typeof window !== 'undefined') {
+    window.setTimeout(teardown, 100);
+  } else {
+    teardown();
+  }
+}
+
 function clearPhoneVerificationState(): void {
   linkConfirmation = null;
   updateVerificationId = null;
   activeMode = null;
-  if (recaptchaVerifier) {
-    recaptchaVerifier.clear();
-    recaptchaVerifier = null;
-  }
+  clearRecaptchaVerifier();
 }
 
 export async function startFirebasePhoneVerification(
@@ -90,4 +110,17 @@ export async function confirmFirebasePhoneVerification(code: string): Promise<vo
 
 export function resetFirebasePhoneVerification(): void {
   clearPhoneVerificationState();
+}
+
+export function getLinkedFirebasePhoneNumber(): string | null {
+  try {
+    const auth = getFirebaseAuth();
+    return auth.currentUser?.phoneNumber ?? null;
+  } catch {
+    return null;
+  }
+}
+
+export function isSamePhoneNumber(left: string, right: string): boolean {
+  return normalizePhoneNumber(left) === normalizePhoneNumber(right);
 }

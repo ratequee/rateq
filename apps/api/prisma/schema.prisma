@@ -178,6 +178,8 @@ model Company {
   logo               String?
   coverUrl           String?                   @map("cover_url")
   address            String?                   @db.Text
+  latitude           Float?                    @map("latitude")
+  longitude          Float?                    @map("longitude")
   crNumber           String?                   @map("cr_number")
   validationDate     DateTime?                 @map("validation_date")
   registrationDocUrl   String?                   @map("registration_doc_url")

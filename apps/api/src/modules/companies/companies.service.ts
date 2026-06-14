@@ -118,6 +118,8 @@ export class CompaniesService {
       logo: input.logo,
       coverUrl: input.coverUrl,
       address: input.address.trim(),
+      latitude: input.latitude,
+      longitude: input.longitude,
       crNumber: input.crNumber.trim(),
       validationDate: new Date(input.validationDate),
       registrationDocUrl: input.registrationDocUrl ?? null,
@@ -371,6 +373,8 @@ export class CompaniesService {
       ...(input.logo !== undefined && { logo: input.logo }),
       ...(input.coverUrl !== undefined && { coverUrl: input.coverUrl }),
       ...(input.address !== undefined && { address: input.address.trim() }),
+      ...(input.latitude !== undefined && { latitude: input.latitude }),
+      ...(input.longitude !== undefined && { longitude: input.longitude }),
       ...(input.phone !== undefined && { phone: input.phone.trim() }),
       ...(input.categoryId !== undefined && {
         category: { connect: { id: input.categoryId } },

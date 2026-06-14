@@ -5,14 +5,22 @@ import { Input } from '@/components/ui/input';
 import { phoneVerificationApi } from '@/lib/phone-verification-api';
 import {
   confirmFirebasePhoneVerification,
+  getLinkedFirebasePhoneNumber,
+  isSamePhoneNumber,
   normalizePhoneNumber,
   resetFirebasePhoneVerification,
   startFirebasePhoneVerification,
 } from '@/lib/firebase/phone-auth';
+import { getFirebaseAuth } from '@/lib/firebase/client';
 import { ApiError } from '@/lib/api';
-import { isFirebasePhoneAlreadyLinkedError } from '@/lib/firebase/errors';
+import {
+  isFirebaseInvalidAppCredentialError,
+  isFirebasePhoneAlreadyLinkedError,
+  isFirebasePhoneRegionNotEnabledError,
+} from '@/lib/firebase/errors';
 import { cn } from '@/lib/utils';
-import { CheckCircle2 } from 'lucide-react';
+import { onAuthStateChanged } from 'firebase/auth';
+import { CheckCircle2, Info } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { useEffect, useId, useState } from 'react';
 import { toast } from 'sonner';
@@ -27,6 +35,12 @@ function getPhoneVerificationErrorMessage(
 ): string {
   if (isFirebasePhoneAlreadyLinkedError(err)) {
     return t('phoneAlreadyLinked');
+  }
+  if (isFirebasePhoneRegionNotEnabledError(err)) {
+    return t('phoneRegionNotEnabled');
+  }
+  if (isFirebaseInvalidAppCredentialError(err)) {
+    return t('phoneInvalidAppCredential');
   }
   if (err instanceof ApiError) {
     return err.message;
@@ -69,6 +83,8 @@ export function PhoneVerificationField({
   const [verifying, setVerifying] = useState(false);
   const [otpSent, setOtpSent] = useState(false);
   const [resendCooldown, setResendCooldown] = useState(0);
+  const [linkedFirebasePhone, setLinkedFirebasePhone] = useState<string | null>(null);
+  const [editingNumber, setEditingNumber] = useState(true);
 
   useEffect(() => {
     if (resendCooldown <= 0) return;
@@ -84,12 +100,41 @@ export function PhoneVerificationField({
     };
   }, []);
 
+  useEffect(() => {
+    const auth = getFirebaseAuth();
+    const syncLinkedPhone = () => setLinkedFirebasePhone(getLinkedFirebasePhoneNumber());
+    syncLinkedPhone();
+    const unsubscribe = onAuthStateChanged(auth, syncLinkedPhone);
+    return unsubscribe;
+  }, []);
+
+  useEffect(() => {
+    if (verified) {
+      setEditingNumber(false);
+    }
+  }, [verified]);
+
   const handlePhoneChange = (value: string) => {
     onPhoneChange(value);
     onVerifiedChange(false);
     setOtpSent(false);
     setOtpCode('');
     setResendCooldown(0);
+    setEditingNumber(true);
+    resetFirebasePhoneVerification();
+  };
+
+  const handleUseLinkedNumber = () => {
+    if (!linkedFirebasePhone) return;
+    handlePhoneChange(linkedFirebasePhone);
+  };
+
+  const handleChangeNumber = () => {
+    onVerifiedChange(false);
+    setOtpSent(false);
+    setOtpCode('');
+    setResendCooldown(0);
+    setEditingNumber(true);
     resetFirebasePhoneVerification();
   };
 
@@ -110,8 +155,13 @@ export function PhoneVerificationField({
       if (!smsRequired) {
         await phoneVerificationApi.syncPhone(normalizePhoneNumber(trimmed), context);
         onVerifiedChange(true);
+        setEditingNumber(false);
         onVerified?.();
-        toast.success(t('phoneVerifiedSuccess'));
+        toast.success(
+          linkedFirebasePhone && isSamePhoneNumber(trimmed, linkedFirebasePhone)
+            ? t('phoneVerifiedUsingLinked')
+            : t('phoneVerifiedSuccess'),
+        );
         return;
       }
       setOtpSent(true);
@@ -135,10 +185,10 @@ export function PhoneVerificationField({
       await confirmFirebasePhoneVerification(otpCode.trim());
       await phoneVerificationApi.syncPhone(normalizePhoneNumber(phone), context);
       onVerifiedChange(true);
+      setEditingNumber(false);
       setOtpSent(false);
       setOtpCode('');
       setResendCooldown(0);
-      resetFirebasePhoneVerification();
       onVerified?.();
       toast.success(t('phoneVerifiedSuccess'));
     } catch (err) {
@@ -155,16 +205,45 @@ export function PhoneVerificationField({
     return t('phoneSendOtp');
   };
 
-  const canSendOtp = !disabled && !sending && resendCooldown === 0;
+  const canSendOtp = !disabled && !sending && resendCooldown === 0 && editingNumber;
+  const showLinkedPhoneHint =
+    Boolean(linkedFirebasePhone) &&
+    editingNumber &&
+    !verified &&
+    (!phone.trim() || !isSamePhoneNumber(phone, linkedFirebasePhone!));
+  const inputDisabled = disabled || (verified && !editingNumber);
 
   return (
     <div data-field={fieldKey} className="space-y-3">
-      <div id={recaptchaContainerId} className="hidden" aria-hidden />
+      <div
+        id={recaptchaContainerId}
+        className="pointer-events-none fixed left-0 top-0 h-px w-px overflow-hidden opacity-0"
+        aria-hidden
+      />
       <div>
         <label htmlFor={`${fieldKey}-phone`} className="mb-1.5 block text-sm font-medium text-ink">
           {label}
           <span className="text-red-600"> *</span>
         </label>
+
+        {showLinkedPhoneHint && linkedFirebasePhone ? (
+          <div className="mb-3 rounded-xl border border-sky-200 bg-sky-50 px-4 py-3 text-sm text-sky-950">
+            <div className="flex gap-2">
+              <Info className="mt-0.5 h-4 w-4 shrink-0" aria-hidden />
+              <div className="space-y-2">
+                <p>{t('phoneLinkedToAccountHint', { phone: linkedFirebasePhone })}</p>
+                <button
+                  type="button"
+                  onClick={handleUseLinkedNumber}
+                  className="font-medium text-brand-600 hover:text-brand-700"
+                >
+                  {t('phoneUseLinkedNumber')}
+                </button>
+              </div>
+            </div>
+          </div>
+        ) : null}
+
         <div className="flex flex-col gap-2 sm:flex-row">
           <Input
             id={`${fieldKey}-phone`}
@@ -172,11 +251,14 @@ export function PhoneVerificationField({
             value={phone}
             onChange={(e) => handlePhoneChange(e.target.value)}
             placeholder={t('phonePlaceholder')}
-            className={cn('h-11 flex-1', verified && 'border-emerald-200 bg-emerald-50/50')}
-            disabled={disabled || verified}
+            className={cn(
+              'h-11 flex-1',
+              verified && !editingNumber && 'border-emerald-200 bg-emerald-50/50',
+            )}
+            disabled={inputDisabled}
             aria-invalid={Boolean(error)}
           />
-          {verified ? (
+          {verified && !editingNumber ? (
             <div className="inline-flex h-11 shrink-0 items-center justify-center gap-1.5 rounded-md border border-emerald-200 bg-emerald-50 px-4 text-sm font-semibold text-emerald-700">
               <CheckCircle2 className="h-4 w-4" aria-hidden />
               {t('phoneVerifiedLabel')}
@@ -193,10 +275,21 @@ export function PhoneVerificationField({
             </Button>
           )}
         </div>
+
+        {verified && !editingNumber ? (
+          <button
+            type="button"
+            onClick={handleChangeNumber}
+            className="mt-2 text-sm font-medium text-brand-600 hover:text-brand-700"
+          >
+            {t('phoneChangeNumber')}
+          </button>
+        ) : null}
+
         {error && <p className="mt-1 text-sm text-red-600">{error}</p>}
       </div>
 
-      {otpSent && !verified && (
+      {otpSent && editingNumber && !verified && (
         <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
           <p className="mb-3 text-sm text-ink-muted">{t('phoneOtpHint')}</p>
           <div className="flex flex-col gap-2 sm:flex-row">

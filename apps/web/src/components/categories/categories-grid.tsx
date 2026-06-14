@@ -25,7 +25,8 @@ export function CategoriesGrid({
 
   const filtered = categories.filter((category) => {
     if (activeCategorySlug && category.slug !== activeCategorySlug) return false;
-    return matchesQuery(category.name, initialQuery);
+    if (matchesQuery(category.name, initialQuery)) return true;
+    return (category.services ?? []).some((service) => matchesQuery(service.name, initialQuery));
   });
 
   return (
@@ -43,7 +44,7 @@ export function CategoriesGrid({
         {filtered.length === 0 ? (
           <p className="py-16 text-center text-ink-muted">{t('noResults')}</p>
         ) : (
-          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 sm:gap-5 lg:grid-cols-4 lg:gap-6">
+          <div className="grid grid-cols-2 gap-x-4 gap-y-12 sm:grid-cols-3 lg:grid-cols-4 lg:gap-x-6">
             {filtered.map((category) => (
               <CategoryCard key={category.id} category={category} />
             ))}

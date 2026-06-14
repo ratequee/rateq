@@ -18,6 +18,7 @@ export function CategoryCard({ category, variant = 'default', className }: Categ
   const Icon = getCategoryIcon(category.slug);
   const href = `/categories/${category.slug}`;
   const count = category.companyCount ?? 0;
+  const services = category.services ?? [];
 
   if (variant === 'compact') {
     return (
@@ -74,21 +75,29 @@ export function CategoryCard({ category, variant = 'default', className }: Categ
     <Link
       href={href}
       className={cn(
-        'group mt-20 flex flex-col rounded-2xl border border-slate-100 bg-white p-6 shadow-sm transition-all hover:border-gold-500 hover:shadow-card sm:p-8',
+        'group relative mt-10 flex flex-col rounded-2xl border border-slate-200 bg-white px-6 pb-6 pt-14 shadow-sm transition-all hover:border-gold-400 hover:shadow-md',
         className,
       )}
     >
-      <div className="flex flex-col items-center">
-        <div className="mt-[-50px] flex h-[100px] w-[100px] items-center justify-center rounded-lg bg-gold-300 text-white transition-colors group-hover:bg-gold-500 group-hover:text-white">
-          <Icon className="h-10 w-10" aria-hidden />
-        </div>
+      <div className="absolute start-1/2 top-0 flex h-[72px] w-[72px] -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-xl bg-gold-300 text-white transition-colors group-hover:bg-gold-400 rtl:translate-x-1/2">
+        <Icon className="h-9 w-9" aria-hidden />
       </div>
-      <h3 className="mt-5 text-center text-sm font-semibold leading-snug text-ink sm:text-base">
-        {category.name}
-      </h3>
-      <p className="mt-2 text-center text-xs text-ink-muted sm:text-sm">
-        {t('companyCount', { count })}
-      </p>
+
+      <h3 className="text-center text-lg font-bold text-ink">{category.name}</h3>
+
+      {services.length > 0 ? (
+        <ul className="mt-4 divide-y divide-slate-200">
+          {services.map((service) => (
+            <li key={service.id} className="py-3 text-sm text-ink-muted">
+              {service.name}
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p className="mt-4 border-t border-slate-200 py-3 text-center text-sm text-ink-muted">
+          {t('noServices')}
+        </p>
+      )}
     </Link>
   );
 }

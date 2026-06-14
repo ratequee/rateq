@@ -1,7 +1,7 @@
 'use client';
 
 import { DashboardShell } from '@/components/dashboard/dashboard-shell';
-import { PhoneVerificationField } from '@/components/profile/phone-verification-field';
+import { CompanyAddressMapField } from '@/components/profile/company-address-map-field';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useProfile } from '@/components/providers/profile-provider';
@@ -12,6 +12,7 @@ import { ApiError } from '@/lib/api';
 import { ensureValidAccessToken } from '@/lib/auth-session';
 import { isRemoteImage, isRemotePdf } from '@/lib/profile-company-assets';
 import { hasValidationErrors, validateCompanyProfileFields } from '@/lib/validation/profile-fields';
+import type { CompanyMapLocation } from '@/lib/company-location';
 import type { CategoryPublic } from '@rateq/types';
 import { ExternalLink, FileText } from 'lucide-react';
 import { useTranslations } from 'next-intl';
@@ -29,17 +30,15 @@ export default function CompanyProfileSettingsPage() {
 
   const [companyName, setCompanyName] = useState('');
   const [companyPhone, setCompanyPhone] = useState('');
-  const [originalPhone, setOriginalPhone] = useState('');
-  const [companyPhoneVerified, setCompanyPhoneVerified] = useState(true);
   const [categoryId, setCategoryId] = useState('');
   const [companyAddress, setCompanyAddress] = useState('');
+  const [companyLocation, setCompanyLocation] = useState<CompanyMapLocation | null>(null);
   const [companyCity, setCompanyCity] = useState('');
   const [companyCountry, setCompanyCountry] = useState('');
   const [crNumber, setCrNumber] = useState('');
   const [validationDate, setValidationDate] = useState('');
 
   const company = onboarding?.company;
-  const phoneChanged = companyPhone.trim() !== originalPhone.trim();
 
   useEffect(() => {
     void fetchCategoriesClient().then(setCategories);
@@ -49,21 +48,16 @@ export default function CompanyProfileSettingsPage() {
     if (!company) return;
     setCompanyName(company.name);
     setCompanyPhone(company.phone ?? '');
-    setOriginalPhone(company.phone ?? '');
-    setCompanyPhoneVerified(true);
     setCategoryId(company.categoryId ?? '');
     setCompanyAddress(company.address ?? '');
+    if (company.latitude != null && company.longitude != null) {
+      setCompanyLocation({ latitude: company.latitude, longitude: company.longitude });
+    }
     setCompanyCity(company.city);
     setCompanyCountry(company.country);
     setCrNumber(company.crNumber ?? '');
     setValidationDate(company.validationDate?.slice(0, 10) ?? '');
   }, [company]);
-
-  useEffect(() => {
-    if (!phoneChanged) {
-      setCompanyPhoneVerified(true);
-    }
-  }, [phoneChanged]);
 
   const documents = useMemo(
     () =>
@@ -84,6 +78,7 @@ export default function CompanyProfileSettingsPage() {
       {
         companyName,
         companyAddress,
+        companyLocation,
         companyPhone,
         categoryId,
         crNumber,
@@ -98,7 +93,7 @@ export default function CompanyProfileSettingsPage() {
         hasExistingTradeLicense: true,
         hasExistingLogo: true,
         hasExistingCover: true,
-        companyPhoneVerified: !phoneChanged || companyPhoneVerified,
+        companyPhoneVerified: true,
       },
       {
         required: t('errors.required'),
@@ -107,6 +102,7 @@ export default function CompanyProfileSettingsPage() {
         crNumber: { invalid: t('errors.crNumberInvalid') },
         phone: { required: t('errors.required'), invalid: t('errors.invalidPhone') },
         phoneVerification: { required: t('errors.phoneNotVerified') },
+        locationRequired: t('errors.locationRequired'),
       },
     );
 
@@ -124,7 +120,8 @@ export default function CompanyProfileSettingsPage() {
       await onboardingApi.updateCompany({
         name: companyName.trim(),
         address: companyAddress.trim(),
-        phone: companyPhone.trim(),
+        latitude: companyLocation?.latitude,
+        longitude: companyLocation?.longitude,
         categoryId,
         crNumber: crNumber.trim(),
         validationDate,
@@ -132,8 +129,6 @@ export default function CompanyProfileSettingsPage() {
         city: companyCity.trim(),
       });
 
-      setOriginalPhone(companyPhone.trim());
-      setCompanyPhoneVerified(true);
       await refreshOnboarding();
       toast.success(t('profileUpdated'));
     } catch (err) {
@@ -184,36 +179,30 @@ export default function CompanyProfileSettingsPage() {
               className="h-11"
             />
           </Field>
-          <Field label={t('companyAddress')} error={errors.companyAddress} required>
+          <CompanyAddressMapField
+            address={companyAddress}
+            city={companyCity}
+            country={companyCountry}
+            location={companyLocation}
+            onAddressChange={setCompanyAddress}
+            onCityChange={setCompanyCity}
+            onCountryChange={setCompanyCountry}
+            onLocationChange={setCompanyLocation}
+            addressError={errors.companyAddress}
+            locationError={errors.companyLocation}
+            fieldKey="companyAddress"
+          />
+
+          <Field label={t('phone')} error={errors.companyPhone} required>
             <Input
-              value={companyAddress}
-              onChange={(e) => setCompanyAddress(e.target.value)}
-              className="h-11"
+              type="tel"
+              value={companyPhone}
+              placeholder={t('phonePlaceholder')}
+              className="h-11 bg-slate-50"
+              disabled
+              readOnly
             />
           </Field>
-
-          {phoneChanged ? (
-            <PhoneVerificationField
-              phone={companyPhone}
-              onPhoneChange={setCompanyPhone}
-              context="company"
-              verified={companyPhoneVerified}
-              onVerifiedChange={setCompanyPhoneVerified}
-              error={errors.companyPhone || errors.companyPhoneVerification}
-              label={t('phone')}
-              fieldKey="companyPhone"
-            />
-          ) : (
-            <Field label={t('phone')} error={errors.companyPhone} required>
-              <Input
-                type="tel"
-                value={companyPhone}
-                onChange={(e) => setCompanyPhone(e.target.value)}
-                placeholder={t('phonePlaceholder')}
-                className="h-11"
-              />
-            </Field>
-          )}
 
           <Field label={t('category')} error={errors.categoryId} required>
             <select
@@ -229,22 +218,6 @@ export default function CompanyProfileSettingsPage() {
               ))}
             </select>
           </Field>
-          <div className="grid gap-4 sm:grid-cols-2">
-            <Field label={t('city')} error={errors.city} required>
-              <Input
-                value={companyCity}
-                onChange={(e) => setCompanyCity(e.target.value)}
-                className="h-11"
-              />
-            </Field>
-            <Field label={t('country')} error={errors.country} required>
-              <Input
-                value={companyCountry}
-                onChange={(e) => setCompanyCountry(e.target.value)}
-                className="h-11"
-              />
-            </Field>
-          </div>
           <Field label={t('crNumber')} error={errors.crNumber} required>
             <Input
               value={crNumber}

@@ -8,6 +8,9 @@ rules_version = '2';
 //   users/{firebaseUid}/company/logo/{file}
 //   users/{firebaseUid}/company/cover/{file}
 //   users/{firebaseUid}/company/registration/{file}
+//   users/{firebaseUid}/company/establishment-card/{file}
+//   users/{firebaseUid}/company/trade-license/{file}
+//   users/{firebaseUid}/reviews/proof/{file}
 //
 // Requires Firebase Authentication (email/Google) — uploads use request.auth.uid.
 
@@ -57,6 +60,27 @@ service firebase.storage {
 
     // Company registration document (PDF or image)
     match /users/{userId}/company/registration/{fileName} {
+      allow read: if isSignedIn();
+      allow create, update: if isOwner(userId) && max10MB() && isRegistrationDoc();
+      allow delete: if isOwner(userId);
+    }
+
+    // Company establishment card (PDF or image)
+    match /users/{userId}/company/establishment-card/{fileName} {
+      allow read: if isSignedIn();
+      allow create, update: if isOwner(userId) && max10MB() && isRegistrationDoc();
+      allow delete: if isOwner(userId);
+    }
+
+    // Company trade license (PDF or image)
+    match /users/{userId}/company/trade-license/{fileName} {
+      allow read: if isSignedIn();
+      allow create, update: if isOwner(userId) && max10MB() && isRegistrationDoc();
+      allow delete: if isOwner(userId);
+    }
+
+    // Review proof attachments
+    match /users/{userId}/reviews/proof/{fileName} {
       allow read: if isSignedIn();
       allow create, update: if isOwner(userId) && max10MB() && isRegistrationDoc();
       allow delete: if isOwner(userId);
