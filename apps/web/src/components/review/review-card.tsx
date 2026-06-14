@@ -15,6 +15,7 @@ export function ReviewCard({ review }: ReviewCardProps) {
   const statusColors: Record<ReviewStatus, string> = {
     [ReviewStatus.APPROVED]: 'border-green-200 bg-green-50 text-green-700',
     [ReviewStatus.PENDING]: 'border-amber-200 bg-amber-50 text-amber-700',
+    [ReviewStatus.RESOLUTION_PENDING]: 'border-sky-200 bg-sky-50 text-sky-700',
     [ReviewStatus.REJECTED]: 'border-red-200 bg-red-50 text-red-700',
   };
 
@@ -28,7 +29,7 @@ export function ReviewCard({ review }: ReviewCardProps) {
           </div>
           {review.status !== ReviewStatus.APPROVED && (
             <Badge className={statusColors[review.status]}>
-              {review.status === ReviewStatus.PENDING ? t('pending') : review.status}
+              {t(`statusLabel.${review.status}`)}
             </Badge>
           )}
         </div>

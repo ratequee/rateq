@@ -210,11 +210,7 @@ export default async function CompanyPage({ params }: CompanyPageProps): Promise
           </div>
 
           <div className="min-w-0 lg:col-span-1">
-            <CompanyReviewsSection
-              company={company}
-              reviews={reviews.data}
-              categoryServices={categoryServices}
-            />
+            <CompanyReviewsSection company={company} categoryServices={categoryServices} />
           </div>
           <div className="min-w-0 lg:col-span-2">
             <CompanyProjectsSection projects={company.projects} />

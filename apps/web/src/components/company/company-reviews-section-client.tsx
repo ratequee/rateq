@@ -18,7 +18,6 @@ const EMPTY_CATEGORY_SERVICES: CategoryServicePublic[] = [];
 
 interface CompanyReviewsSectionClientProps {
   company: CompanyPublic;
-  initialReviews: ReviewPublic[];
   categoryServices?: CategoryServicePublic[];
 }
 
@@ -26,7 +25,6 @@ type ReviewPanel = 'form' | 'already-reviewed' | 'login' | 'cannot-own' | 'verif
 
 export function CompanyReviewsSectionClient({
   company,
-  initialReviews,
   categoryServices = EMPTY_CATEGORY_SERVICES,
 }: CompanyReviewsSectionClientProps) {
   const tr = useTranslations('review');
@@ -34,17 +32,12 @@ export function CompanyReviewsSectionClient({
   const tn = useTranslations('nav');
   const { user } = useAuth();
   const { onboarding } = useProfile();
-  const [reviews, setReviews] = useState(initialReviews);
   const [panel, setPanel] = useState<ReviewPanel | null>(null);
   const { myReview, lastInactiveReview, refreshMyReview, setMyReview } = useMyCompanyReview(
     company.id,
   );
 
   const isOwner = onboarding?.company?.id === company.id;
-
-  useEffect(() => {
-    setReviews(initialReviews);
-  }, [initialReviews]);
 
   const openWriteReview = useCallback(async () => {
     if (!user) {
@@ -89,12 +82,6 @@ export function CompanyReviewsSectionClient({
     (review: ReviewPublic) => {
       setMyReview(review);
       setPanel(null);
-      setReviews((current) => {
-        if (current.some((item) => item.id === review.id)) {
-          return current.map((item) => (item.id === review.id ? review : item));
-        }
-        return [review, ...current];
-      });
     },
     [setMyReview],
   );

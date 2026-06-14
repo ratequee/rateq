@@ -5,15 +5,11 @@ import { Input } from '@/components/ui/input';
 import { StarRating } from '@/components/ui/star-rating';
 import { ensureValidAccessToken } from '@/lib/auth-session';
 import { fetchCategoriesClient } from '@/lib/categories-api';
-import { companiesApi, reviewsApi } from '@/lib/api';
+import { reviewsApi } from '@/lib/api';
 import { ApiError } from '@/lib/api';
 import { cn } from '@/lib/utils';
-import type {
-  CategoryPublic,
-  PaginatedReviewsResponse,
-  ReviewPublic,
-  ReviewStatus,
-} from '@rateq/types';
+import type { CategoryPublic, PaginatedReviewsResponse, ReviewPublic } from '@rateq/types';
+import { ReviewStatus } from '@rateq/types';
 import { Link } from '@/i18n/routing';
 import { Loader2, MessageSquareText } from 'lucide-react';
 import { useLocale, useTranslations } from 'next-intl';
@@ -29,10 +25,10 @@ interface ReviewsManagementPanelProps {
 
 const STATUS_OPTIONS: Array<ReviewStatus | 'all'> = [
   'all',
-  'PENDING',
-  'RESOLUTION_PENDING',
-  'APPROVED',
-  'REJECTED',
+  ReviewStatus.PENDING,
+  ReviewStatus.RESOLUTION_PENDING,
+  ReviewStatus.APPROVED,
+  ReviewStatus.REJECTED,
 ];
 
 const statusStyles: Record<ReviewStatus, string> = {

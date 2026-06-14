@@ -14,7 +14,6 @@ interface DashboardActivityChartProps {
   data: ActivityChartPoint[];
   companiesLabel: string;
   reviewersLabel: string;
-  dailyLabel: string;
   emptyLabel?: string;
   className?: string;
   dualScale?: boolean;
@@ -37,13 +36,15 @@ function buildCountTicks(maxValue: number): number[] {
 }
 
 function smoothLinePath(points: Array<{ x: number; y: number }>): string {
-  if (points.length === 0) return '';
-  if (points.length === 1) return `M ${points[0].x} ${points[0].y}`;
+  const first = points[0];
+  if (!first) return '';
+  if (points.length === 1) return `M ${first.x} ${first.y}`;
 
-  let path = `M ${points[0].x} ${points[0].y}`;
+  let path = `M ${first.x} ${first.y}`;
   for (let index = 1; index < points.length; index += 1) {
     const previous = points[index - 1];
     const current = points[index];
+    if (!previous || !current) continue;
     const controlX = (previous.x + current.x) / 2;
     path += ` C ${controlX} ${previous.y}, ${controlX} ${current.y}, ${current.x} ${current.y}`;
   }
@@ -74,7 +75,6 @@ export function DashboardActivityChart({
   data,
   companiesLabel,
   reviewersLabel,
-  dailyLabel,
   emptyLabel,
   className,
   dualScale = false,

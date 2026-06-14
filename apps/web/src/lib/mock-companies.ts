@@ -832,6 +832,10 @@ function toPublicCompany(company: MockCompany): CompanyPublic {
     phone: null,
     coverUrl: null,
     ...publicCompany,
+    websiteUrl: publicCompany.websiteUrl ?? null,
+    services: publicCompany.services ?? [],
+    projects: publicCompany.projects ?? [],
+    ratingDistribution: publicCompany.ratingDistribution ?? { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 },
   };
 }
 

@@ -126,7 +126,6 @@ export function ReviewerOverview({ title, dashboard }: ReviewerOverviewProps) {
             data={chartData}
             companiesLabel={tr('chartLegendVisits')}
             reviewersLabel={tr('chartLegendReviews')}
-            dailyLabel={t('daily')}
             emptyLabel={tr('activityEmpty')}
             valueAxis="count"
           />

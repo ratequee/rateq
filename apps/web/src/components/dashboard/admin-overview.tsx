@@ -129,7 +129,6 @@ export function AdminOverview({ title }: AdminOverviewProps) {
             data={chartData}
             companiesLabel={ta('chartLegendCompanies')}
             reviewersLabel={ta('chartLegendReviewers')}
-            dailyLabel={t('daily')}
             emptyLabel={ta('chartEmpty')}
             valueAxis="count"
           />

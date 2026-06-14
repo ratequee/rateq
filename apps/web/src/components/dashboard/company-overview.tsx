@@ -135,7 +135,6 @@ export function CompanyOverview({ title, dashboard }: CompanyOverviewProps) {
             data={chartData}
             companiesLabel={tc('chartLegendPageVisits')}
             reviewersLabel={tc('chartLegendReviews')}
-            dailyLabel={t('daily')}
             emptyLabel={tc('activityEmpty')}
             valueAxis="count"
           />
