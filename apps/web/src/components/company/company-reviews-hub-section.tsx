@@ -39,14 +39,17 @@ export async function CompanyReviewsHubSection({
             {tc('reviews')}
           </h2>
           <p className="mt-2 text-sm text-ink-muted sm:text-base">
-            {t('subtitle', { name: company.name, count: reviews.length })}
+            {t('subtitle', { name: company.name, count: company.reviewCount })}
           </p>
         </div>
 
         <CompanyReviewsHubLayout
+          companyId={company.id}
           reviews={reviews}
           topMentions={topMentions}
           average={company.ratingAverage}
+          reviewCount={company.reviewCount}
+          distribution={company.ratingDistribution}
         />
       </div>
     </section>

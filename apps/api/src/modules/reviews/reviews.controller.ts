@@ -5,6 +5,7 @@ import {
   HttpCode,
   HttpStatus,
   Param,
+  Patch,
   Post,
   Query,
   Req,
@@ -21,7 +22,6 @@ import { CreateReviewDto } from './dto/create-review.dto';
 import { CreateReviewReplyDto } from './dto/create-reply.dto';
 import { ListReviewsQueryDto } from './dto/list-reviews-query.dto';
 import { PaginatedReviewsDto, ReviewPublicDto } from './dto/review-response.dto';
-import { PaginationDto } from '../../common/dto/pagination.dto';
 
 @ApiTags('reviews')
 @Controller('reviews')
@@ -62,12 +62,38 @@ export class ReviewsController {
     return this.reviewsService.listByCompany(companyId, query);
   }
 
+  @Get('me/dashboard')
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Reviewer dashboard with review stats and activity' })
+  @ApiResponse({ status: 200, type: PaginatedReviewsDto })
+  getMyDashboard(@CurrentUser() user: AuthenticatedUser) {
+    return this.reviewsService.getReviewerDashboard(user.id);
+  }
+
   @Get('me')
   @ApiBearerAuth()
   @ApiOperation({ summary: 'List reviews submitted by the current user' })
   @ApiResponse({ status: 200, type: PaginatedReviewsDto })
-  listMine(@CurrentUser() user: AuthenticatedUser, @Query() query: PaginationDto) {
-    return this.reviewsService.listMyReviews(user.id, query.page, query.limit);
+  listMine(@CurrentUser() user: AuthenticatedUser, @Query() query: ListReviewsQueryDto) {
+    return this.reviewsService.listMyReviews(user.id, query);
+  }
+
+  @Patch(':reviewId/resolution/proceed')
+  @HttpCode(HttpStatus.OK)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Publish a review after admin resolution flow' })
+  @ApiResponse({ status: 200, type: ReviewPublicDto })
+  proceedResolution(@CurrentUser() user: AuthenticatedUser, @Param('reviewId') reviewId: string) {
+    return this.reviewsService.proceedResolution(user, reviewId);
+  }
+
+  @Patch(':reviewId/resolution/withdraw')
+  @HttpCode(HttpStatus.OK)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Withdraw a review after admin resolution flow' })
+  @ApiResponse({ status: 200, type: ReviewPublicDto })
+  withdrawResolution(@CurrentUser() user: AuthenticatedUser, @Param('reviewId') reviewId: string) {
+    return this.reviewsService.withdrawResolution(user, reviewId);
   }
 
   @Post(':reviewId/reply')

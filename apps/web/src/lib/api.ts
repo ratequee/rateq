@@ -175,6 +175,20 @@ export const companiesApi = {
       body: JSON.stringify(data),
       token,
     }),
+  recordPageView: (slug: string, visitorId: string) =>
+    apiClient<MessageResponse>(`/companies/${slug}/view`, {
+      method: 'POST',
+      body: JSON.stringify({ visitorId }),
+    }),
+};
+
+export const contactApi = {
+  submit: (data: import('@rateq/types').SubmitContactInput) =>
+    apiClient<MessageResponse>('/contact', {
+      method: 'POST',
+      body: JSON.stringify(data),
+      token: null,
+    }),
 };
 
 export const usersOnboardingApi = {
@@ -205,14 +219,42 @@ export const reviewsApi = {
       body: JSON.stringify(data),
       token,
     }),
-  listMine: (token: string, page = 1) =>
-    apiClient<PaginatedReviewsResponse>(`/reviews/me?page=${page}`, { token }),
-  listPending: (token: string, page = 1) =>
-    apiClient<PaginatedReviewsResponse>(`/moderation/reviews/pending?page=${page}`, { token }),
+  listMine: (token: string, params?: URLSearchParams) =>
+    apiClient<PaginatedReviewsResponse>(`/reviews/me${params ? `?${params}` : ''}`, { token }),
+  getDashboard: (token: string) =>
+    apiClient<import('@rateq/types').ReviewerDashboard>('/reviews/me/dashboard', { token }),
+  listAdmin: (token: string, params?: URLSearchParams) =>
+    apiClient<PaginatedReviewsResponse>(`/moderation/reviews${params ? `?${params}` : ''}`, {
+      token,
+    }),
+  listPending: (token: string, params?: URLSearchParams) =>
+    apiClient<PaginatedReviewsResponse>(
+      `/moderation/reviews/pending${params ? `?${params}` : ''}`,
+      { token },
+    ),
   approve: (token: string, id: string) =>
     apiClient<MessageResponse>(`/moderation/reviews/${id}/approve`, { method: 'PATCH', token }),
   reject: (token: string, id: string) =>
     apiClient<MessageResponse>(`/moderation/reviews/${id}/reject`, { method: 'PATCH', token }),
+  resolve: (token: string, id: string) =>
+    apiClient<MessageResponse>(`/moderation/reviews/${id}/resolve`, { method: 'PATCH', token }),
+  deleteReview: (token: string, id: string) =>
+    apiClient<MessageResponse>(`/moderation/reviews/${id}`, { method: 'DELETE', token }),
+  deleteReviewReply: (token: string, reviewId: string) =>
+    apiClient<MessageResponse>(`/moderation/reviews/${reviewId}/reply`, {
+      method: 'DELETE',
+      token,
+    }),
+  proceedResolution: (token: string, reviewId: string) =>
+    apiClient<ReviewPublic>(`/reviews/${reviewId}/resolution/proceed`, {
+      method: 'PATCH',
+      token,
+    }),
+  withdrawResolution: (token: string, reviewId: string) =>
+    apiClient<ReviewPublic>(`/reviews/${reviewId}/resolution/withdraw`, {
+      method: 'PATCH',
+      token,
+    }),
   reply: (token: string, reviewId: string, content: string) =>
     apiClient<ReviewPublic>(`/reviews/${reviewId}/reply`, {
       method: 'POST',
@@ -226,4 +268,12 @@ export const usersApi = {
   list: (token: string, params: URLSearchParams) =>
     apiClient<PaginatedUsersResponse>(`/users?${params}`, { token }),
   getProfile: (token: string) => apiClient<UserProfile>('/users/me/profile', { token }),
+  update: (token: string, userId: string, data: import('@rateq/types').AdminUpdateUserInput) =>
+    apiClient<UserProfile>(`/users/${userId}`, {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+      token,
+    }),
+  delete: (token: string, userId: string) =>
+    apiClient<MessageResponse>(`/users/${userId}`, { method: 'DELETE', token }),
 };

@@ -10,23 +10,45 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
   }
 
   canActivate(context: ExecutionContext) {
-    const isPublic = this.reflector.getAllAndOverride<boolean>(IS_PUBLIC_KEY, [
-      context.getHandler(),
-      context.getClass(),
-    ]);
+    const isPublic = this.isPublicRoute(context);
 
     if (isPublic) {
-      return true;
+      const request = context.switchToHttp().getRequest<{ headers: { authorization?: string } }>();
+      if (!request.headers.authorization) {
+        return true;
+      }
     }
 
     return super.canActivate(context);
   }
 
-  handleRequest<TUser>(err: Error | null, user: TUser | false): TUser {
+  handleRequest<TUser>(
+    err: Error | null,
+    user: TUser | false,
+    _info: unknown,
+    context: ExecutionContext,
+  ): TUser {
+    if (this.isPublicRoute(context)) {
+      if (err || !user) {
+        return undefined as TUser;
+      }
+
+      return user;
+    }
+
     if (err || !user) {
       throw err ?? new UnauthorizedException('Authentication required');
     }
 
     return user;
+  }
+
+  private isPublicRoute(context: ExecutionContext): boolean {
+    return (
+      this.reflector.getAllAndOverride<boolean>(IS_PUBLIC_KEY, [
+        context.getHandler(),
+        context.getClass(),
+      ]) ?? false
+    );
   }
 }

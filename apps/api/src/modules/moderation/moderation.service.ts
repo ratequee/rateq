@@ -1,12 +1,16 @@
-import { Injectable, Logger, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import type { ReviewStatus } from '@prisma/client';
 import { ModerationAction } from '@prisma/client';
+import { EmailService } from '../auth/services/email.service';
 import { ReviewsRepository } from '../reviews/repositories/reviews.repository';
+import { resolveCompanyOwnerEmail, resolveReviewerContact } from '../reviews/mappers/review.mapper';
 import { ModerationRepository } from './repositories/moderation.repository';
 import {
   ModerationEngineService,
   type ModerationContext,
 } from './services/moderation-engine.service';
+
+export const NEGATIVE_REVIEW_MAX_RATING = 3;
 
 @Injectable()
 export class ModerationService {
@@ -16,6 +20,7 @@ export class ModerationService {
     private readonly reviewsRepository: ReviewsRepository,
     private readonly moderationRepository: ModerationRepository,
     private readonly moderationEngine: ModerationEngineService,
+    private readonly emailService: EmailService,
   ) {}
 
   async processReview(reviewId: string): Promise<void> {
@@ -36,49 +41,193 @@ export class ModerationService {
       companyId: review.companyId,
       content: review.content,
       title: review.title,
+      hashedIp: review.hashedIp,
       deviceFingerprint: review.deviceFingerprint,
       userCreatedAt: review.user.createdAt,
     };
 
     const breakdown = await this.moderationEngine.evaluate(context);
     const maxSimilarity = await this.moderationEngine.getMaxSimilarity(context);
-    const queueForReview = this.moderationEngine.shouldQueue(breakdown);
-    const status: ReviewStatus = queueForReview ? 'PENDING' : 'APPROVED';
-    const action: ModerationAction = queueForReview
-      ? ModerationAction.QUEUED
-      : ModerationAction.AUTO_APPROVED;
+    const reasons = this.moderationEngine.buildReasonLog(breakdown, maxSimilarity);
+    const shouldHold = this.moderationEngine.shouldQueue(breakdown);
+
+    if (shouldHold) {
+      await this.reviewsRepository.updateModerationResult(reviewId, {
+        status: 'PENDING',
+        moderationScore: breakdown.total,
+        similarityScore: maxSimilarity > 0 ? maxSimilarity : undefined,
+      });
+
+      await this.moderationRepository.createLog({
+        reviewId,
+        reason: reasons.join(', '),
+        score: breakdown.total,
+        action:
+          breakdown.velocity > 0 ||
+          breakdown.ipHash > 0 ||
+          breakdown.fingerprint > 0 ||
+          breakdown.similarity > 0
+            ? ModerationAction.FLAGGED
+            : ModerationAction.QUEUED,
+      });
+
+      this.logger.log(`Review ${reviewId} held for admin moderation (score=${breakdown.total})`);
+      return;
+    }
 
     await this.reviewsRepository.updateModerationResult(reviewId, {
-      status,
+      status: 'APPROVED',
       moderationScore: breakdown.total,
       similarityScore: maxSimilarity > 0 ? maxSimilarity : undefined,
     });
-
-    const reasons = this.moderationEngine.buildReasonLog(breakdown, maxSimilarity);
 
     await this.moderationRepository.createLog({
       reviewId,
       reason: reasons.join(', '),
       score: breakdown.total,
-      action,
+      action: ModerationAction.AUTO_APPROVED,
     });
 
-    if (status === 'APPROVED') {
-      await this.reviewsRepository.recalculateCompanyRating(review.companyId);
-      await this.reviewsRepository.incrementUserReviewCount(review.userId);
+    await this.reviewsRepository.recalculateCompanyRating(review.companyId);
+    await this.reviewsRepository.incrementUserReviewCount(review.userId);
+
+    if (review.user?.email) {
+      const companyName = review.company?.name ?? 'the company';
+      await this.emailService.sendReviewApprovedEmail({
+        reviewerEmail: review.user.email,
+        reviewTitle: review.title,
+        companyName,
+      });
     }
 
-    this.logger.log(
-      `Review ${reviewId} moderated: status=${status}, score=${breakdown.total}`,
-    );
+    this.logger.log(`Review ${reviewId} auto-approved (score=${breakdown.total})`);
   }
 
   async manualApprove(reviewId: string, adminId: string): Promise<void> {
     await this.setManualStatus(reviewId, 'APPROVED', ModerationAction.MANUAL_APPROVED, adminId);
+    await this.notifyReviewerDecision(reviewId, 'approved');
   }
 
   async manualReject(reviewId: string, adminId: string): Promise<void> {
     await this.setManualStatus(reviewId, 'REJECTED', ModerationAction.MANUAL_REJECTED, adminId);
+    await this.notifyReviewerDecision(reviewId, 'rejected');
+  }
+
+  async manualDelete(reviewId: string, adminId: string): Promise<void> {
+    const review = await this.reviewsRepository.findById(reviewId);
+
+    if (!review) {
+      throw new NotFoundException('Review not found');
+    }
+
+    const wasApproved = review.status === 'APPROVED';
+    const { companyId, userId } = review;
+
+    await this.reviewsRepository.deleteById(reviewId);
+
+    if (wasApproved) {
+      await this.reviewsRepository.recalculateCompanyRating(companyId);
+      await this.reviewsRepository.decrementUserReviewCount(userId);
+    }
+
+    this.logger.log(`Admin ${adminId} deleted review ${reviewId}`);
+  }
+
+  async adminDeleteReply(reviewId: string, adminId: string): Promise<void> {
+    const review = await this.reviewsRepository.findById(reviewId);
+
+    if (!review) {
+      throw new NotFoundException('Review not found');
+    }
+
+    const reply = await this.reviewsRepository.findReplyByReviewId(reviewId);
+
+    if (!reply) {
+      throw new NotFoundException('Reply not found');
+    }
+
+    await this.reviewsRepository.deleteReply(reviewId);
+    this.logger.log(`Admin ${adminId} deleted reply on review ${reviewId}`);
+  }
+
+  async manualResolve(reviewId: string, adminId: string): Promise<void> {
+    const review = await this.reviewsRepository.findById(reviewId);
+
+    if (!review) {
+      throw new NotFoundException('Review not found');
+    }
+
+    if (review.status !== 'PENDING') {
+      throw new BadRequestException('Only pending reviews can be sent for resolution');
+    }
+
+    if (review.rating > NEGATIVE_REVIEW_MAX_RATING) {
+      throw new BadRequestException(
+        'Resolve is only available for negative reviews (3 stars or below)',
+      );
+    }
+
+    const companyEmail = resolveCompanyOwnerEmail(review);
+    if (!companyEmail) {
+      throw new BadRequestException('Company owner email is not available for resolution');
+    }
+
+    await this.reviewsRepository.updateModerationResult(reviewId, {
+      status: 'RESOLUTION_PENDING',
+      moderationScore: review.moderationScore,
+    });
+
+    await this.moderationRepository.createLog({
+      reviewId,
+      reason: `manual_resolve_by_admin:${adminId}`,
+      score: review.moderationScore,
+      action: ModerationAction.MANUAL_RESOLVE,
+    });
+
+    const reviewer = resolveReviewerContact(review);
+    const companyName = review.company?.name ?? 'Company';
+
+    await this.emailService.sendReviewResolutionToCompanyEmail({
+      companyEmail,
+      companyName,
+      reviewTitle: review.title,
+      reviewContent: review.content,
+      reviewRating: review.rating,
+      reviewerName: reviewer.name,
+      reviewerEmail: reviewer.email,
+      reviewerPhone: reviewer.phone,
+    });
+
+    await this.emailService.sendReviewResolutionToReviewerEmail({
+      reviewerEmail: reviewer.email,
+      companyName,
+      reviewTitle: review.title,
+    });
+  }
+
+  private async notifyReviewerDecision(
+    reviewId: string,
+    decision: 'approved' | 'rejected',
+  ): Promise<void> {
+    const review = await this.reviewsRepository.findById(reviewId);
+    if (!review?.user?.email) return;
+
+    const companyName = review.company?.name ?? 'the company';
+
+    if (decision === 'approved') {
+      await this.emailService.sendReviewApprovedEmail({
+        reviewerEmail: review.user.email,
+        reviewTitle: review.title,
+        companyName,
+      });
+      return;
+    }
+
+    await this.emailService.sendReviewRejectedEmail({
+      reviewerEmail: review.user.email,
+      reviewTitle: review.title,
+      companyName,
+    });
   }
 
   private async setManualStatus(
@@ -91,6 +240,11 @@ export class ModerationService {
 
     if (!review) {
       throw new NotFoundException('Review not found');
+    }
+
+    const allowedStatuses: ReviewStatus[] = ['PENDING', 'RESOLUTION_PENDING'];
+    if (!allowedStatuses.includes(review.status)) {
+      throw new BadRequestException('This review can no longer be moderated');
     }
 
     const previousStatus = review.status;

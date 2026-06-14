@@ -1,5 +1,7 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import {
+  ArrayMaxSize,
+  IsArray,
   IsDateString,
   IsNumber,
   IsOptional,
@@ -11,7 +13,10 @@ import {
   Min,
   MinLength,
   ValidateIf,
+  ValidateNested,
 } from 'class-validator';
+import { Type } from 'class-transformer';
+import { UpdateCompanyProjectDto } from './update-company-project.dto';
 
 const PHONE_PATTERN = /^[+]?[\d\s()-]{6,30}$/;
 
@@ -28,6 +33,29 @@ export class UpdateCompanyDto {
   @IsString()
   @MaxLength(5000)
   description?: string;
+
+  @ApiPropertyOptional({ nullable: true })
+  @IsOptional()
+  @ValidateIf((_, value) => value !== null)
+  @IsUrl()
+  @MaxLength(2048)
+  websiteUrl?: string | null;
+
+  @ApiPropertyOptional({ type: [String] })
+  @IsOptional()
+  @IsArray()
+  @ArrayMaxSize(20)
+  @IsString({ each: true })
+  @MaxLength(100, { each: true })
+  services?: string[];
+
+  @ApiPropertyOptional({ type: [UpdateCompanyProjectDto] })
+  @IsOptional()
+  @IsArray()
+  @ArrayMaxSize(12)
+  @ValidateNested({ each: true })
+  @Type(() => UpdateCompanyProjectDto)
+  projects?: UpdateCompanyProjectDto[];
 
   @ApiPropertyOptional({ nullable: true })
   @IsOptional()

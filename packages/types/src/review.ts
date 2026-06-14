@@ -19,6 +19,14 @@ export interface ReviewAttachmentPublic {
   fileName: string | null;
 }
 
+export interface ReviewCompanySummary {
+  id: string;
+  name: string;
+  slug: string;
+  categoryId?: string | null;
+  categoryName?: string | null;
+}
+
 export interface ReviewPublic {
   id: string;
   companyId: string;
@@ -30,6 +38,7 @@ export interface ReviewPublic {
   createdAt: string;
   updatedAt: string;
   author?: ReviewAuthor;
+  company?: ReviewCompanySummary;
   reply?: ReviewReplyPublic | null;
   serviceRatings?: ReviewServiceRatingPublic[];
   attachments?: ReviewAttachmentPublic[];
@@ -59,6 +68,7 @@ export interface CreateReviewInput {
 export interface ModerationScoreBreakdown {
   newAccount: number;
   velocity: number;
+  ipHash: number;
   fingerprint: number;
   similarity: number;
   total: number;

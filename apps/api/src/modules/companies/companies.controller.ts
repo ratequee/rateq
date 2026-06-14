@@ -27,6 +27,7 @@ import {
   CompanyPublicDto,
   PaginatedCompaniesDto,
 } from './dto/company-response.dto';
+import { RecordPageViewDto } from './dto/record-page-view.dto';
 
 @ApiTags('companies')
 @Controller('companies')
@@ -95,6 +96,19 @@ export class CompaniesController {
   @ApiResponse({ status: 200, type: MessageResponseDto })
   adminDelete(@Param('id') id: string) {
     return this.companiesService.adminDelete(id);
+  }
+
+  @Public()
+  @Post(':slug/view')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Record a public company profile page view' })
+  @ApiResponse({ status: 200, type: MessageResponseDto })
+  recordPageView(
+    @Param('slug') slug: string,
+    @Body() dto: RecordPageViewDto,
+    @CurrentUser() user?: AuthenticatedUser,
+  ) {
+    return this.companiesService.recordPageView(slug, dto.visitorId, user?.id);
   }
 
   @Public()

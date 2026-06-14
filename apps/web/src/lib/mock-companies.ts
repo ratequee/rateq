@@ -7,10 +7,17 @@ import type {
 import { ReviewStatus } from '@rateq/types';
 import { CATEGORY_IDS, type CategoryId } from '@/lib/categories';
 
-interface MockCompany extends Omit<CompanyPublic, 'email' | 'phone' | 'coverUrl'> {
+interface MockCompany extends Omit<
+  CompanyPublic,
+  'email' | 'phone' | 'coverUrl' | 'websiteUrl' | 'services' | 'projects' | 'ratingDistribution'
+> {
   email?: string | null;
   phone?: string | null;
   coverUrl?: string | null;
+  websiteUrl?: string | null;
+  services?: string[];
+  projects?: CompanyPublic['projects'];
+  ratingDistribution?: CompanyPublic['ratingDistribution'];
   categoryId: CategoryId;
   keywords: string[];
 }

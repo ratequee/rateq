@@ -6,56 +6,76 @@ import { Input } from '@/components/ui/input';
 import { StarRating } from '@/components/ui/star-rating';
 import { ApiError, reviewsApi } from '@/lib/api';
 import { ensureValidAccessToken } from '@/lib/auth-session';
-import { fetchCategoriesClient } from '@/lib/categories-api';
+import { fetchCategoryServicesClient } from '@/lib/categories-api';
 import { uploadReviewProofFiles } from '@/lib/review-proof-upload';
+import { getDeviceFingerprint } from '@/lib/device-fingerprint';
 import type { CategoryServicePublic, ReviewPublic } from '@rateq/types';
 import { useTranslations } from 'next-intl';
 import { useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 
+const EMPTY_CATEGORY_SERVICES: CategoryServicePublic[] = [];
+
 interface WriteReviewFormProps {
   companyId: string;
   categoryId?: string | null;
+  categoryServices?: CategoryServicePublic[];
   className?: string;
   onSubmitted?: (review: ReviewPublic) => void;
   onCancel?: () => void;
 }
 
+function buildDefaultServiceRatings(services: CategoryServicePublic[]): Record<string, number> {
+  return Object.fromEntries(services.map((service) => [service.id, 5]));
+}
+
 export function WriteReviewForm({
   companyId,
   categoryId,
+  categoryServices: initialCategoryServices = EMPTY_CATEGORY_SERVICES,
   className,
   onSubmitted,
   onCancel,
 }: WriteReviewFormProps) {
   const t = useTranslations('review');
   const [overallRating, setOverallRating] = useState(5);
-  const [serviceRatings, setServiceRatings] = useState<Record<string, number>>({});
-  const [categoryServices, setCategoryServices] = useState<CategoryServicePublic[]>([]);
+  const [categoryServices, setCategoryServices] =
+    useState<CategoryServicePublic[]>(initialCategoryServices);
+  const [serviceRatings, setServiceRatings] = useState<Record<string, number>>(() =>
+    buildDefaultServiceRatings(initialCategoryServices),
+  );
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [proofFiles, setProofFiles] = useState<File[]>([]);
   const [loading, setLoading] = useState(false);
+  const initialServicesKey = initialCategoryServices.map((service) => service.id).join(',');
 
   useEffect(() => {
+    if (initialCategoryServices.length > 0) {
+      setCategoryServices(initialCategoryServices);
+      setServiceRatings(buildDefaultServiceRatings(initialCategoryServices));
+      return;
+    }
+
+    if (!categoryId) {
+      setCategoryServices(EMPTY_CATEGORY_SERVICES);
+      setServiceRatings({});
+      return;
+    }
+
     let cancelled = false;
 
-    void fetchCategoriesClient().then((categories) => {
-      if (cancelled || !categoryId) {
-        setCategoryServices([]);
-        return;
-      }
+    void fetchCategoryServicesClient(categoryId).then((services) => {
+      if (cancelled) return;
 
-      const category = categories.find((entry) => entry.id === categoryId);
-      const services = category?.services ?? [];
       setCategoryServices(services);
-      setServiceRatings(Object.fromEntries(services.map((service) => [service.id, 5])));
+      setServiceRatings(buildDefaultServiceRatings(services));
     });
 
     return () => {
       cancelled = true;
     };
-  }, [categoryId]);
+  }, [categoryId, initialServicesKey, initialCategoryServices]);
 
   const usesServiceRatings = categoryServices.length > 0;
 
@@ -79,11 +99,13 @@ export function WriteReviewForm({
       if (!token) throw new Error('Not authenticated');
 
       const proofUrls = proofFiles.length ? await uploadReviewProofFiles(proofFiles) : undefined;
+      const deviceFingerprint = await getDeviceFingerprint();
 
       const review = await reviewsApi.submit(token, {
         companyId,
         title,
         content,
+        ...(deviceFingerprint ? { deviceFingerprint } : {}),
         ...(usesServiceRatings
           ? {
               serviceRatings: categoryServices.map((service) => ({
@@ -95,12 +117,12 @@ export function WriteReviewForm({
         ...(proofUrls?.length ? { proofUrls } : {}),
       });
 
-      toast.success(t('submittedSuccess'));
+      toast.success(t('submittedSuccess'), { description: t('submittedPendingNote') });
       setTitle('');
       setContent('');
       setOverallRating(5);
       setProofFiles([]);
-      setServiceRatings(Object.fromEntries(categoryServices.map((service) => [service.id, 5])));
+      setServiceRatings(buildDefaultServiceRatings(categoryServices));
       onSubmitted?.(review);
     } catch (err) {
       const message = err instanceof ApiError ? err.message : t('submitError');

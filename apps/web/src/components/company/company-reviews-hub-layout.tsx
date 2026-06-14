@@ -2,25 +2,41 @@
 
 import { CompanyReviewsHubClient } from '@/components/company/company-reviews-hub-client';
 import { CompanyReviewsSummaryCard } from '@/components/company/company-reviews-summary-card';
+import { useMyCompanyReview } from '@/lib/use-my-company-review';
 import { cn } from '@/lib/utils';
-import type { ReviewPublic } from '@rateq/types';
+import type { ReviewPublic, ReviewRatingDistribution } from '@rateq/types';
+import { useMemo, useState } from 'react';
 import { useTranslations } from 'next-intl';
-import { useState } from 'react';
 
 interface CompanyReviewsHubLayoutProps {
+  companyId: string;
   reviews: ReviewPublic[];
   topMentions: string[];
   average: number;
+  reviewCount: number;
+  distribution: ReviewRatingDistribution;
 }
 
 export function CompanyReviewsHubLayout({
+  companyId,
   reviews,
   topMentions,
   average,
+  reviewCount,
+  distribution,
 }: CompanyReviewsHubLayoutProps) {
   const t = useTranslations('companyPage.reviewsHub');
   const [activeMention, setActiveMention] = useState<string | null>(null);
   const [page, setPage] = useState(1);
+  const { myReview } = useMyCompanyReview(companyId);
+
+  const displayReviews = useMemo(() => {
+    if (!myReview) return reviews;
+    if (reviews.some((review) => review.id === myReview.id)) {
+      return reviews.map((review) => (review.id === myReview.id ? myReview : review));
+    }
+    return [myReview, ...reviews];
+  }, [myReview, reviews]);
 
   const handleMentionClick = (mention: string) => {
     setActiveMention((current) => (current === mention ? null : mention));
@@ -30,7 +46,11 @@ export function CompanyReviewsHubLayout({
   return (
     <div className="flex flex-col items-stretch gap-8 lg:flex-row lg:items-start lg:gap-10">
       <div className="w-full shrink-0 lg:w-[280px] xl:w-[300px]">
-        <CompanyReviewsSummaryCard reviews={reviews} average={average} />
+        <CompanyReviewsSummaryCard
+          average={average}
+          reviewCount={reviewCount}
+          distribution={distribution}
+        />
         {topMentions.length > 0 && (
           <div className="mt-8">
             <h3 className="text-lg font-bold text-ink">{t('topMentions')}</h3>
@@ -54,9 +74,9 @@ export function CompanyReviewsHubLayout({
           </div>
         )}
       </div>
-      <div className="min-w-0 flex-1">
+      <div className="min-w-0 flex-1 space-y-6">
         <CompanyReviewsHubClient
-          reviews={reviews}
+          reviews={displayReviews}
           activeMention={activeMention}
           page={page}
           setPage={setPage}

@@ -1,6 +1,7 @@
 'use client';
 
 import { DashboardShell } from '@/components/dashboard/dashboard-shell';
+import { CompanyPublicProfileForm } from '@/components/dashboard/company-public-profile-form';
 import { CompanyAddressMapField } from '@/components/profile/company-address-map-field';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -11,16 +12,20 @@ import { fetchCategoriesClient } from '@/lib/categories-api';
 import { ApiError } from '@/lib/api';
 import { ensureValidAccessToken } from '@/lib/auth-session';
 import { isRemoteImage, isRemotePdf } from '@/lib/profile-company-assets';
-import { hasValidationErrors, validateCompanyProfileFields } from '@/lib/validation/profile-fields';
+import {
+  hasValidationErrors,
+  validateCompanySettingsFields,
+} from '@/lib/validation/profile-fields';
 import type { CompanyMapLocation } from '@/lib/company-location';
 import type { CategoryPublic } from '@rateq/types';
 import { ExternalLink, FileText } from 'lucide-react';
-import { useTranslations } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 import { useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 
 export default function CompanyProfileSettingsPage() {
   const t = useTranslations('profilePage');
+  const locale = useLocale();
   const { onboarding, refreshOnboarding } = useProfile();
   useRequireCompleteProfile();
 
@@ -35,8 +40,6 @@ export default function CompanyProfileSettingsPage() {
   const [companyLocation, setCompanyLocation] = useState<CompanyMapLocation | null>(null);
   const [companyCity, setCompanyCity] = useState('');
   const [companyCountry, setCompanyCountry] = useState('');
-  const [crNumber, setCrNumber] = useState('');
-  const [validationDate, setValidationDate] = useState('');
 
   const company = onboarding?.company;
 
@@ -55,9 +58,26 @@ export default function CompanyProfileSettingsPage() {
     }
     setCompanyCity(company.city);
     setCompanyCountry(company.country);
-    setCrNumber(company.crNumber ?? '');
-    setValidationDate(company.validationDate?.slice(0, 10) ?? '');
   }, [company]);
+
+  const registrationDetails = useMemo(() => {
+    if (!company) return [];
+
+    const items: Array<{ label: string; value: string }> = [];
+
+    if (company.crNumber) {
+      items.push({ label: t('crNumber'), value: company.crNumber });
+    }
+
+    if (company.validationDate) {
+      items.push({
+        label: t('validationDate'),
+        value: new Date(company.validationDate).toLocaleDateString(locale),
+      });
+    }
+
+    return items;
+  }, [company, locale, t]);
 
   const documents = useMemo(
     () =>
@@ -74,34 +94,18 @@ export default function CompanyProfileSettingsPage() {
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
 
-    const fieldErrors = validateCompanyProfileFields(
+    const fieldErrors = validateCompanySettingsFields(
       {
         companyName,
         companyAddress,
         companyLocation,
-        companyPhone,
         categoryId,
-        crNumber,
-        validationDate,
         city: companyCity,
         country: companyCountry,
-        establishmentCardFile: null,
-        tradeLicenseFile: null,
-        logoFile: null,
-        coverFile: null,
-        hasExistingEstablishmentCard: true,
-        hasExistingTradeLicense: true,
-        hasExistingLogo: true,
-        hasExistingCover: true,
-        companyPhoneVerified: true,
       },
       {
         required: t('errors.required'),
-        fileTooLarge: t('errors.fileTooLarge'),
         companyName: { min: t('errors.companyNameMin'), max: t('errors.companyNameMax') },
-        crNumber: { invalid: t('errors.crNumberInvalid') },
-        phone: { required: t('errors.required'), invalid: t('errors.invalidPhone') },
-        phoneVerification: { required: t('errors.phoneNotVerified') },
         locationRequired: t('errors.locationRequired'),
       },
     );
@@ -123,8 +127,6 @@ export default function CompanyProfileSettingsPage() {
         latitude: companyLocation?.latitude,
         longitude: companyLocation?.longitude,
         categoryId,
-        crNumber: crNumber.trim(),
-        validationDate,
         country: companyCountry.trim(),
         city: companyCity.trim(),
       });
@@ -147,30 +149,48 @@ export default function CompanyProfileSettingsPage() {
           <p className="mt-1 text-sm text-ink-muted">{t('profileSettingsSubtitle')}</p>
           {company?.email && (
             <p className="mt-2 text-sm text-ink-muted">
-              Email: <span className="font-medium text-ink">{company.email}</span>
+              {t('accountEmailLabel')}:{' '}
+              <span className="font-medium text-ink">{company.email}</span>
             </p>
           )}
         </div>
 
-        {documents.length > 0 && (
+        {(registrationDetails.length > 0 || documents.length > 0) && (
           <section className="mb-6 rounded-2xl border border-slate-100 bg-white p-6 shadow-sm">
             <h2 className="text-lg font-semibold text-ink">{t('submittedDocumentsTitle')}</h2>
             <p className="mt-1 text-sm text-ink-muted">{t('submittedDocumentsHint')}</p>
-            <div className="mt-4 grid gap-4 sm:grid-cols-2">
-              {documents.map((document) => (
-                <DocumentPreviewCard
-                  key={document.label}
-                  label={document.label}
-                  url={document.url!}
-                />
-              ))}
-            </div>
+
+            {registrationDetails.length > 0 ? (
+              <dl className="mt-4 grid gap-3 sm:grid-cols-2">
+                {registrationDetails.map(({ label, value }) => (
+                  <div
+                    key={label}
+                    className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3"
+                  >
+                    <dt className="text-xs font-medium text-ink-muted">{label}</dt>
+                    <dd className="mt-1 text-sm font-medium text-ink">{value}</dd>
+                  </div>
+                ))}
+              </dl>
+            ) : null}
+
+            {documents.length > 0 ? (
+              <div className="mt-4 grid gap-4 sm:grid-cols-2">
+                {documents.map((document) => (
+                  <DocumentPreviewCard
+                    key={document.label}
+                    label={document.label}
+                    url={document.url!}
+                  />
+                ))}
+              </div>
+            ) : null}
           </section>
         )}
 
         <form
           onSubmit={handleSubmit}
-          className="space-y-4 rounded-2xl border border-slate-100 bg-white p-6 shadow-sm"
+          className="mb-6 space-y-4 rounded-2xl border border-slate-100 bg-white p-6 shadow-sm"
         >
           <Field label={t('companyName')} error={errors.companyName} required>
             <Input
@@ -218,25 +238,12 @@ export default function CompanyProfileSettingsPage() {
               ))}
             </select>
           </Field>
-          <Field label={t('crNumber')} error={errors.crNumber} required>
-            <Input
-              value={crNumber}
-              onChange={(e) => setCrNumber(e.target.value)}
-              className="h-11"
-            />
-          </Field>
-          <Field label={t('validationDate')} error={errors.validationDate} required>
-            <Input
-              type="date"
-              value={validationDate}
-              onChange={(e) => setValidationDate(e.target.value)}
-              className="h-11"
-            />
-          </Field>
           <Button type="submit" disabled={submitting} className="w-full">
             {submitting ? t('saving') : t('saveChanges')}
           </Button>
         </form>
+
+        <CompanyPublicProfileForm />
       </div>
     </DashboardShell>
   );

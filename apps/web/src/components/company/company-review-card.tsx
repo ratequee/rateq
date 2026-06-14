@@ -52,10 +52,16 @@ export function CompanyReviewCard({ review, company, onReviewUpdated }: CompanyR
                 className={cn(
                   review.status === ReviewStatus.PENDING
                     ? 'border-amber-200 bg-amber-50 text-amber-700'
-                    : 'border-red-200 bg-red-50 text-red-700',
+                    : review.status === ReviewStatus.RESOLUTION_PENDING
+                      ? 'border-sky-200 bg-sky-50 text-sky-700'
+                      : 'border-red-200 bg-red-50 text-red-700',
                 )}
               >
-                {review.status === ReviewStatus.PENDING ? t('pending') : review.status}
+                {review.status === ReviewStatus.PENDING
+                  ? t('pending')
+                  : review.status === ReviewStatus.RESOLUTION_PENDING
+                    ? t('resolutionPending')
+                    : t('rejected')}
               </Badge>
             )}
           </div>

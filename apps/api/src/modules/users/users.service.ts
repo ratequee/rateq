@@ -189,7 +189,12 @@ export class UsersService {
     const updated = await this.usersRepository.updateById(targetId, {
       ...(dto.role !== undefined && { role: dto.role as PrismaUserRole }),
       ...(dto.isVerified !== undefined && { isVerified: dto.isVerified }),
+      ...(dto.isActive !== undefined && { isActive: dto.isActive }),
     });
+
+    if (dto.isActive === false) {
+      await this.usersRepository.revokeAllSessions(targetId);
+    }
 
     return toUserProfile(updated);
   }

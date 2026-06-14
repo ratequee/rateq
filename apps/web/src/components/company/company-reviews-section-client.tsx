@@ -1,22 +1,25 @@
 'use client';
 
 import { WriteReviewForm } from '@/components/review/write-review-form';
+import { ReviewerReviewStatusCard } from '@/components/company/reviewer-review-status-card';
 import { useAuth } from '@/components/providers/auth-provider';
 import { useProfile } from '@/components/providers/profile-provider';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Link } from '@/i18n/routing';
-import { reviewsApi } from '@/lib/api';
-import { ensureValidAccessToken } from '@/lib/auth-session';
 import { OPEN_WRITE_REVIEW_EVENT } from '@/lib/write-review-events';
-import type { CompanyPublic, ReviewPublic } from '@rateq/types';
+import { useMyCompanyReview } from '@/lib/use-my-company-review';
+import type { CategoryServicePublic, CompanyPublic, ReviewPublic } from '@rateq/types';
 import { UserRole } from '@rateq/types';
 import { useTranslations } from 'next-intl';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
+const EMPTY_CATEGORY_SERVICES: CategoryServicePublic[] = [];
+
 interface CompanyReviewsSectionClientProps {
   company: CompanyPublic;
   initialReviews: ReviewPublic[];
+  categoryServices?: CategoryServicePublic[];
 }
 
 type ReviewPanel = 'form' | 'already-reviewed' | 'login' | 'cannot-own' | 'verify';
@@ -24,6 +27,7 @@ type ReviewPanel = 'form' | 'already-reviewed' | 'login' | 'cannot-own' | 'verif
 export function CompanyReviewsSectionClient({
   company,
   initialReviews,
+  categoryServices = EMPTY_CATEGORY_SERVICES,
 }: CompanyReviewsSectionClientProps) {
   const tr = useTranslations('review');
   const ta = useTranslations('auth');
@@ -32,60 +36,15 @@ export function CompanyReviewsSectionClient({
   const { onboarding } = useProfile();
   const [reviews, setReviews] = useState(initialReviews);
   const [panel, setPanel] = useState<ReviewPanel | null>(null);
-  const [hasExistingReview, setHasExistingReview] = useState(false);
+  const { myReview, lastInactiveReview, refreshMyReview, setMyReview } = useMyCompanyReview(
+    company.id,
+  );
 
   const isOwner = onboarding?.company?.id === company.id;
-
-  const loadOwnerReviews = useCallback(async () => {
-    if (!isOwner || !user) return;
-
-    try {
-      const token = await ensureValidAccessToken();
-      if (!token) return;
-
-      const response = await reviewsApi.listByCompanyManage(token, company.id);
-      setReviews(response.data);
-    } catch {
-      // Keep public list on failure
-    }
-  }, [company.id, isOwner, user]);
-
-  const checkExistingReview = useCallback(async () => {
-    if (!user) {
-      setHasExistingReview(false);
-      return false;
-    }
-
-    const inList = reviews.some((review) => review.userId === user.id);
-    if (inList) {
-      setHasExistingReview(true);
-      return true;
-    }
-
-    try {
-      const token = await ensureValidAccessToken();
-      if (!token) return false;
-
-      const response = await reviewsApi.listMine(token);
-      const existing = response.data.some((review) => review.companyId === company.id);
-      setHasExistingReview(existing);
-      return existing;
-    } catch {
-      return inList;
-    }
-  }, [company.id, reviews, user]);
 
   useEffect(() => {
     setReviews(initialReviews);
   }, [initialReviews]);
-
-  useEffect(() => {
-    void loadOwnerReviews();
-  }, [loadOwnerReviews]);
-
-  useEffect(() => {
-    void checkExistingReview();
-  }, [checkExistingReview]);
 
   const openWriteReview = useCallback(async () => {
     if (!user) {
@@ -103,14 +62,14 @@ export function CompanyReviewsSectionClient({
       return;
     }
 
-    const alreadyReviewed = hasExistingReview || (await checkExistingReview());
-    if (alreadyReviewed) {
+    const existing = myReview ?? (await refreshMyReview());
+    if (existing) {
       setPanel('already-reviewed');
       return;
     }
 
     setPanel('form');
-  }, [checkExistingReview, hasExistingReview, isOwner, user]);
+  }, [isOwner, myReview, refreshMyReview, user]);
 
   useEffect(() => {
     const handleOpen = () => {
@@ -126,32 +85,35 @@ export function CompanyReviewsSectionClient({
     void openWriteReview();
   }, [openWriteReview]);
 
-  const handleReviewSubmitted = useCallback((review: ReviewPublic) => {
-    setHasExistingReview(true);
-    setPanel(null);
-    setReviews((current) => {
-      if (current.some((item) => item.id === review.id)) {
-        return current.map((item) => (item.id === review.id ? review : item));
-      }
-      return [review, ...current];
-    });
-  }, []);
+  const handleReviewSubmitted = useCallback(
+    (review: ReviewPublic) => {
+      setMyReview(review);
+      setPanel(null);
+      setReviews((current) => {
+        if (current.some((item) => item.id === review.id)) {
+          return current.map((item) => (item.id === review.id ? review : item));
+        }
+        return [review, ...current];
+      });
+    },
+    [setMyReview],
+  );
 
   const panelContent = useMemo(() => {
     if (!panel) return null;
 
     switch (panel) {
-      case 'form':
-        return (
-          <WriteReviewForm
-            companyId={company.id}
-            categoryId={company.categoryId}
-            onSubmitted={handleReviewSubmitted}
-            onCancel={() => setPanel(null)}
-          />
-        );
       case 'already-reviewed':
-        return (
+        return myReview ? (
+          <div className="space-y-3">
+            <ReviewerReviewStatusCard review={myReview} />
+            <div className="flex justify-end">
+              <Button type="button" variant="ghost" size="sm" onClick={() => setPanel(null)}>
+                {tr('dismiss')}
+              </Button>
+            </div>
+          </div>
+        ) : (
           <Card className="border-amber-200 bg-amber-50">
             <CardContent className="flex flex-col gap-3 p-5 sm:flex-row sm:items-center sm:justify-between">
               <p className="text-sm text-amber-900">{tr('alreadyReviewed')}</p>
@@ -191,11 +153,36 @@ export function CompanyReviewsSectionClient({
       default:
         return null;
     }
-  }, [company.id, handleReviewSubmitted, panel, ta, tn, tr]);
+  }, [myReview, panel, ta, tn, tr]);
 
   return (
     <section id="reviews">
-      <div id="write-review" className="mb-6 scroll-mt-1">
+      <div id="write-review" className="mb-6 scroll-mt-1 space-y-4">
+        {myReview && panel !== 'form' ? <ReviewerReviewStatusCard review={myReview} /> : null}
+        {lastInactiveReview && !myReview && panel !== 'form' ? (
+          <Card className="border-slate-200 bg-slate-50">
+            <CardContent className="flex flex-col gap-3 p-5 sm:flex-row sm:items-center sm:justify-between">
+              <p className="text-sm text-ink-muted">{tr('reviewAgainHint')}</p>
+              <Button
+                type="button"
+                variant="outline-brand"
+                size="sm"
+                onClick={() => void openWriteReview()}
+              >
+                {tr('reviewAgain')}
+              </Button>
+            </CardContent>
+          </Card>
+        ) : null}
+        {panel === 'form' ? (
+          <WriteReviewForm
+            companyId={company.id}
+            categoryId={company.categoryId}
+            categoryServices={categoryServices}
+            onSubmitted={handleReviewSubmitted}
+            onCancel={() => setPanel(null)}
+          />
+        ) : null}
         {panelContent}
       </div>
     </section>

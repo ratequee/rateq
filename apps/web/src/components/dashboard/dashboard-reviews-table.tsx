@@ -18,6 +18,7 @@ interface ReviewRow {
 
 interface DashboardReviewsTableProps {
   rows: ReviewRow[];
+  showActions?: boolean;
 }
 
 const statusStyles: Record<ReviewStatus, string> = {
@@ -27,7 +28,7 @@ const statusStyles: Record<ReviewStatus, string> = {
   useful: 'bg-slate-100 text-slate-600',
 };
 
-export function DashboardReviewsTable({ rows }: DashboardReviewsTableProps) {
+export function DashboardReviewsTable({ rows, showActions = true }: DashboardReviewsTableProps) {
   const t = useTranslations('dashboardShell');
 
   return (
@@ -43,7 +44,9 @@ export function DashboardReviewsTable({ rows }: DashboardReviewsTableProps) {
               <th className="px-5 py-3 text-start font-medium">{t('table.user')}</th>
               <th className="px-5 py-3 text-start font-medium">{t('table.rating')}</th>
               <th className="px-5 py-3 text-start font-medium">{t('table.status')}</th>
-              <th className="px-5 py-3 text-start font-medium">{t('table.actions')}</th>
+              {showActions ? (
+                <th className="px-5 py-3 text-start font-medium">{t('table.actions')}</th>
+              ) : null}
             </tr>
           </thead>
           <tbody>
@@ -77,19 +80,21 @@ export function DashboardReviewsTable({ rows }: DashboardReviewsTableProps) {
                     {t(`status.${row.status}`)}
                   </span>
                 </td>
-                <td className="px-5 py-4">
-                  <div className="flex items-center gap-2 text-ink-muted">
-                    <button type="button" className="rounded-lg p-2 hover:bg-slate-100">
-                      <Eye className="h-4 w-4" />
-                    </button>
-                    <button type="button" className="rounded-lg p-2 hover:bg-slate-100">
-                      <Trash2 className="h-4 w-4" />
-                    </button>
-                    <button type="button" className="rounded-lg p-2 hover:bg-slate-100">
-                      <MoreHorizontal className="h-4 w-4" />
-                    </button>
-                  </div>
-                </td>
+                {showActions ? (
+                  <td className="px-5 py-4">
+                    <div className="flex items-center gap-2 text-ink-muted">
+                      <button type="button" className="rounded-lg p-2 hover:bg-slate-100">
+                        <Eye className="h-4 w-4" />
+                      </button>
+                      <button type="button" className="rounded-lg p-2 hover:bg-slate-100">
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                      <button type="button" className="rounded-lg p-2 hover:bg-slate-100">
+                        <MoreHorizontal className="h-4 w-4" />
+                      </button>
+                    </div>
+                  </td>
+                ) : null}
               </tr>
             ))}
           </tbody>

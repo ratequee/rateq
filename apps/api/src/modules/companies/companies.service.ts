@@ -28,6 +28,7 @@ import { CategoriesService } from '../categories/categories.service';
 import { PhoneOtpService } from '../phone-verification/phone-otp.service';
 import { EmailService } from '../auth/services/email.service';
 import { toCompanyDetail, toCompanyPublic } from './mappers/company.mapper';
+import { toReviewPublic } from '../reviews/mappers/review.mapper';
 import {
   toAdminCompanyVerificationDetail,
   toAdminCompanyVerificationSummary,
@@ -65,7 +66,7 @@ export class CompaniesService {
     ]);
 
     return {
-      data: companies.map(toCompanyPublic),
+      data: companies.map((company) => toCompanyPublic(company)),
       meta: buildPaginationMeta(query.page, query.limit, total),
     };
   }
@@ -77,7 +78,11 @@ export class CompaniesService {
       throw new NotFoundException('Company not found');
     }
 
-    return toCompanyPublic(company);
+    const ratingDistribution = await this.companiesRepository.getApprovedRatingDistribution(
+      company.id,
+    );
+
+    return toCompanyPublic(company, { ratingDistribution });
   }
 
   async register(user: AuthenticatedUser, input: CreateCompanyInput): Promise<CompanyDetail> {
@@ -152,7 +157,11 @@ export class CompaniesService {
       throw new NotFoundException('No company profile found for this account');
     }
 
-    return toCompanyDetail(company);
+    const ratingDistribution = await this.companiesRepository.getApprovedRatingDistribution(
+      company.id,
+    );
+
+    return toCompanyDetail(company, { ratingDistribution });
   }
 
   async getDashboard(userId: string): Promise<CompanyDashboard> {
@@ -162,14 +171,25 @@ export class CompaniesService {
       throw new NotFoundException('No company profile found for this account');
     }
 
-    const reviewStats = await this.companiesRepository.getReviewStats(company.id);
+    const [reviewStats, dailyActivity, topReviewers, latestReviews, monthlyPageVisits] =
+      await Promise.all([
+        this.companiesRepository.getReviewStats(company.id),
+        this.getCompanyDailyAnalytics(company.id),
+        this.getCompanyTopReviewers(company.id),
+        this.getCompanyLatestReviews(company.id),
+        this.getMonthlyPageVisits(company.id),
+      ]);
 
     return {
       company: toCompanyDetail(company),
       stats: {
         ...reviewStats,
         averageRating: Number(company.ratingAverage),
+        monthlyPageVisits,
       },
+      dailyActivity,
+      topReviewers,
+      latestReviews,
     };
   }
 
@@ -370,6 +390,15 @@ export class CompaniesService {
       ...(input.description !== undefined && {
         description: input.description?.trim() ?? null,
       }),
+      ...(input.websiteUrl !== undefined && {
+        websiteUrl: input.websiteUrl?.trim() ?? null,
+      }),
+      ...(input.services !== undefined && {
+        services: input.services
+          .map((service) => service.trim())
+          .filter(Boolean)
+          .slice(0, 20),
+      }),
       ...(input.logo !== undefined && { logo: input.logo }),
       ...(input.coverUrl !== undefined && { coverUrl: input.coverUrl }),
       ...(input.address !== undefined && { address: input.address.trim() }),
@@ -396,8 +425,14 @@ export class CompaniesService {
       ...(input.city !== undefined && { city: input.city.trim() }),
     });
 
+    if (input.projects !== undefined) {
+      await this.companiesRepository.replaceProjects(companyId, input.projects);
+    }
+
     const refreshed = await this.companiesRepository.findById(companyId);
-    return toCompanyDetail(refreshed!);
+    const ratingDistribution =
+      await this.companiesRepository.getApprovedRatingDistribution(companyId);
+    return toCompanyDetail(refreshed!, { ratingDistribution });
   }
 
   private async generateUniqueSlug(name: string, excludeId?: string): Promise<string> {
@@ -424,5 +459,185 @@ export class CompaniesService {
     }
 
     return candidate;
+  }
+
+  async recordPageView(slug: string, visitorId: string, userId?: string): Promise<MessageResponse> {
+    const company = await this.companiesRepository.findBySlug(slug);
+
+    if (!company) {
+      throw new NotFoundException('Company not found');
+    }
+
+    const dayStart = new Date();
+    dayStart.setHours(0, 0, 0, 0);
+
+    const existingView = userId
+      ? await this.prisma.companyPageView.findFirst({
+          where: {
+            companyId: company.id,
+            userId,
+            viewedAt: { gte: dayStart },
+          },
+          select: { id: true },
+        })
+      : await this.prisma.companyPageView.findFirst({
+          where: {
+            companyId: company.id,
+            visitorId,
+            viewedAt: { gte: dayStart },
+          },
+          select: { id: true },
+        });
+
+    if (existingView) {
+      return { message: 'Page view already recorded today' };
+    }
+
+    await this.prisma.companyPageView.create({
+      data: {
+        companyId: company.id,
+        visitorId,
+        userId: userId ?? null,
+      },
+    });
+
+    return { message: 'Page view recorded' };
+  }
+
+  private async getCompanyDailyAnalytics(companyId: string) {
+    const rangeStart = new Date();
+    rangeStart.setHours(0, 0, 0, 0);
+    rangeStart.setDate(rangeStart.getDate() - 6);
+
+    const [reviews, pageViews] = await Promise.all([
+      this.prisma.review.findMany({
+        where: { companyId, createdAt: { gte: rangeStart } },
+        select: { createdAt: true },
+      }),
+      this.prisma.companyPageView.findMany({
+        where: { companyId, viewedAt: { gte: rangeStart } },
+        select: { viewedAt: true },
+      }),
+    ]);
+
+    const buckets = Array.from({ length: 7 }, (_, index) => {
+      const dayStart = new Date(rangeStart);
+      dayStart.setDate(dayStart.getDate() + index);
+
+      return {
+        date: dayStart.toISOString().slice(0, 10),
+        reviewCount: 0,
+        pageVisits: 0,
+      };
+    });
+
+    for (const review of reviews) {
+      const dayIndex = Math.floor(
+        (review.createdAt.getTime() - rangeStart.getTime()) / (24 * 60 * 60 * 1000),
+      );
+
+      if (dayIndex < 0 || dayIndex >= buckets.length) continue;
+
+      const bucket = buckets[dayIndex];
+      if (!bucket) continue;
+
+      bucket.reviewCount += 1;
+    }
+
+    for (const view of pageViews) {
+      const dayIndex = Math.floor(
+        (view.viewedAt.getTime() - rangeStart.getTime()) / (24 * 60 * 60 * 1000),
+      );
+
+      if (dayIndex < 0 || dayIndex >= buckets.length) continue;
+
+      const bucket = buckets[dayIndex];
+      if (!bucket) continue;
+
+      bucket.pageVisits += 1;
+    }
+
+    return buckets.map(({ date, reviewCount, pageVisits }) => ({
+      date,
+      reviewCount,
+      pageVisits,
+    }));
+  }
+
+  private async getMonthlyPageVisits(companyId: string): Promise<number> {
+    const monthStart = new Date();
+    monthStart.setDate(1);
+    monthStart.setHours(0, 0, 0, 0);
+
+    return this.prisma.companyPageView.count({
+      where: { companyId, viewedAt: { gte: monthStart } },
+    });
+  }
+
+  private async getCompanyTopReviewers(companyId: string) {
+    const groups = await this.prisma.review.groupBy({
+      by: ['userId'],
+      where: { companyId, status: 'APPROVED' },
+      _count: { id: true },
+      _avg: { rating: true },
+      orderBy: { _count: { id: 'desc' } },
+      take: 5,
+    });
+
+    if (!groups.length) return [];
+
+    const users = await this.prisma.user.findMany({
+      where: { id: { in: groups.map((group) => group.userId) } },
+      include: { profile: { select: { fullName: true } } },
+    });
+
+    const userMap = new Map(users.map((user) => [user.id, user]));
+
+    return groups.map((group) => {
+      const user = userMap.get(group.userId);
+      return {
+        id: group.userId,
+        name: user?.profile?.fullName ?? user?.displayName ?? user?.email ?? 'Reviewer',
+        email: user?.email ?? '',
+        reviewCount: group._count.id,
+        ratingAverage: Number(group._avg.rating ?? 0),
+      };
+    });
+  }
+
+  private async getCompanyLatestReviews(companyId: string) {
+    const reviews = await this.prisma.review.findMany({
+      where: { companyId },
+      orderBy: { createdAt: 'desc' },
+      take: 8,
+      include: {
+        user: {
+          select: {
+            id: true,
+            email: true,
+            displayName: true,
+            phone: true,
+            phoneVerified: true,
+            profile: { select: { fullName: true, avatarUrl: true, phone: true } },
+          },
+        },
+        company: {
+          select: {
+            id: true,
+            name: true,
+            slug: true,
+            categoryId: true,
+            email: true,
+            owner: { select: { id: true, email: true } },
+            category: { select: { id: true, name: true } },
+          },
+        },
+        replies: true,
+        attachments: true,
+        serviceRatings: { include: { categoryService: { select: { id: true, name: true } } } },
+      },
+    });
+
+    return reviews.map(toReviewPublic);
   }
 }

@@ -1,5 +1,6 @@
 'use client';
 
+import { AdminCompanyMetrics } from '@/components/dashboard/admin-company-metrics';
 import { DashboardShell } from '@/components/dashboard/dashboard-shell';
 import { Button } from '@/components/ui/button';
 import { useRequireFirebaseAdmin } from '@/hooks/use-require-firebase-admin';
@@ -13,7 +14,7 @@ import type {
 } from '@rateq/types';
 import { cn } from '@/lib/utils';
 import { Building2, ExternalLink, FileText, ImageIcon, Loader2 } from 'lucide-react';
-import { useTranslations } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 import { useCallback, useEffect, useState } from 'react';
 import { toast } from 'sonner';
 
@@ -21,6 +22,7 @@ type FilterStatus = CompanyVerificationStatus | 'all';
 
 export default function AdminCompanyVerificationsPage() {
   const t = useTranslations('adminCompanies');
+  const locale = useLocale();
   const [filter, setFilter] = useState<FilterStatus>('pending');
   const [items, setItems] = useState<AdminCompanyVerificationSummary[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -185,10 +187,18 @@ export default function AdminCompanyVerificationsPage() {
                       )}
                     </div>
                     <div className="min-w-0 flex-1">
-                      <p className="truncate font-semibold text-ink">{item.name}</p>
-                      <p className="text-xs text-ink-muted">
-                        {item.city}, {item.country}
-                      </p>
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="min-w-0">
+                          <p className="truncate font-semibold text-ink">{item.name}</p>
+                          <p className="text-xs text-ink-muted">
+                            {item.city}, {item.country}
+                          </p>
+                        </div>
+                        <AdminCompanyMetrics
+                          reviewCount={item.reviewCount}
+                          pageVisitCount={item.pageVisitCount}
+                        />
+                      </div>
                       <StatusBadge
                         status={item.verificationStatus}
                         label={t(`status.${item.verificationStatus}`)}
@@ -221,6 +231,7 @@ export default function AdminCompanyVerificationsPage() {
               onApprove={() => void handleDecision('approved')}
               onReject={() => void handleDecision('rejected')}
               onSendRevision={() => void handleDecision('revision_requested')}
+              locale={locale}
               t={t}
             />
           )}
@@ -257,6 +268,7 @@ function CompanyDetailPanel({
   onApprove,
   onReject,
   onSendRevision,
+  locale,
   t,
 }: {
   detail: AdminCompanyVerificationDetail;
@@ -269,6 +281,7 @@ function CompanyDetailPanel({
   onApprove: () => void;
   onReject: () => void;
   onSendRevision: () => void;
+  locale: string;
   t: ReturnType<typeof useTranslations<'adminCompanies'>>;
 }) {
   const canDecide = detail.verificationStatus === 'pending';
@@ -286,19 +299,26 @@ function CompanyDetailPanel({
             label={t(`status.${detail.verificationStatus}`)}
           />
         </div>
-        {canDecide && (
-          <div className="flex flex-wrap gap-2">
-            <Button variant="outline-brand" disabled={acting} onClick={onReject}>
-              {t('reject')}
-            </Button>
-            <Button variant="outline" disabled={acting} onClick={onOpenRevision}>
-              {t('sendForReview')}
-            </Button>
-            <Button disabled={acting} onClick={onApprove}>
-              {acting ? t('acting') : t('approve')}
-            </Button>
-          </div>
-        )}
+        <div className="flex flex-wrap items-start gap-4">
+          <AdminCompanyMetrics
+            reviewCount={detail.reviewCount}
+            pageVisitCount={detail.pageVisitCount}
+            size="md"
+          />
+          {canDecide && (
+            <div className="flex flex-wrap gap-2">
+              <Button variant="outline-brand" disabled={acting} onClick={onReject}>
+                {t('reject')}
+              </Button>
+              <Button variant="outline" disabled={acting} onClick={onOpenRevision}>
+                {t('sendForReview')}
+              </Button>
+              <Button disabled={acting} onClick={onApprove}>
+                {acting ? t('acting') : t('approve')}
+              </Button>
+            </div>
+          )}
+        </div>
       </div>
 
       {detail.revisionNotes && (
@@ -337,9 +357,23 @@ function CompanyDetailPanel({
         <DetailItem label={t('address')} value={detail.address ?? '—'} className="sm:col-span-2" />
         <DetailItem
           label={t('validationDate')}
-          value={detail.validationDate ? new Date(detail.validationDate).toLocaleDateString() : '—'}
+          value={
+            detail.validationDate
+              ? new Date(detail.validationDate).toLocaleDateString(locale, {
+                  month: 'short',
+                  day: 'numeric',
+                  year: 'numeric',
+                })
+              : '—'
+          }
         />
-        <DetailItem label={t('submittedAt')} value={new Date(detail.createdAt).toLocaleString()} />
+        <DetailItem
+          label={t('submittedAt')}
+          value={new Date(detail.createdAt).toLocaleString(locale, {
+            dateStyle: 'medium',
+            timeStyle: 'short',
+          })}
+        />
       </dl>
 
       <section>

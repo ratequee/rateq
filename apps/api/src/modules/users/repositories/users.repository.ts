@@ -15,8 +15,15 @@ export interface ListUsersFilters {
 export class UsersRepository {
   constructor(private readonly prisma: PrismaService) {}
 
-  findById(id: string): Promise<User | null> {
-    return this.prisma.user.findUnique({ where: { id } });
+  findById(
+    id: string,
+  ): Promise<
+    (User & { profile?: { fullName: string; city: string; country: string } | null }) | null
+  > {
+    return this.prisma.user.findUnique({
+      where: { id },
+      include: { profile: { select: { fullName: true, city: true, country: true } } },
+    });
   }
 
   findByEmail(email: string): Promise<User | null> {
@@ -35,6 +42,9 @@ export class UsersRepository {
       skip: paginationSkip(filters.page, filters.limit),
       take: filters.limit,
       orderBy: { createdAt: 'desc' },
+      include: {
+        profile: { select: { fullName: true, city: true, country: true } },
+      },
     });
   }
 
@@ -59,9 +69,7 @@ export class UsersRepository {
   }
 
   revokeAllSessions(userId: string): Promise<void> {
-    return this.prisma.refreshToken
-      .deleteMany({ where: { userId } })
-      .then(() => undefined);
+    return this.prisma.refreshToken.deleteMany({ where: { userId } }).then(() => undefined);
   }
 
   private buildWhereClause(filters: ListUsersFilters): Prisma.UserWhereInput {

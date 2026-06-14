@@ -1,16 +1,21 @@
 'use client';
 
-import type { ReviewPublic } from '@rateq/types';
-import { buildReviewDistribution } from '@/lib/review-distribution';
+import type { ReviewRatingDistribution } from '@rateq/types';
+import { buildReviewDistributionFromCounts } from '@/lib/review-distribution';
 import { Star } from 'lucide-react';
 
 interface CompanyReviewsSummaryCardProps {
-  reviews: ReviewPublic[];
   average: number;
+  reviewCount: number;
+  distribution: ReviewRatingDistribution;
 }
 
-export function CompanyReviewsSummaryCard({ reviews, average }: CompanyReviewsSummaryCardProps) {
-  const distribution = buildReviewDistribution(reviews);
+export function CompanyReviewsSummaryCard({
+  average,
+  reviewCount,
+  distribution,
+}: CompanyReviewsSummaryCardProps) {
+  const rows = buildReviewDistributionFromCounts(distribution, reviewCount);
 
   return (
     <aside className="h-auto w-full self-start rounded-2xl border border-brand-500 bg-brand-500 p-6 shadow-sm">
@@ -20,7 +25,7 @@ export function CompanyReviewsSummaryCard({ reviews, average }: CompanyReviewsSu
       </div>
 
       <ul className="mt-6 space-y-3">
-        {distribution.map(({ stars, percentage }) => (
+        {rows.map(({ stars, percentage }) => (
           <li key={stars} className="flex items-center gap-2.5">
             <div className="h-3 w-3 rounded bg-slate-200" />
             <span className="w-4 shrink-0 text-sm font-medium text-white">{stars}</span>

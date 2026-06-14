@@ -9,13 +9,20 @@ export function toSafeUser(user: User): SafeUser {
   return safe;
 }
 
-export function toUserProfile(user: User): UserProfile {
+export function toUserProfile(
+  user: User & { profile?: { fullName: string; city: string; country: string } | null },
+): UserProfile {
   return {
     id: user.id,
     email: user.email,
     role: user.role as UserRole,
     isVerified: user.isVerified,
+    isActive: user.isActive,
     reviewCount: user.reviewCount,
+    displayName: user.displayName,
+    fullName: user.profile?.fullName ?? null,
+    city: user.profile?.city ?? null,
+    country: user.profile?.country ?? null,
     createdAt: user.createdAt.toISOString(),
     updatedAt: user.updatedAt.toISOString(),
   };

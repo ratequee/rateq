@@ -1,3 +1,4 @@
+import { CompanyPageViewTracker } from '@/components/company/company-page-view-tracker';
 import { CompanyHeroSection } from '@/components/company/company-hero-section';
 import { CompanyRatingBreakdown } from '@/components/company/company-rating-breakdown';
 import { CompanyServicesSection } from '@/components/company/company-services-section';
@@ -6,6 +7,7 @@ import { CompanyReviewsSection } from '@/components/company/company-reviews-sect
 import { CompanyReviewsHubSection } from '@/components/company/company-reviews-hub-section';
 import { RelatedCompaniesSection } from '@/components/company/related-companies-section';
 import { fetchCompanyBySlug } from '@/lib/companies-data';
+import { fetchCategoryServicesForCompany } from '@/lib/categories-data';
 import { reviewsApi } from '@/lib/api';
 import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
@@ -51,6 +53,8 @@ export default async function CompanyPage({ params }: CompanyPageProps): Promise
     notFound();
   }
 
+  const categoryServices = await fetchCategoryServicesForCompany(company.categoryId);
+
   let reviews = { data: [] as Awaited<ReturnType<typeof reviewsApi.listByCompany>>['data'] };
   try {
     reviews = await reviewsApi.listByCompany(company.id);
@@ -60,6 +64,7 @@ export default async function CompanyPage({ params }: CompanyPageProps): Promise
 
   return (
     <>
+      <CompanyPageViewTracker slug={slug} />
       <CompanyHeroSection company={company} />
 
       <div className="mx-auto max-w-page px-4 pb-12 sm:px-6 sm:pb-16 lg:px-8">
@@ -107,7 +112,7 @@ export default async function CompanyPage({ params }: CompanyPageProps): Promise
                   )}
                 </div>
 
-                <div className="flex min-w-0 flex-1 flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+                <div className="flex min-w-0 flex-1 flex-col gap-4 sm:flex-row sm:items-end sm:justify-between mt-2">
                   <div>
                     <h1 className="text-xl font-bold text-ink sm:text-3xl lg:text-2xl">
                       {company.name}
@@ -118,6 +123,20 @@ export default async function CompanyPage({ params }: CompanyPageProps): Promise
                     </p>
                   </div>
                   <div className="flex flex-col items-start gap-3 sm:items-end">
+                    {company.websiteUrl ? (
+                      <a
+                        href={
+                          company.websiteUrl.startsWith('http')
+                            ? company.websiteUrl
+                            : `https://${company.websiteUrl}`
+                        }
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-sm font-medium text-brand-500 hover:underline sm:text-base"
+                      >
+                        {t('visitWebsite')}
+                      </a>
+                    ) : null}
                     <div className="flex items-center gap-2">
                       <Star className="h-4 w-4 fill-gold-500 stroke-2 text-gold-500" />
                       <span className="text-sm font-bold leading-none text-ink sm:text-lg">
@@ -166,53 +185,39 @@ export default async function CompanyPage({ params }: CompanyPageProps): Promise
               </div>
             </div>
 
-            {/* {company.description && (
+            {company.description ? (
               <div className="mt-8 border-t border-slate-100 bg-slate-50 p-8">
                 <h2 className="text-lg font-bold text-ink sm:text-xl lg:text-2xl">
-                  About {company.name}
+                  {t('aboutTitle', { name: company.name })}
                 </h2>
-                <p className="mt-4 max-w-3xl text-sm leading-relaxed text-ink-muted sm:text-base">
+                <p className="mt-4 max-w-3xl whitespace-pre-wrap text-sm leading-relaxed text-ink-muted sm:text-base">
                   {company.description}
                 </p>
                 <a href="#reviews-hub">
-                  <Button className="mt-4" >
-                    {t('reviewsText')}
-                  </Button>
+                  <Button className="mt-4">{t('reviewsText')}</Button>
                 </a>
               </div>
-              )} */}
-            <div className="mt-8 border-t border-slate-100 bg-slate-50 p-8">
-              <h2 className="text-lg font-bold text-ink sm:text-xl lg:text-2xl">
-                About {company.name}
-              </h2>
-              <p className="mt-4 max-w-3xl text-sm leading-relaxed text-ink-muted sm:text-base">
-                Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor
-                incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud
-                exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute
-                irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla
-                pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia
-                deserunt mollit anim id est laborumLorem ipsum dolor sit amet, consectetur
-                adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
-                Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip
-                ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit
-                esse cillum dolore eu{company.description}
-              </p>
-              <a href="#reviews-hub">
-                <Button className="mt-4">{t('reviewsText')}</Button>
-              </a>
-            </div>
+            ) : null}
           </div>
 
           <div className="mt-20 lg:self-start">
-            <CompanyRatingBreakdown reviews={reviews.data} average={company.ratingAverage} />
-            <CompanyServicesSection companyId={company.id} categoryName={company.categoryName} />
+            <CompanyRatingBreakdown
+              average={company.ratingAverage}
+              reviewCount={company.reviewCount}
+              distribution={company.ratingDistribution}
+            />
+            <CompanyServicesSection services={company.services} />
           </div>
 
           <div className="min-w-0 lg:col-span-1">
-            <CompanyReviewsSection company={company} reviews={reviews.data} />
+            <CompanyReviewsSection
+              company={company}
+              reviews={reviews.data}
+              categoryServices={categoryServices}
+            />
           </div>
           <div className="min-w-0 lg:col-span-2">
-            <CompanyProjectsSection companyId={company.id} />
+            <CompanyProjectsSection projects={company.projects} />
           </div>
         </div>
       </div>

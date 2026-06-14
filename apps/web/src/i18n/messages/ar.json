@@ -347,7 +347,9 @@
     "verifiedBadge": "موثق",
     "claimedBadge": "مُطالب به",
     "reviewCount": "{count} مراجعة",
+    "aboutTitle": "نبذة عن {name}",
     "writeReview": "اكتب مراجعة",
+    "visitWebsite": "زيارة الموقع",
     "readReviews": "اقرأ المراجعات",
     "ratingBreakdownTitle": "توزيع التقييمات",
     "ratingBreakdownSubtitle": "كيف يقيّم العملاء هذه الشركة",
@@ -417,6 +419,22 @@
     "submit": "إرسال الرسالة",
     "sending": "جاري الإرسال...",
     "successMessage": "شكراً لك! تم إرسال رسالتك.",
+    "errorMessage": "تعذر إرسال رسالتك. يرجى المحاولة مرة أخرى.",
+    "validation": {
+      "nameRequired": "يرجى إدخال اسمك الكامل.",
+      "nameInvalid": "يمكن أن يحتوي الاسم على أحرف ومسافات فقط.",
+      "nameMin": "يجب أن يكون الاسم حرفين على الأقل.",
+      "nameMax": "يجب ألا يتجاوز الاسم 100 حرف.",
+      "emailRequired": "يرجى إدخال بريدك الإلكتروني.",
+      "emailInvalid": "يرجى إدخال بريد إلكتروني صالح.",
+      "phoneRequired": "يرجى إدخال رقم هاتفك.",
+      "phoneInvalid": "يرجى إدخال رقم هاتف صالح.",
+      "subjectRequired": "يرجى اختيار موضوع.",
+      "subjectInvalid": "يرجى اختيار موضوع صالح.",
+      "messageRequired": "يرجى إدخال رسالتك.",
+      "messageMin": "يجب أن تكون الرسالة 20 حرفاً على الأقل.",
+      "messageMax": "يجب ألا تتجاوز الرسالة 2000 حرف."
+    },
     "hoursTitle": "ساعات العمل",
     "hoursWeekdays": "الأحد – الخميس: 9:00 ص – 6:00 م",
     "hoursWeekend": "الجمعة – السبت: مغلق",
@@ -566,7 +584,38 @@
     "selectCategory": "اختر فئة",
     "profileSettingsTitle": "إعدادات الملف الشخصي",
     "profileSettingsSubtitle": "حدّث معلومات حسابك.",
+    "accountEmailLabel": "البريد الإلكتروني",
     "saveChanges": "حفظ التغييرات",
+    "savePublicProfile": "حفظ الملف العام",
+    "publicProfileUpdated": "تم تحديث الملف العام بنجاح.",
+    "projectsPageTitle": "المشاريع",
+    "projectsPageSubtitle": "اعرض أعمال شركتك بعناوين وصور على ملفك العام.",
+    "saveProjects": "حفظ المشاريع",
+    "projectsUpdated": "تم تحديث المشاريع بنجاح.",
+    "publicProfileTitle": "ملف الشركة العام",
+    "publicProfileSubtitle": "إدارة ما يراه العملاء على صفحة شركتك.",
+    "companyAbout": "نبذة عن شركتك",
+    "companyAboutHint": "صف نشاطك التجاري وقيمك وما يميزك.",
+    "companyAboutPlaceholder": "أخبر العملاء عن شركتك…",
+    "websiteUrl": "رابط الموقع",
+    "websiteUrlHint": "اختياري. يظهر على صفحة شركتك العامة.",
+    "companyServices": "الخدمات",
+    "companyServicesHint": "اذكر الخدمات التي تقدمها (حتى 20).",
+    "servicePlaceholder": "مثال: استشارات مالية",
+    "addService": "إضافة خدمة",
+    "removeService": "إزالة الخدمة",
+    "companyProjects": "المشاريع",
+    "companyProjectsHint": "يتطلب كل مشروع عنواناً وصورة غلاف ورابطاً (حتى 12).",
+    "addProject": "إضافة مشروع",
+    "removeProject": "إزالة المشروع",
+    "projectTitle": "عنوان المشروع",
+    "projectImage": "صورة المشروع",
+    "projectCoverImage": "صورة الغلاف",
+    "projectUrl": "رابط المشروع",
+    "projectTitleRequired": "يجب إدخال عنوان لكل مشروع.",
+    "projectUrlRequired": "يجب إدخال رابط صالح لكل مشروع (https://…).",
+    "projectImageRequired": "كل مشروع يحتاج عنواناً وصورة.",
+    "noProjectsYet": "لم تُضف مشاريع بعد.",
     "profileUpdated": "تم تحديث الملف الشخصي بنجاح.",
     "crNumber": "رقم السجل التجاري",
     "validationDate": "تاريخ التحقق",
@@ -652,6 +701,7 @@
     "latestRatingsChart": "آخر التقييمات",
     "daily": "يومي",
     "topCompanies": "الشركات الأعلى تقييماً",
+    "recentlyRatedCompanies": "الشركات المُقيّمة مؤخراً",
     "topReviewers": "أكثر المُراجعين تقييماً",
     "pendingReviews": "تقييمات قيد الانتظار",
     "notificationItem": "تم إلغاء التقييم",
@@ -662,6 +712,7 @@
     "nav": {
       "home": "الصفحة الرئيسية",
       "products": "المنتجات",
+      "projects": "المشاريع",
       "categories": "الفئات والخصائص",
       "inventory": "إدارة المخزون",
       "orders": "إدارة الطلبات",
@@ -671,6 +722,7 @@
       "customers": "إدارة العملاء",
       "settings": "إعدادات النظام",
       "companyVerifications": "طلبات الشركات",
+      "directory": "الدليل",
       "viewSite": "عرض الموقع العام"
     },
     "stats": {
@@ -683,7 +735,8 @@
       "pendingReviews": "مراجعات قيد المراجعة",
       "approvedReviews": "مراجعات معتمدة",
       "rejectedReviews": "مراجعات مرفوضة",
-      "averageRating": "متوسط التقييم"
+      "averageRating": "متوسط التقييم",
+      "monthlyPageVisits": "زيارات الصفحة هذا الشهر"
     },
     "table": {
       "company": "الشركة",
@@ -699,12 +752,66 @@
       "useful": "مفيد"
     }
   },
+  "dashboardReviews": {
+    "adminTitle": "إدارة المراجعات",
+    "adminSubtitle": "اقبل أو ارفض أو أرسل المراجعات السلبية إلى مسار الحل بين الشركة والمراجع.",
+    "reviewerTitle": "مراجعاتي",
+    "reviewerSubtitle": "تابع مراجعاتك المُرسلة واستجب لطلبات الحل.",
+    "companyTitle": "مراجعات الشركة",
+    "companySubtitle": "اعرض جميع المراجعات المقدمة لشركتك، بما في ذلك المعلقة والمرفوضة.",
+    "companyMissing": "لم يتم العثور على ملف شركة لهذا الحساب.",
+    "reviewsTitle": "المراجعات",
+    "searchPlaceholder": "ابحث في المراجعات أو الشركات أو المراجعين",
+    "allStatuses": "جميع الحالات",
+    "allCategories": "جميع التصنيفات",
+    "applyFilters": "تطبيق الفلاتر",
+    "resultsCount": "{count} مراجعة",
+    "empty": "لا توجد مراجعات مطابقة للفلاتر.",
+    "selectReview": "اختر مراجعة لعرض التفاصيل.",
+    "reviewContent": "المراجعة",
+    "companyReply": "رد الشركة",
+    "unknownReviewer": "المراجع",
+    "unknownCompany": "الشركة",
+    "accept": "قبول",
+    "reject": "رفض",
+    "resolve": "حل",
+    "proceed": "متابعة ونشر",
+    "withdraw": "سحب المراجعة",
+    "resolutionHint": "قد تتواصل معك الشركة لحل المشكلة. اختر ما إذا كنت تريد نشر المراجعة أو سحبها.",
+    "adminResolutionHint": "هذه المراجعة بانتظار قرار المراجع بالمتابعة أو السحب. إجراءات الإدارة غير متاحة حتى يرد.",
+    "reviewAgain": "كتابة مراجعة جديدة",
+    "reviewAgainHint": "تم سحب مراجعتك السابقة أو رفضها. تبقى في السجل لكنها مخفية عن الصفحات العامة. يمكنك إرسال مراجعة جديدة.",
+    "approvedSuccess": "تم قبول المراجعة.",
+    "rejectedSuccess": "تم رفض المراجعة.",
+    "resolveSuccess": "تم إرسال المراجعة للحل.",
+    "delete": "حذف",
+    "deleteConfirm": "حذف هذه المراجعة نهائياً؟ ستُزال من صفحة الشركة ولا يمكن التراجع عن ذلك.",
+    "deleteSuccess": "تم حذف المراجعة.",
+    "deleteReply": "حذف الرد",
+    "deleteReplyConfirm": "حذف رد الشركة نهائياً؟",
+    "deleteReplySuccess": "تم حذف الرد.",
+    "proceedSuccess": "تم نشر المراجعة.",
+    "withdrawSuccess": "تم سحب المراجعة.",
+    "loadError": "تعذر تحميل المراجعات.",
+    "actionError": "تعذر إكمال هذا الإجراء.",
+    "sessionExpired": "انتهت الجلسة. يرجى تسجيل الدخول مرة أخرى.",
+    "previous": "السابق",
+    "next": "التالي",
+    "pageOf": "صفحة {page} من {total}",
+    "status": {
+      "PENDING": "قيد الانتظار",
+      "RESOLUTION_PENDING": "بانتظار الحل",
+      "APPROVED": "مقبولة",
+      "REJECTED": "مرفوضة"
+    }
+  },
   "review": {
     "title": "عنوان المراجعة",
     "content": "تجربتك",
     "rating": "تقييمك",
     "submit": "إرسال المراجعة",
     "pending": "قيد المراجعة",
+    "resolutionPending": "بانتظار الحل",
     "approved": "منشورة",
     "loginToReview": "سجّل الدخول لمشاركة تجربتك مع هذه الشركة.",
     "cannotReviewOwn": "لا يمكن لمالك الشركة تقييم نشاطه التجاري.",
@@ -716,8 +823,22 @@
     "replySubmit": "نشر الرد",
     "replySubmitted": "تم نشر الرد بنجاح.",
     "replyTooShort": "يجب أن يكون الرد 5 أحرف على الأقل.",
-    "submittedSuccess": "شكراً لك! تم إرسال مراجعتك.",
+    "submittedSuccess": "شكراً لك! تم إرسال مراجعتك وهي قيد المراجعة.",
     "submittedPendingNote": "مراجعتك قيد المراجعة وستظهر للعامة بعد الموافقة عليها.",
+    "myReviewTitle": "مراجعتك",
+    "myReviewPending": "تم إرسال مراجعتك بنجاح وهي قيد مراجعة الإدارة. ستظهر للعامة بعد الموافقة عليها.",
+    "myReviewResolutionPending": "مراجعتك في مرحلة الحل. قد تتواصل معك الشركة. يمكنك المتابعة للنشر أو السحب من لوحة مراجعاتك.",
+    "myReviewApproved": "مراجعتك منشورة على صفحة هذه الشركة.",
+    "myReviewRejected": "لم تتم الموافقة على مراجعتك ولن تُعرض للعامة.",
+    "myReviewManageResolution": "إدارة الحل",
+    "reviewAgain": "كتابة مراجعة جديدة",
+    "reviewAgainHint": "تم سحب مراجعتك السابقة أو رفضها. تبقى مسجلة لكنها مخفية عن الصفحات العامة. يمكنك إرسال مراجعة جديدة.",
+    "statusLabel": {
+      "PENDING": "قيد المراجعة",
+      "RESOLUTION_PENDING": "بانتظار الحل",
+      "APPROVED": "منشورة",
+      "REJECTED": "غير مقبولة"
+    },
     "submitError": "تعذر إرسال مراجعتك.",
     "serviceRatingsHint": "قيّم كل خدمة ضمن فئة هذه الشركة.",
     "aggregatedRating": "التقييم الإجمالي: {rating} / 5",
@@ -738,6 +859,191 @@
     "users": "المستخدمون",
     "approve": "موافقة",
     "reject": "رفض"
+  },
+  "adminOverview": {
+    "stats": {
+      "totalCompanies": "إجمالي الشركات",
+      "totalReviewers": "إجمالي المُراجعين",
+      "totalReviews": "إجمالي المراجعات",
+      "pendingReviews": "مراجعات قيد الانتظار",
+      "approvedReviews": "مراجعات معتمدة"
+    },
+    "reviewsChart": "المراجعات المُرسلة",
+    "last7Days": "آخر 7 أيام",
+    "reviewCountLabel": "{count} مراجعة",
+    "reviewerCountLabel": "عدد المقيمين : {count}",
+    "noData": "لا توجد بيانات بعد.",
+    "chartEmpty": "لم تُرسل مراجعات خلال آخر 7 أيام.",
+    "chartLegendCompanies": "الشركات",
+    "chartLegendReviewers": "المقيمين",
+    "pendingCount": "{count} بانتظار المراجعة",
+    "resolutionCount": "{count} بانتظار الحل",
+    "rejectedCount": "{count} مرفوضة"
+  },
+  "adminDirectory": {
+    "title": "دليل المنصة",
+    "subtitle": "إدارة المُراجعين والشركات والمراجعات والردود.",
+    "tabs": {
+      "reviewers": "المُراجعون",
+      "companies": "الشركات",
+      "reviews": "المراجعات"
+    },
+    "search": "بحث",
+    "searchReviewers": "البحث عن مُراجع بالبريد",
+    "searchCompanies": "البحث عن شركة بالاسم",
+    "selectReviewer": "اختر مُراجعاً لعرض التفاصيل.",
+    "selectCompany": "اختر شركة لعرض التفاصيل.",
+    "emptyReviewers": "لم يُعثر على مُراجعين.",
+    "emptyCompanies": "لم يُعثر على شركات.",
+    "reviewCount": "{count} مراجعة",
+    "pageVisitCount": "{count} زيارة للصفحة",
+    "active": "نشط",
+    "inactive": "معطّل",
+    "deactivate": "تعطيل الحساب",
+    "activate": "تفعيل الحساب",
+    "deleteAccount": "حذف الحساب",
+    "deactivateOwner": "تعطيل حساب المالك",
+    "activateOwner": "تفعيل حساب المالك",
+    "deleteCompany": "حذف الشركة",
+    "reviewsAndReplies": "المراجعات والردود",
+    "noReviews": "لا توجد مراجعات بعد.",
+    "ownerEmail": "المالك: {email}",
+    "verificationStatus": "التحقق: {status}",
+    "loadError": "تعذّر تحميل البيانات.",
+    "deactivateSuccess": "تم تعطيل الحساب.",
+    "activateSuccess": "تم تفعيل الحساب.",
+    "deleteSuccess": "تم الحذف بنجاح.",
+    "deleteReviewerConfirm": "حذف حساب هذا المُراجع نهائياً؟ ستُحذف مراجعاته أيضاً.",
+    "deleteCompanyConfirm": "حذف هذه الشركة نهائياً؟ ستُحذف جميع المراجعات والبيانات."
+  },
+  "adminProjects": {
+    "title": "المشاريع",
+    "subtitle": "نظرة عامة على مشاريع محفظة الشركات عبر المنصة.",
+    "statsChangeUp": "{value} مقارنة بالشهر الماضي",
+    "statsNeedsAction": "يتطلب مراجعة",
+    "stats": {
+      "totalProjects": "إجمالي المشاريع",
+      "featuredProjects": "المشاريع المميزة",
+      "pendingReview": "قيد المراجعة",
+      "companiesWithProjects": "شركات لديها مشاريع"
+    },
+    "tableTitle": "أحدث المشاريع",
+    "tableSubtitle": "عينات من المشاريع المقدمة من شركات موثقة.",
+    "table": {
+      "project": "المشروع",
+      "company": "الشركة",
+      "category": "الفئة",
+      "status": "الحالة",
+      "submitted": "تاريخ الإرسال"
+    },
+    "status": {
+      "featured": "مميز",
+      "published": "منشور",
+      "pending": "قيد المراجعة"
+    },
+    "rows": {
+      "proj-1": {
+        "title": "ترقية البنية التحتية — أشghal",
+        "company": "ATS DUMS",
+        "category": "السيارات"
+      },
+      "proj-2": {
+        "title": "تجهيز مكاتب West Bay",
+        "company": "Qatar Business Solutions",
+        "category": "الأعمال"
+      },
+      "proj-3": {
+        "title": "مركز Premium Auto للتفصيل",
+        "company": "Al Rayyan Motors",
+        "category": "السيارات"
+      },
+      "proj-4": {
+        "title": "تنسيق حدائق Pearl Residence",
+        "company": "Ezdan Real Estate",
+        "category": "العقارات"
+      },
+      "proj-5": {
+        "title": "برنامج العافية للشركات",
+        "company": "Qatar Health Clinic",
+        "category": "الصحة"
+      },
+      "proj-6": {
+        "title": "عقد تنظيف مارينا لوسيل",
+        "company": "Gulf Facility Services",
+        "category": "الأعمال"
+      }
+    }
+  },
+  "adminPayments": {
+    "title": "المدفوعات",
+    "subtitle": "نشاط الفوترة والاشتراكات على المنصة.",
+    "statsChangeUp": "{value} مقارنة بالشهر الماضي",
+    "statsAwaitingTransfer": "بانتظار التحويل",
+    "stats": {
+      "totalRevenue": "إجمالي الإيرادات",
+      "pendingPayouts": "مدفوعات معلقة",
+      "completedThisMonth": "مكتملة هذا الشهر",
+      "activeSubscriptions": "اشتراكات نشطة"
+    },
+    "tableTitle": "أحدث المعاملات",
+    "tableSubtitle": "عينات من سجلات الدفع لخطط الشركات والإضافات.",
+    "table": {
+      "reference": "المرجع",
+      "payer": "الدافع",
+      "plan": "الخطة",
+      "amount": "المبلغ",
+      "status": "الحالة",
+      "date": "التاريخ"
+    },
+    "status": {
+      "completed": "مكتمل",
+      "pending": "معلق",
+      "failed": "فشل",
+      "refunded": "مسترد"
+    },
+    "rows": {
+      "pay-1": {
+        "payer": "ATS DUMS",
+        "plan": "Company Pro — سنوي"
+      },
+      "pay-2": {
+        "payer": "Qatar Business Solutions",
+        "plan": "Company Pro — شهري"
+      },
+      "pay-3": {
+        "payer": "Al Rayyan Motors",
+        "plan": "تعزيز القائمة المميزة"
+      },
+      "pay-4": {
+        "payer": "Ezdan Real Estate",
+        "plan": "Company Pro — سنوي"
+      },
+      "pay-5": {
+        "payer": "Gulf Facility Services",
+        "plan": "تسريع التحقق"
+      },
+      "pay-6": {
+        "payer": "Qatar Health Clinic",
+        "plan": "Company Pro — شهري"
+      }
+    }
+  },
+  "companyOverview": {
+    "noData": "لا توجد بيانات بعد.",
+    "reviewCountLabel": "{count} مراجعة",
+    "activityTitle": "النشاط اليومي",
+    "last7Days": "آخر 7 أيام",
+    "activityEmpty": "لا توجد زيارات للصفحة أو مراجعات خلال آخر 7 أيام.",
+    "chartLegendPageVisits": "زيارات الصفحة",
+    "chartLegendReviews": "المراجعات"
+  },
+  "reviewerOverview": {
+    "noData": "لم تُقيّم أي شركة بعد.",
+    "activityTitle": "النشاط اليومي",
+    "last7Days": "آخر 7 أيام",
+    "activityEmpty": "لا توجد مراجعات أو زيارات لشركات خلال آخر 7 أيام.",
+    "chartLegendVisits": "زيارات الشركات",
+    "chartLegendReviews": "المراجعات"
   },
   "adminCompanies": {
     "title": "طلبات ملفات الشركات",

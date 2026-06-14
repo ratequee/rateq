@@ -1,16 +1,14 @@
 import { ConfigService } from '@nestjs/config';
 import { Test, TestingModule } from '@nestjs/testing';
 import { ReviewsRepository } from '../../reviews/repositories/reviews.repository';
-import {
-  ModerationEngineService,
-  type ModerationContext,
-} from './moderation-engine.service';
+import { ModerationEngineService, type ModerationContext } from './moderation-engine.service';
 import { mockConfigService } from '../../../../test/helpers/mock-config';
 
 describe('ModerationEngineService', () => {
   let service: ModerationEngineService;
   let reviewsRepository: {
-    countUserReviewsSince: jest.Mock;
+    countReviewsOnCompanySince: jest.Mock;
+    countByHashedIpOnCompany: jest.Mock;
     countByFingerprintOnCompany: jest.Mock;
     findRecentByCompany: jest.Mock;
   };
@@ -21,13 +19,15 @@ describe('ModerationEngineService', () => {
     companyId: 'company-1',
     title: 'Great service',
     content: 'Very professional team with excellent support throughout.',
+    hashedIp: null,
     deviceFingerprint: null,
     userCreatedAt: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000),
   };
 
   beforeEach(async () => {
     reviewsRepository = {
-      countUserReviewsSince: jest.fn().mockResolvedValue(0),
+      countReviewsOnCompanySince: jest.fn().mockResolvedValue(0),
+      countByHashedIpOnCompany: jest.fn().mockResolvedValue(0),
       countByFingerprintOnCompany: jest.fn().mockResolvedValue(0),
       findRecentByCompany: jest.fn().mockResolvedValue([]),
     };
@@ -49,6 +49,7 @@ describe('ModerationEngineService', () => {
     expect(result).toEqual({
       newAccount: 0,
       velocity: 0,
+      ipHash: 0,
       fingerprint: 0,
       similarity: 0,
       total: 0,
@@ -67,13 +68,24 @@ describe('ModerationEngineService', () => {
     expect(service.shouldQueue(result)).toBe(false);
   });
 
-  it('adds velocity score when review count exceeds threshold', async () => {
-    reviewsRepository.countUserReviewsSince.mockResolvedValue(5);
+  it('adds company velocity score when review count exceeds threshold', async () => {
+    reviewsRepository.countReviewsOnCompanySince.mockResolvedValue(10);
 
     const result = await service.evaluate(baseContext);
 
     expect(result.velocity).toBe(3);
     expect(service.shouldQueue(result)).toBe(false);
+  });
+
+  it('adds ip hash score when duplicate ip on same company', async () => {
+    reviewsRepository.countByHashedIpOnCompany.mockResolvedValue(1);
+
+    const result = await service.evaluate({
+      ...baseContext,
+      hashedIp: 'hashed-ip-abc',
+    });
+
+    expect(result.ipHash).toBe(2);
   });
 
   it('adds fingerprint score when duplicate device on same company', async () => {
@@ -102,7 +114,7 @@ describe('ModerationEngineService', () => {
   });
 
   it('queues review when total score meets threshold', async () => {
-    reviewsRepository.countUserReviewsSince.mockResolvedValue(5);
+    reviewsRepository.countReviewsOnCompanySince.mockResolvedValue(10);
 
     const result = await service.evaluate({
       ...baseContext,
@@ -115,17 +127,24 @@ describe('ModerationEngineService', () => {
 
   it('buildReasonLog lists triggered signals', () => {
     const reasons = service.buildReasonLog(
-      { newAccount: 2, velocity: 3, fingerprint: 0, similarity: 0, total: 5 },
+      { newAccount: 2, velocity: 3, ipHash: 0, fingerprint: 0, similarity: 0, total: 5 },
       0.9,
     );
 
     expect(reasons).toContain('new_account');
-    expect(reasons).toContain('high_velocity');
+    expect(reasons).toContain('high_company_velocity');
   });
 
   it('buildReasonLog returns passed_checks when no signals', () => {
     expect(
-      service.buildReasonLog({ newAccount: 0, velocity: 0, fingerprint: 0, similarity: 0, total: 0 }),
+      service.buildReasonLog({
+        newAccount: 0,
+        velocity: 0,
+        ipHash: 0,
+        fingerprint: 0,
+        similarity: 0,
+        total: 0,
+      }),
     ).toEqual(['passed_checks']);
   });
 });

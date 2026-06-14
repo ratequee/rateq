@@ -14,6 +14,29 @@ import {
   buildVerificationEmailHtml,
   buildVerificationEmailText,
 } from '../email/email-templates';
+import {
+  buildContactFormEmailHtml,
+  buildContactFormEmailText,
+  type ContactFormEmailContent,
+} from '../../contact/email/contact-email-templates';
+import {
+  buildReviewApprovedEmailHtml,
+  buildReviewApprovedEmailText,
+  buildReviewPublishedEmailHtml,
+  buildReviewPublishedEmailText,
+  buildReviewRejectedEmailHtml,
+  buildReviewRejectedEmailText,
+  buildReviewResolutionCompanyEmailHtml,
+  buildReviewResolutionCompanyEmailText,
+  buildReviewResolutionReviewerEmailHtml,
+  buildReviewResolutionReviewerEmailText,
+  buildReviewWithdrawnEmailHtml,
+  buildReviewWithdrawnEmailText,
+  type ReviewDecisionEmailContent,
+  type ReviewOutcomeEmailContent,
+  type ReviewResolutionCompanyEmailContent,
+  type ReviewResolutionReviewerEmailContent,
+} from '../email/email-review-templates';
 
 @Injectable()
 export class EmailService {
@@ -102,11 +125,133 @@ export class EmailService {
     });
   }
 
+  async sendReviewApprovedEmail(content: ReviewDecisionEmailContent): Promise<void> {
+    const appUrl = this.configService.get('APP_URL', { infer: true });
+
+    await this.send({
+      to: content.reviewerEmail,
+      subject: 'Your RateQ review has been approved',
+      text: buildReviewApprovedEmailText(content),
+      html: buildReviewApprovedEmailHtml({ ...content, appUrl }),
+    });
+  }
+
+  async sendReviewRejectedEmail(content: ReviewDecisionEmailContent): Promise<void> {
+    const appUrl = this.configService.get('APP_URL', { infer: true });
+
+    await this.send({
+      to: content.reviewerEmail,
+      subject: 'Your RateQ review was not approved',
+      text: buildReviewRejectedEmailText(content),
+      html: buildReviewRejectedEmailHtml({ ...content, appUrl }),
+    });
+  }
+
+  async sendReviewResolutionToCompanyEmail(
+    content: ReviewResolutionCompanyEmailContent,
+  ): Promise<void> {
+    const appUrl = this.configService.get('APP_URL', { infer: true });
+    const { companyEmail, ...rest } = content;
+
+    await this.send({
+      to: companyEmail,
+      subject: `Negative review awaiting resolution — ${content.companyName}`,
+      text: buildReviewResolutionCompanyEmailText(content),
+      html: buildReviewResolutionCompanyEmailHtml({ ...rest, appUrl }),
+    });
+  }
+
+  async sendReviewResolutionToReviewerEmail(
+    content: Omit<ReviewResolutionReviewerEmailContent, 'reviewsUrl'>,
+  ): Promise<void> {
+    const appUrl = this.configService.get('APP_URL', { infer: true });
+    const reviewsUrl = `${appUrl}/dashboard/reviewer/reviews`;
+    const payload: ReviewResolutionReviewerEmailContent = { ...content, reviewsUrl };
+
+    await this.send({
+      to: content.reviewerEmail,
+      subject: `Choose whether to publish your review for ${content.companyName}`,
+      text: buildReviewResolutionReviewerEmailText(payload),
+      html: buildReviewResolutionReviewerEmailHtml({ ...payload, appUrl }),
+    });
+  }
+
+  async sendReviewPublishedEmails(content: ReviewOutcomeEmailContent): Promise<void> {
+    const appUrl = this.configService.get('APP_URL', { infer: true });
+
+    await this.send({
+      to: content.reviewerEmail,
+      subject: `Your review for ${content.companyName} is now published`,
+      text: buildReviewPublishedEmailText(content),
+      html: buildReviewPublishedEmailHtml({
+        appUrl,
+        companyName: content.companyName,
+        reviewTitle: content.reviewTitle,
+        isCompany: false,
+      }),
+    });
+
+    if (content.companyEmail) {
+      await this.send({
+        to: content.companyEmail,
+        subject: `A review for ${content.companyName} has been published`,
+        text: buildReviewPublishedEmailText(content),
+        html: buildReviewPublishedEmailHtml({
+          appUrl,
+          companyName: content.companyName,
+          reviewTitle: content.reviewTitle,
+          isCompany: true,
+        }),
+      });
+    }
+  }
+
+  async sendReviewWithdrawnEmails(content: ReviewOutcomeEmailContent): Promise<void> {
+    const appUrl = this.configService.get('APP_URL', { infer: true });
+
+    await this.send({
+      to: content.reviewerEmail,
+      subject: `Your review for ${content.companyName} was withdrawn`,
+      text: buildReviewWithdrawnEmailText(content),
+      html: buildReviewWithdrawnEmailHtml({
+        appUrl,
+        companyName: content.companyName,
+        reviewTitle: content.reviewTitle,
+        isCompany: false,
+      }),
+    });
+
+    if (content.companyEmail) {
+      await this.send({
+        to: content.companyEmail,
+        subject: `A review for ${content.companyName} was withdrawn`,
+        text: buildReviewWithdrawnEmailText(content),
+        html: buildReviewWithdrawnEmailHtml({
+          appUrl,
+          companyName: content.companyName,
+          reviewTitle: content.reviewTitle,
+          isCompany: true,
+        }),
+      });
+    }
+  }
+
+  async sendContactFormEmail(content: ContactFormEmailContent, recipient: string): Promise<void> {
+    await this.send({
+      to: recipient,
+      replyTo: content.email,
+      subject: `RateQ contact form — ${content.subjectLabel}`,
+      text: buildContactFormEmailText(content),
+      html: buildContactFormEmailHtml(content),
+    });
+  }
+
   private async send(options: {
     to: string;
     subject: string;
     text: string;
     html: string;
+    replyTo?: string;
   }): Promise<void> {
     const from = this.configService.get('EMAIL_FROM', { infer: true });
 
@@ -121,6 +266,7 @@ export class EmailService {
     const { error } = await this.resend.emails.send({
       from,
       to: options.to,
+      ...(options.replyTo ? { replyTo: options.replyTo } : {}),
       subject: options.subject,
       text: options.text,
       html: options.html,

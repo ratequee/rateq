@@ -1,19 +1,23 @@
 'use client';
 
-import type { CompanyProject } from '@/lib/company-projects-data';
-import { getCompanyProjects } from '@/lib/company-projects-data';
+import type { CompanyProjectPublic } from '@rateq/types';
 import { cn } from '@/lib/utils';
 import { ArrowRight } from 'lucide-react';
 import { useTranslations } from 'next-intl';
-import { useMemo, useRef } from 'react';
+import { useRef } from 'react';
 
 interface CompanyProjectsSectionProps {
-  companyId: string;
+  projects: CompanyProjectPublic[];
 }
 
-function ProjectCard({ project }: { project: CompanyProject }) {
+function ProjectCard({ project }: { project: CompanyProjectPublic }) {
   return (
-    <article className="flex w-[220px] shrink-0 flex-col overflow-hidden rounded-2xl bg-white shadow-sm sm:w-[240px]">
+    <a
+      href={project.projectUrl}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="flex w-[220px] shrink-0 flex-col overflow-hidden rounded-2xl bg-white shadow-sm sm:w-[240px]"
+    >
       <div className="relative h-36 overflow-hidden sm:h-40">
         <img src={project.imageUrl} alt="" className="h-full w-full object-cover" />
       </div>
@@ -22,14 +26,13 @@ function ProjectCard({ project }: { project: CompanyProject }) {
           {project.title}
         </h3>
       </div>
-    </article>
+    </a>
   );
 }
 
-export function CompanyProjectsSection({ companyId }: CompanyProjectsSectionProps) {
+export function CompanyProjectsSection({ projects }: CompanyProjectsSectionProps) {
   const t = useTranslations('companyPage');
   const scrollRef = useRef<HTMLDivElement>(null);
-  const projects = useMemo(() => getCompanyProjects(companyId), [companyId]);
 
   const scroll = (direction: 'prev' | 'next') => {
     const el = scrollRef.current;
@@ -40,6 +43,10 @@ export function CompanyProjectsSection({ companyId }: CompanyProjectsSectionProp
 
   if (projects.length === 0) return null;
 
+  const visibleProjects = projects.filter((project) => project.projectUrl.trim());
+
+  if (visibleProjects.length === 0) return null;
+
   return (
     <section className="min-w-0 overflow-hidden rounded-2xl bg-[#FBF5F7] p-6 sm:p-8">
       <h2 className="text-lg font-bold text-ink sm:text-2xl">{t('projectsTitle')}</h2>
@@ -49,7 +56,7 @@ export function CompanyProjectsSection({ companyId }: CompanyProjectsSectionProp
           ref={scrollRef}
           className="scrollbar-hide flex w-full max-w-full gap-4 overflow-x-auto overscroll-x-contain pb-2 pe-16"
         >
-          {projects.map((project) => (
+          {visibleProjects.map((project) => (
             <ProjectCard key={project.id} project={project} />
           ))}
         </div>

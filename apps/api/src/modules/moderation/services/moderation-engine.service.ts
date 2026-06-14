@@ -11,6 +11,7 @@ export interface ModerationContext {
   companyId: string;
   content: string;
   title: string;
+  hashedIp?: string | null;
   deviceFingerprint?: string | null;
   userCreatedAt: Date;
 }
@@ -23,19 +24,21 @@ export class ModerationEngineService {
   ) {}
 
   async evaluate(context: ModerationContext): Promise<ModerationScoreBreakdown> {
-    const [newAccount, velocity, fingerprint, similarity] = await Promise.all([
+    const [newAccount, velocity, ipHash, fingerprint, similarityResult] = await Promise.all([
       Promise.resolve(this.scoreNewAccount(context.userCreatedAt)),
-      this.scoreVelocity(context.userId),
+      this.scoreCompanyVelocity(context),
+      this.scoreIpHash(context),
       this.scoreFingerprint(context),
-      this.scoreSimilarity(context),
+      this.computeSimilarity(context),
     ]);
 
     return {
       newAccount,
       velocity,
+      ipHash,
       fingerprint,
-      similarity,
-      total: newAccount + velocity + fingerprint + similarity,
+      similarity: similarityResult.score,
+      total: newAccount + velocity + ipHash + fingerprint + similarityResult.score,
     };
   }
 
@@ -53,7 +56,8 @@ export class ModerationEngineService {
     return accountAgeDays < days ? score : 0;
   }
 
-  private async scoreVelocity(userId: string): Promise<number> {
+  /** 10+ reviews on the same company within the configured window → hold. */
+  private async scoreCompanyVelocity(context: ModerationContext): Promise<number> {
     const windowHours = this.configService.get('MODERATION_VELOCITY_WINDOW_HOURS', {
       infer: true,
     });
@@ -61,9 +65,32 @@ export class ModerationEngineService {
     const score = this.configService.get('MODERATION_VELOCITY_SCORE', { infer: true });
 
     const since = new Date(Date.now() - windowHours * 60 * 60 * 1000);
-    const count = await this.reviewsRepository.countUserReviewsSince(userId, since);
+    const count = await this.reviewsRepository.countReviewsOnCompanySince(
+      context.companyId,
+      since,
+      context.reviewId,
+    );
 
     return count >= threshold ? score : 0;
+  }
+
+  private async scoreIpHash(context: ModerationContext): Promise<number> {
+    if (!context.hashedIp) {
+      return 0;
+    }
+
+    const lookbackDays = this.configService.get('MODERATION_IP_LOOKBACK_DAYS', { infer: true });
+    const score = this.configService.get('MODERATION_IP_HASH_SCORE', { infer: true });
+    const since = new Date(Date.now() - lookbackDays * 24 * 60 * 60 * 1000);
+
+    const count = await this.reviewsRepository.countByHashedIpOnCompany(
+      context.companyId,
+      context.hashedIp,
+      since,
+      context.reviewId,
+    );
+
+    return count > 0 ? score : 0;
   }
 
   private async scoreFingerprint(context: ModerationContext): Promise<number> {
@@ -87,7 +114,9 @@ export class ModerationEngineService {
     return count > 0 ? score : 0;
   }
 
-  private async scoreSimilarity(context: ModerationContext): Promise<number> {
+  private async computeSimilarity(
+    context: ModerationContext,
+  ): Promise<{ score: number; maxSimilarity: number }> {
     const lookbackDays = this.configService.get('MODERATION_SIMILARITY_LOOKBACK_DAYS', {
       infer: true,
     });
@@ -108,18 +137,21 @@ export class ModerationEngineService {
 
     for (const review of recent) {
       const other = `${review.title} ${review.content}`.trim().toLowerCase();
-      const ratio = textSimilarityRatio(combined, other);
-      maxSimilarity = Math.max(maxSimilarity, ratio);
+      maxSimilarity = Math.max(maxSimilarity, textSimilarityRatio(combined, other));
     }
 
-    return maxSimilarity >= threshold ? score : 0;
+    return {
+      maxSimilarity,
+      score: maxSimilarity >= threshold ? score : 0,
+    };
   }
 
   buildReasonLog(breakdown: ModerationScoreBreakdown, maxSimilarity?: number): string[] {
     const reasons: string[] = [];
 
     if (breakdown.newAccount > 0) reasons.push('new_account');
-    if (breakdown.velocity > 0) reasons.push('high_velocity');
+    if (breakdown.velocity > 0) reasons.push('high_company_velocity');
+    if (breakdown.ipHash > 0) reasons.push('duplicate_ip_hash');
     if (breakdown.fingerprint > 0) reasons.push('duplicate_fingerprint');
     if (breakdown.similarity > 0) {
       reasons.push(
@@ -136,26 +168,8 @@ export class ModerationEngineService {
     return reasons;
   }
 
-  /** Exposed for logging max similarity in moderation service */
   async getMaxSimilarity(context: ModerationContext): Promise<number> {
-    const lookbackDays = this.configService.get('MODERATION_SIMILARITY_LOOKBACK_DAYS', {
-      infer: true,
-    });
-    const since = new Date(Date.now() - lookbackDays * 24 * 60 * 60 * 1000);
-    const recent = await this.reviewsRepository.findRecentByCompany(
-      context.companyId,
-      since,
-      context.reviewId,
-    );
-
-    const combined = `${context.title} ${context.content}`.trim().toLowerCase();
-    let maxSimilarity = 0;
-
-    for (const review of recent) {
-      const other = `${review.title} ${review.content}`.trim().toLowerCase();
-      maxSimilarity = Math.max(maxSimilarity, textSimilarityRatio(combined, other));
-    }
-
-    return maxSimilarity;
+    const result = await this.computeSimilarity(context);
+    return result.maxSimilarity;
   }
 }

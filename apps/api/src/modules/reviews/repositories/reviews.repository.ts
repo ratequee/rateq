@@ -1,14 +1,10 @@
 import { Injectable } from '@nestjs/common';
-import type { Prisma, Review, ReviewStatus } from '@prisma/client';
+import type { Review, ReviewStatus } from '@prisma/client';
 import { PrismaService } from '../../../infrastructure/database/prisma.service';
 import { paginationSkip } from '../../../common/utils/pagination.util';
+import { buildReviewWhere, reviewInclude, type ListReviewsFilters } from './review-query.util';
 
-export interface ListReviewsFilters {
-  companyId?: string;
-  status?: ReviewStatus;
-  page: number;
-  limit: number;
-}
+export type { ListReviewsFilters };
 
 @Injectable()
 export class ReviewsRepository {
@@ -17,30 +13,24 @@ export class ReviewsRepository {
   findById(id: string) {
     return this.prisma.review.findUnique({
       where: { id },
-      include: {
-        user: {
-          select: {
-            id: true,
-            email: true,
-            displayName: true,
-            createdAt: true,
-            isVerified: true,
-            profile: { select: { fullName: true, avatarUrl: true } },
-          },
-        },
-        company: true,
-        replies: true,
-        attachments: true,
-        serviceRatings: {
-          include: { categoryService: { select: { id: true, name: true } } },
-        },
-      },
+      include: reviewInclude,
     });
   }
 
   findByUserAndCompany(userId: string, companyId: string) {
     return this.prisma.review.findFirst({
       where: { userId, companyId },
+    });
+  }
+
+  findActiveByUserAndCompany(userId: string, companyId: string) {
+    return this.prisma.review.findFirst({
+      where: {
+        userId,
+        companyId,
+        status: { in: ['PENDING', 'RESOLUTION_PENDING', 'APPROVED'] },
+      },
+      orderBy: { createdAt: 'desc' },
     });
   }
 
@@ -82,91 +72,26 @@ export class ReviewsRepository {
     });
   }
 
-  findPending(page: number, limit: number) {
-    return this.prisma.review.findMany({
-      where: { status: 'PENDING' },
-      skip: paginationSkip(page, limit),
-      take: limit,
-      orderBy: [{ moderationScore: 'desc' }, { createdAt: 'asc' }],
-      include: {
-        user: {
-          select: {
-            id: true,
-            email: true,
-            displayName: true,
-            profile: { select: { fullName: true, avatarUrl: true } },
-          },
-        },
-        company: { select: { id: true, name: true, slug: true } },
-      },
-    });
-  }
-
-  countPending(): Promise<number> {
-    return this.prisma.review.count({ where: { status: 'PENDING' } });
-  }
-
   findMany(filters: ListReviewsFilters) {
-    const where: Prisma.ReviewWhereInput = {
-      ...(filters.companyId ? { companyId: filters.companyId } : {}),
-      ...(filters.status ? { status: filters.status } : {}),
-    };
-
     return this.prisma.review.findMany({
-      where,
+      where: buildReviewWhere(filters),
       skip: paginationSkip(filters.page, filters.limit),
       take: filters.limit,
-      orderBy: { createdAt: 'desc' },
-      include: {
-        user: {
-          select: {
-            id: true,
-            email: true,
-            displayName: true,
-            profile: { select: { fullName: true, avatarUrl: true } },
-          },
-        },
-        replies: true,
-        attachments: true,
-        serviceRatings: {
-          include: { categoryService: { select: { id: true, name: true } } },
-        },
-      },
+      orderBy: [{ createdAt: 'desc' }],
+      include: reviewInclude,
     });
   }
 
   count(filters: Omit<ListReviewsFilters, 'page' | 'limit'>): Promise<number> {
-    const where: Prisma.ReviewWhereInput = {
-      ...(filters.companyId ? { companyId: filters.companyId } : {}),
-      ...(filters.status ? { status: filters.status } : {}),
-    };
-
-    return this.prisma.review.count({ where });
+    return this.prisma.review.count({ where: buildReviewWhere(filters) });
   }
 
-  findByUserId(userId: string, page: number, limit: number) {
-    return this.prisma.review.findMany({
-      where: { userId },
-      skip: paginationSkip(page, limit),
-      take: limit,
-      orderBy: { createdAt: 'desc' },
-      include: {
-        user: {
-          select: {
-            id: true,
-            email: true,
-            displayName: true,
-            profile: { select: { fullName: true, avatarUrl: true } },
-          },
-        },
-        replies: true,
-        company: { select: { id: true, name: true, slug: true } },
-      },
-    });
+  findByUserId(userId: string, filters: Omit<ListReviewsFilters, 'userId'>) {
+    return this.findMany({ ...filters, userId });
   }
 
-  countByUserId(userId: string): Promise<number> {
-    return this.prisma.review.count({ where: { userId } });
+  countByUserId(userId: string, filters: Omit<ListReviewsFilters, 'userId' | 'page' | 'limit'>) {
+    return this.count({ ...filters, userId });
   }
 
   findRecentByCompany(companyId: string, since: Date, excludeReviewId?: string) {
@@ -185,6 +110,36 @@ export class ReviewsRepository {
   countUserReviewsSince(userId: string, since: Date): Promise<number> {
     return this.prisma.review.count({
       where: { userId, createdAt: { gte: since } },
+    });
+  }
+
+  countReviewsOnCompanySince(
+    companyId: string,
+    since: Date,
+    excludeReviewId?: string,
+  ): Promise<number> {
+    return this.prisma.review.count({
+      where: {
+        companyId,
+        createdAt: { gte: since },
+        ...(excludeReviewId ? { id: { not: excludeReviewId } } : {}),
+      },
+    });
+  }
+
+  countByHashedIpOnCompany(
+    companyId: string,
+    hashedIp: string,
+    since: Date,
+    excludeReviewId?: string,
+  ): Promise<number> {
+    return this.prisma.review.count({
+      where: {
+        companyId,
+        hashedIp,
+        createdAt: { gte: since },
+        ...(excludeReviewId ? { id: { not: excludeReviewId } } : {}),
+      },
     });
   }
 
@@ -232,6 +187,14 @@ export class ReviewsRepository {
     return this.prisma.reviewReply.findUnique({ where: { reviewId } });
   }
 
+  deleteReply(reviewId: string): Promise<void> {
+    return this.prisma.reviewReply.delete({ where: { reviewId } }).then(() => undefined);
+  }
+
+  deleteById(id: string): Promise<Review> {
+    return this.prisma.review.delete({ where: { id } });
+  }
+
   recalculateCompanyRating(companyId: string): Promise<void> {
     return this.prisma.$transaction(async (tx) => {
       const aggregate = await tx.review.aggregate({
@@ -269,5 +232,14 @@ export class ReviewsRepository {
         data: { reviewCount: { decrement: 1 } },
       })
       .then(() => undefined);
+  }
+
+  createModerationLog(data: {
+    reviewId: string;
+    reason: string;
+    score: number;
+    action: import('@prisma/client').ModerationAction;
+  }) {
+    return this.prisma.moderationLog.create({ data });
   }
 }

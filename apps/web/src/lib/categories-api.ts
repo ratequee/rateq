@@ -1,4 +1,9 @@
-import type { CategoriesListResponse, CategoryPublic, CreateCategoryInput } from '@rateq/types';
+import type {
+  CategoriesListResponse,
+  CategoryPublic,
+  CategoryServicePublic,
+  CreateCategoryInput,
+} from '@rateq/types';
 import { apiClient, apiServer } from '@/lib/api';
 import { ensureValidAccessToken } from '@/lib/auth-session';
 
@@ -21,6 +26,26 @@ export async function fetchCategoryBySlug(slug: string): Promise<CategoryPublic 
 export async function fetchCategoriesClient(): Promise<CategoriesListResponse> {
   try {
     return await apiClient<CategoriesListResponse>('/categories', { token: null });
+  } catch {
+    return [];
+  }
+}
+
+export async function fetchCategoryServices(categoryId: string): Promise<CategoryServicePublic[]> {
+  try {
+    return await apiServer<CategoryServicePublic[]>(`/categories/id/${categoryId}/services`);
+  } catch {
+    return [];
+  }
+}
+
+export async function fetchCategoryServicesClient(
+  categoryId: string,
+): Promise<CategoryServicePublic[]> {
+  try {
+    return await apiClient<CategoryServicePublic[]>(`/categories/id/${categoryId}/services`, {
+      token: null,
+    });
   } catch {
     return [];
   }

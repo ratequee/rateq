@@ -92,6 +92,16 @@ export class AppConfig {
   @Type(() => Number)
   @IsInt()
   @Min(0)
+  MODERATION_IP_HASH_SCORE!: number;
+
+  @Type(() => Number)
+  @IsInt()
+  @Min(1)
+  MODERATION_IP_LOOKBACK_DAYS!: number;
+
+  @Type(() => Number)
+  @IsInt()
+  @Min(0)
   MODERATION_FINGERPRINT_SCORE!: number;
 
   @Type(() => Number)
@@ -156,6 +166,10 @@ export class AppConfig {
   @IsOptional()
   @IsString()
   FIREBASE_ADMIN_UIDS?: string;
+
+  @IsOptional()
+  @IsString()
+  CONTACT_RECIPIENT_EMAIL?: string;
 }
 
 export function validateEnv(config: Record<string, unknown>): AppConfig {

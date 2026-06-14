@@ -2,31 +2,105 @@
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { contactApi, ApiError } from '@/lib/api';
+import { validateContactFields, type ContactFieldErrors } from '@/lib/validation/contact-fields';
+import type { ContactSubject } from '@rateq/types';
+import { cn } from '@/lib/utils';
 import { useTranslations } from 'next-intl';
 import { useState } from 'react';
 import { toast } from 'sonner';
 
+const SUBJECT_OPTIONS: ContactSubject[] = ['general', 'support', 'business', 'partnership'];
+
 export function ContactForm() {
   const t = useTranslations('contact');
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('');
+  const [subject, setSubject] = useState<ContactSubject | ''>('');
+  const [message, setMessage] = useState('');
   const [loading, setLoading] = useState(false);
+  const [fieldErrors, setFieldErrors] = useState<ContactFieldErrors>({});
+
+  const subjectLabels: Record<ContactSubject, string> = {
+    general: t('subjectGeneral'),
+    support: t('subjectSupport'),
+    business: t('subjectBusiness'),
+    partnership: t('subjectPartnership'),
+  };
+
+  const validationMessages = {
+    name: {
+      required: t('validation.nameRequired'),
+      invalid: t('validation.nameInvalid'),
+      min: t('validation.nameMin'),
+      max: t('validation.nameMax'),
+    },
+    email: {
+      required: t('validation.emailRequired'),
+      invalid: t('validation.emailInvalid'),
+    },
+    phone: {
+      required: t('validation.phoneRequired'),
+      invalid: t('validation.phoneInvalid'),
+    },
+    subject: {
+      required: t('validation.subjectRequired'),
+      invalid: t('validation.subjectInvalid'),
+    },
+    message: {
+      required: t('validation.messageRequired'),
+      min: t('validation.messageMin'),
+      max: t('validation.messageMax'),
+    },
+  };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+
+    const payload = {
+      name,
+      email,
+      phone,
+      subject: subject as ContactSubject,
+      message,
+    };
+
+    const errors = validateContactFields(payload, validationMessages);
+
+    if (Object.keys(errors).length > 0) {
+      setFieldErrors(errors);
+      return;
+    }
+
+    setFieldErrors({});
     setLoading(true);
 
-    await new Promise((resolve) => setTimeout(resolve, 800));
-
-    toast.success(t('successMessage'));
-    e.currentTarget.reset();
-    setLoading(false);
+    try {
+      await contactApi.submit(payload);
+      toast.success(t('successMessage'));
+      setName('');
+      setEmail('');
+      setPhone('');
+      setSubject('');
+      setMessage('');
+    } catch (error) {
+      const messageText = error instanceof ApiError ? error.message : t('errorMessage');
+      toast.error(messageText);
+    } finally {
+      setLoading(false);
+    }
   };
+
+  const fieldClassName = (field: keyof ContactFieldErrors) =>
+    cn(fieldErrors[field] && 'border-red-400 focus-visible:ring-red-400');
 
   return (
     <div>
       <h2 className="text-xl font-bold text-ink sm:text-2xl">{t('formTitle')}</h2>
       <p className="mt-2 text-sm text-ink-muted sm:text-base">{t('formSubtitle')}</p>
 
-      <form onSubmit={handleSubmit} className="mt-6 space-y-10">
+      <form onSubmit={handleSubmit} className="mt-6 space-y-10" noValidate>
         <div className="grid gap-4 sm:grid-cols-2">
           <div>
             <label htmlFor="name" className="mb-1.5 block text-sm font-medium text-ink">
@@ -35,10 +109,15 @@ export function ContactForm() {
             <Input
               id="name"
               name="name"
-              required
-              minLength={2}
+              value={name}
+              onChange={(event) => setName(event.target.value)}
               placeholder={t('namePlaceholder')}
+              aria-invalid={Boolean(fieldErrors.name)}
+              className={fieldClassName('name')}
             />
+            {fieldErrors.name ? (
+              <p className="mt-1 text-sm text-red-600">{fieldErrors.name}</p>
+            ) : null}
           </div>
           <div>
             <label htmlFor="email" className="mb-1.5 block text-sm font-medium text-ink">
@@ -48,9 +127,15 @@ export function ContactForm() {
               id="email"
               name="email"
               type="email"
-              required
+              value={email}
+              onChange={(event) => setEmail(event.target.value)}
               placeholder={t('emailPlaceholder')}
+              aria-invalid={Boolean(fieldErrors.email)}
+              className={fieldClassName('email')}
             />
+            {fieldErrors.email ? (
+              <p className="mt-1 text-sm text-red-600">{fieldErrors.email}</p>
+            ) : null}
           </div>
         </div>
         <div className="grid gap-4 sm:grid-cols-2">
@@ -61,10 +146,15 @@ export function ContactForm() {
             <Input
               id="phone"
               name="phone"
-              required
-              minLength={2}
+              value={phone}
+              onChange={(event) => setPhone(event.target.value)}
               placeholder={t('phonePlaceholder')}
+              aria-invalid={Boolean(fieldErrors.phone)}
+              className={fieldClassName('phone')}
             />
+            {fieldErrors.phone ? (
+              <p className="mt-1 text-sm text-red-600">{fieldErrors.phone}</p>
+            ) : null}
           </div>
           <div>
             <label htmlFor="subject" className="mb-1.5 block text-sm font-medium text-ink">
@@ -73,15 +163,24 @@ export function ContactForm() {
             <select
               id="subject"
               name="subject"
-              required
-              className="h-10 w-full rounded-md border border-slate-200 bg-white px-3 text-sm text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
+              value={subject}
+              onChange={(event) => setSubject(event.target.value as ContactSubject | '')}
+              aria-invalid={Boolean(fieldErrors.subject)}
+              className={cn(
+                'h-10 w-full rounded-md border border-slate-200 bg-white px-3 text-sm text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500',
+                fieldClassName('subject'),
+              )}
             >
               <option value="">{t('subjectPlaceholder')}</option>
-              <option value="general">{t('subjectGeneral')}</option>
-              <option value="support">{t('subjectSupport')}</option>
-              <option value="business">{t('subjectBusiness')}</option>
-              <option value="partnership">{t('subjectPartnership')}</option>
+              {SUBJECT_OPTIONS.map((option) => (
+                <option key={option} value={option}>
+                  {subjectLabels[option]}
+                </option>
+              ))}
             </select>
+            {fieldErrors.subject ? (
+              <p className="mt-1 text-sm text-red-600">{fieldErrors.subject}</p>
+            ) : null}
           </div>
         </div>
         <div>
@@ -91,19 +190,26 @@ export function ContactForm() {
           <textarea
             id="message"
             name="message"
-            required
-            minLength={20}
+            value={message}
+            onChange={(event) => setMessage(event.target.value)}
             rows={5}
             placeholder={t('messagePlaceholder')}
-            className="w-full rounded-md border border-slate-200 px-3 py-2 text-sm text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
+            aria-invalid={Boolean(fieldErrors.message)}
+            className={cn(
+              'w-full rounded-md border border-slate-200 px-3 py-2 text-sm text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500',
+              fieldClassName('message'),
+            )}
           />
+          {fieldErrors.message ? (
+            <p className="mt-1 text-sm text-red-600">{fieldErrors.message}</p>
+          ) : null}
         </div>
 
         <Button
           type="submit"
           size="lg"
           disabled={loading}
-          className="w-full sm:w-full bg-gold-500 text-black font-bold hover:bg-gold-600"
+          className="w-full bg-gold-500 font-bold text-black hover:bg-gold-600 sm:w-full"
         >
           {loading ? t('sending') : t('submit')}
         </Button>

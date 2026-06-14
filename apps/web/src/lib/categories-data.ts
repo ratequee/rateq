@@ -1,5 +1,5 @@
-import type { CategoriesListResponse, CategoryPublic } from '@rateq/types';
-import { categoriesApi } from '@/lib/categories-api';
+import type { CategoriesListResponse, CategoryPublic, CategoryServicePublic } from '@rateq/types';
+import { categoriesApi, fetchCategoryServices } from '@/lib/categories-api';
 
 export async function fetchCategories(): Promise<CategoriesListResponse> {
   return categoriesApi.list();
@@ -11,6 +11,13 @@ export async function fetchCategoryBySlug(slug: string): Promise<CategoryPublic 
   } catch {
     return null;
   }
+}
+
+export async function fetchCategoryServicesForCompany(
+  categoryId?: string | null,
+): Promise<CategoryServicePublic[]> {
+  if (!categoryId) return [];
+  return fetchCategoryServices(categoryId);
 }
 
 export function getFeaturedCategories(

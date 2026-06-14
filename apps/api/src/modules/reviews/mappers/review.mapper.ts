@@ -5,9 +5,12 @@ import type {
   ReviewServiceRating,
   User,
   UserProfile,
+  Company,
+  Category,
 } from '@prisma/client';
 import type {
   ReviewAttachmentPublic,
+  ReviewCompanySummary,
   ReviewPublic,
   ReviewReplyPublic,
   ReviewServiceRatingPublic,
@@ -15,8 +18,12 @@ import type {
 import { ReviewStatus } from '@rateq/types';
 
 type ReviewWithRelations = Review & {
-  user?: Pick<User, 'id' | 'email' | 'displayName'> & {
-    profile?: Pick<UserProfile, 'fullName' | 'avatarUrl'> | null;
+  user?: Pick<User, 'id' | 'email' | 'displayName' | 'phone' | 'phoneVerified'> & {
+    profile?: Pick<UserProfile, 'fullName' | 'avatarUrl' | 'phone'> | null;
+  };
+  company?: Pick<Company, 'id' | 'name' | 'slug' | 'categoryId' | 'email'> & {
+    owner?: { id: string; email: string } | null;
+    category?: Pick<Category, 'id' | 'name'> | null;
   };
   replies?: ReviewReply[];
   attachments?: ReviewAttachment[];
@@ -42,6 +49,18 @@ function resolveAuthorDisplayName(user: NonNullable<ReviewWithRelations['user']>
 
   const localPart = user.email.split('@')[0]?.trim();
   return localPart || user.email;
+}
+
+function toReviewCompanySummary(
+  company: NonNullable<ReviewWithRelations['company']>,
+): ReviewCompanySummary {
+  return {
+    id: company.id,
+    name: company.name,
+    slug: company.slug,
+    categoryId: company.categoryId,
+    categoryName: company.category?.name ?? null,
+  };
 }
 
 export function toReviewPublic(review: ReviewWithRelations): ReviewPublic {
@@ -82,6 +101,33 @@ export function toReviewPublic(review: ReviewWithRelations): ReviewPublic {
         avatarUrl: review.user.profile?.avatarUrl ?? null,
       },
     }),
+    ...(review.company && { company: toReviewCompanySummary(review.company) }),
     reply: reply ? toReviewReplyPublic(reply) : null,
   };
+}
+
+export function resolveReviewerContact(review: ReviewWithRelations): {
+  name: string;
+  email: string;
+  phone: string | null;
+} {
+  const user = review.user;
+  if (!user) {
+    return { name: 'Reviewer', email: '', phone: null };
+  }
+
+  const phone =
+    user.phoneVerified && user.phone
+      ? user.phone
+      : user.profile?.phone?.trim() || user.phone?.trim() || null;
+
+  return {
+    name: resolveAuthorDisplayName(user),
+    email: user.email,
+    phone,
+  };
+}
+
+export function resolveCompanyOwnerEmail(review: ReviewWithRelations): string | null {
+  return review.company?.owner?.email ?? review.company?.email ?? null;
 }

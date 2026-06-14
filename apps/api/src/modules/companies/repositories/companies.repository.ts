@@ -1,8 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import type { Company, CompanyVerificationStatus, Prisma, ReviewStatus } from '@prisma/client';
+import type { ReviewRatingDistribution } from '@rateq/types';
 import { PrismaService } from '../../../infrastructure/database/prisma.service';
 import { paginationSkip } from '../../../common/utils/pagination.util';
 import type { CompanySortOption } from '../dto/search-companies-query.dto';
+import { EMPTY_RATING_DISTRIBUTION } from '../mappers/company.mapper';
 
 export interface SearchCompaniesFilters {
   query?: string;
@@ -26,33 +28,30 @@ export interface CompanyReviewStats {
 export class CompaniesRepository {
   constructor(private readonly prisma: PrismaService) {}
 
+  private readonly companyInclude = {
+    owner: { select: { id: true, email: true, isActive: true } },
+    category: { select: { id: true, name: true, slug: true } },
+    projects: { orderBy: { sortOrder: 'asc' as const } },
+  } satisfies Prisma.CompanyInclude;
+
   findBySlug(slug: string) {
     return this.prisma.company.findUnique({
       where: { slug },
-      include: {
-        owner: { select: { email: true } },
-        category: { select: { id: true, name: true, slug: true } },
-      },
+      include: this.companyInclude,
     });
   }
 
   findById(id: string) {
     return this.prisma.company.findUnique({
       where: { id },
-      include: {
-        owner: { select: { email: true } },
-        category: { select: { id: true, name: true, slug: true } },
-      },
+      include: this.companyInclude,
     });
   }
 
   findByOwnerId(ownerId: string) {
     return this.prisma.company.findUnique({
       where: { ownerId },
-      include: {
-        owner: { select: { email: true } },
-        category: { select: { id: true, name: true, slug: true } },
-      },
+      include: this.companyInclude,
     });
   }
 
@@ -114,6 +113,7 @@ export class CompaniesRepository {
       orderBy: { createdAt: 'desc' },
       include: {
         owner: { select: { id: true, email: true } },
+        _count: { select: { pageViews: true } },
       },
     });
   }
@@ -128,7 +128,46 @@ export class CompaniesRepository {
       where: { id },
       include: {
         owner: { select: { id: true, email: true } },
+        _count: { select: { pageViews: true } },
       },
+    });
+  }
+
+  async getApprovedRatingDistribution(companyId: string): Promise<ReviewRatingDistribution> {
+    const groups = await this.prisma.review.groupBy({
+      by: ['rating'],
+      where: { companyId, status: 'APPROVED' },
+      _count: { id: true },
+    });
+
+    const distribution: ReviewRatingDistribution = { ...EMPTY_RATING_DISTRIBUTION };
+
+    for (const group of groups) {
+      const rating = Math.min(5, Math.max(1, group.rating)) as keyof ReviewRatingDistribution;
+      distribution[rating] = group._count.id;
+    }
+
+    return distribution;
+  }
+
+  replaceProjects(
+    companyId: string,
+    projects: { title: string; imageUrl: string; projectUrl: string }[],
+  ): Promise<void> {
+    return this.prisma.$transaction(async (tx) => {
+      await tx.companyProject.deleteMany({ where: { companyId } });
+
+      if (projects.length === 0) return;
+
+      await tx.companyProject.createMany({
+        data: projects.map((project, index) => ({
+          companyId,
+          title: project.title,
+          imageUrl: project.imageUrl,
+          projectUrl: project.projectUrl,
+          sortOrder: index,
+        })),
+      });
     });
   }
 

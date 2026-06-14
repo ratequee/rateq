@@ -347,7 +347,9 @@
     "verifiedBadge": "Verified",
     "claimedBadge": "Claimed",
     "reviewCount": "{count} reviews",
+    "aboutTitle": "About {name}",
     "writeReview": "Write a review",
+    "visitWebsite": "Visit Website",
     "readReviews": "Read reviews",
     "ratingBreakdownTitle": "Rating breakdown",
     "ratingBreakdownSubtitle": "How customers rate this company",
@@ -415,6 +417,22 @@
     "submit": "Send Message",
     "sending": "Sending...",
     "successMessage": "Thank you! Your message has been sent.",
+    "errorMessage": "Could not send your message. Please try again.",
+    "validation": {
+      "nameRequired": "Please enter your full name.",
+      "nameInvalid": "Name can only contain letters and spaces.",
+      "nameMin": "Name must be at least 2 characters.",
+      "nameMax": "Name must be 100 characters or fewer.",
+      "emailRequired": "Please enter your email address.",
+      "emailInvalid": "Please enter a valid email address.",
+      "phoneRequired": "Please enter your phone number.",
+      "phoneInvalid": "Please enter a valid phone number.",
+      "subjectRequired": "Please select a subject.",
+      "subjectInvalid": "Please select a valid subject.",
+      "messageRequired": "Please enter your message.",
+      "messageMin": "Message must be at least 20 characters.",
+      "messageMax": "Message must be 2000 characters or fewer."
+    },
     "hoursTitle": "Office hours",
     "hoursWeekdays": "Sun – Thu: 9:00 AM – 6:00 PM",
     "hoursWeekend": "Fri – Sat: Closed",
@@ -566,7 +584,38 @@
     "selectCategory": "Select a category",
     "profileSettingsTitle": "Profile settings",
     "profileSettingsSubtitle": "Update your account information.",
+    "accountEmailLabel": "Email",
     "saveChanges": "Save changes",
+    "savePublicProfile": "Save public profile",
+    "publicProfileUpdated": "Public profile updated successfully.",
+    "projectsPageTitle": "Projects",
+    "projectsPageSubtitle": "Showcase your company work with titles and images on your public profile.",
+    "saveProjects": "Save projects",
+    "projectsUpdated": "Projects updated successfully.",
+    "publicProfileTitle": "Public company profile",
+    "publicProfileSubtitle": "Manage what customers see on your company page.",
+    "companyAbout": "About your company",
+    "companyAboutHint": "Describe your business, values, and what makes you stand out.",
+    "companyAboutPlaceholder": "Tell customers about your company…",
+    "websiteUrl": "Website URL",
+    "websiteUrlHint": "Optional. Shown on your public company profile.",
+    "companyServices": "Services",
+    "companyServicesHint": "List the services you offer (up to 20).",
+    "servicePlaceholder": "e.g. Financial advisory",
+    "addService": "Add service",
+    "removeService": "Remove service",
+    "companyProjects": "Projects",
+    "companyProjectsHint": "Each project needs a title, cover image, and link (up to 12).",
+    "addProject": "Add project",
+    "removeProject": "Remove project",
+    "projectTitle": "Project title",
+    "projectImage": "Project image",
+    "projectCoverImage": "Cover image",
+    "projectUrl": "Project URL",
+    "projectTitleRequired": "Each project needs a title.",
+    "projectUrlRequired": "Each project needs a valid URL (https://…).",
+    "projectImageRequired": "Each project needs a title and image.",
+    "noProjectsYet": "No projects added yet.",
     "profileUpdated": "Profile updated successfully.",
     "crNumber": "CR number",
     "validationDate": "Validation date",
@@ -652,6 +701,7 @@
     "latestRatingsChart": "Latest ratings",
     "daily": "Daily",
     "topCompanies": "Top rated companies",
+    "recentlyRatedCompanies": "Recently rated companies",
     "topReviewers": "Top reviewers",
     "pendingReviews": "Pending reviews",
     "notificationItem": "Review cancelled",
@@ -662,6 +712,7 @@
     "nav": {
       "home": "Home",
       "products": "Products",
+      "projects": "Projects",
       "categories": "Categories & attributes",
       "inventory": "Inventory management",
       "orders": "Order management",
@@ -671,6 +722,7 @@
       "customers": "Customer management",
       "settings": "System settings",
       "companyVerifications": "Company verifications",
+      "directory": "Directory",
       "viewSite": "View public site"
     },
     "stats": {
@@ -683,7 +735,8 @@
       "pendingReviews": "Pending reviews",
       "approvedReviews": "Approved reviews",
       "rejectedReviews": "Rejected reviews",
-      "averageRating": "Average rating"
+      "averageRating": "Average rating",
+      "monthlyPageVisits": "Page visits this month"
     },
     "table": {
       "company": "Company",
@@ -699,12 +752,66 @@
       "useful": "Useful"
     }
   },
+  "dashboardReviews": {
+    "adminTitle": "Review moderation",
+    "adminSubtitle": "Accept, reject, or send negative reviews to company-reviewer resolution.",
+    "reviewerTitle": "My reviews",
+    "reviewerSubtitle": "Track your submitted reviews and respond to resolution requests.",
+    "companyTitle": "Company reviews",
+    "companySubtitle": "See every review left for your business, including pending and rejected items.",
+    "companyMissing": "No company profile was found for this account.",
+    "reviewsTitle": "Reviews",
+    "searchPlaceholder": "Search reviews, companies, or reviewers",
+    "allStatuses": "All statuses",
+    "allCategories": "All categories",
+    "applyFilters": "Apply filters",
+    "resultsCount": "{count} reviews",
+    "empty": "No reviews match your filters.",
+    "selectReview": "Select a review to see details.",
+    "reviewContent": "Review",
+    "companyReply": "Company reply",
+    "unknownReviewer": "Reviewer",
+    "unknownCompany": "Company",
+    "accept": "Accept",
+    "reject": "Reject",
+    "resolve": "Resolve",
+    "proceed": "Proceed & publish",
+    "withdraw": "Withdraw review",
+    "resolutionHint": "The company may contact you to resolve this issue. Choose whether to publish or withdraw your review.",
+    "adminResolutionHint": "This review is awaiting the reviewer's decision to proceed or withdraw. Admin actions are unavailable until they respond.",
+    "reviewAgain": "Write a new review",
+    "reviewAgainHint": "Your previous review was withdrawn or rejected. It remains on record but is hidden from public pages. You may submit a new one.",
+    "approvedSuccess": "Review approved.",
+    "rejectedSuccess": "Review rejected.",
+    "resolveSuccess": "Review sent for resolution.",
+    "delete": "Delete",
+    "deleteConfirm": "Delete this review permanently? It will be removed from the company profile and cannot be undone.",
+    "deleteSuccess": "Review deleted.",
+    "deleteReply": "Delete reply",
+    "deleteReplyConfirm": "Delete this company reply permanently?",
+    "deleteReplySuccess": "Reply deleted.",
+    "proceedSuccess": "Review published.",
+    "withdrawSuccess": "Review withdrawn.",
+    "loadError": "Could not load reviews.",
+    "actionError": "Could not complete this action.",
+    "sessionExpired": "Session expired. Please log in again.",
+    "previous": "Previous",
+    "next": "Next",
+    "pageOf": "Page {page} of {total}",
+    "status": {
+      "PENDING": "Pending",
+      "RESOLUTION_PENDING": "Resolution pending",
+      "APPROVED": "Approved",
+      "REJECTED": "Rejected"
+    }
+  },
   "review": {
     "title": "Review title",
     "content": "Your experience",
     "rating": "Your rating",
     "submit": "Submit review",
     "pending": "Pending moderation",
+    "resolutionPending": "Resolution in progress",
     "approved": "Published",
     "loginToReview": "Sign in to share your experience with this company.",
     "cannotReviewOwn": "Company owners cannot review their own business.",
@@ -716,8 +823,22 @@
     "replySubmit": "Post reply",
     "replySubmitted": "Reply posted successfully.",
     "replyTooShort": "Reply must be at least 5 characters.",
-    "submittedSuccess": "Thank you! Your review was submitted.",
+    "submittedSuccess": "Thank you! Your review was submitted and is under review.",
     "submittedPendingNote": "It is pending moderation and will appear publicly once approved.",
+    "myReviewTitle": "Your review",
+    "myReviewPending": "Your review was submitted successfully and is under admin review. It will appear publicly once approved.",
+    "myReviewResolutionPending": "Your review is in the resolution process. The company may contact you. You can proceed to publish or withdraw it from your reviews dashboard.",
+    "myReviewApproved": "Your review is published on this company profile.",
+    "myReviewRejected": "Your review was not approved and will not be shown publicly.",
+    "myReviewManageResolution": "Manage resolution",
+    "reviewAgain": "Write a new review",
+    "reviewAgainHint": "Your previous review was withdrawn or not approved. It is kept on record but hidden from public pages. You may submit a new review.",
+    "statusLabel": {
+      "PENDING": "Under review",
+      "RESOLUTION_PENDING": "Resolution pending",
+      "APPROVED": "Published",
+      "REJECTED": "Not approved"
+    },
     "submitError": "Could not submit your review.",
     "serviceRatingsHint": "Rate each service offered in this company's category.",
     "aggregatedRating": "Overall rating: {rating} / 5",
@@ -738,6 +859,191 @@
     "users": "Users",
     "approve": "Approve",
     "reject": "Reject"
+  },
+  "adminOverview": {
+    "stats": {
+      "totalCompanies": "Total companies",
+      "totalReviewers": "Total reviewers",
+      "totalReviews": "Total reviews",
+      "pendingReviews": "Pending reviews",
+      "approvedReviews": "Approved reviews"
+    },
+    "reviewsChart": "Reviews submitted",
+    "last7Days": "Last 7 days",
+    "reviewCountLabel": "{count} reviews",
+    "reviewerCountLabel": "Reviewers: {count}",
+    "noData": "No data yet.",
+    "chartEmpty": "No reviews submitted in the last 7 days.",
+    "chartLegendCompanies": "Companies",
+    "chartLegendReviewers": "Reviewers",
+    "pendingCount": "{count} pending moderation",
+    "resolutionCount": "{count} awaiting resolution",
+    "rejectedCount": "{count} rejected"
+  },
+  "adminDirectory": {
+    "title": "Platform directory",
+    "subtitle": "Manage reviewers, companies, reviews, and replies.",
+    "tabs": {
+      "reviewers": "Reviewers",
+      "companies": "Companies",
+      "reviews": "Reviews"
+    },
+    "search": "Search",
+    "searchReviewers": "Search reviewers by email",
+    "searchCompanies": "Search companies by name",
+    "selectReviewer": "Select a reviewer to view details.",
+    "selectCompany": "Select a company to view details.",
+    "emptyReviewers": "No reviewers found.",
+    "emptyCompanies": "No companies found.",
+    "reviewCount": "{count} reviews",
+    "pageVisitCount": "{count} page visits",
+    "active": "Active",
+    "inactive": "Deactivated",
+    "deactivate": "Deactivate account",
+    "activate": "Activate account",
+    "deleteAccount": "Delete account",
+    "deactivateOwner": "Deactivate owner account",
+    "activateOwner": "Activate owner account",
+    "deleteCompany": "Delete company",
+    "reviewsAndReplies": "Reviews & replies",
+    "noReviews": "No reviews yet.",
+    "ownerEmail": "Owner: {email}",
+    "verificationStatus": "Verification: {status}",
+    "loadError": "Could not load data.",
+    "deactivateSuccess": "Account deactivated.",
+    "activateSuccess": "Account activated.",
+    "deleteSuccess": "Deleted successfully.",
+    "deleteReviewerConfirm": "Delete this reviewer account permanently? Their reviews will also be removed.",
+    "deleteCompanyConfirm": "Delete this company permanently? All reviews and data will be removed."
+  },
+  "adminProjects": {
+    "title": "Projects",
+    "subtitle": "Overview of company portfolio projects across the platform.",
+    "statsChangeUp": "{value} vs last month",
+    "statsNeedsAction": "Needs moderation",
+    "stats": {
+      "totalProjects": "Total projects",
+      "featuredProjects": "Featured projects",
+      "pendingReview": "Pending review",
+      "companiesWithProjects": "Companies with projects"
+    },
+    "tableTitle": "Recent projects",
+    "tableSubtitle": "Sample portfolio entries submitted by verified companies.",
+    "table": {
+      "project": "Project",
+      "company": "Company",
+      "category": "Category",
+      "status": "Status",
+      "submitted": "Submitted"
+    },
+    "status": {
+      "featured": "Featured",
+      "published": "Published",
+      "pending": "Pending review"
+    },
+    "rows": {
+      "proj-1": {
+        "title": "Ashghal Infrastructure Upgrade",
+        "company": "ATS DUMS",
+        "category": "Automotive"
+      },
+      "proj-2": {
+        "title": "West Bay Office Fit-out",
+        "company": "Qatar Business Solutions",
+        "category": "Business"
+      },
+      "proj-3": {
+        "title": "Premium Auto Detailing Hub",
+        "company": "Al Rayyan Motors",
+        "category": "Automotive"
+      },
+      "proj-4": {
+        "title": "Pearl Residence Landscaping",
+        "company": "Ezdan Real Estate",
+        "category": "Real estate"
+      },
+      "proj-5": {
+        "title": "Corporate Wellness Program",
+        "company": "Qatar Health Clinic",
+        "category": "Health"
+      },
+      "proj-6": {
+        "title": "Lusail Marina Cleaning Contract",
+        "company": "Gulf Facility Services",
+        "category": "Business"
+      }
+    }
+  },
+  "adminPayments": {
+    "title": "Payments",
+    "subtitle": "Platform billing activity and subscription payments.",
+    "statsChangeUp": "{value} vs last month",
+    "statsAwaitingTransfer": "Awaiting transfer",
+    "stats": {
+      "totalRevenue": "Total revenue",
+      "pendingPayouts": "Pending payouts",
+      "completedThisMonth": "Completed this month",
+      "activeSubscriptions": "Active subscriptions"
+    },
+    "tableTitle": "Recent transactions",
+    "tableSubtitle": "Sample payment records for company plans and add-ons.",
+    "table": {
+      "reference": "Reference",
+      "payer": "Payer",
+      "plan": "Plan",
+      "amount": "Amount",
+      "status": "Status",
+      "date": "Date"
+    },
+    "status": {
+      "completed": "Completed",
+      "pending": "Pending",
+      "failed": "Failed",
+      "refunded": "Refunded"
+    },
+    "rows": {
+      "pay-1": {
+        "payer": "ATS DUMS",
+        "plan": "Company Pro — Annual"
+      },
+      "pay-2": {
+        "payer": "Qatar Business Solutions",
+        "plan": "Company Pro — Monthly"
+      },
+      "pay-3": {
+        "payer": "Al Rayyan Motors",
+        "plan": "Featured listing boost"
+      },
+      "pay-4": {
+        "payer": "Ezdan Real Estate",
+        "plan": "Company Pro — Annual"
+      },
+      "pay-5": {
+        "payer": "Gulf Facility Services",
+        "plan": "Verification fast-track"
+      },
+      "pay-6": {
+        "payer": "Qatar Health Clinic",
+        "plan": "Company Pro — Monthly"
+      }
+    }
+  },
+  "companyOverview": {
+    "noData": "No data yet.",
+    "reviewCountLabel": "{count} reviews",
+    "activityTitle": "Daily activity",
+    "last7Days": "Last 7 days",
+    "activityEmpty": "No page visits or reviews in the last 7 days.",
+    "chartLegendPageVisits": "Page visits",
+    "chartLegendReviews": "Reviews"
+  },
+  "reviewerOverview": {
+    "noData": "No companies rated yet.",
+    "activityTitle": "Daily activity",
+    "last7Days": "Last 7 days",
+    "activityEmpty": "No reviews or company visits in the last 7 days.",
+    "chartLegendVisits": "Company visits",
+    "chartLegendReviews": "Reviews"
   },
   "adminCompanies": {
     "title": "Company profile requests",

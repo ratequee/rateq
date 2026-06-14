@@ -17,6 +17,7 @@ function toOwner(owner: Pick<User, 'id' | 'email'> | null): AdminCompanyOwner | 
 
 type CompanyWithOwner = Company & {
   owner: Pick<User, 'id' | 'email'> | null;
+  _count: { pageViews: number };
 };
 
 export function toAdminCompanyVerificationSummary(
@@ -29,6 +30,8 @@ export function toAdminCompanyVerificationSummary(
     logo: company.logo,
     country: company.country,
     city: company.city,
+    reviewCount: company.reviewCount,
+    pageVisitCount: company._count.pageViews,
     verificationStatus: toApiStatus(company.verificationStatus),
     createdAt: company.createdAt.toISOString(),
     owner: toOwner(company.owner),
@@ -53,6 +56,8 @@ export function toAdminCompanyVerificationDetail(
     tradeLicenseUrl: company.tradeLicenseUrl,
     country: company.country,
     city: company.city,
+    reviewCount: company.reviewCount,
+    pageVisitCount: company._count.pageViews,
     verificationStatus: toApiStatus(company.verificationStatus),
     revisionNotes: company.revisionNotes,
     createdAt: company.createdAt.toISOString(),

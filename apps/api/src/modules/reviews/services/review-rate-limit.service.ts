@@ -10,10 +10,17 @@ export class ReviewRateLimitService {
     private readonly configService: ConfigService<AppConfig, true>,
   ) {}
 
-  async assertWithinLimit(userId: string): Promise<void> {
+  async assertWithinLimit(userId: string, hashedIp?: string | null): Promise<void> {
+    await this.checkLimit(`rate:review:user:${userId}`);
+
+    if (hashedIp) {
+      await this.checkLimit(`rate:review:ip:${hashedIp}`);
+    }
+  }
+
+  private async checkLimit(key: string): Promise<void> {
     const ttl = this.configService.get('RATE_LIMIT_REVIEW_TTL', { infer: true });
     const max = this.configService.get('RATE_LIMIT_REVIEW_MAX', { infer: true });
-    const key = `rate:review:${userId}`;
 
     const client = this.redis.getClient();
     const count = await client.incr(key);

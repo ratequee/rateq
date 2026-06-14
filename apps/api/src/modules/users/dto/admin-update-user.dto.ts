@@ -8,8 +8,12 @@ export class AdminUpdateUserDto {
   @IsEnum(UserRole)
   role?: UserRole;
 
-  @ApiPropertyOptional()
   @IsOptional()
   @IsBoolean()
   isVerified?: boolean;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsBoolean()
+  isActive?: boolean;
 }

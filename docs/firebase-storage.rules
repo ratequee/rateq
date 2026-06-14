@@ -10,6 +10,7 @@ rules_version = '2';
 //   users/{firebaseUid}/company/registration/{file}
 //   users/{firebaseUid}/company/establishment-card/{file}
 //   users/{firebaseUid}/company/trade-license/{file}
+//   users/{firebaseUid}/company/projects/{file}
 //   users/{firebaseUid}/reviews/proof/{file}
 //
 // Requires Firebase Authentication (email/Google) — uploads use request.auth.uid.
@@ -76,6 +77,13 @@ service firebase.storage {
     match /users/{userId}/company/trade-license/{fileName} {
       allow read: if isSignedIn();
       allow create, update: if isOwner(userId) && max10MB() && isRegistrationDoc();
+      allow delete: if isOwner(userId);
+    }
+
+    // Company project showcase images
+    match /users/{userId}/company/projects/{fileName} {
+      allow read: if isSignedIn();
+      allow create, update: if isOwner(userId) && max10MB() && isImage();
       allow delete: if isOwner(userId);
     }
 

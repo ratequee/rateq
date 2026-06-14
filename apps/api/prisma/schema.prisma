@@ -24,6 +24,7 @@ enum ReviewStatus {
   PENDING
   APPROVED
   REJECTED
+  RESOLUTION_PENDING
 }
 
 enum ModerationAction {
@@ -31,6 +32,9 @@ enum ModerationAction {
   QUEUED
   MANUAL_APPROVED
   MANUAL_REJECTED
+  MANUAL_RESOLVE
+  RESOLUTION_PROCEEDED
+  RESOLUTION_WITHDRAWN
   FLAGGED
 }
 
@@ -55,6 +59,7 @@ model User {
   phone         String?
   phoneVerified Boolean  @default(false) @map("phone_verified")
   isVerified    Boolean  @default(false) @map("is_verified")
+  isActive      Boolean  @default(true) @map("is_active")
   reviewCount   Int      @default(0) @map("review_count")
   createdAt    DateTime @default(now()) @map("created_at")
   updatedAt    DateTime @updatedAt @map("updated_at")
@@ -65,6 +70,7 @@ model User {
   refreshTokens      RefreshToken[]
   emailVerifications EmailVerification[]
   passwordResets     PasswordReset[]
+  companyPageViews   CompanyPageView[]
 
   @@index([role])
   @@index([createdAt])
@@ -189,21 +195,57 @@ model Company {
   revisionNotes        String?                   @map("revision_notes") @db.Text
   country            String
   city               String
+  websiteUrl         String?                   @map("website_url")
+  services           Json?
   ratingAverage      Decimal                   @default(0) @map("rating_average") @db.Decimal(3, 2)
   reviewCount        Int                       @default(0) @map("review_count")
   createdAt          DateTime                  @default(now()) @map("created_at")
   updatedAt          DateTime                  @updatedAt @map("updated_at")
 
-  owner         User?         @relation("CompanyOwner", fields: [ownerId], references: [id], onDelete: SetNull)
-  category      Category?     @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  owner         User?            @relation("CompanyOwner", fields: [ownerId], references: [id], onDelete: SetNull)
+  category      Category?        @relation(fields: [categoryId], references: [id], onDelete: SetNull)
   reviews       Review[]
   reviewReplies ReviewReply[]
+  projects      CompanyProject[]
+  pageViews     CompanyPageView[]
 
   @@index([country, city])
   @@index([categoryId])
   @@index([ratingAverage])
   @@index([name])
   @@map("companies")
+}
+
+model CompanyProject {
+  id         String   @id @default(cuid())
+  companyId  String   @map("company_id")
+  title      String
+  imageUrl   String   @map("image_url")
+  projectUrl String   @default("") @map("project_url")
+  sortOrder  Int      @default(0) @map("sort_order")
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  company Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  @@index([companyId, sortOrder])
+  @@map("company_projects")
+}
+
+model CompanyPageView {
+  id        String   @id @default(cuid())
+  companyId String   @map("company_id")
+  visitorId String?  @map("visitor_id")
+  userId    String?  @map("user_id")
+  viewedAt  DateTime @default(now()) @map("viewed_at")
+
+  company Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  user    User?   @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([companyId, viewedAt])
+  @@index([companyId, visitorId, viewedAt])
+  @@index([userId, viewedAt])
+  @@map("company_page_views")
 }
 
 // ---------------------------------------------------------------------------

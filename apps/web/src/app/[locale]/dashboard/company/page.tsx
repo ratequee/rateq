@@ -1,6 +1,6 @@
 'use client';
 
-import { DashboardOverview } from '@/components/dashboard/dashboard-overview';
+import { CompanyOverview } from '@/components/dashboard/company-overview';
 import { DashboardShell } from '@/components/dashboard/dashboard-shell';
 import { useAuth } from '@/components/providers/auth-provider';
 import { useProfile } from '@/components/providers/profile-provider';
@@ -58,10 +58,7 @@ export default function CompanyDashboardPage() {
         </div>
       )}
 
-      <DashboardOverview
-        title={t('companyTitle', { name: companyName })}
-        companyStats={dashboard?.stats}
-      />
+      <CompanyOverview title={t('companyTitle', { name: companyName })} dashboard={dashboard} />
     </DashboardShell>
   );
 }

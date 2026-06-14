@@ -198,6 +198,49 @@ export function validateCompanyProfileFields(
   return errors;
 }
 
+export function validateCompanySettingsFields(
+  fields: {
+    companyName: string;
+    companyAddress: string;
+    companyLocation: CompanyMapLocation | null;
+    categoryId: string;
+    city: string;
+    country: string;
+  },
+  messages: {
+    required: string;
+    companyName: { min: string; max: string };
+    locationRequired: string;
+  },
+): Pick<CompanyProfileErrors, 'companyName' | 'companyAddress' | 'companyLocation' | 'categoryId'> {
+  const errors: Pick<
+    CompanyProfileErrors,
+    'companyName' | 'companyAddress' | 'companyLocation' | 'categoryId'
+  > = {};
+
+  const name = fields.companyName.trim();
+  if (!name) {
+    errors.companyName = messages.required;
+  } else if (name.length < 2) {
+    errors.companyName = messages.companyName.min;
+  } else if (name.length > 200) {
+    errors.companyName = messages.companyName.max;
+  }
+
+  if (!fields.companyAddress.trim()) errors.companyAddress = messages.required;
+  if (!fields.categoryId.trim()) errors.categoryId = messages.required;
+
+  if (
+    !isValidMapLocation(fields.companyLocation) ||
+    !fields.city.trim() ||
+    !fields.country.trim()
+  ) {
+    errors.companyLocation = messages.locationRequired;
+  }
+
+  return errors;
+}
+
 export function hasValidationErrors(errors: object): boolean {
   return Object.keys(errors).length > 0;
 }

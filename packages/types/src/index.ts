@@ -8,3 +8,5 @@ export * from './api';
 export * from './onboarding';
 export * from './admin';
 export * from './category';
+export * from './contact';
+export * from './reviewer';

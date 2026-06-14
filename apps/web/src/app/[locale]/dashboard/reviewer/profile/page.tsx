@@ -120,7 +120,7 @@ export default function ReviewerProfileSettingsPage() {
           <p className="mt-1 text-sm text-ink-muted">{t('profileSettingsSubtitle')}</p>
           {user?.email && (
             <p className="mt-2 text-sm text-ink-muted">
-              Email: <span className="font-medium text-ink">{user.email}</span>
+              {t('accountEmailLabel')}: <span className="font-medium text-ink">{user.email}</span>
             </p>
           )}
         </div>

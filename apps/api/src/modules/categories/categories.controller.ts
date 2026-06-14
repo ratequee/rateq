@@ -16,6 +16,13 @@ export class CategoriesController {
   }
 
   @Public()
+  @Get('id/:categoryId/services')
+  @ApiOperation({ summary: 'List rating services for a category' })
+  listServices(@Param('categoryId') categoryId: string) {
+    return this.categoriesService.listServices(categoryId);
+  }
+
+  @Public()
   @Get(':slug')
   @ApiOperation({ summary: 'Get a business category by slug' })
   getBySlug(@Param('slug') slug: string) {

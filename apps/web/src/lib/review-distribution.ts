@@ -1,5 +1,4 @@
-import type { ReviewPublic } from '@rateq/types';
-import { ReviewStatus } from '@rateq/types';
+import type { ReviewRatingDistribution } from '@rateq/types';
 
 export interface RatingDistributionRow {
   stars: number;
@@ -7,21 +6,27 @@ export interface RatingDistributionRow {
   percentage: number;
 }
 
-export function buildReviewDistribution(reviews: ReviewPublic[]): RatingDistributionRow[] {
-  const approved = reviews.filter((review) => review.status === ReviewStatus.APPROVED);
-  const counts = [0, 0, 0, 0, 0];
+export const EMPTY_RATING_DISTRIBUTION: ReviewRatingDistribution = {
+  1: 0,
+  2: 0,
+  3: 0,
+  4: 0,
+  5: 0,
+};
 
-  for (const review of approved) {
-    const index = Math.min(5, Math.max(1, Math.round(review.rating))) - 1;
-    counts[index] = (counts[index] ?? 0) + 1;
-  }
+export function buildReviewDistributionFromCounts(
+  distribution: ReviewRatingDistribution,
+  totalCount?: number,
+): RatingDistributionRow[] {
+  const distributionTotal = Object.values(distribution).reduce((sum, count) => sum + count, 0);
+  const total = totalCount ?? (distributionTotal || 1);
 
-  const total = approved.length || 1;
-  return counts
-    .map((count, index) => ({
-      stars: index + 1,
+  return [5, 4, 3, 2, 1].map((stars) => {
+    const count = distribution[stars as keyof ReviewRatingDistribution] ?? 0;
+    return {
+      stars,
       count,
-      percentage: Math.round((count / total) * 100),
-    }))
-    .reverse();
+      percentage: total > 0 ? Math.round((count / total) * 100) : 0,
+    };
+  });
 }

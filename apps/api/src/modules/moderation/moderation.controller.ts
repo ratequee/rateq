@@ -1,16 +1,14 @@
-import { Controller, Get, HttpCode, HttpStatus, Param, Patch, Query } from '@nestjs/common';
+import { Controller, Delete, Get, HttpCode, HttpStatus, Param, Patch, Query } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import type { AuthenticatedUser } from '@rateq/types';
 import { UserRole } from '@rateq/types';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { Roles } from '../../common/decorators/roles.decorator';
-import { PaginationDto } from '../../common/dto/pagination.dto';
-import { buildPaginationMeta } from '../../common/utils/pagination.util';
 import { MessageResponseDto } from '../auth/dto/auth-response.dto';
-import { toReviewPublic } from '../reviews/mappers/review.mapper';
-import { ReviewsRepository } from '../reviews/repositories/reviews.repository';
-import { ModerationService } from './moderation.service';
+import { ListReviewsQueryDto } from '../reviews/dto/list-reviews-query.dto';
+import { ReviewsService } from '../reviews/reviews.service';
 import { ModerationRepository } from './repositories/moderation.repository';
+import { ModerationService } from './moderation.service';
 
 @ApiTags('moderation')
 @ApiBearerAuth()
@@ -19,22 +17,21 @@ export class ModerationController {
   constructor(
     private readonly moderationService: ModerationService,
     private readonly moderationRepository: ModerationRepository,
-    private readonly reviewsRepository: ReviewsRepository,
+    private readonly reviewsService: ReviewsService,
   ) {}
+
+  @Get('reviews')
+  @Roles(UserRole.ADMIN)
+  @ApiOperation({ summary: 'List all reviews for admin moderation' })
+  listReviews(@Query() query: ListReviewsQueryDto) {
+    return this.reviewsService.listForAdmin(query);
+  }
 
   @Get('reviews/pending')
   @Roles(UserRole.ADMIN)
-  @ApiOperation({ summary: 'List pending reviews for admin moderation (highest score first)' })
-  async listPending(@Query() query: PaginationDto) {
-    const [reviews, total] = await Promise.all([
-      this.reviewsRepository.findPending(query.page, query.limit),
-      this.reviewsRepository.countPending(),
-    ]);
-
-    return {
-      data: reviews.map(toReviewPublic),
-      meta: buildPaginationMeta(query.page, query.limit, total),
-    };
+  @ApiOperation({ summary: 'List pending reviews for admin moderation (legacy alias)' })
+  listPending(@Query() query: ListReviewsQueryDto) {
+    return this.reviewsService.listForAdmin({ ...query, status: query.status ?? undefined });
   }
 
   @Patch('reviews/:id/approve')
@@ -55,6 +52,36 @@ export class ModerationController {
   async reject(@Param('id') id: string, @CurrentUser() admin: AuthenticatedUser) {
     await this.moderationService.manualReject(id, admin.id);
     return { message: 'Review rejected' };
+  }
+
+  @Patch('reviews/:id/resolve')
+  @Roles(UserRole.ADMIN)
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Send a negative review to company-reviewer resolution' })
+  @ApiResponse({ status: 200, type: MessageResponseDto })
+  async resolve(@Param('id') id: string, @CurrentUser() admin: AuthenticatedUser) {
+    await this.moderationService.manualResolve(id, admin.id);
+    return { message: 'Review sent for resolution' };
+  }
+
+  @Delete('reviews/:id')
+  @Roles(UserRole.ADMIN)
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Delete a published review' })
+  @ApiResponse({ status: 200, type: MessageResponseDto })
+  async deleteReview(@Param('id') id: string, @CurrentUser() admin: AuthenticatedUser) {
+    await this.moderationService.manualDelete(id, admin.id);
+    return { message: 'Review deleted' };
+  }
+
+  @Delete('reviews/:id/reply')
+  @Roles(UserRole.ADMIN)
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Delete a company reply on a review' })
+  @ApiResponse({ status: 200, type: MessageResponseDto })
+  async deleteReply(@Param('id') id: string, @CurrentUser() admin: AuthenticatedUser) {
+    await this.moderationService.adminDeleteReply(id, admin.id);
+    return { message: 'Reply deleted' };
   }
 
   @Get('reviews/:id/logs')
