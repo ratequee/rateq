@@ -95,7 +95,20 @@ export class FirebaseAdminService implements OnModuleInit {
       );
     }
 
-    const record = await admin.auth().getUser(firebaseUid);
-    return record.phoneNumber ?? null;
+    try {
+      const record = await admin.auth().getUser(firebaseUid);
+      return record.phoneNumber ?? null;
+    } catch (error) {
+      const code =
+        error && typeof error === 'object' && 'code' in error
+          ? String((error as { code: unknown }).code)
+          : 'unknown';
+
+      if (code === 'auth/user-not-found') {
+        return null;
+      }
+
+      throw error;
+    }
   }
 }

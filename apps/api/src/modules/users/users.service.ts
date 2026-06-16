@@ -88,6 +88,12 @@ export class UsersService {
       avatarUrl: dto.avatarUrl,
     });
 
+    await this.usersRepository.updateById(userId, {
+      phone,
+      phoneVerified: true,
+    });
+    await this.phoneOtpService.clearSession(userId, 'reviewer');
+
     return this.getOnboardingStatus(userId);
   }
 

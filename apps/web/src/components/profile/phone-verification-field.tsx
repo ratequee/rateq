@@ -82,6 +82,7 @@ export function PhoneVerificationField({
   const [sending, setSending] = useState(false);
   const [verifying, setVerifying] = useState(false);
   const [otpSent, setOtpSent] = useState(false);
+  const [awaitingLinkedConfirm, setAwaitingLinkedConfirm] = useState(false);
   const [resendCooldown, setResendCooldown] = useState(0);
   const [linkedFirebasePhone, setLinkedFirebasePhone] = useState<string | null>(null);
   const [editingNumber, setEditingNumber] = useState(true);
@@ -118,6 +119,7 @@ export function PhoneVerificationField({
     onPhoneChange(value);
     onVerifiedChange(false);
     setOtpSent(false);
+    setAwaitingLinkedConfirm(false);
     setOtpCode('');
     setResendCooldown(0);
     setEditingNumber(true);
@@ -132,10 +134,23 @@ export function PhoneVerificationField({
   const handleChangeNumber = () => {
     onVerifiedChange(false);
     setOtpSent(false);
+    setAwaitingLinkedConfirm(false);
     setOtpCode('');
     setResendCooldown(0);
     setEditingNumber(true);
     resetFirebasePhoneVerification();
+  };
+
+  const completePhoneSync = async (normalizedPhone: string) => {
+    await phoneVerificationApi.syncPhone(normalizedPhone, context);
+    onVerifiedChange(true);
+    setEditingNumber(false);
+    setOtpSent(false);
+    setAwaitingLinkedConfirm(false);
+    setOtpCode('');
+    setResendCooldown(0);
+    onVerified?.();
+    toast.success(t('phoneVerifiedSuccess'));
   };
 
   const handleSendOtp = async () => {
@@ -153,17 +168,12 @@ export function PhoneVerificationField({
     try {
       const { smsRequired } = await startFirebasePhoneVerification(trimmed, recaptchaContainerId);
       if (!smsRequired) {
-        await phoneVerificationApi.syncPhone(normalizePhoneNumber(trimmed), context);
-        onVerifiedChange(true);
-        setEditingNumber(false);
-        onVerified?.();
-        toast.success(
-          linkedFirebasePhone && isSamePhoneNumber(trimmed, linkedFirebasePhone)
-            ? t('phoneVerifiedUsingLinked')
-            : t('phoneVerifiedSuccess'),
-        );
+        setOtpSent(false);
+        setAwaitingLinkedConfirm(true);
+        toast.success(t('phoneLinkedReadyToConfirm'));
         return;
       }
+      setAwaitingLinkedConfirm(false);
       setOtpSent(true);
       setResendCooldown(RESEND_COOLDOWN_SECONDS);
       toast.success(t('phoneOtpSent'));
@@ -171,6 +181,24 @@ export function PhoneVerificationField({
       toast.error(getPhoneVerificationErrorMessage(err, t, 'phoneOtpSendError'));
     } finally {
       setSending(false);
+    }
+  };
+
+  const handleConfirmLinkedPhone = async () => {
+    const trimmed = phone.trim();
+    if (!trimmed) {
+      toast.error(t('errors.required'));
+      return;
+    }
+
+    setVerifying(true);
+    try {
+      await completePhoneSync(normalizePhoneNumber(trimmed));
+    } catch (err) {
+      onVerifiedChange(false);
+      toast.error(getPhoneVerificationErrorMessage(err, t, 'phoneOtpVerifyError'));
+    } finally {
+      setVerifying(false);
     }
   };
 
@@ -183,15 +211,9 @@ export function PhoneVerificationField({
     setVerifying(true);
     try {
       await confirmFirebasePhoneVerification(otpCode.trim());
-      await phoneVerificationApi.syncPhone(normalizePhoneNumber(phone), context);
-      onVerifiedChange(true);
-      setEditingNumber(false);
-      setOtpSent(false);
-      setOtpCode('');
-      setResendCooldown(0);
-      onVerified?.();
-      toast.success(t('phoneVerifiedSuccess'));
+      await completePhoneSync(normalizePhoneNumber(phone));
     } catch (err) {
+      onVerifiedChange(false);
       toast.error(getPhoneVerificationErrorMessage(err, t, 'phoneOtpVerifyError'));
     } finally {
       setVerifying(false);
@@ -310,6 +332,20 @@ export function PhoneVerificationField({
               {verifying ? t('phoneVerifyingOtp') : t('phoneVerifyOtp')}
             </Button>
           </div>
+        </div>
+      )}
+
+      {awaitingLinkedConfirm && editingNumber && !verified && (
+        <div className="rounded-xl border border-sky-200 bg-sky-50 p-4">
+          <p className="mb-3 text-sm text-sky-950">{t('phoneConfirmLinkedHint')}</p>
+          <Button
+            type="button"
+            className="h-11 bg-gold-400 text-white hover:bg-gold-500"
+            disabled={verifying}
+            onClick={() => void handleConfirmLinkedPhone()}
+          >
+            {verifying ? t('phoneVerifyingOtp') : t('phoneConfirmLinked')}
+          </Button>
         </div>
       )}
     </div>

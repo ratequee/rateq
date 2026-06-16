@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable, ServiceUnavailableException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import type { MessageResponse } from '@rateq/types';
 import { PrismaService } from '../../infrastructure/database/prisma.service';
@@ -58,7 +58,21 @@ export class PhoneOtpService {
       throw new BadRequestException('Sign in with Firebase before verifying your phone number');
     }
 
-    const firebasePhone = await this.firebaseAdmin.getVerifiedPhoneNumber(user.firebaseUid);
+    if (!this.firebaseAdmin.isConfigured()) {
+      throw new ServiceUnavailableException(
+        'Phone verification is not configured on the server. Please contact support.',
+      );
+    }
+
+    let firebasePhone: string | null;
+    try {
+      firebasePhone = await this.firebaseAdmin.getVerifiedPhoneNumber(user.firebaseUid);
+    } catch {
+      throw new BadRequestException(
+        'Unable to confirm your phone number. Complete SMS verification and try again.',
+      );
+    }
+
     if (!firebasePhone || !phonesMatch(firebasePhone, normalizedPhone)) {
       throw new BadRequestException(
         'Phone number is not verified in Firebase. Complete SMS verification first.',
@@ -74,13 +88,6 @@ export class PhoneOtpService {
       .getClient()
       .setex(this.sessionKey(userId, context), this.ttlSeconds, JSON.stringify(session));
 
-    if (context === 'reviewer') {
-      await this.prisma.user.update({
-        where: { id: userId },
-        data: { phone: normalizedPhone, phoneVerified: true },
-      });
-    }
-
     return { message: 'Phone number verified successfully' };
   }
 
@@ -90,25 +97,23 @@ export class PhoneOtpService {
     context: PhoneVerificationContext,
   ): Promise<void> {
     const normalizedPhone = normalizePhone(phone);
-
-    if (context === 'reviewer') {
-      const user = await this.prisma.user.findUnique({ where: { id: userId } });
-      if (!user?.phoneVerified || !user.phone || !phonesMatch(user.phone, normalizedPhone)) {
-        throw new BadRequestException(
-          'Verify your phone number via SMS before completing your profile',
-        );
-      }
-      return;
-    }
-
     const raw = await this.redis.getClient().get(this.sessionKey(userId, context));
+
     if (!raw) {
-      throw new BadRequestException('Verify your company phone number via SMS before submitting');
+      throw new BadRequestException(
+        context === 'reviewer'
+          ? 'Verify your phone number via SMS before completing your profile'
+          : 'Verify your company phone number via SMS before submitting',
+      );
     }
 
     const session = JSON.parse(raw) as PhoneVerificationSession;
     if (!session.verified || !phonesMatch(session.phone, normalizedPhone)) {
-      throw new BadRequestException('Verify your company phone number via SMS before submitting');
+      throw new BadRequestException(
+        context === 'reviewer'
+          ? 'Verify your phone number via SMS before completing your profile'
+          : 'Verify your company phone number via SMS before submitting',
+      );
     }
   }
 

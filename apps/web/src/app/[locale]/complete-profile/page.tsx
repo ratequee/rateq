@@ -104,11 +104,11 @@ export default function CompleteProfilePage() {
 
   useEffect(() => {
     if (!user) return;
-    if (user.phoneVerified && user.phone) {
-      setPhone(user.phone);
+    if (onboarding?.reviewerProfile?.phone) {
+      setPhone(onboarding.reviewerProfile.phone);
       setReviewerPhoneVerified(true);
     }
-  }, [user]);
+  }, [user, onboarding]);
 
   useEffect(() => {
     if (accountType !== 'company') return;
