@@ -65,8 +65,6 @@ interface PhoneVerificationFieldProps {
   disabled?: boolean;
   label: string;
   fieldKey: string;
-  /** When false, hides "change number" after verification (onboarding only). */
-  allowChangeNumber?: boolean;
 }
 
 export function PhoneVerificationField({
@@ -80,7 +78,6 @@ export function PhoneVerificationField({
   disabled,
   label,
   fieldKey,
-  allowChangeNumber = true,
 }: PhoneVerificationFieldProps) {
   const t = useTranslations('profilePage');
   const ta = useTranslations('authPage');
@@ -124,6 +121,7 @@ export function PhoneVerificationField({
   }, [verified]);
 
   const handlePhoneChange = (value: string) => {
+    if (verified) return;
     onPhoneChange(value);
     onVerifiedChange(false);
     setOtpSent(false);
@@ -139,20 +137,6 @@ export function PhoneVerificationField({
     handlePhoneChange(linkedFirebasePhone);
   };
 
-  const handleChangeNumber = () => {
-    onVerifiedChange(false);
-    onPhoneChange('');
-    setOtpSent(false);
-    setAwaitingLinkedConfirm(false);
-    setOtpCode('');
-    setResendCooldown(0);
-    setEditingNumber(true);
-    setRecaptchaAttempt((attempt) => attempt + 1);
-    resetFirebasePhoneVerification();
-  };
-
-  const recaptchaContainerElementId = `${recaptchaContainerId}-${recaptchaAttempt}`;
-
   const completePhoneSync = async (normalizedPhone: string) => {
     await phoneVerificationApi.syncPhone(normalizedPhone, context);
     onVerifiedChange(true);
@@ -164,6 +148,8 @@ export function PhoneVerificationField({
     onVerified?.();
     toast.success(t('phoneVerifiedSuccess'));
   };
+
+  const recaptchaContainerElementId = `${recaptchaContainerId}-${recaptchaAttempt}`;
 
   const handleSendOtp = async () => {
     const trimmed = phone.trim();
@@ -315,16 +301,6 @@ export function PhoneVerificationField({
             </Button>
           )}
         </div>
-
-        {verified && !editingNumber && allowChangeNumber ? (
-          <button
-            type="button"
-            onClick={handleChangeNumber}
-            className="mt-2 text-sm font-medium text-brand-600 hover:text-brand-700"
-          >
-            {t('phoneChangeNumber')}
-          </button>
-        ) : null}
 
         {error && <p className="mt-1 text-sm text-red-600">{error}</p>}
       </div>

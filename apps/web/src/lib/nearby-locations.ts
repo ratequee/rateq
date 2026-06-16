@@ -1,21 +1,10 @@
 import type { CompanyPublic } from '@rateq/types';
+import { QATAR_CENTER } from '@/lib/hooks/use-user-location';
 
-/** Reference point for "you are here" distance (Doha center). */
-export const NEARBY_USER_LOCATION = {
-  latitude: 25.2783,
-  longitude: 51.5466,
-};
+export { QATAR_CENTER };
 
-/** Map overlay bounds matching the embedded Doha map view. */
-export const DOHA_MAP_BOUNDS = {
-  north: 25.305,
-  south: 25.255,
-  east: 51.575,
-  west: 51.515,
-};
-
-/** Demo coordinates around Doha — replace with API fields later. */
-const NEARBY_COORDINATES: Array<{ latitude: number; longitude: number }> = [
+/** Demo coordinates around Qatar — used when a company has no lat/lng yet. */
+const FALLBACK_COORDINATES: Array<{ latitude: number; longitude: number }> = [
   { latitude: 25.2924, longitude: 51.5312 },
   { latitude: 25.2816, longitude: 51.5528 },
   { latitude: 25.2718, longitude: 51.5384 },
@@ -36,6 +25,11 @@ export interface NearbyCompany extends CompanyPublic {
   distanceMeters: number;
 }
 
+function isQatarCompany(company: CompanyPublic): boolean {
+  const country = company.country.trim().toLowerCase();
+  return country === 'qatar' || country === 'qa' || country.includes('قطر');
+}
+
 export function haversineDistanceMeters(
   lat1: number,
   lng1: number,
@@ -53,39 +47,35 @@ export function haversineDistanceMeters(
   return Math.round(earthRadius * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a)));
 }
 
-export function latLngToOverlayPercent(
-  latitude: number,
-  longitude: number,
-): { x: number; y: number } {
-  const x =
-    ((longitude - DOHA_MAP_BOUNDS.west) / (DOHA_MAP_BOUNDS.east - DOHA_MAP_BOUNDS.west)) * 100;
-  const y =
-    ((DOHA_MAP_BOUNDS.north - latitude) / (DOHA_MAP_BOUNDS.north - DOHA_MAP_BOUNDS.south)) * 100;
+export function enrichCompaniesWithNearbyLocations(
+  companies: CompanyPublic[],
+  origin: { latitude: number; longitude: number } = QATAR_CENTER,
+  options?: { qatarOnly?: boolean },
+): NearbyCompany[] {
+  const filtered = options?.qatarOnly ? companies.filter(isQatarCompany) : companies;
 
-  return {
-    x: Math.min(100, Math.max(0, x)),
-    y: Math.min(100, Math.max(0, y)),
-  };
-}
+  return filtered
+    .map((company, index) => {
+      const coordinate =
+        company.latitude != null && company.longitude != null
+          ? { latitude: company.latitude, longitude: company.longitude }
+          : (FALLBACK_COORDINATES[index % FALLBACK_COORDINATES.length] ?? FALLBACK_COORDINATES[0]!);
 
-export function enrichCompaniesWithNearbyLocations(companies: CompanyPublic[]): NearbyCompany[] {
-  return companies.map((company, index) => {
-    const coordinate =
-      NEARBY_COORDINATES[index % NEARBY_COORDINATES.length] ?? NEARBY_COORDINATES[0]!;
-    const distanceMeters = haversineDistanceMeters(
-      NEARBY_USER_LOCATION.latitude,
-      NEARBY_USER_LOCATION.longitude,
-      coordinate.latitude,
-      coordinate.longitude,
-    );
+      const distanceMeters = haversineDistanceMeters(
+        origin.latitude,
+        origin.longitude,
+        coordinate.latitude,
+        coordinate.longitude,
+      );
 
-    return {
-      ...company,
-      latitude: coordinate.latitude,
-      longitude: coordinate.longitude,
-      distanceMeters,
-    };
-  });
+      return {
+        ...company,
+        latitude: coordinate.latitude,
+        longitude: coordinate.longitude,
+        distanceMeters,
+      };
+    })
+    .sort((left, right) => left.distanceMeters - right.distanceMeters);
 }
 
 export function formatDistanceMeters(

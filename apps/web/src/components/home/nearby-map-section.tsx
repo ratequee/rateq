@@ -3,9 +3,10 @@
 import { NearbyCompaniesMap } from '@/components/home/nearby-companies-map';
 import { NearbyCompanyListCard } from '@/components/home/nearby-company-list-card';
 import { Link } from '@/i18n/routing';
-import type { CompanyPublic } from '@rateq/types';
+import { QATAR_CENTER, useUserLocation } from '@/lib/hooks/use-user-location';
 import { enrichCompaniesWithNearbyLocations } from '@/lib/nearby-locations';
 import { cn } from '@/lib/utils';
+import type { CompanyPublic } from '@rateq/types';
 import { ArrowRight, Search } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { useMemo, useState } from 'react';
@@ -18,10 +19,32 @@ interface NearbyMapSectionProps {
 
 export function NearbyMapSection({ companies }: NearbyMapSectionProps) {
   const t = useTranslations('home');
+  const userLocation = useUserLocation();
   const [view, setView] = useState<NearbyView>('map');
   const [query, setQuery] = useState('');
 
-  const nearbyCompanies = useMemo(() => enrichCompaniesWithNearbyLocations(companies), [companies]);
+  const useQatarFallback = userLocation.status !== 'granted';
+
+  const origin = useMemo(() => {
+    if (userLocation.status === 'granted') {
+      return {
+        latitude: userLocation.latitude,
+        longitude: userLocation.longitude,
+      };
+    }
+    return QATAR_CENTER;
+  }, [userLocation]);
+
+  const mapCenter = origin;
+  const mapZoom = userLocation.status === 'granted' ? 12 : 8;
+
+  const nearbyCompanies = useMemo(
+    () =>
+      enrichCompaniesWithNearbyLocations(companies, origin, {
+        qatarOnly: useQatarFallback,
+      }),
+    [companies, origin, useQatarFallback],
+  );
 
   const filteredCompanies = useMemo(() => {
     const normalized = query.trim().toLowerCase();
@@ -37,13 +60,17 @@ export function NearbyMapSection({ companies }: NearbyMapSectionProps) {
     });
   }, [nearbyCompanies, query]);
 
+  const locationHint =
+    userLocation.status === 'pending'
+      ? t('nearbyLocating')
+      : userLocation.status === 'denied'
+        ? t('nearbyQatarFallback')
+        : t('nearbyUsingYourLocation');
+
   return (
     <section className="bg-white py-12 sm:py-16 lg:py-20">
-      <div
-        style={{ height: '510px' }}
-        className="relative z-10 mx-auto mt-[-200px] max-w-page rounded-3xl border border-slate-100 bg-white p-6 shadow-lg sm:p-8 lg:p-10"
-      >
-        <div className="mb-6 flex flex-wrap items-baseline justify-between gap-4">
+      <div className="relative z-10 mx-auto mt-[-200px] max-w-page rounded-3xl border border-slate-100 bg-white p-6 shadow-lg sm:p-8 lg:p-10">
+        <div className="mb-2 flex flex-wrap items-baseline justify-between gap-4">
           <h2 className="text-lg font-bold text-ink sm:text-3xl">{t('nearbyTitle')}</h2>
           <Link
             href="/search"
@@ -53,6 +80,7 @@ export function NearbyMapSection({ companies }: NearbyMapSectionProps) {
             <ArrowRight className="h-4 w-4 rtl:rotate-180" />
           </Link>
         </div>
+        <p className="mb-6 text-sm text-ink-muted">{locationHint}</p>
 
         <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center">
           <div className="inline-flex shrink-0 rounded-full bg-brand-100 p-1">
@@ -97,7 +125,12 @@ export function NearbyMapSection({ companies }: NearbyMapSectionProps) {
         </div>
 
         {view === 'map' ? (
-          <NearbyCompaniesMap companies={filteredCompanies} />
+          <NearbyCompaniesMap
+            companies={filteredCompanies}
+            mapCenter={mapCenter}
+            mapZoom={mapZoom}
+            userLocation={userLocation.status === 'granted' ? origin : null}
+          />
         ) : (
           <div className="max-h-[400px] overflow-y-auto pe-1">
             {filteredCompanies.length === 0 ? (
