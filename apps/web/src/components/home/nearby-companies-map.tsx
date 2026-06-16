@@ -32,6 +32,7 @@ export function NearbyCompaniesMap({
   const markersLayerRef = useRef<import('leaflet').LayerGroup | null>(null);
   const userMarkerRef = useRef<import('leaflet').CircleMarker | null>(null);
   const [selectedId, setSelectedId] = useState<string | null>(companies[0]?.id ?? null);
+  const [popupPosition, setPopupPosition] = useState<{ x: number; y: number } | null>(null);
 
   const selected = companies.find((company) => company.id === selectedId) ?? null;
 
@@ -50,7 +51,6 @@ export function NearbyCompaniesMap({
 
     void (async () => {
       const L = await import('leaflet');
-
       if (cancelled || !mapContainerRef.current) return;
 
       if (!mapRef.current) {
@@ -76,7 +76,7 @@ export function NearbyCompaniesMap({
     return () => {
       cancelled = true;
     };
-  }, [locale, mapCenter.latitude, mapCenter.longitude, mapZoom]);
+  }, [mapCenter.latitude, mapCenter.longitude, mapZoom]);
 
   useEffect(() => {
     return () => {
@@ -86,6 +86,25 @@ export function NearbyCompaniesMap({
       userMarkerRef.current = null;
     };
   }, []);
+
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !selected) {
+      setPopupPosition(null);
+      return;
+    }
+
+    const updatePopupPosition = () => {
+      const point = map.latLngToContainerPoint([selected.latitude, selected.longitude]);
+      setPopupPosition({ x: point.x, y: point.y });
+    };
+
+    updatePopupPosition();
+    map.on('move zoom resize', updatePopupPosition);
+    return () => {
+      map.off('move zoom resize', updatePopupPosition);
+    };
+  }, [selected]);
 
   useEffect(() => {
     void (async () => {
@@ -98,12 +117,17 @@ export function NearbyCompaniesMap({
 
       for (const company of companies) {
         const isSelected = company.id === selectedId;
-        const marker = L.circleMarker([company.latitude, company.longitude], {
-          radius: isSelected ? 11 : 8,
-          color: isSelected ? '#1e4d8c' : '#ffffff',
-          weight: isSelected ? 3 : 2,
-          fillColor: '#2563eb',
-          fillOpacity: 1,
+        const html = company.logo
+          ? `<img src="${company.logo}" alt="" style="width:40px;height:40px;border-radius:9999px;object-fit:cover;border:3px solid ${isSelected ? '#1d4ed8' : '#ffffff'};box-shadow:0 4px 10px rgba(15,23,42,0.25);" />`
+          : `<div style="width:40px;height:40px;border-radius:9999px;background:#2563eb;color:#fff;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;border:3px solid ${isSelected ? '#1d4ed8' : '#ffffff'};box-shadow:0 4px 10px rgba(15,23,42,0.25);">${company.name.charAt(0)}</div>`;
+
+        const marker = L.marker([company.latitude, company.longitude], {
+          icon: L.divIcon({
+            className: 'nearby-map-marker',
+            html,
+            iconSize: [40, 40],
+            iconAnchor: [20, 40],
+          }),
         });
 
         marker.on('click', () => setSelectedId(company.id));
@@ -136,16 +160,19 @@ export function NearbyCompaniesMap({
   }, [companies, locale, selectedId, t, userLocation]);
 
   return (
-    <div className="space-y-4">
+    <div className="relative h-[400px] overflow-hidden rounded-2xl border border-slate-200 bg-slate-100 shadow-card">
       <div
         ref={mapContainerRef}
-        className="relative z-0 h-[400px] overflow-hidden rounded-2xl border border-slate-200 bg-slate-100 shadow-card [&_.leaflet-control-attribution]:text-[10px]"
+        className="relative z-0 h-full w-full [&_.leaflet-control-attribution]:text-[10px]"
         role="img"
         aria-label={t('nearbyMapAlt')}
       />
 
-      {selected ? (
-        <article className="relative rounded-3xl border border-slate-200 bg-white p-4 shadow-sm">
+      {selected && popupPosition ? (
+        <article
+          style={{ left: popupPosition.x, top: popupPosition.y }}
+          className="pointer-events-auto absolute z-[700] w-[min(280px,calc(100%-2rem))] -translate-x-1/2 -translate-y-[calc(100%+12px)] rounded-3xl border border-slate-200 bg-white p-4 shadow-xl"
+        >
           <button
             type="button"
             onClick={() => setSelectedId(null)}
