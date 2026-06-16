@@ -41,7 +41,7 @@ export function NearbyCompaniesMap({
       setSelectedId(null);
       return;
     }
-    if (!selectedId || !companies.some((company) => company.id === selectedId)) {
+    if (selectedId && !companies.some((company) => company.id === selectedId)) {
       setSelectedId(companies[0]?.id ?? null);
     }
   }, [companies, selectedId]);
@@ -60,10 +60,14 @@ export function NearbyCompaniesMap({
           scrollWheelZoom: false,
         });
 
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-          attribution: `&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>`,
-          maxZoom: 19,
-        }).addTo(map);
+        L.tileLayer(
+          'https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}',
+          {
+            attribution:
+              'Tiles &copy; Esri &mdash; Source: Esri, HERE, Garmin, Intermap, increment P Corp.',
+            maxZoom: 19,
+          },
+        ).addTo(map);
 
         markersLayerRef.current = L.layerGroup().addTo(map);
         mapRef.current = map;
@@ -131,11 +135,6 @@ export function NearbyCompaniesMap({
         });
 
         marker.on('click', () => setSelectedId(company.id));
-        marker.bindTooltip(company.name, {
-          direction: 'top',
-          opacity: 0.95,
-          className: locale === 'ar' ? 'nearby-map-tooltip rtl' : 'nearby-map-tooltip',
-        });
         marker.addTo(layer);
       }
 
