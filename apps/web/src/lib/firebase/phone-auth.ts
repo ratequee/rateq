@@ -1,9 +1,13 @@
 import {
+  GoogleAuthProvider,
   linkWithPhoneNumber,
   PhoneAuthProvider,
   RecaptchaVerifier,
+  reauthenticateWithPopup,
+  reload,
   updatePhoneNumber,
   type ConfirmationResult,
+  type User,
 } from 'firebase/auth';
 import { getFirebaseAuth } from '@/lib/firebase/client';
 
@@ -14,6 +18,8 @@ let linkConfirmation: ConfirmationResult | null = null;
 let updateVerificationId: string | null = null;
 let activeMode: PhoneVerificationMode | null = null;
 
+const RECAPTCHA_TEARDOWN_MS = 350;
+
 export function normalizePhoneNumber(phone: string): string {
   const trimmed = phone.trim();
   const digits = trimmed.replace(/[^\d+]/g, '');
@@ -21,41 +27,52 @@ export function normalizePhoneNumber(phone: string): string {
   return `+${digits.replace(/^\+/, '')}`;
 }
 
-function clearRecaptchaVerifier(): void {
+async function teardownRecaptchaVerifier(): Promise<void> {
   if (!recaptchaVerifier) return;
 
   const verifier = recaptchaVerifier;
   recaptchaVerifier = null;
 
-  // reCAPTCHA may still touch the container after confirm(); defer teardown to avoid
-  // "Cannot read properties of null (reading 'style')" from recaptcha__en.js.
-  const teardown = () => {
-    try {
-      verifier.clear();
-    } catch {
-      // Ignore teardown errors after successful verification.
-    }
-  };
-
-  if (typeof window !== 'undefined') {
-    window.setTimeout(teardown, 100);
-  } else {
-    teardown();
+  try {
+    verifier.clear();
+  } catch {
+    // Ignore teardown errors after successful verification.
   }
+
+  await new Promise((resolve) => setTimeout(resolve, RECAPTCHA_TEARDOWN_MS));
 }
 
-function clearPhoneVerificationState(): void {
+async function clearPhoneVerificationState(): Promise<void> {
   linkConfirmation = null;
   updateVerificationId = null;
   activeMode = null;
-  clearRecaptchaVerifier();
+  await teardownRecaptchaVerifier();
+}
+
+async function createRecaptchaVerifier(containerId: string): Promise<RecaptchaVerifier> {
+  const auth = getFirebaseAuth();
+  const verifier = new RecaptchaVerifier(auth, containerId, {
+    size: 'invisible',
+  });
+  await verifier.render();
+  recaptchaVerifier = verifier;
+  return verifier;
+}
+
+async function ensureRecentLoginForPhoneUpdate(user: User): Promise<void> {
+  const usesGoogle = user.providerData.some((provider) => provider.providerId === 'google.com');
+  if (!usesGoogle) return;
+
+  const provider = new GoogleAuthProvider();
+  provider.setCustomParameters({ prompt: 'login' });
+  await reauthenticateWithPopup(user, provider);
 }
 
 export async function startFirebasePhoneVerification(
   phone: string,
   containerId: string,
 ): Promise<{ smsRequired: boolean }> {
-  clearPhoneVerificationState();
+  await clearPhoneVerificationState();
 
   const auth = getFirebaseAuth();
   const user = auth.currentUser;
@@ -63,24 +80,29 @@ export async function startFirebasePhoneVerification(
     throw new Error('You must be signed in to verify your phone number');
   }
 
-  const normalizedPhone = normalizePhoneNumber(phone);
-  recaptchaVerifier = new RecaptchaVerifier(auth, containerId, {
-    size: 'invisible',
-  });
+  await reload(user);
+  const refreshedUser = auth.currentUser;
+  if (!refreshedUser) {
+    throw new Error('You must be signed in to verify your phone number');
+  }
 
-  if (user.phoneNumber && user.phoneNumber !== normalizedPhone) {
+  const normalizedPhone = normalizePhoneNumber(phone);
+  const verifier = await createRecaptchaVerifier(containerId);
+
+  if (refreshedUser.phoneNumber && !isSamePhoneNumber(refreshedUser.phoneNumber, normalizedPhone)) {
+    await ensureRecentLoginForPhoneUpdate(refreshedUser);
     const provider = new PhoneAuthProvider(auth);
-    updateVerificationId = await provider.verifyPhoneNumber(normalizedPhone, recaptchaVerifier);
+    updateVerificationId = await provider.verifyPhoneNumber(normalizedPhone, verifier);
     activeMode = 'update';
     return { smsRequired: true };
   }
 
-  if (user.phoneNumber === normalizedPhone) {
-    clearPhoneVerificationState();
+  if (refreshedUser.phoneNumber && isSamePhoneNumber(refreshedUser.phoneNumber, normalizedPhone)) {
+    await clearPhoneVerificationState();
     return { smsRequired: false };
   }
 
-  linkConfirmation = await linkWithPhoneNumber(user, normalizedPhone, recaptchaVerifier);
+  linkConfirmation = await linkWithPhoneNumber(refreshedUser, normalizedPhone, verifier);
   activeMode = 'link';
   return { smsRequired: true };
 }
@@ -94,14 +116,16 @@ export async function confirmFirebasePhoneVerification(code: string): Promise<vo
 
   if (activeMode === 'link' && linkConfirmation) {
     await linkConfirmation.confirm(code);
-    clearPhoneVerificationState();
+    await reload(user);
+    await clearPhoneVerificationState();
     return;
   }
 
   if (activeMode === 'update' && updateVerificationId) {
     const credential = PhoneAuthProvider.credential(updateVerificationId, code);
     await updatePhoneNumber(user, credential);
-    clearPhoneVerificationState();
+    await reload(user);
+    await clearPhoneVerificationState();
     return;
   }
 
@@ -109,7 +133,7 @@ export async function confirmFirebasePhoneVerification(code: string): Promise<vo
 }
 
 export function resetFirebasePhoneVerification(): void {
-  clearPhoneVerificationState();
+  void clearPhoneVerificationState();
 }
 
 export function getLinkedFirebasePhoneNumber(): string | null {

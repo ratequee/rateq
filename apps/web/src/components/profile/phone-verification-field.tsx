@@ -17,6 +17,7 @@ import {
   isFirebaseInvalidAppCredentialError,
   isFirebasePhoneAlreadyLinkedError,
   isFirebasePhoneRegionNotEnabledError,
+  getFirebaseAuthErrorMessage,
 } from '@/lib/firebase/errors';
 import { cn } from '@/lib/utils';
 import { onAuthStateChanged } from 'firebase/auth';
@@ -45,6 +46,9 @@ function getPhoneVerificationErrorMessage(
   if (err instanceof ApiError) {
     return err.message;
   }
+  if (err instanceof Error && err.message) {
+    return getFirebaseAuthErrorMessage(err, t(fallbackKey));
+  }
   return t(fallbackKey);
 }
 
@@ -61,6 +65,8 @@ interface PhoneVerificationFieldProps {
   disabled?: boolean;
   label: string;
   fieldKey: string;
+  /** When false, hides "change number" after verification (onboarding only). */
+  allowChangeNumber?: boolean;
 }
 
 export function PhoneVerificationField({
@@ -74,6 +80,7 @@ export function PhoneVerificationField({
   disabled,
   label,
   fieldKey,
+  allowChangeNumber = true,
 }: PhoneVerificationFieldProps) {
   const t = useTranslations('profilePage');
   const ta = useTranslations('authPage');
@@ -86,6 +93,7 @@ export function PhoneVerificationField({
   const [resendCooldown, setResendCooldown] = useState(0);
   const [linkedFirebasePhone, setLinkedFirebasePhone] = useState<string | null>(null);
   const [editingNumber, setEditingNumber] = useState(true);
+  const [recaptchaAttempt, setRecaptchaAttempt] = useState(0);
 
   useEffect(() => {
     if (resendCooldown <= 0) return;
@@ -133,13 +141,17 @@ export function PhoneVerificationField({
 
   const handleChangeNumber = () => {
     onVerifiedChange(false);
+    onPhoneChange('');
     setOtpSent(false);
     setAwaitingLinkedConfirm(false);
     setOtpCode('');
     setResendCooldown(0);
     setEditingNumber(true);
+    setRecaptchaAttempt((attempt) => attempt + 1);
     resetFirebasePhoneVerification();
   };
+
+  const recaptchaContainerElementId = `${recaptchaContainerId}-${recaptchaAttempt}`;
 
   const completePhoneSync = async (normalizedPhone: string) => {
     await phoneVerificationApi.syncPhone(normalizedPhone, context);
@@ -166,7 +178,12 @@ export function PhoneVerificationField({
 
     setSending(true);
     try {
-      const { smsRequired } = await startFirebasePhoneVerification(trimmed, recaptchaContainerId);
+      const nextAttempt = recaptchaAttempt + 1;
+      setRecaptchaAttempt(nextAttempt);
+      const { smsRequired } = await startFirebasePhoneVerification(
+        trimmed,
+        `${recaptchaContainerId}-${nextAttempt}`,
+      );
       if (!smsRequired) {
         setOtpSent(false);
         setAwaitingLinkedConfirm(true);
@@ -238,7 +255,8 @@ export function PhoneVerificationField({
   return (
     <div data-field={fieldKey} className="space-y-3">
       <div
-        id={recaptchaContainerId}
+        key={recaptchaAttempt}
+        id={recaptchaContainerElementId}
         className="pointer-events-none fixed left-0 top-0 h-px w-px overflow-hidden opacity-0"
         aria-hidden
       />
@@ -298,7 +316,7 @@ export function PhoneVerificationField({
           )}
         </div>
 
-        {verified && !editingNumber ? (
+        {verified && !editingNumber && allowChangeNumber ? (
           <button
             type="button"
             onClick={handleChangeNumber}

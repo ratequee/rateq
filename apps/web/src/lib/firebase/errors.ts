@@ -14,6 +14,13 @@ const ERROR_MESSAGES: Record<string, string> = {
     'An account already exists with this email using a different sign-in method.',
   'auth/credential-already-in-use': 'This phone number is already linked to another account.',
   'auth/phone-number-already-exists': 'This phone number is already linked to another account.',
+  'auth/captcha-check-failed': 'Security check failed. Please wait a moment and try again.',
+  'auth/requires-recent-login': 'Please sign in again to change your phone number.',
+  'auth/quota-exceeded': 'Too many SMS requests. Please try again later.',
+  'auth/invalid-verification-code': 'Invalid or expired verification code.',
+  'auth/code-expired': 'Verification code expired. Request a new code.',
+  'auth/missing-verification-code': 'Enter the verification code we sent you.',
+  'auth/session-expired': 'Verification session expired. Request a new code.',
 };
 
 const PHONE_ALREADY_LINKED_ERROR_CODES = new Set([

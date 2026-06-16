@@ -535,6 +535,7 @@ export default function CompleteProfilePage() {
                     verified={reviewerPhoneVerified}
                     onVerifiedChange={setReviewerPhoneVerified}
                     onVerified={() => void refreshSession()}
+                    allowChangeNumber={false}
                     error={errors.phone || errors.phoneVerification}
                     label={t('phone')}
                     fieldKey="phone"
@@ -616,6 +617,7 @@ export default function CompleteProfilePage() {
                     context="company"
                     verified={companyPhoneVerified}
                     onVerifiedChange={setCompanyPhoneVerified}
+                    allowChangeNumber={false}
                     error={errors.companyPhone || errors.companyPhoneVerification}
                     label={t('phone')}
                     fieldKey="companyPhone"
