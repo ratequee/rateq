@@ -53,7 +53,7 @@ export class AdminService {
         where: { role: 'USER' },
         orderBy: { reviewCount: 'desc' },
         take: 5,
-        include: { profile: { select: { fullName: true } } },
+        include: { profile: { select: { fullName: true, avatarUrl: true } } },
       }),
       this.reviewsRepository.findMany({ page: 1, limit: 8 }),
       this.getDailyActivityLast7Days(),
@@ -85,6 +85,7 @@ export class AdminService {
         name: user.profile?.fullName ?? user.displayName ?? user.email,
         email: user.email,
         reviewCount: user.reviewCount,
+        avatarUrl: user.profile?.avatarUrl ?? null,
       })),
       latestReviews: latestReviews.map(toReviewPublic),
     };

@@ -3,7 +3,12 @@
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { contactApi, ApiError } from '@/lib/api';
-import { validateContactFields, type ContactFieldErrors } from '@/lib/validation/contact-fields';
+import {
+  formatQatarPhoneForSubmit,
+  sanitizeQatarPhoneDigits,
+  validateContactFields,
+  type ContactFieldErrors,
+} from '@/lib/validation/contact-fields';
 import type { ContactSubject } from '@rateq/types';
 import { cn } from '@/lib/utils';
 import { useTranslations } from 'next-intl';
@@ -61,7 +66,7 @@ export function ContactForm() {
     const payload = {
       name,
       email,
-      phone,
+      phone: formatQatarPhoneForSubmit(phone),
       subject: subject as ContactSubject,
       message,
     };
@@ -143,15 +148,22 @@ export function ContactForm() {
             <label htmlFor="phone" className="mb-1.5 block text-sm font-medium text-ink">
               {t('phoneLabel')}
             </label>
-            <Input
-              id="phone"
-              name="phone"
-              value={phone}
-              onChange={(event) => setPhone(event.target.value)}
-              placeholder={t('phonePlaceholder')}
-              aria-invalid={Boolean(fieldErrors.phone)}
-              className={fieldClassName('phone')}
-            />
+            <div className="flex overflow-hidden rounded-md border border-slate-200 focus-within:ring-2 focus-within:ring-brand-500">
+              <span className="flex items-center border-r border-slate-200 bg-slate-50 px-3 text-sm font-medium text-ink-muted">
+                +974
+              </span>
+              <Input
+                id="phone"
+                name="phone"
+                inputMode="numeric"
+                autoComplete="tel-national"
+                value={phone}
+                onChange={(event) => setPhone(sanitizeQatarPhoneDigits(event.target.value))}
+                placeholder={t('phonePlaceholder')}
+                aria-invalid={Boolean(fieldErrors.phone)}
+                className={cn('border-0 focus-visible:ring-0', fieldClassName('phone'))}
+              />
+            </div>
             {fieldErrors.phone ? (
               <p className="mt-1 text-sm text-red-600">{fieldErrors.phone}</p>
             ) : null}

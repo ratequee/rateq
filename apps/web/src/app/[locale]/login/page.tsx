@@ -13,9 +13,14 @@ import { getAccessToken } from '@/lib/auth-storage';
 import { getPostAuthRedirect } from '@/lib/profile-routing';
 import type { AuthenticatedUser } from '@rateq/types';
 import { getFirebaseAuthErrorMessage } from '@/lib/firebase/errors';
-import { validateLoginFields, type LoginFieldErrors } from '@/lib/validation/auth-fields';
+import {
+  validateLoginFields,
+  sanitizeEmail,
+  type LoginFieldErrors,
+} from '@/lib/validation/auth-fields';
+import { loadRememberedEmail, saveRememberedEmail } from '@/lib/remember-login';
 import { useTranslations } from 'next-intl';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import { Logo } from '@/components/brand/logo';
 import { Eye, EyeOff } from 'lucide-react';
@@ -33,6 +38,14 @@ export default function LoginPage() {
   const [remember, setRemember] = useState(false);
   const [loading, setLoading] = useState(false);
   const [fieldErrors, setFieldErrors] = useState<LoginFieldErrors>({});
+
+  useEffect(() => {
+    const remembered = loadRememberedEmail();
+    if (remembered) {
+      setEmail(remembered);
+      setRemember(true);
+    }
+  }, []);
 
   const redirectAfterAuth = async (sessionUser: AuthenticatedUser) => {
     const [status, token] = await Promise.all([
@@ -78,6 +91,7 @@ export default function LoginPage() {
 
     try {
       const sessionUser = await login(email, password);
+      saveRememberedEmail(email, remember);
       toast.success(tp('loginSuccess'));
       await redirectAfterAuth(sessionUser);
     } catch (err) {
@@ -115,7 +129,7 @@ export default function LoginPage() {
               type="email"
               autoComplete="email"
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              onChange={(e) => setEmail(sanitizeEmail(e.target.value))}
               placeholder={tp('emailPlaceholder')}
               required
               className="h-11"

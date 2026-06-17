@@ -27,6 +27,7 @@ const reviewInclude = {
       id: true,
       name: true,
       slug: true,
+      logo: true,
       categoryId: true,
       email: true,
       owner: { select: { id: true, email: true } },

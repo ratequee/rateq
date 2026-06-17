@@ -9,6 +9,12 @@ import { ensureValidAccessToken } from '@/lib/auth-session';
 import { fetchCategoryServicesClient } from '@/lib/categories-api';
 import { uploadReviewProofFiles } from '@/lib/review-proof-upload';
 import { getDeviceFingerprint } from '@/lib/device-fingerprint';
+import {
+  sanitizeReviewContent,
+  sanitizeReviewTitle,
+  validateReviewFields,
+  type ReviewFieldErrors,
+} from '@/lib/validation/review-fields';
 import type { CategoryServicePublic, ReviewPublic } from '@rateq/types';
 import { useTranslations } from 'next-intl';
 import { useEffect, useMemo, useState } from 'react';
@@ -48,6 +54,7 @@ export function WriteReviewForm({
   const [content, setContent] = useState('');
   const [proofFiles, setProofFiles] = useState<File[]>([]);
   const [loading, setLoading] = useState(false);
+  const [fieldErrors, setFieldErrors] = useState<ReviewFieldErrors>({});
   const initialServicesKey = initialCategoryServices.map((service) => service.id).join(',');
 
   useEffect(() => {
@@ -93,6 +100,31 @@ export function WriteReviewForm({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    const errors = validateReviewFields(
+      { title, content },
+      {
+        title: {
+          required: t('validation.titleRequired'),
+          min: t('validation.titleMin'),
+          max: t('validation.titleMax'),
+          invalid: t('validation.titleInvalid'),
+        },
+        content: {
+          required: t('validation.contentRequired'),
+          min: t('validation.contentMin'),
+          max: t('validation.contentMax'),
+          invalid: t('validation.contentInvalid'),
+        },
+      },
+    );
+
+    if (Object.keys(errors).length > 0) {
+      setFieldErrors(errors);
+      return;
+    }
+
+    setFieldErrors({});
     setLoading(true);
     try {
       const token = await ensureValidAccessToken();
@@ -174,21 +206,26 @@ export function WriteReviewForm({
             <label className="text-sm font-medium">{t('title')}</label>
             <Input
               value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              required
-              minLength={3}
+              onChange={(e) => setTitle(sanitizeReviewTitle(e.target.value))}
+              onBlur={() => setTitle((prev) => prev.trim())}
+              aria-invalid={Boolean(fieldErrors.title)}
             />
+            {fieldErrors.title ? (
+              <p className="mt-1 text-sm text-red-600">{fieldErrors.title}</p>
+            ) : null}
           </div>
           <div>
             <label className="text-sm font-medium">{t('content')}</label>
             <textarea
               value={content}
-              onChange={(e) => setContent(e.target.value)}
-              required
-              minLength={20}
+              onChange={(e) => setContent(sanitizeReviewContent(e.target.value))}
               rows={4}
+              aria-invalid={Boolean(fieldErrors.content)}
               className="mt-1 w-full rounded-md border border-slate-200 px-3 py-2 text-sm focus:ring-2 focus:ring-brand-500"
             />
+            {fieldErrors.content ? (
+              <p className="mt-1 text-sm text-red-600">{fieldErrors.content}</p>
+            ) : null}
           </div>
 
           <div>

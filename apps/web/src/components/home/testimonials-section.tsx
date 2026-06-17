@@ -8,9 +8,24 @@ import Image from 'next/image';
 import { useRef } from 'react';
 
 const TESTIMONIALS = [
-  { id: '1', authorKey: 'testimonial1Author', roleKey: 'testimonial1Role', quoteKey: 'testimonial1Quote' },
-  { id: '2', authorKey: 'testimonial2Author', roleKey: 'testimonial2Role', quoteKey: 'testimonial2Quote' },
-  { id: '3', authorKey: 'testimonial3Author', roleKey: 'testimonial3Role', quoteKey: 'testimonial3Quote' },
+  {
+    id: '1',
+    authorKey: 'testimonial1Author',
+    roleKey: 'testimonial1Role',
+    quoteKey: 'testimonial1Quote',
+  },
+  {
+    id: '2',
+    authorKey: 'testimonial2Author',
+    roleKey: 'testimonial2Role',
+    quoteKey: 'testimonial2Quote',
+  },
+  {
+    id: '3',
+    authorKey: 'testimonial3Author',
+    roleKey: 'testimonial3Role',
+    quoteKey: 'testimonial3Quote',
+  },
 ] as const;
 
 export function TestimonialsSection() {
@@ -20,8 +35,7 @@ export function TestimonialsSection() {
   const scroll = (direction: 'prev' | 'next') => {
     const el = scrollRef.current;
     if (!el) return;
-    const amount = direction === 'next' ? 360 : -360;
-    el.scrollBy({ left: amount, behavior: 'smooth' });
+    el.scrollBy({ left: direction === 'next' ? 360 : -360, behavior: 'smooth' });
   };
 
   return (
@@ -29,7 +43,7 @@ export function TestimonialsSection() {
       <div className="mx-auto max-w-page px-4 sm:px-6 lg:px-8">
         <SectionHeader
           title={t('testimonialsTitle')}
-          actionLabel={t('viewAllCompanies')}
+          actionLabel={t('viewAllReviews')}
           actionHref="/search"
           controls={
             <CarouselControls
@@ -51,8 +65,8 @@ export function TestimonialsSection() {
               key={id}
               className="flex h-full flex-col rounded-2xl border border-slate-100 bg-white p-6 shadow-sm"
             >
-              <div className="flex items-center gap-3 mb-4">
-                <Image src={"/images/author.svg"} alt={t(authorKey)} width={50} height={50} />
+              <div className="mb-4 flex items-center gap-3">
+                <Image src="/images/author.svg" alt={t(authorKey)} width={50} height={50} />
                 <div className="flex flex-col">
                   <p className="font-semibold text-ink">{t(authorKey)}</p>
                   <p className="text-sm text-ink-muted">{t(roleKey)}</p>
@@ -64,7 +78,7 @@ export function TestimonialsSection() {
               </blockquote>
               <div className="mt-6 border-t-2 border-slate-100 pt-4">
                 <div className="flex items-center gap-3">
-                  <Image src={"/images/company_avatar.svg"} alt={t('testimonialCompany')} width={50} height={50} />
+                  <Image src="/images/company_avatar.svg" alt="" width={50} height={50} />
                   <div>
                     <p className="text-sm font-medium text-ink">{t('testimonialCompany')}</p>
                     <p className="text-xs text-ink-muted">{t('testimonialCompanyRole')}</p>

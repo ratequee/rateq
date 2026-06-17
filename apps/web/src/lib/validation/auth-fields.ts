@@ -20,6 +20,14 @@ export function sanitizeDisplayName(value: string): string {
     .replace(/^\s+/, '');
 }
 
+export function sanitizeEmail(value: string): string {
+  return value.replace(/\s/g, '').toLowerCase();
+}
+
+export function sanitizePassword(value: string): string {
+  return value.replace(/\s/g, '');
+}
+
 export function validateDisplayName(
   name: string,
   messages: { required: string; invalid: string; min: string; max: string },
@@ -69,10 +77,15 @@ export function validatePassword(
     min: string;
     max: string;
     weak: string;
+    whitespace?: string;
   },
 ): string | undefined {
   if (!password) {
     return messages.required;
+  }
+
+  if (/\s/.test(password)) {
+    return messages.whitespace ?? messages.weak;
   }
 
   if (password.length < 8) {

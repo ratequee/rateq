@@ -6,6 +6,15 @@ const withNextIntl = createNextIntlPlugin('./src/i18n/request.ts');
 const nextConfig: NextConfig = {
   transpilePackages: ['@rateq/ui', '@rateq/types'],
   serverExternalPackages: ['firebase'],
+  images: {
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'firebasestorage.googleapis.com',
+        pathname: '/v0/b/**',
+      },
+    ],
+  },
   webpack: (config) => {
     // Firebase Auth optional RN peer — not used on web; avoid monorepo hoisting issues.
     config.resolve.alias = {

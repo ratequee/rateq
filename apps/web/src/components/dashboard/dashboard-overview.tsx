@@ -2,6 +2,7 @@
 
 import { DashboardReviewsTable } from '@/components/dashboard/dashboard-reviews-table';
 import { DashboardStatCard } from '@/components/dashboard/dashboard-stat-card';
+import { AvatarImage } from '@/components/ui/avatar-image';
 import {
   chartBars,
   dashboardStats,
@@ -141,7 +142,7 @@ export function DashboardOverview({
           <div className="space-y-4">
             {topReviewers.map((reviewer, index) => (
               <div key={index} className="flex items-center gap-3">
-                <img src="/images/author.svg" alt="" className="h-10 w-10 rounded-full" />
+                <AvatarImage src={null} name={reviewer.name} className="h-10 w-10 shrink-0" />
                 <div>
                   <p className="font-medium text-ink">{reviewer.name}</p>
                   <p className="text-xs text-ink-muted">{reviewer.location}</p>

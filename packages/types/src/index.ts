@@ -10,3 +10,4 @@ export * from './admin';
 export * from './category';
 export * from './contact';
 export * from './reviewer';
+export * from './platform';

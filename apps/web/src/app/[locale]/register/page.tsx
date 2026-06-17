@@ -13,6 +13,8 @@ import type { AuthenticatedUser } from '@rateq/types';
 import { getFirebaseAuthErrorMessage } from '@/lib/firebase/errors';
 import {
   sanitizeDisplayName,
+  sanitizeEmail,
+  sanitizePassword,
   validateRegisterFields,
   type RegisterFieldErrors,
 } from '@/lib/validation/auth-fields';
@@ -51,6 +53,7 @@ export default function RegisterPage() {
       min: tp('validationPasswordMin'),
       max: tp('validationPasswordMax'),
       weak: tp('validationPasswordWeak'),
+      whitespace: tp('validationPasswordWhitespace'),
     },
   };
 
@@ -136,7 +139,7 @@ export default function RegisterPage() {
               type="email"
               autoComplete="email"
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              onChange={(e) => setEmail(sanitizeEmail(e.target.value))}
               placeholder={tp('emailPlaceholder')}
               required
               className="h-11"
@@ -157,7 +160,7 @@ export default function RegisterPage() {
                 type={showPassword ? 'text' : 'password'}
                 autoComplete="new-password"
                 value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                onChange={(e) => setPassword(sanitizePassword(e.target.value))}
                 placeholder={tp('passwordPlaceholder')}
                 required
                 className="h-11 pe-10"

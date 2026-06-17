@@ -124,6 +124,7 @@ export interface CompanyTopReviewer {
   email: string;
   reviewCount: number;
   ratingAverage: number;
+  avatarUrl: string | null;
 }
 
 export interface CompanyDashboard {

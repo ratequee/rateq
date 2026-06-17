@@ -41,6 +41,14 @@ export class ReviewsController {
     return this.reviewsService.submit(user, dto, request);
   }
 
+  @Public()
+  @Get('featured')
+  @ApiOperation({ summary: 'List recent approved reviews for marketing surfaces' })
+  @ApiResponse({ status: 200, type: PaginatedReviewsDto })
+  listFeatured() {
+    return this.reviewsService.listFeatured(6);
+  }
+
   @Get('company/:companyId/manage')
   @ApiBearerAuth()
   @Roles(UserRole.COMPANY, UserRole.ADMIN)

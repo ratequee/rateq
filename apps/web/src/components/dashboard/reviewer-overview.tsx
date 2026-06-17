@@ -4,6 +4,7 @@ import { DashboardActivityChart } from '@/components/dashboard/dashboard-activit
 import { DashboardReviewsTable } from '@/components/dashboard/dashboard-reviews-table';
 import { DashboardStatCard } from '@/components/dashboard/dashboard-stat-card';
 import { ReviewerRecentlyRatedCompaniesList } from '@/components/dashboard/reviewer-recently-rated-companies-list';
+import { mapReviewToDashboardRow } from '@/lib/dashboard-review-rows';
 import type { ReviewerDashboard } from '@rateq/types';
 import { ClipboardList, ShoppingCart, Star, Users } from 'lucide-react';
 import { useLocale, useTranslations } from 'next-intl';
@@ -15,19 +16,6 @@ interface ReviewerOverviewProps {
 }
 
 const statIcons = [ClipboardList, ShoppingCart, Users, Star] as const;
-
-function mapReviewStatus(status: string): 'pending' | 'approved' | 'rejected' | 'useful' {
-  switch (status) {
-    case 'APPROVED':
-      return 'approved';
-    case 'REJECTED':
-      return 'rejected';
-    case 'PENDING':
-    case 'RESOLUTION_PENDING':
-    default:
-      return 'pending';
-  }
-}
 
 export function ReviewerOverview({ title, dashboard }: ReviewerOverviewProps) {
   const t = useTranslations('dashboardShell');
@@ -85,14 +73,7 @@ export function ReviewerOverview({ title, dashboard }: ReviewerOverviewProps) {
     });
   }, [dashboard?.dailyActivity, locale]);
 
-  const latestReviewRows = (dashboard?.latestReviews ?? []).map((review) => ({
-    id: review.id,
-    company: review.company?.name ?? '—',
-    user: review.author?.displayName ?? '—',
-    location: '',
-    rating: review.rating,
-    status: mapReviewStatus(review.status),
-  }));
+  const latestReviewRows = (dashboard?.latestReviews ?? []).map(mapReviewToDashboardRow);
 
   return (
     <div className="space-y-6">

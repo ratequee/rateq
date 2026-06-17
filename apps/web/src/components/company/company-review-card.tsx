@@ -3,12 +3,12 @@
 import type { CompanyPublic, ReviewPublic } from '@rateq/types';
 import { ReviewStatus } from '@rateq/types';
 import { Badge } from '@/components/ui/badge';
+import { AvatarImage } from '@/components/ui/avatar-image';
 import { StarRating } from '@/components/ui/star-rating';
 import { ReviewReplyForm } from '@/components/review/review-reply-form';
 import { getReviewAuthorInitial, getReviewAuthorName } from '@/lib/review-author';
 import { cn } from '@/lib/utils';
 import { useTranslations } from 'next-intl';
-import Image from 'next/image';
 
 interface CompanyReviewCardProps {
   review: ReviewPublic;
@@ -77,11 +77,12 @@ export function CompanyReviewCard({ review, company, onReviewUpdated }: CompanyR
         <p className="mt-3 text-sm leading-relaxed text-ink">{review.content}</p>
         <hr className="my-4 border-t border-slate-400" />
         <div className="flex items-center gap-2">
-          {company.logo ? (
-            <img src={company.logo} alt="" className="h-14 w-14 rounded-xl object-cover" />
-          ) : (
-            <Image src="/images/company_avatar.svg" alt="" width={60} height={60} />
-          )}
+          <AvatarImage
+            src={company.logo}
+            name={company.name}
+            variant="rounded"
+            className="h-14 w-14 shrink-0"
+          />
           <div className="flex flex-col">
             <p className="text-sm font-semibold text-ink">{company.name}</p>
             <p className="text-sm text-ink-muted">

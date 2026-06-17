@@ -1,6 +1,7 @@
 'use client';
 
 import { AdminTopCompaniesList } from '@/components/dashboard/admin-top-companies-list';
+import { AvatarImage } from '@/components/ui/avatar-image';
 import { DashboardReviewsTable } from '@/components/dashboard/dashboard-reviews-table';
 import { DashboardStatCard } from '@/components/dashboard/dashboard-stat-card';
 import {
@@ -8,6 +9,7 @@ import {
   DashboardChartDailyFilter,
 } from '@/components/dashboard/dashboard-activity-chart';
 import { adminApi } from '@/lib/admin-platform-api';
+import { mapReviewToDashboardRow } from '@/lib/dashboard-review-rows';
 import { ensureValidAccessToken } from '@/lib/auth-session';
 import type { AdminPlatformStats } from '@rateq/types';
 import { Building2, ClipboardList, Star, Users } from 'lucide-react';
@@ -19,19 +21,6 @@ interface AdminOverviewProps {
 }
 
 const statIcons = [Building2, Users, ClipboardList] as const;
-
-function mapReviewStatus(status: string): 'pending' | 'approved' | 'rejected' | 'useful' {
-  switch (status) {
-    case 'APPROVED':
-      return 'approved';
-    case 'REJECTED':
-      return 'rejected';
-    case 'PENDING':
-    case 'RESOLUTION_PENDING':
-    default:
-      return 'pending';
-  }
-}
 
 export function AdminOverview({ title }: AdminOverviewProps) {
   const t = useTranslations('dashboardShell');
@@ -63,14 +52,7 @@ export function AdminOverview({ title }: AdminOverviewProps) {
         { key: 'totalReviews', value: '—', change: '', positive: true },
       ];
 
-  const latestReviewRows = (stats?.latestReviews ?? []).map((review) => ({
-    id: review.id,
-    company: review.company?.name ?? '—',
-    user: review.author?.displayName ?? '—',
-    location: '',
-    rating: review.rating,
-    status: mapReviewStatus(review.status),
-  }));
+  const latestReviewRows = (stats?.latestReviews ?? []).map(mapReviewToDashboardRow);
 
   const chartData = useMemo(() => {
     const activity =
@@ -149,7 +131,11 @@ export function AdminOverview({ title }: AdminOverviewProps) {
           <div className="space-y-4">
             {(stats?.topReviewers ?? []).map((reviewer) => (
               <div key={reviewer.id} className="flex items-center gap-3">
-                <img src="/images/author.svg" alt="" className="h-10 w-10 rounded-full" />
+                <AvatarImage
+                  src={reviewer.avatarUrl}
+                  name={reviewer.name}
+                  className="h-10 w-10 shrink-0"
+                />
                 <div className="min-w-0">
                   <p className="font-medium text-ink">{reviewer.name}</p>
                   <p className="truncate text-xs text-ink-muted">{reviewer.email}</p>

@@ -2,12 +2,24 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { StarRating } from '@/components/ui/star-rating';
 import { Badge } from '@/components/ui/badge';
+import { HeroForUsersButton } from '@/components/home/hero-for-users-button';
+import { AvatarImage } from '@/components/ui/avatar-image';
 import { Link } from '@/i18n/routing';
+import { formatReviewTimeAgo } from '@/lib/format-relative-time';
+import type { CompanyPublic, ReviewPublic } from '@rateq/types';
 import { getLocale, getTranslations } from 'next-intl/server';
 import type { JSX } from 'react';
 import Image from 'next/image';
 
-export async function HeroSection(): Promise<JSX.Element> {
+interface HeroSectionProps {
+  topCompany: CompanyPublic | null;
+  latestReview: ReviewPublic | null;
+}
+
+export async function HeroSection({
+  topCompany,
+  latestReview,
+}: HeroSectionProps): Promise<JSX.Element> {
   const locale = await getLocale();
   const t = await getTranslations('home');
 
@@ -25,6 +37,9 @@ export async function HeroSection(): Promise<JSX.Element> {
       label: t('badgeTrusted'),
     },
   ];
+
+  const featuredCompany = topCompany;
+  const miniReview = latestReview;
 
   return (
     <section
@@ -77,15 +92,7 @@ export async function HeroSection(): Promise<JSX.Element> {
                   {t('exploreCompanies')}
                 </Button>
               </Link>
-              <Link href="/register">
-                <Button
-                  variant="outline-brand"
-                  size="lg"
-                  className="min-w-[140px] sm:min-w-[50%] border-0 shadow-lg text-brand-500"
-                >
-                  {t('forUsers')}
-                </Button>
-              </Link>
+              <HeroForUsersButton />
             </div>
 
             <ul className="mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
@@ -102,76 +109,111 @@ export async function HeroSection(): Promise<JSX.Element> {
           </div>
 
           <div className="relative mx-auto w-full max-w-full md:mx-[10px] lg:mx-0 lg:max-w-none lg:justify-self-end">
-            <div className="absolute -start-[-10px] lg:-start-10 top-2 z-10 max-w-[350px] rounded-xl border border-slate-100 bg-white p-3 shadow-card sm:block lg:-end-8 lg:top-8">
-              <div className="flex items-start gap-3">
-                <Image
-                  src="/images/author.svg"
-                  alt="Category"
-                  width={50}
-                  height={50}
-                  className="rounded-full"
-                />
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-center justify-between gap-2">
-                    <p className="truncate text-sm font-semibold text-ink">
-                      {t('miniReviewAuthor')}
-                    </p>
-                    <span className="shrink-0 text-xs text-ink-light">{t('miniReviewTime')}</span>
-                  </div>
-                  <div className="mt-1 flex items-center gap-2">
-                    <StarRating value={4.8} size="sm" />
-                    <span className="text-xs text-ink-muted">{t('miniReviewCount')}</span>
-                  </div>
-                  <p className="mt-2 line-clamp-3 text-xs leading-relaxed text-ink-muted">
-                    {t('miniReviewQuote')}
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            <div className="overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-hero">
-              <div
-                className="h-40 bg-gradient-to-br from-brand-500 to-brand-700 sm:h-48"
-                style={{
-                  height: '250px',
-                  backgroundImage: 'url(/images/building.svg)',
-                  backgroundSize: 'cover',
-                  backgroundPosition: 'center',
-                }}
-              />
-              <div className="px-6 pb-6 sm:px-8 sm:pb-8">
-                <div className="flex items-center justify-between rounded-2xl">
-                  <div className="flex items-center gap-3">
-                    <Image
-                      src="/images/company_avatar.svg"
-                      alt="Category"
-                      width={120}
-                      height={120}
-                      className="mt-[-50px]"
+            {miniReview ? (
+              <div className="absolute -start-[-10px] lg:-start-10 top-2 z-10 max-w-[350px] rounded-xl border border-slate-100 bg-white p-3 shadow-card sm:block lg:-end-8 lg:top-8">
+                <div className="flex items-start gap-3">
+                  {miniReview.author?.avatarUrl ? (
+                    <img
+                      src={miniReview.author.avatarUrl}
+                      alt={miniReview.author.displayName}
+                      width={50}
+                      height={50}
+                      className="h-12 w-12 rounded-full object-cover"
                     />
-                    <div className="flex flex-col items-start">
-                      <p className="text-lg font-semibold text-ink text-left">
-                        {t('featuredReviewAuthor')}
+                  ) : (
+                    <AvatarImage
+                      src={null}
+                      name={miniReview.author?.displayName ?? t('miniReviewAuthor')}
+                      className="h-12 w-12 shrink-0"
+                    />
+                  )}
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center justify-between gap-2">
+                      <p className="truncate text-sm font-semibold text-ink">
+                        {miniReview.author?.displayName ?? t('miniReviewAuthor')}
                       </p>
-                      <p className="mt-1 text-sm text-ink-muted text-left">
-                        {t('featuredReviewRole')}
-                      </p>
+                      <span className="shrink-0 text-xs text-ink-light">
+                        {formatReviewTimeAgo(miniReview.createdAt, locale)}
+                      </span>
                     </div>
+                    <div className="mt-1 flex items-center gap-2">
+                      <StarRating value={miniReview.rating} size="sm" />
+                    </div>
+                    <p className="mt-2 line-clamp-3 text-xs leading-relaxed text-ink-muted">
+                      {miniReview.content}
+                    </p>
                   </div>
-                  <Badge className="border-gold-100 rounded-sm text-white bg-gold-500 px-2 py-1">
-                    {t('featuredReviewCategory')}
-                  </Badge>
-                </div>
-                <p className="mt-4 text-md leading-relaxed text-ink-muted">
-                  {t('featuredReviewText')}
-                </p>
-                <div className="mt-5 flex flex-wrap items-end gap-3 border-t border-slate-100 pt-5">
-                  <span className="text-5xl font-bold text-ink">4.8</span>
-                  <StarRating value={4.8} size="lg" />
-                  <span className="text-sm text-ink-muted">{t('featuredReviewReviews')}</span>
                 </div>
               </div>
-            </div>
+            ) : null}
+
+            {featuredCompany ? (
+              <div className="overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-hero">
+                <div
+                  className="h-40 bg-gradient-to-br from-brand-500 to-brand-700 sm:h-48"
+                  style={{
+                    height: '250px',
+                    backgroundImage: featuredCompany.coverUrl
+                      ? `url(${featuredCompany.coverUrl})`
+                      : 'url(/images/building.svg)',
+                    backgroundSize: 'cover',
+                    backgroundPosition: 'center',
+                  }}
+                />
+                <div className="px-6 pb-6 sm:px-8 sm:pb-8">
+                  <div className="flex items-center justify-between rounded-2xl">
+                    <div className="flex items-center gap-3">
+                      {featuredCompany.logo ? (
+                        <img
+                          src={featuredCompany.logo}
+                          alt={featuredCompany.name}
+                          width={120}
+                          height={120}
+                          className="mt-[-50px] h-[120px] w-[120px] rounded-full border-4 border-white object-cover"
+                        />
+                      ) : (
+                        <AvatarImage
+                          src={null}
+                          name={featuredCompany.name}
+                          className="mt-[-50px] h-[120px] w-[120px] border-4 border-white text-3xl"
+                        />
+                      )}
+                      <div className="flex flex-col items-start">
+                        <Link href={`/companies/${featuredCompany.slug}`}>
+                          <p className="text-lg font-semibold text-ink text-left hover:text-brand-500">
+                            {featuredCompany.name}
+                          </p>
+                        </Link>
+                        <p className="mt-1 text-sm text-ink-muted text-left">
+                          {featuredCompany.categoryName ?? t('featuredReviewRole')}
+                        </p>
+                      </div>
+                    </div>
+                    <Badge className="border-gold-100 rounded-sm text-white bg-gold-500 px-2 py-1">
+                      {t('featuredReviewCategory')}
+                    </Badge>
+                  </div>
+                  {featuredCompany.description ? (
+                    <p className="mt-4 text-md leading-relaxed text-ink-muted line-clamp-3">
+                      {featuredCompany.description}
+                    </p>
+                  ) : null}
+                  <div className="mt-5 flex flex-wrap items-end gap-3 border-t border-slate-100 pt-5">
+                    <span className="text-5xl font-bold text-ink">
+                      {featuredCompany.ratingAverage.toFixed(1)}
+                    </span>
+                    <StarRating value={featuredCompany.ratingAverage} size="lg" />
+                    <span className="text-sm text-ink-muted">
+                      ({featuredCompany.reviewCount.toLocaleString(locale)} {t('statReviews')})
+                    </span>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div className="overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-hero p-8 text-center text-ink-muted">
+                {t('exploreCompanies')}
+              </div>
+            )}
           </div>
         </div>
       </div>

@@ -1,27 +1,18 @@
 'use client';
 
+import { AvatarImage } from '@/components/ui/avatar-image';
 import { StarRating } from '@/components/ui/star-rating';
+import type { DashboardReviewRow } from '@/lib/dashboard-review-rows';
 import { cn } from '@/lib/utils';
 import { Eye, MoreHorizontal, Trash2 } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 
-type ReviewStatus = 'pending' | 'approved' | 'rejected' | 'useful';
-
-interface ReviewRow {
-  id: string;
-  company: string;
-  user: string;
-  location: string;
-  rating: number;
-  status: ReviewStatus;
-}
-
 interface DashboardReviewsTableProps {
-  rows: ReviewRow[];
+  rows: DashboardReviewRow[];
   showActions?: boolean;
 }
 
-const statusStyles: Record<ReviewStatus, string> = {
+const statusStyles: Record<DashboardReviewRow['status'], string> = {
   pending: 'bg-amber-50 text-amber-700',
   approved: 'bg-emerald-50 text-emerald-700',
   rejected: 'bg-red-50 text-red-700',
@@ -54,16 +45,27 @@ export function DashboardReviewsTable({ rows, showActions = true }: DashboardRev
               <tr key={row.id} className="border-t border-slate-100">
                 <td className="px-5 py-4">
                   <div className="flex items-center gap-3">
-                    <div className="h-10 w-10 rounded-lg bg-brand-100" />
+                    <AvatarImage
+                      src={row.companyLogoUrl}
+                      name={row.company}
+                      variant="rounded"
+                      className="h-10 w-10 shrink-0"
+                    />
                     <span className="font-medium text-ink">{row.company}</span>
                   </div>
                 </td>
                 <td className="px-5 py-4">
                   <div className="flex items-center gap-3">
-                    <img src="/images/author.svg" alt="" className="h-9 w-9 rounded-full" />
+                    <AvatarImage
+                      src={row.userAvatarUrl}
+                      name={row.user}
+                      className="h-9 w-9 shrink-0"
+                    />
                     <div>
                       <p className="font-medium text-ink">{row.user}</p>
-                      <p className="text-xs text-ink-muted">{row.location}</p>
+                      {row.location ? (
+                        <p className="text-xs text-ink-muted">{row.location}</p>
+                      ) : null}
                     </div>
                   </div>
                 </td>

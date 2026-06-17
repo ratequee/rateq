@@ -588,7 +588,7 @@ export class CompaniesService {
 
     const users = await this.prisma.user.findMany({
       where: { id: { in: groups.map((group) => group.userId) } },
-      include: { profile: { select: { fullName: true } } },
+      include: { profile: { select: { fullName: true, avatarUrl: true } } },
     });
 
     const userMap = new Map(users.map((user) => [user.id, user]));
@@ -601,6 +601,7 @@ export class CompaniesService {
         email: user?.email ?? '',
         reviewCount: group._count.id,
         ratingAverage: Number(group._avg.rating ?? 0),
+        avatarUrl: user?.profile?.avatarUrl ?? null,
       };
     });
   }
@@ -626,6 +627,7 @@ export class CompaniesService {
             id: true,
             name: true,
             slug: true,
+            logo: true,
             categoryId: true,
             email: true,
             owner: { select: { id: true, email: true } },

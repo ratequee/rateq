@@ -3,8 +3,21 @@ import { isValidMapLocation } from '@/lib/company-location';
 import { validateDisplayName } from '@/lib/validation/auth-fields';
 
 const PHONE_PATTERN = /^[+]?[\d\s()-]{6,30}$/;
+const COMPANY_NAME_PATTERN = /^[\p{L}\p{N}][\p{L}\p{N}\s&.\-'()]*[\p{L}\p{N})]?$/u;
+const CR_NUMBER_PATTERN = /^[\p{L}\p{N}][\p{L}\p{N}\-/]*[\p{L}\p{N}]?$/u;
 
 export const MAX_PROFILE_FILE_BYTES = 10 * 1024 * 1024;
+
+export function sanitizeCompanyName(value: string): string {
+  return value
+    .replace(/[^\p{L}\p{N}\s&.\-'()]/gu, '')
+    .replace(/\s+/g, ' ')
+    .replace(/^\s+/, '');
+}
+
+export function sanitizeCrNumber(value: string): string {
+  return value.replace(/[^\p{L}\p{N}\-/]/gu, '');
+}
 
 export function isProfileFileWithinLimit(file: File | null): boolean {
   return !file || file.size <= MAX_PROFILE_FILE_BYTES;
@@ -116,7 +129,7 @@ export function validateCompanyProfileFields(
   messages: {
     required: string;
     fileTooLarge: string;
-    companyName: { min: string; max: string };
+    companyName: { required?: string; invalid?: string; min: string; max: string };
     crNumber: { invalid: string };
     phone: { required: string; invalid: string };
     phoneVerification: { required: string };
@@ -127,11 +140,13 @@ export function validateCompanyProfileFields(
 
   const name = fields.companyName.trim();
   if (!name) {
-    errors.companyName = messages.required;
+    errors.companyName = messages.companyName.required ?? messages.required;
   } else if (name.length < 2) {
     errors.companyName = messages.companyName.min;
   } else if (name.length > 200) {
     errors.companyName = messages.companyName.max;
+  } else if (!COMPANY_NAME_PATTERN.test(name)) {
+    errors.companyName = messages.companyName.invalid ?? messages.companyName.min;
   }
 
   if (!fields.companyAddress.trim()) errors.companyAddress = messages.required;
@@ -149,7 +164,7 @@ export function validateCompanyProfileFields(
 
   if (!fields.crNumber.trim()) {
     errors.crNumber = messages.required;
-  } else if (fields.crNumber.trim().length < 3) {
+  } else if (fields.crNumber.trim().length < 3 || !CR_NUMBER_PATTERN.test(fields.crNumber.trim())) {
     errors.crNumber = messages.crNumber.invalid;
   }
 

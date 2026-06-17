@@ -28,7 +28,13 @@ export interface AdminPlatformStats {
     reviewCount: number;
     ratingAverage: number;
   }>;
-  topReviewers: Array<{ id: string; name: string; email: string; reviewCount: number }>;
+  topReviewers: Array<{
+    id: string;
+    name: string;
+    email: string;
+    reviewCount: number;
+    avatarUrl: string | null;
+  }>;
   latestReviews: ReviewPublic[];
 }
 

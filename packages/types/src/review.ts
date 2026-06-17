@@ -23,6 +23,7 @@ export interface ReviewCompanySummary {
   id: string;
   name: string;
   slug: string;
+  logo?: string | null;
   categoryId?: string | null;
   categoryName?: string | null;
 }

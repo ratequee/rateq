@@ -28,6 +28,8 @@ import { sanitizeDisplayName } from '@/lib/validation/auth-fields';
 import {
   hasValidationErrors,
   MAX_PROFILE_FILE_BYTES,
+  sanitizeCompanyName,
+  sanitizeCrNumber,
   validateCompanyProfileFields,
   validateReviewerProfileFields,
 } from '@/lib/validation/profile-fields';
@@ -287,7 +289,12 @@ export default function CompleteProfilePage() {
       {
         required: t('errors.required'),
         fileTooLarge: t('errors.fileTooLarge'),
-        companyName: { min: t('errors.companyNameMin'), max: t('errors.companyNameMax') },
+        companyName: {
+          required: t('errors.required'),
+          invalid: t('errors.companyNameInvalid'),
+          min: t('errors.companyNameMin'),
+          max: t('errors.companyNameMax'),
+        },
         crNumber: { invalid: t('errors.crNumberInvalid') },
         phone: { required: t('errors.required'), invalid: t('errors.invalidPhone') },
         phoneVerification: { required: t('errors.phoneNotVerified') },
@@ -593,7 +600,8 @@ export default function CompleteProfilePage() {
                   >
                     <Input
                       value={companyName}
-                      onChange={(e) => setCompanyName(e.target.value)}
+                      onChange={(e) => setCompanyName(sanitizeCompanyName(e.target.value))}
+                      onBlur={() => setCompanyName((prev) => prev.trim())}
                       className="h-11"
                     />
                   </Field>
@@ -642,7 +650,7 @@ export default function CompleteProfilePage() {
                   <Field label={t('crNumber')} error={errors.crNumber} fieldKey="crNumber" required>
                     <Input
                       value={crNumber}
-                      onChange={(e) => setCrNumber(e.target.value)}
+                      onChange={(e) => setCrNumber(sanitizeCrNumber(e.target.value))}
                       className="h-11"
                     />
                   </Field>

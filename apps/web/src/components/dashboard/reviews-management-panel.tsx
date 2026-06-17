@@ -13,6 +13,7 @@ import { ReviewStatus } from '@rateq/types';
 import { Link } from '@/i18n/routing';
 import { Loader2, MessageSquareText } from 'lucide-react';
 import { useLocale, useTranslations } from 'next-intl';
+import { useSearchParams } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 
@@ -57,6 +58,7 @@ function buildParams(input: {
 export function ReviewsManagementPanel({ mode, companyId }: ReviewsManagementPanelProps) {
   const t = useTranslations('dashboardReviews');
   const locale = useLocale();
+  const searchParams = useSearchParams();
   const [categories, setCategories] = useState<CategoryPublic[]>([]);
   const [reviews, setReviews] = useState<ReviewPublic[]>([]);
   const [meta, setMeta] = useState<PaginatedReviewsResponse['meta'] | null>(null);
@@ -78,6 +80,13 @@ export function ReviewsManagementPanel({ mode, companyId }: ReviewsManagementPan
   useEffect(() => {
     void fetchCategoriesClient().then(setCategories);
   }, []);
+
+  useEffect(() => {
+    const initialSearch = searchParams.get('search')?.trim() ?? '';
+    setSearchInput(initialSearch);
+    setSearch(initialSearch);
+    setPage(1);
+  }, [searchParams]);
 
   const loadReviews = useCallback(async () => {
     setLoading(true);

@@ -1,9 +1,9 @@
 'use client';
 
+import { AvatarImage } from '@/components/ui/avatar-image';
 import { StarRating } from '@/components/ui/star-rating';
 import { Link } from '@/i18n/routing';
 import type { ReviewerRecentlyRatedCompany } from '@rateq/types';
-import { Building2 } from 'lucide-react';
 import { useLocale, useTranslations } from 'next-intl';
 
 interface ReviewerRecentlyRatedCompaniesListProps {
@@ -35,13 +35,12 @@ export function ReviewerRecentlyRatedCompaniesList({
               className="flex items-center justify-between gap-4 rounded-xl border border-slate-100 bg-white p-4 shadow-sm transition-colors hover:border-brand-100 hover:bg-brand-50/40"
             >
               <div className="flex min-w-0 flex-1 items-center gap-3">
-                <div className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-full bg-white shadow-md ring-1 ring-slate-100">
-                  {company.logo ? (
-                    <img src={company.logo} alt="" className="h-full w-full object-cover" />
-                  ) : (
-                    <Building2 className="h-6 w-6 text-brand-500" aria-hidden />
-                  )}
-                </div>
+                <AvatarImage
+                  src={company.logo}
+                  name={company.name}
+                  variant="rounded"
+                  className="h-14 w-14 shrink-0 shadow-md ring-1 ring-slate-100"
+                />
                 <div className="min-w-0 text-start">
                   <p className="truncate font-semibold text-ink">{company.name}</p>
                   <p className="text-sm text-ink-muted">

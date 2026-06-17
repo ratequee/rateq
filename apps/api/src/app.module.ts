@@ -15,6 +15,7 @@ import { ModerationModule } from './modules/moderation/moderation.module';
 import { CategoriesModule } from './modules/categories/categories.module';
 import { AdminModule } from './modules/admin/admin.module';
 import { ContactModule } from './modules/contact/contact.module';
+import { PlatformModule } from './modules/platform/platform.module';
 
 /**
  * Root application module — modular monolith.
@@ -47,6 +48,7 @@ import { ContactModule } from './modules/contact/contact.module';
     CategoriesModule,
     AdminModule,
     ContactModule,
+    PlatformModule,
   ],
   providers: [
     {

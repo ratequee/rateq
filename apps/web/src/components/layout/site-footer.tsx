@@ -17,11 +17,7 @@ export async function SiteFooter(): Promise<JSX.Element> {
     { href: '/register', label: t('register') },
   ];
 
-  const supportLinks = [
-    { href: '/contact', label: t('contactUs') },
-    { href: '/contact', label: t('privacy') },
-    { href: '/contact', label: t('faq') },
-  ];
+  const supportLinks = [{ href: '/contact', label: t('contactUs') }];
 
   const social = [
     { icon: '/images/fb.svg', label: 'Facebook', href: '#' },
@@ -120,21 +116,10 @@ export async function SiteFooter(): Promise<JSX.Element> {
         </div>
 
         <div className="mt-12 border-t border-white/15 pt-6">
-          <div className="flex flex-col items-center justify-between gap-4 text-sm sm:flex-col-reverse">
+          <div className="flex flex-col items-center justify-between gap-4 text-sm">
             <p>
               © {year} {tc('appName')}. {t('rights')}
             </p>
-            <div className="flex flex-wrap justify-center gap-4">
-              <Link href="/contact" className="hover:text-gold-300">
-                {t('privacy')}
-              </Link>
-              <Link href="/contact" className="hover:text-gold-300">
-                {t('terms')}
-              </Link>
-              <Link href="/contact" className="hover:text-gold-300">
-                {t('cookies')}
-              </Link>
-            </div>
           </div>
         </div>
       </div>

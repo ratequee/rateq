@@ -91,16 +91,7 @@ export function CompanyReviewsSectionClient({
 
     switch (panel) {
       case 'already-reviewed':
-        return myReview ? (
-          <div className="space-y-3">
-            <ReviewerReviewStatusCard review={myReview} />
-            <div className="flex justify-end">
-              <Button type="button" variant="ghost" size="sm" onClick={() => setPanel(null)}>
-                {tr('dismiss')}
-              </Button>
-            </div>
-          </div>
-        ) : (
+        return (
           <Card className="border-amber-200 bg-amber-50">
             <CardContent className="flex flex-col gap-3 p-5 sm:flex-row sm:items-center sm:justify-between">
               <p className="text-sm text-amber-900">{tr('alreadyReviewed')}</p>
@@ -145,7 +136,9 @@ export function CompanyReviewsSectionClient({
   return (
     <section id="reviews">
       <div id="write-review" className="mb-6 scroll-mt-1 space-y-4">
-        {myReview && panel !== 'form' ? <ReviewerReviewStatusCard review={myReview} /> : null}
+        {myReview && panel !== 'form' && panel !== 'already-reviewed' ? (
+          <ReviewerReviewStatusCard review={myReview} />
+        ) : null}
         {lastInactiveReview && !myReview && panel !== 'form' ? (
           <Card className="border-slate-200 bg-slate-50">
             <CardContent className="flex flex-col gap-3 p-5 sm:flex-row sm:items-center sm:justify-between">

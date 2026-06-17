@@ -73,9 +73,12 @@ export const DASHBOARD_NAV_ITEMS: {
 ];
 
 const REVIEWER_NAV_KEYS = new Set(['home', 'reviews', 'settings', 'viewSite']);
+const HIDDEN_NAV_KEYS = new Set(['payments']);
 
 export function getDashboardNavItems(role: 'admin' | 'company' | 'reviewer') {
   return DASHBOARD_NAV_ITEMS.filter((item) => {
+    if (HIDDEN_NAV_KEYS.has(item.key)) return false;
+    if (item.key === 'projects' && role !== 'company') return false;
     if (!item.roles.includes(role)) return false;
     if (role === 'reviewer') return REVIEWER_NAV_KEYS.has(item.key);
     return true;

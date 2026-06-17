@@ -38,23 +38,21 @@ service firebase.storage {
         || request.resource.contentType == 'application/pdf';
     }
 
-    // Profile avatar (reviewer)
+    // Public profile assets shown on marketing pages
     match /users/{userId}/avatar/{fileName} {
-      allow read: if isSignedIn();
+      allow read: if true;
       allow create, update: if isOwner(userId) && max10MB() && isImage();
       allow delete: if isOwner(userId);
     }
 
-    // Company logo
     match /users/{userId}/company/logo/{fileName} {
-      allow read: if isSignedIn();
+      allow read: if true;
       allow create, update: if isOwner(userId) && max10MB() && isImage();
       allow delete: if isOwner(userId);
     }
 
-    // Company cover
     match /users/{userId}/company/cover/{fileName} {
-      allow read: if isSignedIn();
+      allow read: if true;
       allow create, update: if isOwner(userId) && max10MB() && isImage();
       allow delete: if isOwner(userId);
     }
@@ -82,7 +80,7 @@ service firebase.storage {
 
     // Company project showcase images
     match /users/{userId}/company/projects/{fileName} {
-      allow read: if isSignedIn();
+      allow read: if true;
       allow create, update: if isOwner(userId) && max10MB() && isImage();
       allow delete: if isOwner(userId);
     }

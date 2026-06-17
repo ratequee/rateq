@@ -167,6 +167,24 @@ export class ReviewsService {
     return this.listCompanyReviews(companyId, query, ReviewStatus.APPROVED);
   }
 
+  async listFeatured(limit = 6): Promise<PaginatedReviewsResponse> {
+    const filters = {
+      status: ReviewStatus.APPROVED,
+      page: 1,
+      limit,
+    };
+
+    const [reviews, total] = await Promise.all([
+      this.reviewsRepository.findMany(filters),
+      this.reviewsRepository.count(filters),
+    ]);
+
+    return {
+      data: reviews.map(toReviewPublic),
+      meta: buildPaginationMeta(1, limit, total),
+    };
+  }
+
   async listByCompanyForOwner(
     user: AuthenticatedUser,
     companyId: string,

@@ -8,6 +8,7 @@ import type {
   PaginatedCompaniesResponse,
   PaginatedReviewsResponse,
   PaginatedUsersResponse,
+  PlatformStats,
   ReviewPublic,
   UserProfile,
 } from '@rateq/types';
@@ -202,8 +203,14 @@ export const usersOnboardingApi = {
     }),
 };
 
+// Platform
+export const platformApi = {
+  getStats: () => apiServer<PlatformStats>('/platform/stats'),
+};
+
 // Reviews
 export const reviewsApi = {
+  listFeatured: () => apiServer<PaginatedReviewsResponse>('/reviews/featured'),
   listByCompany: (companyId: string, params?: URLSearchParams) =>
     apiServer<PaginatedReviewsResponse>(
       `/reviews/company/${companyId}${params ? `?${params}` : ''}`,

@@ -5,10 +5,11 @@ import { UserAccountMenu } from '@/components/layout/user-account-menu';
 import { useAuth } from '@/components/providers/auth-provider';
 import { useRequireVerifiedAuth } from '@/hooks/use-require-verified-auth';
 import { useRouter } from '@/i18n/routing';
+import { getDashboardSearchHref } from '@/lib/dashboard-search';
 import { cn } from '@/lib/utils';
-import { Bell, Menu, Search } from 'lucide-react';
+import { Menu, Search } from 'lucide-react';
 import { useTranslations } from 'next-intl';
-import { useEffect, useState, type ReactNode } from 'react';
+import { useEffect, useRef, useState, type FormEvent, type ReactNode } from 'react';
 
 interface DashboardShellProps {
   children: ReactNode;
@@ -22,6 +23,8 @@ export function DashboardShell({ children, role }: DashboardShellProps) {
   const router = useRouter();
   useRequireVerifiedAuth();
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const searchInputRef = useRef<HTMLInputElement>(null);
 
   const handleLogout = async () => {
     setMobileNavOpen(false);
@@ -32,6 +35,11 @@ export function DashboardShell({ children, role }: DashboardShellProps) {
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') setMobileNavOpen(false);
+
+      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'k') {
+        event.preventDefault();
+        searchInputRef.current?.focus();
+      }
     };
 
     document.addEventListener('keydown', onKeyDown);
@@ -42,6 +50,14 @@ export function DashboardShell({ children, role }: DashboardShellProps) {
       document.body.style.overflow = '';
     };
   }, [mobileNavOpen]);
+
+  const handleSearchSubmit = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const href = getDashboardSearchHref(searchQuery);
+    if (href) {
+      router.push(href);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-[#F4F5F7]">
@@ -89,27 +105,23 @@ export function DashboardShell({ children, role }: DashboardShellProps) {
                 <Menu className="h-5 w-5" />
               </button>
 
-              <div className="relative hidden max-w-md flex-1 sm:block">
+              <form onSubmit={handleSearchSubmit} className="relative min-w-0 flex-1 max-w-md">
                 <Search className="pointer-events-none absolute start-3 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-muted" />
                 <input
+                  ref={searchInputRef}
                   type="search"
+                  value={searchQuery}
+                  onChange={(event) => setSearchQuery(event.target.value)}
                   placeholder={t('searchPlaceholder')}
-                  className="h-11 w-full rounded-xl border border-slate-200 bg-slate-50 ps-10 pe-4 text-sm outline-none focus:border-brand-500"
+                  className="h-11 w-full rounded-xl border border-slate-200 bg-slate-50 ps-10 pe-4 text-sm outline-none focus:border-brand-500 sm:pe-16"
                 />
                 <span className="pointer-events-none absolute end-3 top-1/2 hidden -translate-y-1/2 rounded-md bg-white px-2 py-0.5 text-xs text-ink-muted sm:inline">
                   ⌘K
                 </span>
-              </div>
+              </form>
             </div>
 
             <div className="flex items-center gap-3">
-              <button
-                type="button"
-                className="flex h-10 w-10 items-center justify-center rounded-full border border-slate-200 bg-white text-ink-muted"
-                aria-label={t('notifications')}
-              >
-                <Bell className="h-4 w-4" />
-              </button>
               <UserAccountMenu />
             </div>
           </header>

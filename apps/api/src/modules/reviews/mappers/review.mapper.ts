@@ -21,7 +21,7 @@ type ReviewWithRelations = Review & {
   user?: Pick<User, 'id' | 'email' | 'displayName' | 'phone' | 'phoneVerified'> & {
     profile?: Pick<UserProfile, 'fullName' | 'avatarUrl' | 'phone'> | null;
   };
-  company?: Pick<Company, 'id' | 'name' | 'slug' | 'categoryId' | 'email'> & {
+  company?: Pick<Company, 'id' | 'name' | 'slug' | 'logo' | 'categoryId' | 'email'> & {
     owner?: { id: string; email: string } | null;
     category?: Pick<Category, 'id' | 'name'> | null;
   };
@@ -58,6 +58,7 @@ function toReviewCompanySummary(
     id: company.id,
     name: company.name,
     slug: company.slug,
+    logo: company.logo,
     categoryId: company.categoryId,
     categoryName: company.category?.name ?? null,
   };
