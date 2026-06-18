@@ -8,6 +8,7 @@ import {
   type CompanyMapLocation,
 } from '@/lib/company-location';
 import { geocodeAddress, reverseGeocodePlace, type GeocodedPlace } from '@/lib/geocoding';
+import { ENGLISH_MAP_TILE_ATTRIBUTION, ENGLISH_MAP_TILE_URL } from '@/lib/map-tiles';
 import { cn } from '@/lib/utils';
 import { Loader2, MapPin, Search } from 'lucide-react';
 import { useTranslations } from 'next-intl';
@@ -95,8 +96,8 @@ export function CompanyAddressMapField({
         scrollWheelZoom: true,
       });
 
-      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '&copy; OpenStreetMap contributors',
+      L.tileLayer(ENGLISH_MAP_TILE_URL, {
+        attribution: ENGLISH_MAP_TILE_ATTRIBUTION,
         maxZoom: 19,
       }).addTo(map);
 

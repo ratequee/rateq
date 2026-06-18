@@ -124,30 +124,31 @@ export function NearbyMapSection({ companies }: NearbyMapSectionProps) {
           </div>
         </div>
 
-        {view === 'map' ? (
+        <div className={cn(view !== 'map' && 'hidden')}>
           <NearbyCompaniesMap
             companies={filteredCompanies}
             mapCenter={mapCenter}
             mapZoom={mapZoom}
             userLocation={userLocation.status === 'granted' ? origin : null}
+            isActive={view === 'map'}
           />
-        ) : (
-          <div className="max-h-[400px] overflow-y-auto pe-1">
-            {filteredCompanies.length === 0 ? (
-              <p className="rounded-2xl border border-dashed border-slate-200 py-16 text-center text-sm text-ink-muted">
-                {t('nearbyNoResults')}
-              </p>
-            ) : (
-              <ul className="grid list-none gap-4 p-0 sm:grid-cols-2 lg:grid-cols-3">
-                {filteredCompanies.map((company) => (
-                  <li key={company.id}>
-                    <NearbyCompanyListCard company={company} />
-                  </li>
-                ))}
-              </ul>
-            )}
-          </div>
-        )}
+        </div>
+
+        <div className={cn(view !== 'list' && 'hidden', 'max-h-[400px] overflow-y-auto pe-1')}>
+          {filteredCompanies.length === 0 ? (
+            <p className="rounded-2xl border border-dashed border-slate-200 py-16 text-center text-sm text-ink-muted">
+              {t('nearbyNoResults')}
+            </p>
+          ) : (
+            <ul className="grid list-none gap-4 p-0 sm:grid-cols-2 lg:grid-cols-3">
+              {filteredCompanies.map((company) => (
+                <li key={company.id}>
+                  <NearbyCompanyListCard company={company} />
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
       </div>
     </section>
   );

@@ -1,5 +1,6 @@
 'use client';
 
+import { ENGLISH_MAP_TILE_ATTRIBUTION, ENGLISH_MAP_TILE_URL } from '@/lib/map-tiles';
 import type { NearbyCompany } from '@/lib/nearby-locations';
 import { Link } from '@/i18n/routing';
 import { cn } from '@/lib/utils';
@@ -17,6 +18,7 @@ interface NearbyCompaniesMapProps {
   mapCenter: MapCenter;
   mapZoom: number;
   userLocation?: MapCenter | null;
+  isActive?: boolean;
 }
 
 export function NearbyCompaniesMap({
@@ -24,6 +26,7 @@ export function NearbyCompaniesMap({
   mapCenter,
   mapZoom,
   userLocation,
+  isActive = true,
 }: NearbyCompaniesMapProps) {
   const t = useTranslations('home');
   const locale = useLocale();
@@ -31,7 +34,9 @@ export function NearbyCompaniesMap({
   const mapRef = useRef<import('leaflet').Map | null>(null);
   const markersLayerRef = useRef<import('leaflet').LayerGroup | null>(null);
   const userMarkerRef = useRef<import('leaflet').CircleMarker | null>(null);
-  const [selectedId, setSelectedId] = useState<string | null>(companies[0]?.id ?? null);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [selectionVersion, setSelectionVersion] = useState(0);
+  const [mapReady, setMapReady] = useState(false);
   const [popupPosition, setPopupPosition] = useState<{ x: number; y: number } | null>(null);
 
   const selected = companies.find((company) => company.id === selectedId) ?? null;
@@ -60,17 +65,14 @@ export function NearbyCompaniesMap({
           scrollWheelZoom: false,
         });
 
-        L.tileLayer(
-          'https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}',
-          {
-            attribution:
-              'Tiles &copy; Esri &mdash; Source: Esri, HERE, Garmin, Intermap, increment P Corp.',
-            maxZoom: 19,
-          },
-        ).addTo(map);
+        L.tileLayer(ENGLISH_MAP_TILE_URL, {
+          attribution: ENGLISH_MAP_TILE_ATTRIBUTION,
+          maxZoom: 19,
+        }).addTo(map);
 
         markersLayerRef.current = L.layerGroup().addTo(map);
         mapRef.current = map;
+        setMapReady(true);
         setTimeout(() => map.invalidateSize(), 0);
       } else {
         mapRef.current.setView([mapCenter.latitude, mapCenter.longitude], mapZoom);
@@ -83,17 +85,34 @@ export function NearbyCompaniesMap({
   }, [mapCenter.latitude, mapCenter.longitude, mapZoom]);
 
   useEffect(() => {
+    if (!isActive) return;
+
+    const map = mapRef.current;
+    if (!map) return;
+
+    const frame = requestAnimationFrame(() => {
+      map.invalidateSize();
+      if (selectedId) {
+        setSelectionVersion((version) => version + 1);
+      }
+    });
+
+    return () => cancelAnimationFrame(frame);
+  }, [isActive, selectedId]);
+
+  useEffect(() => {
     return () => {
       mapRef.current?.remove();
       mapRef.current = null;
       markersLayerRef.current = null;
       userMarkerRef.current = null;
+      setMapReady(false);
     };
   }, []);
 
   useEffect(() => {
     const map = mapRef.current;
-    if (!map || !selected) {
+    if (!map || !mapReady || !selected) {
       setPopupPosition(null);
       return;
     }
@@ -108,7 +127,7 @@ export function NearbyCompaniesMap({
     return () => {
       map.off('move zoom resize', updatePopupPosition);
     };
-  }, [selected]);
+  }, [mapReady, selected, selectionVersion]);
 
   useEffect(() => {
     void (async () => {
@@ -134,7 +153,10 @@ export function NearbyCompaniesMap({
           }),
         });
 
-        marker.on('click', () => setSelectedId(company.id));
+        marker.on('click', () => {
+          setSelectedId(company.id);
+          setSelectionVersion((version) => version + 1);
+        });
         marker.addTo(layer);
       }
 
