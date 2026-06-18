@@ -2,7 +2,6 @@ import { AboutHeroSection } from '@/components/about/about-hero-section';
 import { AboutStorySection } from '@/components/about/about-story-section';
 import { MobileAppsCta } from '@/components/home/mobile-apps-cta';
 import { PartnersSection } from '@/components/home/partners-section';
-import { fetchCompanies } from '@/lib/companies-data';
 import { fetchPlatformStats } from '@/lib/platform-data';
 import { getTranslations } from 'next-intl/server';
 import type { Metadata } from 'next';
@@ -17,17 +16,14 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function AboutPage(): Promise<JSX.Element> {
-  const [stats, companiesResult] = await Promise.all([
-    fetchPlatformStats(),
-    fetchCompanies(new URLSearchParams({ sort: 'rating', limit: '5' })),
-  ]);
+  const stats = await fetchPlatformStats();
 
   return (
     <>
       <AboutHeroSection />
       <WhyChooseSection />
       <AboutStorySection stats={stats} />
-      <PartnersSection companies={companiesResult.data} />
+      <PartnersSection />
       <MobileAppsCta />
     </>
   );

@@ -41,7 +41,7 @@ export default async function HomePage(): Promise<JSX.Element> {
       <StatsBar stats={stats} />
       <TestimonialsCarousel reviews={featuredReviews} />
       <WhyChooseSection />
-      <PartnersSection companies={companies} />
+      <PartnersSection />
       <MobileAppsCta />
     </>
   );
