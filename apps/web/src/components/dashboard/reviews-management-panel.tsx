@@ -78,8 +78,9 @@ export function ReviewsManagementPanel({ mode, companyId }: ReviewsManagementPan
   );
 
   useEffect(() => {
+    if (mode === 'company') return;
     void fetchCategoriesClient().then(setCategories);
-  }, []);
+  }, [mode]);
 
   useEffect(() => {
     const initialSearch = searchParams.get('search')?.trim() ?? '';
@@ -218,21 +219,23 @@ export function ReviewsManagementPanel({ mode, companyId }: ReviewsManagementPan
                 </option>
               ))}
             </select>
-            <select
-              value={categoryId}
-              onChange={(e) => {
-                setPage(1);
-                setCategoryId(e.target.value);
-              }}
-              className="h-10 rounded-md border border-slate-200 bg-white px-3 text-sm"
-            >
-              <option value="">{t('allCategories')}</option>
-              {categories.map((category) => (
-                <option key={category.id} value={category.id}>
-                  {category.name}
-                </option>
-              ))}
-            </select>
+            {mode !== 'company' ? (
+              <select
+                value={categoryId}
+                onChange={(e) => {
+                  setPage(1);
+                  setCategoryId(e.target.value);
+                }}
+                className="h-10 rounded-md border border-slate-200 bg-white px-3 text-sm"
+              >
+                <option value="">{t('allCategories')}</option>
+                {categories.map((category) => (
+                  <option key={category.id} value={category.id}>
+                    {category.name}
+                  </option>
+                ))}
+              </select>
+            ) : null}
             <Button
               type="button"
               variant="outline-brand"
