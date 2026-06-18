@@ -5,6 +5,11 @@ import type { Metadata } from 'next';
 export const metadata: Metadata = {
   title: 'RateQ — Coming Soon',
   description: "Qatar's trusted review platform is launching soon.",
+  icons: {
+    icon: [{ url: '/images/favicon.svg', type: 'image/svg+xml' }],
+    shortcut: '/images/favicon.svg',
+    apple: '/images/favicon.svg',
+  },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

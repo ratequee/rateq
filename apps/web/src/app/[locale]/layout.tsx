@@ -18,6 +18,11 @@ const notoArabic = Noto_Sans_Arabic({ subsets: ['arabic'], variable: '--font-not
 export const metadata: Metadata = {
   title: { default: 'RateQ', template: '%s | RateQ' },
   description: 'Bilingual review platform — trusted company ratings and reviews',
+  icons: {
+    icon: [{ url: '/images/favicon.svg', type: 'image/svg+xml' }],
+    shortcut: '/images/favicon.svg',
+    apple: '/images/favicon.svg',
+  },
   openGraph: { type: 'website', siteName: 'RateQ' },
 };
 

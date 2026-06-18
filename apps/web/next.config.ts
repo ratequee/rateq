@@ -6,6 +6,15 @@ const withNextIntl = createNextIntlPlugin('./src/i18n/request.ts');
 const nextConfig: NextConfig = {
   transpilePackages: ['@rateq/ui', '@rateq/types'],
   serverExternalPackages: ['firebase'],
+  async redirects() {
+    return [
+      {
+        source: '/favicon.ico',
+        destination: '/images/favicon.svg',
+        permanent: true,
+      },
+    ];
+  },
   images: {
     remotePatterns: [
       {
