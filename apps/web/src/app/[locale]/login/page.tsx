@@ -36,15 +36,22 @@ export default function LoginPage() {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [remember, setRemember] = useState(false);
+  const [blockEmailAutofill, setBlockEmailAutofill] = useState(true);
   const [loading, setLoading] = useState(false);
   const [fieldErrors, setFieldErrors] = useState<LoginFieldErrors>({});
 
+  const resetLoginForm = (options?: { keepRememberedEmail?: boolean }) => {
+    const remembered = options?.keepRememberedEmail ? loadRememberedEmail() : '';
+    setEmail(remembered);
+    setPassword('');
+    setRemember(Boolean(remembered));
+    setBlockEmailAutofill(!remembered);
+    setFieldErrors({});
+    setShowPassword(false);
+  };
+
   useEffect(() => {
-    const remembered = loadRememberedEmail();
-    if (remembered) {
-      setEmail(remembered);
-      setRemember(true);
-    }
+    resetLoginForm({ keepRememberedEmail: true });
   }, []);
 
   const redirectAfterAuth = async (sessionUser: AuthenticatedUser) => {
@@ -92,6 +99,7 @@ export default function LoginPage() {
     try {
       const sessionUser = await login(email, password);
       saveRememberedEmail(email, remember);
+      resetLoginForm({ keepRememberedEmail: remember });
       toast.success(tp('loginSuccess'));
       await redirectAfterAuth(sessionUser);
     } catch (err) {
@@ -119,16 +127,19 @@ export default function LoginPage() {
           <h2 className="text-2xl font-bold text-ink sm:text-2xl">{t('loginTitle')}</h2>
           <p className="mt-2 text-sm text-ink-muted sm:text-center">{tp('loginSubtitle')}</p>
         </div>
-        <form onSubmit={handleSubmit} className="mt-8 space-y-5">
+        <form onSubmit={handleSubmit} className="mt-8 space-y-5" autoComplete="off">
           <div>
             <label htmlFor="email" className="mb-1.5 block text-sm font-medium text-ink">
               {t('email')}
             </label>
             <Input
               id="email"
+              name="rateq-login-email"
               type="email"
-              autoComplete="email"
+              autoComplete={remember ? 'email' : 'off'}
               value={email}
+              readOnly={blockEmailAutofill}
+              onFocus={() => setBlockEmailAutofill(false)}
               onChange={(e) => setEmail(sanitizeEmail(e.target.value))}
               placeholder={tp('emailPlaceholder')}
               required
@@ -147,8 +158,9 @@ export default function LoginPage() {
             <div className="relative">
               <Input
                 id="password"
+                name="rateq-login-password"
                 type={showPassword ? 'text' : 'password'}
-                autoComplete="current-password"
+                autoComplete="new-password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder={tp('passwordPlaceholder')}
@@ -174,7 +186,15 @@ export default function LoginPage() {
               <input
                 type="checkbox"
                 checked={remember}
-                onChange={(e) => setRemember(e.target.checked)}
+                onChange={(e) => {
+                  const checked = e.target.checked;
+                  setRemember(checked);
+                  if (!checked) {
+                    saveRememberedEmail('', false);
+                    setEmail('');
+                    setBlockEmailAutofill(true);
+                  }
+                }}
                 className="h-4 w-4 rounded border-slate-300 text-brand-500 focus:ring-brand-500"
               />
               <span className="text-sm text-ink-muted">{tp('rememberMe')}</span>
