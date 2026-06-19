@@ -3,11 +3,11 @@ import Image from 'next/image';
 import type { JSX } from 'react';
 
 const PARTNER_LOGOS = [
-  '/images/partner1.png',
-  '/images/partner2.png',
-  '/images/partner3.png',
-  '/images/partner4.png',
-  '/images/partner5.png',
+  '/images/partner1.svg',
+  '/images/partner2.svg',
+  '/images/partner3.svg',
+  '/images/partner4.svg',
+  '/images/partner5.svg',
 ];
 
 export async function PartnersSection(): Promise<JSX.Element> {
@@ -19,18 +19,15 @@ export async function PartnersSection(): Promise<JSX.Element> {
         <h2 className="mx-auto max-w-4xl text-balance text-sm font-regular text-ink sm:text-lg">
           {t('partnersTitle')}
         </h2>
-        <div className="mt-10 flex flex-wrap items-center justify-center gap-8 sm:gap-12 lg:gap-16">
+        <div className="mt-10 grid grid-cols-5 items-center justify-items-center gap-2 sm:gap-4 lg:gap-8">
           {PARTNER_LOGOS.map((partner) => (
-            <div
-              key={partner}
-              className="flex h-10 min-w-[120px] items-center justify-center rounded-lg px-6 sm:h-12 sm:min-w-[140px]"
-            >
+            <div key={partner} className="flex w-full max-w-[120px] items-center justify-center">
               <Image
                 src={partner}
                 alt=""
                 width={120}
-                height={48}
-                className="h-10 w-auto object-contain sm:h-12"
+                height={33}
+                className="h-7 w-full max-w-[64px] object-contain sm:h-8 sm:max-w-[90px] lg:h-9 lg:max-w-[120px]"
               />
             </div>
           ))}

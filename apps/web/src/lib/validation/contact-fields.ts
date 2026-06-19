@@ -1,10 +1,15 @@
 import type { ContactSubject, SubmitContactInput } from '@rateq/types';
+import { isValidQatarPhone } from '@/lib/qatar-phone';
+
+export {
+  QATAR_PHONE_PREFIX,
+  QATAR_PHONE_DIGITS,
+  sanitizeQatarPhoneDigits,
+  formatQatarPhoneForSubmit,
+} from '@/lib/qatar-phone';
 
 const NAME_PATTERN = /^[\p{L}]+(?:\s+[\p{L}]+)*$/u;
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-export const QATAR_PHONE_PREFIX = '+974';
-export const QATAR_PHONE_DIGITS = 8;
-const QATAR_PHONE_PATTERN = /^\+974\d{8}$/;
 
 const CONTACT_SUBJECTS: ContactSubject[] = ['general', 'support', 'business', 'partnership'];
 
@@ -15,14 +20,6 @@ export type ContactFieldErrors = {
   subject?: string;
   message?: string;
 };
-
-export function sanitizeQatarPhoneDigits(value: string): string {
-  return value.replace(/\D/g, '').slice(0, QATAR_PHONE_DIGITS);
-}
-
-export function formatQatarPhoneForSubmit(digits: string): string {
-  return `${QATAR_PHONE_PREFIX}${digits}`;
-}
 
 export function validateContactFields(
   input: SubmitContactInput,
@@ -58,7 +55,7 @@ export function validateContactFields(
 
   if (!phone) {
     errors.phone = messages.phone.required;
-  } else if (!QATAR_PHONE_PATTERN.test(phone)) {
+  } else if (!isValidQatarPhone(phone)) {
     errors.phone = messages.phone.invalid;
   }
 

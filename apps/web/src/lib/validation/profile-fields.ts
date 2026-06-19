@@ -1,8 +1,8 @@
 import type { CompanyMapLocation } from '@/lib/company-location';
 import { isValidMapLocation } from '@/lib/company-location';
+import { isValidQatarPhone } from '@/lib/qatar-phone';
 import { validateDisplayName } from '@/lib/validation/auth-fields';
 
-const PHONE_PATTERN = /^[+]?[\d\s()-]{6,30}$/;
 const COMPANY_NAME_PATTERN = /^[\p{L}\p{N}][\p{L}\p{N}\s&.\-'()]*[\p{L}\p{N})]?$/u;
 const CR_NUMBER_PATTERN = /^[\p{L}\p{N}][\p{L}\p{N}\-/]*[\p{L}\p{N}]?$/u;
 
@@ -80,7 +80,7 @@ export function validateReviewerProfileFields(
     const phone = fields.phone.trim();
     if (!phone) {
       errors.phone = messages.phone.required;
-    } else if (!PHONE_PATTERN.test(phone)) {
+    } else if (!isValidQatarPhone(phone)) {
       errors.phone = messages.phone.invalid;
     } else {
       errors.phoneVerification = messages.phoneVerification.required;
@@ -154,7 +154,7 @@ export function validateCompanyProfileFields(
   const phone = fields.companyPhone.trim();
   if (!phone) {
     errors.companyPhone = messages.phone.required;
-  } else if (!PHONE_PATTERN.test(phone)) {
+  } else if (!isValidQatarPhone(phone)) {
     errors.companyPhone = messages.phone.invalid;
   } else if (!fields.companyPhoneVerified) {
     errors.companyPhoneVerification = messages.phoneVerification.required;

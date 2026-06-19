@@ -37,6 +37,7 @@ import { cn } from '@/lib/utils';
 import { isRemoteImage, isRemotePdf } from '@/lib/profile-company-assets';
 import { getSuggestedDisplayName } from '@/lib/user-display-name';
 import { PhoneVerificationField } from '@/components/profile/phone-verification-field';
+import { extractQatarPhoneDigits, formatQatarPhoneForSubmit } from '@/lib/qatar-phone';
 import { CompanyAddressMapField } from '@/components/profile/company-address-map-field';
 import type { CompanyMapLocation } from '@/lib/company-location';
 import { Building2, ExternalLink, FileText, Upload, UserRound, X } from 'lucide-react';
@@ -107,7 +108,7 @@ export default function CompleteProfilePage() {
   useEffect(() => {
     if (!user) return;
     if (onboarding?.reviewerProfile?.phone) {
-      setPhone(onboarding.reviewerProfile.phone);
+      setPhone(extractQatarPhoneDigits(onboarding.reviewerProfile.phone));
       setReviewerPhoneVerified(true);
     }
   }, [user, onboarding]);
@@ -126,7 +127,7 @@ export default function CompleteProfilePage() {
 
     if (onboarding?.reviewerProfile) {
       setFullName(onboarding.reviewerProfile.fullName);
-      setPhone(onboarding.reviewerProfile.phone);
+      setPhone(extractQatarPhoneDigits(onboarding.reviewerProfile.phone));
       setCity(onboarding.reviewerProfile.city);
       setCountry(onboarding.reviewerProfile.country);
       setBio(onboarding.reviewerProfile.bio);
@@ -134,7 +135,7 @@ export default function CompleteProfilePage() {
 
     if (onboarding?.company) {
       setCompanyName(onboarding.company.name);
-      setCompanyPhone(onboarding.company.phone ?? '');
+      setCompanyPhone(extractQatarPhoneDigits(onboarding.company.phone ?? ''));
       setCategoryId(onboarding.company.categoryId ?? '');
       setCompanyAddress(onboarding.company.address ?? '');
       if (onboarding.company.latitude != null && onboarding.company.longitude != null) {
@@ -169,7 +170,7 @@ export default function CompleteProfilePage() {
     setAccountType(profile.accountType);
     if (profile.reviewer) {
       setFullName(profile.reviewer.fullName);
-      setPhone(profile.reviewer.phone);
+      setPhone(extractQatarPhoneDigits(profile.reviewer.phone));
       setCity(profile.reviewer.city);
       setCountry(profile.reviewer.country);
       setBio(profile.reviewer.bio);
@@ -352,7 +353,7 @@ export default function CompleteProfilePage() {
         }
         await onboardingApi.completeReviewer({
           fullName: fullName.trim(),
-          phone: phone.trim(),
+          phone: formatQatarPhoneForSubmit(phone),
           city: city.trim(),
           country: country.trim(),
           bio: bio.trim(),
@@ -415,7 +416,7 @@ export default function CompleteProfilePage() {
         address: companyAddress.trim(),
         latitude: companyLocation.latitude,
         longitude: companyLocation.longitude,
-        phone: companyPhone.trim(),
+        phone: formatQatarPhoneForSubmit(companyPhone),
         categoryId,
         crNumber: crNumber.trim(),
         validationDate,

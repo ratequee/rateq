@@ -5,6 +5,8 @@ import { useAuth } from '@/components/providers/auth-provider';
 import { useProfile } from '@/components/providers/profile-provider';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { QatarPhoneInput } from '@/components/ui/qatar-phone-input';
+import { extractQatarPhoneDigits, formatQatarPhoneForSubmit } from '@/lib/qatar-phone';
 import { useRequireCompleteProfile } from '@/hooks/use-require-verified-auth';
 import { waitForFirebaseUser } from '@/lib/firebase/wait-for-user';
 import { uploadUserFile } from '@/lib/firebase/storage';
@@ -40,7 +42,7 @@ export default function ReviewerProfileSettingsPage() {
     if (!onboarding?.reviewerProfile) return;
     const profile = onboarding.reviewerProfile;
     setFullName(profile.fullName);
-    setPhone(profile.phone);
+    setPhone(extractQatarPhoneDigits(profile.phone));
     setCity(profile.city);
     setCountry(profile.country);
     setBio(profile.bio);
@@ -95,7 +97,7 @@ export default function ReviewerProfileSettingsPage() {
 
       await onboardingApi.completeReviewer({
         fullName: fullName.trim(),
-        phone: phone.trim(),
+        phone: formatQatarPhoneForSubmit(phone),
         city: city.trim(),
         country: country.trim(),
         bio: bio.trim(),
@@ -137,14 +139,7 @@ export default function ReviewerProfileSettingsPage() {
             />
           </Field>
           <Field label={t('phone')} error={errors.phone} required>
-            <Input
-              type="tel"
-              value={phone}
-              placeholder={t('phonePlaceholder')}
-              className="h-11 bg-slate-50"
-              disabled
-              readOnly
-            />
+            <QatarPhoneInput value={phone} readOnly disabled className="bg-slate-50" />
           </Field>
           <div className="grid gap-4 sm:grid-cols-2">
             <Field label={t('city')} error={errors.city} required>

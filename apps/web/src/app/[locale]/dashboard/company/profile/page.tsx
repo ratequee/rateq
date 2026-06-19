@@ -5,6 +5,8 @@ import { CompanyPublicProfileForm } from '@/components/dashboard/company-public-
 import { CompanyAddressMapField } from '@/components/profile/company-address-map-field';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { QatarPhoneInput } from '@/components/ui/qatar-phone-input';
+import { extractQatarPhoneDigits } from '@/lib/qatar-phone';
 import { useProfile } from '@/components/providers/profile-provider';
 import { useRequireCompleteProfile } from '@/hooks/use-require-verified-auth';
 import { onboardingApi } from '@/lib/onboarding-api';
@@ -50,7 +52,7 @@ export default function CompanyProfileSettingsPage() {
   useEffect(() => {
     if (!company) return;
     setCompanyName(company.name);
-    setCompanyPhone(company.phone ?? '');
+    setCompanyPhone(extractQatarPhoneDigits(company.phone ?? ''));
     setCategoryId(company.categoryId ?? '');
     setCompanyAddress(company.address ?? '');
     if (company.latitude != null && company.longitude != null) {
@@ -214,14 +216,7 @@ export default function CompanyProfileSettingsPage() {
           />
 
           <Field label={t('phone')} error={errors.companyPhone} required>
-            <Input
-              type="tel"
-              value={companyPhone}
-              placeholder={t('phonePlaceholder')}
-              className="h-11 bg-slate-50"
-              disabled
-              readOnly
-            />
+            <QatarPhoneInput value={companyPhone} readOnly disabled className="bg-slate-50" />
           </Field>
 
           <Field label={t('category')} error={errors.categoryId} required>

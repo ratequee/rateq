@@ -10,6 +10,7 @@ import {
   type User,
 } from 'firebase/auth';
 import { getFirebaseAuth } from '@/lib/firebase/client';
+import { formatQatarPhoneForSubmit, isValidQatarPhoneDigits } from '@/lib/qatar-phone';
 
 type PhoneVerificationMode = 'link' | 'update';
 
@@ -22,8 +23,17 @@ const RECAPTCHA_TEARDOWN_MS = 350;
 
 export function normalizePhoneNumber(phone: string): string {
   const trimmed = phone.trim();
-  const digits = trimmed.replace(/[^\d+]/g, '');
-  if (digits.startsWith('+')) return digits;
+  const digits = trimmed.replace(/\D/g, '');
+
+  if (digits.startsWith('974') && digits.length >= 11) {
+    return `+974${digits.slice(3, 11)}`;
+  }
+
+  if (isValidQatarPhoneDigits(trimmed) || isValidQatarPhoneDigits(digits)) {
+    return formatQatarPhoneForSubmit(digits);
+  }
+
+  if (trimmed.startsWith('+')) return trimmed.replace(/[^\d+]/g, '');
   return `+${digits.replace(/^\+/, '')}`;
 }
 

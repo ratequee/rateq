@@ -2,6 +2,7 @@
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { QatarPhoneInput } from '@/components/ui/qatar-phone-input';
 import { phoneVerificationApi } from '@/lib/phone-verification-api';
 import {
   confirmFirebasePhoneVerification,
@@ -19,6 +20,11 @@ import {
   isFirebasePhoneRegionNotEnabledError,
   getFirebaseAuthErrorMessage,
 } from '@/lib/firebase/errors';
+import {
+  extractQatarPhoneDigits,
+  formatQatarPhoneForSubmit,
+  isValidQatarPhoneDigits,
+} from '@/lib/qatar-phone';
 import { cn } from '@/lib/utils';
 import { onAuthStateChanged } from 'firebase/auth';
 import { CheckCircle2, Info } from 'lucide-react';
@@ -26,7 +32,6 @@ import { useTranslations } from 'next-intl';
 import { useEffect, useId, useState } from 'react';
 import { toast } from 'sonner';
 
-const PHONE_PATTERN = /^[+]?[\d\s()-]{6,30}$/;
 const RESEND_COOLDOWN_SECONDS = 60;
 
 function getPhoneVerificationErrorMessage(
@@ -134,7 +139,7 @@ export function PhoneVerificationField({
 
   const handleUseLinkedNumber = () => {
     if (!linkedFirebasePhone) return;
-    handlePhoneChange(linkedFirebasePhone);
+    handlePhoneChange(extractQatarPhoneDigits(linkedFirebasePhone));
   };
 
   const completePhoneSync = async (normalizedPhone: string) => {
@@ -157,7 +162,7 @@ export function PhoneVerificationField({
       toast.error(t('errors.required'));
       return;
     }
-    if (!PHONE_PATTERN.test(trimmed)) {
+    if (!isValidQatarPhoneDigits(trimmed)) {
       toast.error(t('errors.invalidPhone'));
       return;
     }
@@ -167,7 +172,7 @@ export function PhoneVerificationField({
       const nextAttempt = recaptchaAttempt + 1;
       setRecaptchaAttempt(nextAttempt);
       const { smsRequired } = await startFirebasePhoneVerification(
-        trimmed,
+        normalizePhoneNumber(trimmed),
         `${recaptchaContainerId}-${nextAttempt}`,
       );
       if (!smsRequired) {
@@ -235,7 +240,7 @@ export function PhoneVerificationField({
     Boolean(linkedFirebasePhone) &&
     editingNumber &&
     !verified &&
-    (!phone.trim() || !isSamePhoneNumber(phone, linkedFirebasePhone!));
+    (!phone.trim() || !isSamePhoneNumber(formatQatarPhoneForSubmit(phone), linkedFirebasePhone!));
   const inputDisabled = disabled || (verified && !editingNumber);
 
   return (
@@ -271,15 +276,16 @@ export function PhoneVerificationField({
         ) : null}
 
         <div className="flex flex-col gap-2 sm:flex-row">
-          <Input
+          <QatarPhoneInput
             id={`${fieldKey}-phone`}
-            type="tel"
             value={phone}
-            onChange={(e) => handlePhoneChange(e.target.value)}
+            onChange={handlePhoneChange}
             placeholder={t('phonePlaceholder')}
             className={cn(
-              'h-11 flex-1',
-              verified && !editingNumber && 'border-emerald-200 bg-emerald-50/50',
+              'flex-1',
+              verified &&
+                !editingNumber &&
+                '[&_input]:border-emerald-200 [&_input]:bg-emerald-50/50',
             )}
             disabled={inputDisabled}
             aria-invalid={Boolean(error)}
