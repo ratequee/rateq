@@ -502,6 +502,7 @@
     "signingIn": "Signing in...",
     "loginSuccess": "Welcome back!",
     "loginError": "Invalid email or password.",
+    "accountDeactivated": "Your account has been deactivated. Please contact support if you believe this is a mistake.",
     "orContinue": "or",
     "continueWithGoogle": "Continue with Google",
     "showPassword": "Show password",
@@ -844,6 +845,7 @@
       "REJECTED": "Not approved"
     },
     "submitError": "Could not submit your review.",
+    "accountDeactivated": "Your account has been deactivated. You cannot submit reviews until it is reactivated.",
     "serviceRatingsHint": "Rate each service offered in this company's category.",
     "aggregatedRating": "Overall rating: {rating} / 5",
     "proofFiles": "Proof attachments",

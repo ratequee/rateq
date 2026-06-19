@@ -502,6 +502,7 @@
     "signingIn": "جاري تسجيل الدخول...",
     "loginSuccess": "مرحباً بعودتك!",
     "loginError": "البريد الإلكتروني أو كلمة المرور غير صحيحة.",
+    "accountDeactivated": "تم تعطيل حسابك. يرجى التواصل مع الدعم إذا كنت تعتقد أن هذا خطأ.",
     "orContinue": "أو",
     "continueWithGoogle": "المتابعة باستخدام Google",
     "showPassword": "إظهار كلمة المرور",
@@ -844,6 +845,7 @@
       "REJECTED": "غير مقبولة"
     },
     "submitError": "تعذر إرسال مراجعتك.",
+    "accountDeactivated": "تم تعطيل حسابك. لا يمكنك إرسال مراجعات حتى يتم إعادة تفعيل الحساب.",
     "serviceRatingsHint": "قيّم كل خدمة ضمن فئة هذه الشركة.",
     "aggregatedRating": "التقييم الإجمالي: {rating} / 5",
     "proofFiles": "مرفقات الإثبات",

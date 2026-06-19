@@ -3,6 +3,7 @@ import {
   ConflictException,
   ForbiddenException,
   Injectable,
+  Logger,
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
@@ -19,6 +20,8 @@ import type {
 import { UserRole } from '@rateq/types';
 import * as bcrypt from 'bcrypt';
 import { buildPaginationMeta } from '../../common/utils/pagination.util';
+import { EmailService } from '../auth/services/email.service';
+import { FirebaseAdminService } from '../auth/services/firebase-admin.service';
 import { CompaniesRepository } from '../companies/repositories/companies.repository';
 import { UserProfilesRepository } from './repositories/user-profiles.repository';
 import { UsersRepository } from './repositories/users.repository';
@@ -33,11 +36,15 @@ const BCRYPT_ROUNDS = 12;
 
 @Injectable()
 export class UsersService {
+  private readonly logger = new Logger(UsersService.name);
+
   constructor(
     private readonly usersRepository: UsersRepository,
     private readonly userProfilesRepository: UserProfilesRepository,
     private readonly companiesRepository: CompaniesRepository,
     private readonly phoneOtpService: PhoneOtpService,
+    private readonly emailService: EmailService,
+    private readonly firebaseAdmin: FirebaseAdminService,
   ) {}
 
   async syncPhoneVerification(
@@ -202,6 +209,29 @@ export class UsersService {
       await this.usersRepository.revokeAllSessions(targetId);
     }
 
+    if (dto.isActive !== undefined && dto.isActive !== user.isActive) {
+      const company = await this.companiesRepository.findByOwnerId(targetId);
+      const emailContent = {
+        email: updated.email,
+        displayName: updated.displayName,
+        companyName: company?.name ?? null,
+      };
+
+      try {
+        if (dto.isActive) {
+          await this.emailService.sendAccountReactivatedEmail(emailContent);
+        } else {
+          await this.emailService.sendAccountDeactivatedEmail(emailContent);
+        }
+      } catch (error) {
+        this.logger.warn(
+          `Failed to send account status email to ${updated.email}: ${
+            error instanceof Error ? error.message : 'unknown error'
+          }`,
+        );
+      }
+    }
+
     return toUserProfile(updated);
   }
 
@@ -220,6 +250,40 @@ export class UsersService {
       const adminCount = await this.usersRepository.countAdmins();
       if (adminCount <= 1) {
         throw new BadRequestException('Cannot delete the only admin account');
+      }
+    }
+
+    const company = await this.companiesRepository.findByOwnerId(targetId);
+
+    try {
+      await this.emailService.sendAccountDeletedEmail({
+        email: user.email,
+        displayName: user.displayName,
+        companyName: company?.name ?? null,
+      });
+    } catch (error) {
+      this.logger.warn(
+        `Failed to send account deleted email to ${user.email}: ${
+          error instanceof Error ? error.message : 'unknown error'
+        }`,
+      );
+    }
+
+    if (user.firebaseUid) {
+      try {
+        await this.firebaseAdmin.deleteUserStorage(user.firebaseUid);
+      } catch {
+        // Storage cleanup is best-effort; continue with account deletion.
+      }
+
+      try {
+        await this.firebaseAdmin.deleteAuthUser(user.firebaseUid);
+      } catch (error) {
+        this.logger.warn(
+          `Firebase Auth deletion failed for ${user.firebaseUid}: ${
+            error instanceof Error ? error.message : 'unknown error'
+          }`,
+        );
       }
     }
 

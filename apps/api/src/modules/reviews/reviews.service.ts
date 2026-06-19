@@ -70,6 +70,10 @@ export class ReviewsService {
       throw new NotFoundException('Company not found');
     }
 
+    if (company.owner && !company.owner.isActive) {
+      throw new NotFoundException('Company not found');
+    }
+
     if (company.ownerId === user.id) {
       throw new ForbiddenException('You cannot review your own company');
     }

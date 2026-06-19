@@ -1,4 +1,4 @@
-import { Injectable, OnModuleInit, ServiceUnavailableException } from '@nestjs/common';
+import { Injectable, Logger, OnModuleInit, ServiceUnavailableException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import * as admin from 'firebase-admin';
 import type { AppConfig } from '../../../common/config/env.validation';
@@ -12,6 +12,7 @@ export interface VerifiedFirebaseUser {
 
 @Injectable()
 export class FirebaseAdminService implements OnModuleInit {
+  private readonly logger = new Logger(FirebaseAdminService.name);
   private initialized = false;
 
   constructor(private readonly configService: ConfigService<AppConfig, true>) {}
@@ -31,9 +32,17 @@ export class FirebaseAdminService implements OnModuleInit {
     }
 
     try {
-      const serviceAccount = JSON.parse(serviceAccountJson) as admin.ServiceAccount;
+      const serviceAccount = JSON.parse(serviceAccountJson) as admin.ServiceAccount & {
+        project_id?: string;
+      };
+      const projectId = serviceAccount.projectId ?? serviceAccount.project_id;
+      const storageBucket =
+        this.configService.get('FIREBASE_STORAGE_BUCKET', { infer: true }) ??
+        (projectId ? `${projectId}.firebasestorage.app` : undefined);
+
       admin.initializeApp({
         credential: admin.credential.cert(serviceAccount),
+        ...(storageBucket ? { storageBucket } : {}),
       });
       this.initialized = true;
     } catch {
@@ -109,6 +118,43 @@ export class FirebaseAdminService implements OnModuleInit {
       }
 
       throw error;
+    }
+  }
+
+  async deleteAuthUser(firebaseUid: string): Promise<void> {
+    if (!this.initialized || !firebaseUid) return;
+
+    try {
+      await admin.auth().deleteUser(firebaseUid);
+      this.logger.log(`Deleted Firebase Auth user ${firebaseUid}`);
+    } catch (error) {
+      const code =
+        error && typeof error === 'object' && 'code' in error
+          ? String((error as { code: unknown }).code)
+          : 'unknown';
+
+      if (code === 'auth/user-not-found') {
+        return;
+      }
+
+      this.logger.warn(`Failed to delete Firebase Auth user ${firebaseUid}: ${code}`);
+      throw error;
+    }
+  }
+
+  async deleteUserStorage(firebaseUid: string): Promise<void> {
+    if (!this.initialized || !firebaseUid) return;
+
+    try {
+      const bucket = admin.storage().bucket();
+      await bucket.deleteFiles({ prefix: `users/${firebaseUid}/` });
+      this.logger.log(`Deleted Firebase Storage files for ${firebaseUid}`);
+    } catch (error) {
+      this.logger.warn(
+        `Failed to delete Firebase Storage files for ${firebaseUid}: ${
+          error instanceof Error ? error.message : 'unknown error'
+        }`,
+      );
     }
   }
 }

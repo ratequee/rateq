@@ -2,6 +2,7 @@
 
 import type { AuthenticatedUser } from '@rateq/types';
 import { useAuth } from '@/components/providers/auth-provider';
+import { isAccountDeactivatedApiError } from '@/lib/account-status';
 import { getFirebaseAuthErrorMessage } from '@/lib/firebase/errors';
 import { useTranslations } from 'next-intl';
 import Image from 'next/image';
@@ -24,6 +25,10 @@ export function GoogleSignInButton({ onSuccess }: GoogleSignInButtonProps) {
       toast.success(tp('loginSuccess'));
       await onSuccess(user);
     } catch (error) {
+      if (isAccountDeactivatedApiError(error)) {
+        toast.error(tp('accountDeactivated'));
+        return;
+      }
       toast.error(getFirebaseAuthErrorMessage(error, tp('loginError')));
     } finally {
       setLoading(false);

@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { StarRating } from '@/components/ui/star-rating';
 import { ApiError, reviewsApi } from '@/lib/api';
+import { isAccountDeactivatedApiError } from '@/lib/account-status';
 import { ensureValidAccessToken } from '@/lib/auth-session';
 import { fetchCategoryServicesClient } from '@/lib/categories-api';
 import { uploadReviewProofFiles } from '@/lib/review-proof-upload';
@@ -157,6 +158,11 @@ export function WriteReviewForm({
       setServiceRatings(buildDefaultServiceRatings(categoryServices));
       onSubmitted?.(review);
     } catch (err) {
+      if (isAccountDeactivatedApiError(err)) {
+        toast.error(t('accountDeactivated'));
+        return;
+      }
+
       const message = err instanceof ApiError ? err.message : t('submitError');
       toast.error(message);
     } finally {

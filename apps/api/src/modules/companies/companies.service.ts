@@ -78,6 +78,10 @@ export class CompaniesService {
       throw new NotFoundException('Company not found');
     }
 
+    if (company.owner && !company.owner.isActive) {
+      throw new NotFoundException('Company not found');
+    }
+
     const ratingDistribution = await this.companiesRepository.getApprovedRatingDistribution(
       company.id,
     );

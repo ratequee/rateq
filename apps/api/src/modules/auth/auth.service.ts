@@ -72,6 +72,10 @@ export class AuthService {
       throw new UnauthorizedException('Invalid email or password');
     }
 
+    if (!user.isActive) {
+      throw new UnauthorizedException('Account has been deactivated');
+    }
+
     const tokens = await this.tokenService.createTokenPair(user);
 
     return {
@@ -111,6 +115,10 @@ export class AuthService {
 
     user = await this.syncFirebaseAdminRole(user, firebaseUser.uid);
 
+    if (!user.isActive) {
+      throw new UnauthorizedException('Account has been deactivated');
+    }
+
     const tokens = await this.tokenService.createTokenPair(user);
 
     return {
@@ -121,6 +129,12 @@ export class AuthService {
 
   async refresh(rawRefreshToken: string): Promise<AuthTokens> {
     const { record, tokenHash } = await this.tokenService.validateRefreshToken(rawRefreshToken);
+
+    if (!record.user.isActive) {
+      await this.authRepository.deleteRefreshTokensByUserId(record.userId);
+      throw new UnauthorizedException('Account has been deactivated');
+    }
+
     const rotated = await this.tokenService.rotateRefreshToken(tokenHash, record.userId);
     const accessToken = this.tokenService.createAccessToken(record.user);
 

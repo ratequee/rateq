@@ -208,34 +208,37 @@ export class CompaniesRepository {
   }
 
   private buildWhereClause(filters: SearchCompaniesFilters): Prisma.CompanyWhereInput {
-    const where: Prisma.CompanyWhereInput = {
-      verificationStatus: 'APPROVED',
-    };
+    const andConditions: Prisma.CompanyWhereInput[] = [
+      { verificationStatus: 'APPROVED' },
+      { OR: [{ ownerId: null }, { owner: { isActive: true } }] },
+    ];
 
     if (filters.country) {
-      where.country = { equals: filters.country, mode: 'insensitive' };
+      andConditions.push({ country: { equals: filters.country, mode: 'insensitive' } });
     }
 
     if (filters.city) {
-      where.city = { equals: filters.city, mode: 'insensitive' };
+      andConditions.push({ city: { equals: filters.city, mode: 'insensitive' } });
     }
 
     if (filters.minRating !== undefined) {
-      where.ratingAverage = { gte: filters.minRating };
+      andConditions.push({ ratingAverage: { gte: filters.minRating } });
     }
 
     if (filters.categoryId) {
-      where.categoryId = filters.categoryId;
+      andConditions.push({ categoryId: filters.categoryId });
     }
 
     if (filters.query) {
-      where.OR = [
-        { name: { contains: filters.query, mode: 'insensitive' } },
-        { description: { contains: filters.query, mode: 'insensitive' } },
-      ];
+      andConditions.push({
+        OR: [
+          { name: { contains: filters.query, mode: 'insensitive' } },
+          { description: { contains: filters.query, mode: 'insensitive' } },
+        ],
+      });
     }
 
-    return where;
+    return { AND: andConditions };
   }
 
   private buildOrderBy(

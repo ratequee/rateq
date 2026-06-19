@@ -20,6 +20,18 @@ import {
   type ContactFormEmailContent,
 } from '../../contact/email/contact-email-templates';
 import {
+  buildAccountDeactivatedEmailHtml,
+  buildAccountDeactivatedEmailText,
+  buildAccountDeletedEmailHtml,
+  buildAccountDeletedEmailText,
+  buildAccountReactivatedEmailHtml,
+  buildAccountReactivatedEmailText,
+  buildReviewDeletedEmailHtml,
+  buildReviewDeletedEmailText,
+  type AccountStatusEmailContent,
+  type ReviewDeletedEmailContent,
+} from '../email/email-account-templates';
+import {
   buildReviewApprovedEmailHtml,
   buildReviewApprovedEmailText,
   buildReviewPublishedEmailHtml,
@@ -234,6 +246,50 @@ export class EmailService {
         }),
       });
     }
+  }
+
+  async sendAccountDeactivatedEmail(content: AccountStatusEmailContent): Promise<void> {
+    const appUrl = this.configService.get('APP_URL', { infer: true });
+
+    await this.send({
+      to: content.email,
+      subject: 'Your RateQ account has been deactivated',
+      text: buildAccountDeactivatedEmailText(content),
+      html: buildAccountDeactivatedEmailHtml({ ...content, appUrl }),
+    });
+  }
+
+  async sendAccountReactivatedEmail(content: AccountStatusEmailContent): Promise<void> {
+    const appUrl = this.configService.get('APP_URL', { infer: true });
+
+    await this.send({
+      to: content.email,
+      subject: 'Your RateQ account has been reactivated',
+      text: buildAccountReactivatedEmailText(content),
+      html: buildAccountReactivatedEmailHtml({ ...content, appUrl }),
+    });
+  }
+
+  async sendAccountDeletedEmail(content: AccountStatusEmailContent): Promise<void> {
+    const appUrl = this.configService.get('APP_URL', { infer: true });
+
+    await this.send({
+      to: content.email,
+      subject: 'Your RateQ account has been deleted',
+      text: buildAccountDeletedEmailText(content),
+      html: buildAccountDeletedEmailHtml({ ...content, appUrl }),
+    });
+  }
+
+  async sendReviewDeletedEmail(content: ReviewDeletedEmailContent): Promise<void> {
+    const appUrl = this.configService.get('APP_URL', { infer: true });
+
+    await this.send({
+      to: content.reviewerEmail,
+      subject: `Your review for ${content.companyName} was removed`,
+      text: buildReviewDeletedEmailText(content),
+      html: buildReviewDeletedEmailHtml({ ...content, appUrl }),
+    });
   }
 
   async sendContactFormEmail(content: ContactFormEmailContent, recipient: string): Promise<void> {

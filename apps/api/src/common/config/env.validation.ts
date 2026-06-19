@@ -169,6 +169,10 @@ export class AppConfig {
 
   @IsOptional()
   @IsString()
+  FIREBASE_STORAGE_BUCKET?: string;
+
+  @IsOptional()
+  @IsString()
   CONTACT_RECIPIENT_EMAIL?: string;
 }
 

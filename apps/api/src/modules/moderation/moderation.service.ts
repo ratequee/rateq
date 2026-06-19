@@ -122,12 +122,30 @@ export class ModerationService {
 
     const wasApproved = review.status === 'APPROVED';
     const { companyId, userId } = review;
+    const reviewerEmail = review.user?.email;
+    const companyName = review.company?.name ?? 'the company';
 
     await this.reviewsRepository.deleteById(reviewId);
 
     if (wasApproved) {
       await this.reviewsRepository.recalculateCompanyRating(companyId);
       await this.reviewsRepository.decrementUserReviewCount(userId);
+    }
+
+    if (reviewerEmail) {
+      try {
+        await this.emailService.sendReviewDeletedEmail({
+          reviewerEmail,
+          reviewTitle: review.title,
+          companyName,
+        });
+      } catch (error) {
+        this.logger.warn(
+          `Failed to send review deleted email to ${reviewerEmail}: ${
+            error instanceof Error ? error.message : 'unknown error'
+          }`,
+        );
+      }
     }
 
     this.logger.log(`Admin ${adminId} deleted review ${reviewId}`);

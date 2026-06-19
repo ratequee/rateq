@@ -11,6 +11,7 @@ import { isEmailNotVerifiedError } from '@/lib/auth-flow-errors';
 import { authApi } from '@/lib/api';
 import { getAccessToken } from '@/lib/auth-storage';
 import { getPostAuthRedirect } from '@/lib/profile-routing';
+import { isAccountDeactivatedApiError } from '@/lib/account-status';
 import type { AuthenticatedUser } from '@rateq/types';
 import { getFirebaseAuthErrorMessage } from '@/lib/firebase/errors';
 import {
@@ -103,6 +104,11 @@ export default function LoginPage() {
       toast.success(tp('loginSuccess'));
       await redirectAfterAuth(sessionUser);
     } catch (err) {
+      if (isAccountDeactivatedApiError(err)) {
+        toast.error(tp('accountDeactivated'));
+        return;
+      }
+
       if (isEmailNotVerifiedError(err)) {
         toast.error(tp('loginEmailNotVerified'));
         router.push(`/check-email?email=${encodeURIComponent(err.email)}`);

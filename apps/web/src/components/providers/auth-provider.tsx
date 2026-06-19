@@ -51,10 +51,20 @@ async function exchangeFirebaseSession(): Promise<AuthenticatedUser> {
     throw new Error('Unable to retrieve Firebase session');
   }
 
-  const response = await authApi.firebaseLogin(idToken);
-  saveAuth(response.tokens, response.user);
-  syncFirebaseDisplayNameToClient(response.user);
-  return response.user;
+  try {
+    const response = await authApi.firebaseLogin(idToken);
+    saveAuth(response.tokens, response.user);
+    syncFirebaseDisplayNameToClient(response.user);
+    return response.user;
+  } catch (err) {
+    try {
+      await firebaseSignOut();
+    } catch {
+      // Ignore Firebase sign-out errors during cleanup.
+    }
+    clearAuth();
+    throw err;
+  }
 }
 
 async function loadFirebaseAdminFlag(): Promise<boolean> {
