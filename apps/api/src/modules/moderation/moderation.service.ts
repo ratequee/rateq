@@ -49,7 +49,13 @@ export class ModerationService {
     const breakdown = await this.moderationEngine.evaluate(context);
     const maxSimilarity = await this.moderationEngine.getMaxSimilarity(context);
     const reasons = this.moderationEngine.buildReasonLog(breakdown, maxSimilarity);
-    const shouldHold = this.moderationEngine.shouldQueue(breakdown);
+    const isNegativeReview = review.rating <= NEGATIVE_REVIEW_MAX_RATING;
+
+    if (isNegativeReview && !reasons.includes('negative_rating')) {
+      reasons.unshift('negative_rating');
+    }
+
+    const shouldHold = isNegativeReview || this.moderationEngine.shouldQueue(breakdown);
 
     if (shouldHold) {
       await this.reviewsRepository.updateModerationResult(reviewId, {
@@ -63,6 +69,7 @@ export class ModerationService {
         reason: reasons.join(', '),
         score: breakdown.total,
         action:
+          isNegativeReview ||
           breakdown.velocity > 0 ||
           breakdown.ipHash > 0 ||
           breakdown.fingerprint > 0 ||
@@ -71,7 +78,9 @@ export class ModerationService {
             : ModerationAction.QUEUED,
       });
 
-      this.logger.log(`Review ${reviewId} held for admin moderation (score=${breakdown.total})`);
+      this.logger.log(
+        `Review ${reviewId} held for admin moderation (score=${breakdown.total}, rating=${review.rating})`,
+      );
       return;
     }
 
