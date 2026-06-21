@@ -39,7 +39,10 @@ export async function HeroSection({
   ];
 
   const featuredCompany = topCompany;
-  const miniReview = latestReview;
+  const miniReview =
+    latestReview && featuredCompany && latestReview.companyId === featuredCompany.id
+      ? latestReview
+      : null;
 
   return (
     <section

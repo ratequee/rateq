@@ -10,7 +10,7 @@ import { WhyChooseSection } from '@/components/home/why-choose-section';
 import { fetchCategories } from '@/lib/categories-data';
 import { fetchCompanies } from '@/lib/companies-data';
 import { fetchPlatformStats } from '@/lib/platform-data';
-import { fetchFeaturedReviews } from '@/lib/reviews-data';
+import { fetchFeaturedReviews, fetchLatestCompanyReview } from '@/lib/reviews-data';
 import type { JSX } from 'react';
 
 export const dynamic = 'force-dynamic';
@@ -30,11 +30,12 @@ export default async function HomePage(): Promise<JSX.Element> {
   const nearbyCompanies = nearbyResult.data;
   const carouselCategories = categories.slice(0, 8);
   const topCompany = topCompanyResult.data[0] ?? null;
-  const latestReview = featuredReviews[0] ?? null;
+  const heroReview =
+    topCompany && topCompany.reviewCount > 0 ? await fetchLatestCompanyReview(topCompany.id) : null;
 
   return (
     <>
-      <HeroSection topCompany={topCompany} latestReview={latestReview} />
+      <HeroSection topCompany={topCompany} latestReview={heroReview} />
       <NearbyMapSection companies={nearbyCompanies} />
       <CategoryCarousel categories={carouselCategories} />
       <FeaturedCompaniesSection companies={companies} />

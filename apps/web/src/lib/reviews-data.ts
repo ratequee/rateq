@@ -19,6 +19,16 @@ export async function fetchFeaturedReviews(limit = 6): Promise<ReviewPublic[]> {
   }
 }
 
+export async function fetchLatestCompanyReview(companyId: string): Promise<ReviewPublic | null> {
+  try {
+    const params = new URLSearchParams({ limit: '1', page: '1' });
+    const response = await reviewsApi.listByCompany(companyId, params);
+    return response.data[0] ?? null;
+  } catch {
+    return null;
+  }
+}
+
 export async function fetchFeaturedReviewsPaginated(): Promise<PaginatedReviewsResponse> {
   try {
     return await reviewsApi.listFeatured();
