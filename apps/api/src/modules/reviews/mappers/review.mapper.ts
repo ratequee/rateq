@@ -23,7 +23,7 @@ type ReviewWithRelations = Review & {
   };
   company?: Pick<Company, 'id' | 'name' | 'slug' | 'logo' | 'categoryId' | 'email'> & {
     owner?: { id: string; email: string } | null;
-    category?: Pick<Category, 'id' | 'name'> | null;
+    category?: Pick<Category, 'id' | 'nameEn' | 'nameAr'> | null;
   };
   replies?: ReviewReply[];
   attachments?: ReviewAttachment[];
