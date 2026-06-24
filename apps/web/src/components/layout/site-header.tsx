@@ -3,6 +3,7 @@
 import { Logo } from '@/components/brand/logo';
 import { AuthHeaderButtons, UserAccountMenu } from '@/components/layout/user-account-menu';
 import { LocaleSwitcher } from '@/components/layout/locale-switcher';
+import { ThemeToggle } from '@/components/layout/theme-toggle';
 import { useAuth } from '@/components/providers/auth-provider';
 import { Button } from '@/components/ui/button';
 import { Link, usePathname, useRouter } from '@/i18n/routing';
@@ -18,6 +19,7 @@ import { canAccessDashboard, getDashboardPath } from '@/lib/profile-routing';
 const NAV_LINKS = [
   { href: '/', key: 'home' as const },
   { href: '/about', key: 'about' as const },
+  { href: '/blog', key: 'blog' as const },
   { href: '/categories', key: 'category' as const },
   { href: '/contact', key: 'contact' as const },
 ];
@@ -65,7 +67,7 @@ export function SiteHeader() {
   }, [mobileOpen]);
 
   return (
-    <header className="sticky top-0 z-50 border-b border-slate-100 bg-gradient-to-b from-white via-white to-slate-50/80 backdrop-blur-md">
+    <header className="sticky top-0 z-50 border-b border-slate-100 bg-gradient-to-b from-white via-white to-slate-50/80 backdrop-blur-md dark:border-slate-800 dark:from-slate-950 dark:via-slate-950 dark:to-slate-900/80">
       <div className="mx-auto flex h-16 max-w-page items-center justify-between md:gap-4 px-4 sm:h-[72px] sm:px-6 lg:px-8">
         <Button
           variant="ghost"
@@ -88,7 +90,7 @@ export function SiteHeader() {
         </Link>
 
         <nav
-          className="hidden items-center gap-6 text-sm font-medium text-ink-muted lg:flex"
+          className="hidden items-center gap-6 text-sm font-medium text-ink-muted dark:text-slate-400 lg:flex"
           aria-label={t('mainNav')}
         >
           {NAV_LINKS.map(({ href, key }) => (
@@ -97,7 +99,9 @@ export function SiteHeader() {
               href={href}
               className={cn(
                 'transition-colors hover:text-brand-500 border-b-2 border-transparent hover:border-brand-500 pb-2',
-                isActive(href) ? 'border-brand-500 text-brand-500' : 'border-transparent',
+                isActive(href)
+                  ? 'border-brand-500 text-brand-500 dark:text-brand-300'
+                  : 'border-transparent',
               )}
             >
               {t(key)}
@@ -106,10 +110,14 @@ export function SiteHeader() {
         </nav>
 
         <div className="flex items-center gap-2 sm:gap-3">
+          <ThemeToggle />
           <LocaleSwitcher className="hidden sm:block" />
 
           {isLoading ? (
-            <div className="h-10 w-10 animate-pulse rounded-full bg-slate-200" aria-hidden />
+            <div
+              className="h-10 w-10 animate-pulse rounded-full bg-slate-200 dark:bg-slate-700"
+              aria-hidden
+            />
           ) : user ? (
             <UserAccountMenu />
           ) : (
@@ -175,6 +183,7 @@ export function SiteHeader() {
               </nav>
 
               <div className="mt-auto space-y-3 pt-6">
+                <ThemeToggle />
                 <LocaleSwitcher variant="mobile" />
 
                 {!isLoading && user && (

@@ -1,10 +1,12 @@
+import { emailParagraphRtl } from './email-bilingual.util';
 import {
+  appendBilingualText,
   emailButton,
   emailCallout,
   emailParagraph,
   emailSecondaryLink,
   escapeHtml,
-  renderEmailLayout,
+  renderBilingualEmailLayout,
 } from './email-html.util';
 
 function reviewStars(rating: number): string {
@@ -54,22 +56,42 @@ export function buildReviewApprovedEmailHtml(
     )}
   `;
 
-  return renderEmailLayout({
+  const bodyHtmlAr = `
+    ${emailParagraphRtl(`تمت الموافقة على تقييمكم "${content.reviewTitle}" لـ ${content.companyName} ونُشر الآن على RateQ.`)}
+    ${emailCallout(
+      'شكرًا لمشاركتكم',
+      '<p dir="rtl" style="margin:0;text-align:right;">ملاحظاتكم تساعد العملاء الآخرين على اتخاذ قرارات مدروسة وتساعد الشركات على التحسّن.</p>',
+      'success',
+    )}
+  `;
+
+  return renderBilingualEmailLayout({
     appUrl: content.appUrl,
-    preheader: `Your review for ${content.companyName} is now live.`,
-    eyebrow: 'Review approved',
+    preheader: `Your review for ${content.companyName} is now live. | تقييمكم لـ ${content.companyName} متاح الآن.`,
+    eyebrow: 'Review approved | تمت الموافقة على التقييم',
     title: 'Your review has been published',
+    titleAr: 'تم نشر تقييمكم',
     bodyHtml,
+    bodyHtmlAr,
   });
 }
 
 export function buildReviewApprovedEmailText(content: ReviewDecisionEmailContent): string {
-  return [
+  const english = [
     'Your review has been approved',
     '',
     `Review: ${content.reviewTitle}`,
     `Company: ${content.companyName}`,
   ].join('\n');
+
+  const arabic = [
+    'تمت الموافقة على تقييمكم',
+    '',
+    `التقييم: ${content.reviewTitle}`,
+    `الشركة: ${content.companyName}`,
+  ].join('\n');
+
+  return appendBilingualText(english, arabic);
 }
 
 export function buildReviewRejectedEmailHtml(
@@ -84,22 +106,42 @@ export function buildReviewRejectedEmailHtml(
     )}
   `;
 
-  return renderEmailLayout({
+  const bodyHtmlAr = `
+    ${emailParagraphRtl(`لم تتم الموافقة على تقييمكم "${content.reviewTitle}" لـ ${content.companyName} ولن يُنشر على RateQ.`)}
+    ${emailCallout(
+      'هل تحتاجون مساعدة؟',
+      '<p dir="rtl" style="margin:0;text-align:right;">إذا كنتم تعتقدون أن هذا القرار خاطئ، تواصلوا مع دعم RateQ مع تفاصيل تقييمكم.</p>',
+      'danger',
+    )}
+  `;
+
+  return renderBilingualEmailLayout({
     appUrl: content.appUrl,
-    preheader: `Your review for ${content.companyName} was not approved.`,
-    eyebrow: 'Review update',
+    preheader: `Your review for ${content.companyName} was not approved. | لم تتم الموافقة على تقييمكم لـ ${content.companyName}.`,
+    eyebrow: 'Review update | تحديث التقييم',
     title: 'Your review was not approved',
+    titleAr: 'لم تتم الموافقة على تقييمكم',
     bodyHtml,
+    bodyHtmlAr,
   });
 }
 
 export function buildReviewRejectedEmailText(content: ReviewDecisionEmailContent): string {
-  return [
+  const english = [
     'Your review was not approved',
     '',
     `Review: ${content.reviewTitle}`,
     `Company: ${content.companyName}`,
   ].join('\n');
+
+  const arabic = [
+    'لم تتم الموافقة على تقييمكم',
+    '',
+    `التقييم: ${content.reviewTitle}`,
+    `الشركة: ${content.companyName}`,
+  ].join('\n');
+
+  return appendBilingualText(english, arabic);
 }
 
 export function buildReviewResolutionCompanyEmailHtml(
@@ -115,6 +157,14 @@ export function buildReviewResolutionCompanyEmailHtml(
       : 'Phone not provided',
   ].join('<br/>');
 
+  const contactLinesAr = [
+    `<strong>${escapeHtml(content.reviewerName)}</strong>`,
+    `<a href="mailto:${escapeHtml(content.reviewerEmail)}" style="color:#8E2157;text-decoration:none;">${escapeHtml(content.reviewerEmail)}</a>`,
+    content.reviewerPhone
+      ? `<a href="tel:${escapeHtml(content.reviewerPhone)}" style="color:#8E2157;text-decoration:none;">${escapeHtml(content.reviewerPhone)}</a>`
+      : 'لم يُقدَّم رقم هاتف',
+  ].join('<br/>');
+
   const bodyHtml = `
     ${emailParagraph(`A reviewer has submitted negative feedback about ${content.companyName}. RateQ has opened a resolution window so you can contact the reviewer directly and resolve the matter.`)}
     ${emailCallout(
@@ -126,19 +176,32 @@ export function buildReviewResolutionCompanyEmailHtml(
     ${emailParagraph('Please reach out to the reviewer promptly and professionally. The reviewer will decide whether to publish or withdraw the review.')}
   `;
 
-  return renderEmailLayout({
+  const bodyHtmlAr = `
+    ${emailParagraphRtl(`قدّم أحد المقيّمين ملاحظات سلبية عن ${content.companyName}. فتح RateQ نافذة حل لتمكينكم من التواصل مباشرة مع المقيّم وحل المسألة.`)}
+    ${emailCallout(
+      safeTitle,
+      `<p dir="rtl" style="margin:0 0 10px;text-align:right;">${reviewStars(content.reviewRating)}</p><p dir="rtl" style="margin:0;text-align:right;">${safeContent}</p>`,
+      'warning',
+    )}
+    ${emailCallout('بيانات المقيّم', `<p dir="rtl" style="margin:0;text-align:right;">${contactLinesAr}</p>`, 'info')}
+    ${emailParagraphRtl('يُرجى التواصل مع المقيّم بسرعة وباحترافية. سيقرّر المقيّم ما إذا كان سينشر التقييم أو يسحبه.')}
+  `;
+
+  return renderBilingualEmailLayout({
     appUrl: content.appUrl,
-    preheader: `Negative review awaiting resolution for ${content.companyName}.`,
-    eyebrow: 'Resolution requested',
+    preheader: `Negative review awaiting resolution for ${content.companyName}. | تقييم سلبي بانتظار الحل لـ ${content.companyName}.`,
+    eyebrow: 'Resolution requested | طُلب حل المسألة',
     title: 'Contact the reviewer to resolve this review',
+    titleAr: 'تواصلوا مع المقيّم لحل هذا التقييم',
     bodyHtml,
+    bodyHtmlAr,
   });
 }
 
 export function buildReviewResolutionCompanyEmailText(
   content: ReviewResolutionCompanyEmailContent,
 ): string {
-  return [
+  const english = [
     'A negative review requires resolution',
     '',
     `Company: ${content.companyName}`,
@@ -152,6 +215,23 @@ export function buildReviewResolutionCompanyEmailText(
     content.reviewerEmail,
     content.reviewerPhone ?? 'Phone not provided',
   ].join('\n');
+
+  const arabic = [
+    'تقييم سلبي يتطلب حلًا',
+    '',
+    `الشركة: ${content.companyName}`,
+    `التقييم: ${content.reviewTitle}`,
+    `التصنيف: ${content.reviewRating}/5`,
+    '',
+    content.reviewContent,
+    '',
+    'بيانات المقيّم:',
+    content.reviewerName,
+    content.reviewerEmail,
+    content.reviewerPhone ?? 'لم يُقدَّم رقم هاتف',
+  ].join('\n');
+
+  return appendBilingualText(english, arabic);
 }
 
 export function buildReviewResolutionReviewerEmailHtml(
@@ -169,19 +249,33 @@ export function buildReviewResolutionReviewerEmailHtml(
     )}
   `;
 
-  return renderEmailLayout({
+  const bodyHtmlAr = `
+    ${emailParagraphRtl(`أُرسل تقييمكم "${content.reviewTitle}" لـ ${content.companyName} إلى الشركة لحل المسألة. قد يتواصلون معكم باستخدام بياناتكم في ملف RateQ.`)}
+    ${emailParagraphRtl('بعد مناقشة المسألة، اختاروا ما إذا كنتم ستنشرون التقييم أو تسحبونه.')}
+    ${emailButton(content.reviewsUrl, 'المتابعة أو سحب التقييم')}
+    ${emailSecondaryLink(content.reviewsUrl, 'فتح تقييماتي')}
+    ${emailCallout(
+      'خياراتكم',
+      '<p dir="rtl" style="margin:0;text-align:right;"><strong>المتابعة</strong> تنشر التقييم على RateQ.<br/><strong>السحب</strong> يزيل التقييم نهائيًا.</p>',
+      'info',
+    )}
+  `;
+
+  return renderBilingualEmailLayout({
     appUrl: content.appUrl,
-    preheader: `Choose whether to publish or withdraw your review for ${content.companyName}.`,
-    eyebrow: 'Action required',
+    preheader: `Choose whether to publish or withdraw your review for ${content.companyName}. | اختاروا نشر أو سحب تقييمكم لـ ${content.companyName}.`,
+    eyebrow: 'Action required | إجراء مطلوب',
     title: 'Decide whether to publish your review',
+    titleAr: 'قرّروا ما إذا كنتم ستنشرون تقييمكم',
     bodyHtml,
+    bodyHtmlAr,
   });
 }
 
 export function buildReviewResolutionReviewerEmailText(
   content: ReviewResolutionReviewerEmailContent,
 ): string {
-  return [
+  const english = [
     'Your review is awaiting your decision',
     '',
     `Review: ${content.reviewTitle}`,
@@ -189,6 +283,17 @@ export function buildReviewResolutionReviewerEmailText(
     '',
     `Proceed or withdraw: ${content.reviewsUrl}`,
   ].join('\n');
+
+  const arabic = [
+    'تقييمكم بانتظار قراركم',
+    '',
+    `التقييم: ${content.reviewTitle}`,
+    `الشركة: ${content.companyName}`,
+    '',
+    `المتابعة أو السحب: ${content.reviewsUrl}`,
+  ].join('\n');
+
+  return appendBilingualText(english, arabic);
 }
 
 export function buildReviewPublishedEmailHtml(content: {
@@ -201,22 +306,37 @@ export function buildReviewPublishedEmailHtml(content: {
     ? `${emailParagraph(`The reviewer chose to publish their review "${content.reviewTitle}" for ${content.companyName}. It is now visible on your RateQ profile.`)}`
     : `${emailParagraph(`Your review "${content.reviewTitle}" for ${content.companyName} is now published on RateQ.`)}`;
 
-  return renderEmailLayout({
+  const bodyHtmlAr = content.isCompany
+    ? `${emailParagraphRtl(`اختار المقيّم نشر تقييمه "${content.reviewTitle}" لـ ${content.companyName}. أصبح مرئيًا الآن على ملفكم في RateQ.`)}`
+    : `${emailParagraphRtl(`تقييمكم "${content.reviewTitle}" لـ ${content.companyName} منشور الآن على RateQ.`)}`;
+
+  return renderBilingualEmailLayout({
     appUrl: content.appUrl,
-    preheader: `Review published for ${content.companyName}.`,
-    eyebrow: 'Review published',
+    preheader: `Review published for ${content.companyName}. | تم نشر التقييم لـ ${content.companyName}.`,
+    eyebrow: 'Review published | تم نشر التقييم',
     title: 'Review is now live',
+    titleAr: 'التقييم متاح الآن',
     bodyHtml,
+    bodyHtmlAr,
   });
 }
 
 export function buildReviewPublishedEmailText(content: ReviewOutcomeEmailContent): string {
-  return [
+  const english = [
     'Review published',
     '',
     `Review: ${content.reviewTitle}`,
     `Company: ${content.companyName}`,
   ].join('\n');
+
+  const arabic = [
+    'تم نشر التقييم',
+    '',
+    `التقييم: ${content.reviewTitle}`,
+    `الشركة: ${content.companyName}`,
+  ].join('\n');
+
+  return appendBilingualText(english, arabic);
 }
 
 export function buildReviewWithdrawnEmailHtml(content: {
@@ -229,20 +349,35 @@ export function buildReviewWithdrawnEmailHtml(content: {
     ? `${emailParagraph(`The reviewer withdrew their review "${content.reviewTitle}" for ${content.companyName}. It will not be published on RateQ.`)}`
     : `${emailParagraph(`You withdrew your review "${content.reviewTitle}" for ${content.companyName}. It will not be published on RateQ.`)}`;
 
-  return renderEmailLayout({
+  const bodyHtmlAr = content.isCompany
+    ? `${emailParagraphRtl(`سحب المقيّم تقييمه "${content.reviewTitle}" لـ ${content.companyName}. لن يُنشر على RateQ.`)}`
+    : `${emailParagraphRtl(`سحبتم تقييمكم "${content.reviewTitle}" لـ ${content.companyName}. لن يُنشر على RateQ.`)}`;
+
+  return renderBilingualEmailLayout({
     appUrl: content.appUrl,
-    preheader: `Review withdrawn for ${content.companyName}.`,
-    eyebrow: 'Review withdrawn',
+    preheader: `Review withdrawn for ${content.companyName}. | تم سحب التقييم لـ ${content.companyName}.`,
+    eyebrow: 'Review withdrawn | تم سحب التقييم',
     title: 'Review will not be published',
+    titleAr: 'لن يُنشر التقييم',
     bodyHtml,
+    bodyHtmlAr,
   });
 }
 
 export function buildReviewWithdrawnEmailText(content: ReviewOutcomeEmailContent): string {
-  return [
+  const english = [
     'Review withdrawn',
     '',
     `Review: ${content.reviewTitle}`,
     `Company: ${content.companyName}`,
   ].join('\n');
+
+  const arabic = [
+    'تم سحب التقييم',
+    '',
+    `التقييم: ${content.reviewTitle}`,
+    `الشركة: ${content.companyName}`,
+  ].join('\n');
+
+  return appendBilingualText(english, arabic);
 }

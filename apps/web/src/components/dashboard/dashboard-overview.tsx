@@ -70,8 +70,8 @@ export function DashboardOverview({
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-ink sm:text-3xl">{title}</h1>
-        <p className="mt-1 text-sm text-ink-muted">{t('overviewSubtitle')}</p>
+        <h1 className="text-2xl font-bold text-primary sm:text-3xl">{title}</h1>
+        <p className="mt-1 text-sm text-secondary">{t('overviewSubtitle')}</p>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
@@ -88,10 +88,10 @@ export function DashboardOverview({
       </div>
 
       <div className="grid gap-6 xl:grid-cols-[1.4fr_1fr]">
-        <div className="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm">
+        <div className="surface-card p-5">
           <div className="mb-6 flex items-center justify-between gap-3">
-            <h3 className="text-lg font-bold text-ink">{t('latestRatingsChart')}</h3>
-            <select className="rounded-lg border border-slate-200 px-3 py-2 text-sm">
+            <h3 className="text-lg font-bold text-primary">{t('latestRatingsChart')}</h3>
+            <select className="select-field rounded-lg">
               <option>{t('daily')}</option>
             </select>
           </div>
@@ -105,22 +105,22 @@ export function DashboardOverview({
                     style={{ height: `${Math.max(20, height - 15)}%` }}
                   />
                 </div>
-                <span className="text-[10px] text-ink-muted">{index + 1}</span>
+                <span className="text-[10px] text-secondary">{index + 1}</span>
               </div>
             ))}
           </div>
         </div>
 
-        <div className="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm">
-          <h3 className="mb-4 text-lg font-bold text-ink">{t('topCompanies')}</h3>
+        <div className="surface-card p-5">
+          <h3 className="mb-4 text-lg font-bold text-primary">{t('topCompanies')}</h3>
           <div className="space-y-4">
             {topCompanies.map((company, index) => (
               <div key={index} className="flex items-center justify-between gap-3">
                 <div className="flex items-center gap-3">
-                  <div className="h-10 w-10 rounded-lg bg-brand-100" />
+                  <div className="h-10 w-10 rounded-lg bg-brand-100 dark:bg-brand-950/50" />
                   <div>
-                    <p className="font-medium text-ink">{company.name}</p>
-                    <p className="text-xs text-ink-muted">{company.count}</p>
+                    <p className="font-medium text-primary">{company.name}</p>
+                    <p className="text-xs text-secondary">{company.count}</p>
                   </div>
                 </div>
                 <div className="flex gap-0.5">
@@ -137,41 +137,41 @@ export function DashboardOverview({
       <DashboardReviewsTable rows={latestReviews} />
 
       <div className="grid gap-6 lg:grid-cols-3">
-        <div className="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm">
-          <h3 className="mb-4 text-lg font-bold text-ink">{t('topReviewers')}</h3>
+        <div className="surface-card p-5">
+          <h3 className="mb-4 text-lg font-bold text-primary">{t('topReviewers')}</h3>
           <div className="space-y-4">
             {topReviewers.map((reviewer, index) => (
               <div key={index} className="flex items-center gap-3">
                 <AvatarImage src={null} name={reviewer.name} className="h-10 w-10 shrink-0" />
                 <div>
-                  <p className="font-medium text-ink">{reviewer.name}</p>
-                  <p className="text-xs text-ink-muted">{reviewer.location}</p>
+                  <p className="font-medium text-primary">{reviewer.name}</p>
+                  <p className="text-xs text-secondary">{reviewer.location}</p>
                 </div>
-                <span className="ms-auto text-xs text-ink-muted">{reviewer.count}</span>
+                <span className="ms-auto text-xs text-secondary">{reviewer.count}</span>
               </div>
             ))}
           </div>
         </div>
 
-        <div className="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm">
-          <h3 className="mb-4 text-lg font-bold text-ink">{t('pendingReviews')}</h3>
-          <div className="space-y-4 text-sm text-ink-muted">
+        <div className="surface-card p-5">
+          <h3 className="mb-4 text-lg font-bold text-primary">{t('pendingReviews')}</h3>
+          <div className="space-y-4 text-sm text-secondary">
             <p>{t('pendingSample1')}</p>
             <p>{t('pendingSample2')}</p>
             <p>{t('pendingSample3')}</p>
           </div>
         </div>
 
-        <div className="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm">
-          <h3 className="mb-4 text-lg font-bold text-ink">{t('notifications')}</h3>
+        <div className="surface-card p-5">
+          <h3 className="mb-4 text-lg font-bold text-primary">{t('notifications')}</h3>
           <div className="space-y-3 text-sm">
-            <div className="flex items-center justify-between gap-3 rounded-xl bg-slate-50 px-3 py-3">
+            <div className="flex items-center justify-between gap-3 rounded-xl surface-muted px-3 py-3">
               <span>{t('notificationItem')}</span>
               <button type="button" className="text-brand-500">
                 {t('cancel')}
               </button>
             </div>
-            <div className="flex items-center justify-between gap-3 rounded-xl bg-slate-50 px-3 py-3">
+            <div className="flex items-center justify-between gap-3 rounded-xl surface-muted px-3 py-3">
               <span>{t('notificationItem')}</span>
               <button type="button" className="text-brand-500">
                 {t('cancel')}

@@ -1,5 +1,6 @@
 import type { Category, Company, CompanyProject, User } from '@prisma/client';
 import type {
+  CompanyCatalogLabel,
   CompanyDetail,
   CompanyProjectPublic,
   CompanyPublic,
@@ -29,6 +30,11 @@ function parseServices(value: unknown): string[] {
     .slice(0, 20);
 }
 
+function parseIds(value: unknown): string[] {
+  if (!Array.isArray(value)) return [];
+  return value.filter((item): item is string => typeof item === 'string');
+}
+
 function toCompanyProjectPublic(project: CompanyProject): CompanyProjectPublic {
   return {
     id: project.id,
@@ -39,21 +45,37 @@ function toCompanyProjectPublic(project: CompanyProject): CompanyProjectPublic {
   };
 }
 
+function resolveDescription(company: Company): string | null {
+  return company.descriptionEn ?? company.description ?? null;
+}
+
 export function toCompanyPublic(
   company: CompanyWithPublicRelations,
-  extras?: { ratingDistribution?: ReviewRatingDistribution },
+  extras?: {
+    ratingDistribution?: ReviewRatingDistribution;
+    serviceItems?: CompanyCatalogLabel[];
+    activityItems?: CompanyCatalogLabel[];
+  },
 ): CompanyPublic {
   return {
     id: company.id,
     name: company.name,
+    nameAr: company.nameAr,
     slug: company.slug,
-    description: company.description,
+    description: resolveDescription(company),
+    descriptionEn: company.descriptionEn ?? company.description ?? null,
+    descriptionAr: company.descriptionAr,
     logo: company.logo,
     coverUrl: company.coverUrl,
     email: company.email ?? company.owner?.email ?? null,
     phone: company.phone ?? null,
     websiteUrl: company.websiteUrl ?? null,
     services: parseServices(company.services),
+    serviceItems: extras?.serviceItems ?? [],
+    activityItems: extras?.activityItems ?? [],
+    yearsEstablished: company.yearsEstablished,
+    publicProjectCount: company.publicProjectCount,
+    privateProjectCount: company.privateProjectCount,
     projects: (company.projects ?? []).map(toCompanyProjectPublic),
     country: company.country,
     city: company.city,
@@ -70,10 +92,19 @@ export function toCompanyPublic(
 
 export function toCompanyDetail(
   company: CompanyWithPublicRelations,
-  extras?: { ratingDistribution?: ReviewRatingDistribution },
+  extras?: {
+    ratingDistribution?: ReviewRatingDistribution;
+    serviceItems?: CompanyCatalogLabel[];
+    activityItems?: CompanyCatalogLabel[];
+  },
 ): CompanyDetail {
   return {
     ...toCompanyPublic(company, extras),
     updatedAt: company.updatedAt.toISOString(),
+    profileChangeStatus: company.profileChangeStatus === 'PENDING' ? 'pending' : 'none',
   };
+}
+
+export function parseCompanyIdList(value: unknown): string[] {
+  return parseIds(value);
 }

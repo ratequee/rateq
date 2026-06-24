@@ -1,7 +1,7 @@
 import { uploadUserFile } from '@/lib/firebase/storage';
 import { waitForFirebaseUser } from '@/lib/firebase/wait-for-user';
 
-const MAX_PROOF_FILES = 10;
+const MAX_PROOF_FILES = 1;
 const MAX_PROOF_FILE_BYTES = 10 * 1024 * 1024;
 
 export async function uploadReviewProofFiles(files: File[]): Promise<string[]> {

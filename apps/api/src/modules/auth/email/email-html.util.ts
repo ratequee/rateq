@@ -1,3 +1,5 @@
+import { bilingualTitle, emailBilingualBlock } from './email-bilingual.util';
+
 export interface EmailLayoutOptions {
   appUrl: string;
   preheader: string;
@@ -115,6 +117,23 @@ export function emailCallout(
 
 export function emailParagraph(text: string): string {
   return `<p style="margin:0 0 16px;font-family:Arial,Helvetica,sans-serif;font-size:15px;line-height:1.7;color:${INK};">${escapeHtml(text)}</p>`;
+}
+
+export interface BilingualEmailLayoutOptions extends EmailLayoutOptions {
+  titleAr: string;
+  bodyHtmlAr: string;
+}
+
+export function renderBilingualEmailLayout(options: BilingualEmailLayoutOptions): string {
+  return renderEmailLayout({
+    ...options,
+    title: bilingualTitle(options.title, options.titleAr),
+    bodyHtml: emailBilingualBlock(options.bodyHtml, options.bodyHtmlAr),
+  });
+}
+
+export function appendBilingualText(english: string, arabic: string): string {
+  return `${english}\n\n---\n\n${arabic}`;
 }
 
 export function renderEmailLayout(options: EmailLayoutOptions): string {

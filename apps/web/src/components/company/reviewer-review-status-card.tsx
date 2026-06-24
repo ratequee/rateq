@@ -21,22 +21,26 @@ const statusConfig: Record<
 > = {
   [ReviewStatus.PENDING]: {
     messageKey: 'myReviewPending',
-    className: 'border-amber-200 bg-amber-50 text-amber-950',
+    className:
+      'border-amber-200 bg-amber-50 text-amber-950 dark:border-amber-900 dark:bg-amber-950/40 dark:text-amber-100',
     icon: Clock3,
   },
   [ReviewStatus.RESOLUTION_PENDING]: {
     messageKey: 'myReviewResolutionPending',
-    className: 'border-sky-200 bg-sky-50 text-sky-950',
+    className:
+      'border-sky-200 bg-sky-50 text-sky-950 dark:border-sky-900 dark:bg-sky-950/40 dark:text-sky-100',
     icon: MessageSquareWarning,
   },
   [ReviewStatus.APPROVED]: {
     messageKey: 'myReviewApproved',
-    className: 'border-emerald-200 bg-emerald-50 text-emerald-950',
+    className:
+      'border-emerald-200 bg-emerald-50 text-emerald-950 dark:border-emerald-900 dark:bg-emerald-950/40 dark:text-emerald-100',
     icon: CheckCircle2,
   },
   [ReviewStatus.REJECTED]: {
     messageKey: 'myReviewRejected',
-    className: 'border-red-200 bg-red-50 text-red-950',
+    className:
+      'border-red-200 bg-red-50 text-red-950 dark:border-red-900 dark:bg-red-950/40 dark:text-red-100',
     icon: XCircle,
   },
 };
@@ -60,7 +64,7 @@ export function ReviewerReviewStatusCard({
           <p className="mt-1 text-sm leading-relaxed opacity-90">{t(config.messageKey)}</p>
 
           {!compact ? (
-            <div className="mt-4 rounded-xl border border-white/60 bg-white/70 p-4">
+            <div className="mt-4 rounded-xl border border-white/60 bg-white/70 p-4 dark:border-slate-700 dark:bg-slate-900/60">
               <div className="flex flex-wrap items-center gap-2">
                 <StarRating value={review.rating} size="sm" />
                 <span className="text-xs font-medium uppercase tracking-wide opacity-80">
@@ -77,7 +81,12 @@ export function ReviewerReviewStatusCard({
           {showResolutionActions ? (
             <div className="mt-4">
               <Link href="/dashboard/reviewer/reviews">
-                <Button type="button" size="sm" variant="outline" className="bg-white/80">
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  className="bg-white/80 dark:bg-slate-900/80"
+                >
                   {t('myReviewManageResolution')}
                 </Button>
               </Link>

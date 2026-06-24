@@ -10,10 +10,63 @@
     --foreground: 0 0% 22%;
     --brand: 351 71% 24%;
     --gold: 42 78% 68%;
+    --surface: 0 0% 100%;
+    --surface-muted: 210 20% 98%;
+    --border: 214 32% 91%;
+  }
+
+  .dark {
+    --background: 222 47% 4%;
+    --foreground: 210 40% 96%;
+    --surface: 222 47% 7%;
+    --surface-muted: 217 33% 12%;
+    --border: 217 33% 17%;
   }
 
   body {
-    @apply bg-white font-sans text-ink antialiased;
+    @apply bg-white font-sans text-ink antialiased dark:bg-slate-950 dark:text-slate-100;
+  }
+}
+
+@layer components {
+  .surface-page {
+    @apply bg-[#F4F5F7] dark:bg-slate-950;
+  }
+
+  .surface-card {
+    @apply rounded-2xl border border-slate-100 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900;
+  }
+
+  .surface-panel {
+    @apply border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900;
+  }
+
+  .surface-muted {
+    @apply bg-slate-50 dark:bg-slate-800/60;
+  }
+
+  .border-subtle {
+    @apply border-slate-100 dark:border-slate-800;
+  }
+
+  .border-default {
+    @apply border-slate-200 dark:border-slate-700;
+  }
+
+  .text-primary {
+    @apply text-ink dark:text-slate-100;
+  }
+
+  .text-secondary {
+    @apply text-ink-muted dark:text-slate-400;
+  }
+
+  .hover-surface {
+    @apply hover:bg-slate-50 dark:hover:bg-slate-800/80;
+  }
+
+  .select-field {
+    @apply h-10 rounded-md border border-slate-200 bg-white px-3 text-sm text-ink dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100;
   }
 }
 
@@ -30,4 +83,33 @@
   .scrollbar-hide::-webkit-scrollbar {
     display: none;
   }
+}
+
+.tiptap :first-child {
+  margin-top: 0;
+}
+
+.tiptap p.is-editor-empty:first-child::before {
+  color: #94a3b8;
+  content: attr(data-placeholder);
+  float: left;
+  height: 0;
+  pointer-events: none;
+}
+
+.tiptap h2 {
+  @apply mb-3 mt-6 text-2xl font-bold text-ink dark:text-slate-100;
+}
+
+.tiptap h3 {
+  @apply mb-2 mt-5 text-xl font-semibold text-ink dark:text-slate-100;
+}
+
+.tiptap ul,
+.tiptap ol {
+  @apply my-3 ps-6;
+}
+
+.tiptap blockquote {
+  @apply my-4 border-s-4 border-brand-200 ps-4 italic text-ink-muted dark:border-brand-800 dark:text-slate-400;
 }

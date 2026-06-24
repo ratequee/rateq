@@ -252,6 +252,12 @@ export const reviewsApi = {
       method: 'DELETE',
       token,
     }),
+  setResolutionWindow: (token: string, reviewId: string, days: 7 | 10) =>
+    apiClient<ReviewPublic>(`/reviews/${reviewId}/resolution/window`, {
+      method: 'PATCH',
+      body: JSON.stringify({ days }),
+      token,
+    }),
   proceedResolution: (token: string, reviewId: string) =>
     apiClient<ReviewPublic>(`/reviews/${reviewId}/resolution/proceed`, {
       method: 'PATCH',

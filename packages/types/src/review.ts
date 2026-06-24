@@ -36,6 +36,8 @@ export interface ReviewPublic {
   title: string;
   content: string;
   status: ReviewStatus;
+  resolutionWindowDays?: number | null;
+  resolutionDeadlineAt?: string | null;
   createdAt: string;
   updatedAt: string;
   author?: ReviewAuthor;
@@ -63,7 +65,7 @@ export interface CreateReviewInput {
   content: string;
   deviceFingerprint?: string;
   serviceRatings?: ReviewServiceRatingInput[];
-  proofUrls?: string[];
+  proofUrls: string[];
 }
 
 export interface ModerationScoreBreakdown {

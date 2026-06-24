@@ -19,7 +19,8 @@ import {
   type RegisterFieldErrors,
 } from '@/lib/validation/auth-fields';
 import { useTranslations } from 'next-intl';
-import { useState } from 'react';
+import { useSearchParams } from 'next/navigation';
+import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import { Logo } from '@/components/brand/logo';
 import { Eye, EyeOff } from 'lucide-react';
@@ -30,12 +31,20 @@ export default function RegisterPage() {
   const tn = useTranslations('nav');
   const { register } = useAuth();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [name, setName] = useState('');
   const [loading, setLoading] = useState(false);
   const [fieldErrors, setFieldErrors] = useState<RegisterFieldErrors>({});
+
+  useEffect(() => {
+    const invitedEmail = searchParams.get('email');
+    if (invitedEmail) {
+      setEmail(sanitizeEmail(invitedEmail));
+    }
+  }, [searchParams]);
 
   const validationMessages = {
     name: {

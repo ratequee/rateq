@@ -1,8 +1,10 @@
 import type { Config } from 'tailwindcss';
 import preset from '@rateq/config/tailwind/preset';
+import typography from '@tailwindcss/typography';
 
 const config: Config = {
   content: ['./src/**/*.{ts,tsx}'],
+  darkMode: 'class',
   presets: [preset as Config],
   theme: {
     extend: {
@@ -17,7 +19,7 @@ const config: Config = {
       },
     },
   },
-  plugins: [],
+  plugins: [typography],
 };
 
 export default config;

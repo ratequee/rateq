@@ -53,7 +53,7 @@ export function WriteReviewForm({
   );
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
-  const [proofFiles, setProofFiles] = useState<File[]>([]);
+  const [proofFile, setProofFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
   const [fieldErrors, setFieldErrors] = useState<ReviewFieldErrors>({});
   const initialServicesKey = initialCategoryServices.map((service) => service.id).join(',');
@@ -95,8 +95,8 @@ export function WriteReviewForm({
   }, [categoryServices, overallRating, serviceRatings, usesServiceRatings]);
 
   const handleProofChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const files = Array.from(event.target.files ?? []);
-    setProofFiles(files.slice(0, 10));
+    const file = event.target.files?.[0] ?? null;
+    setProofFile(file);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -125,13 +125,18 @@ export function WriteReviewForm({
       return;
     }
 
+    if (!proofFile) {
+      toast.error(t('validation.proofRequired'));
+      return;
+    }
+
     setFieldErrors({});
     setLoading(true);
     try {
       const token = await ensureValidAccessToken();
       if (!token) throw new Error('Not authenticated');
 
-      const proofUrls = proofFiles.length ? await uploadReviewProofFiles(proofFiles) : undefined;
+      const proofUrls = await uploadReviewProofFiles([proofFile]);
       const deviceFingerprint = await getDeviceFingerprint();
 
       const review = await reviewsApi.submit(token, {
@@ -147,14 +152,14 @@ export function WriteReviewForm({
               })),
             }
           : { rating: overallRating }),
-        ...(proofUrls?.length ? { proofUrls } : {}),
+        proofUrls,
       });
 
       toast.success(t('submittedSuccess'), { description: t('submittedPendingNote') });
       setTitle('');
       setContent('');
       setOverallRating(5);
-      setProofFiles([]);
+      setProofFile(null);
       setServiceRatings(buildDefaultServiceRatings(categoryServices));
       onSubmitted?.(review);
     } catch (err) {
@@ -227,7 +232,7 @@ export function WriteReviewForm({
               onChange={(e) => setContent(sanitizeReviewContent(e.target.value))}
               rows={4}
               aria-invalid={Boolean(fieldErrors.content)}
-              className="mt-1 w-full rounded-md border border-slate-200 px-3 py-2 text-sm focus:ring-2 focus:ring-brand-500"
+              className="mt-1 w-full rounded-md border border-default bg-white px-3 py-2 text-sm text-primary focus:ring-2 focus:ring-brand-500 dark:bg-slate-900"
             />
             {fieldErrors.content ? (
               <p className="mt-1 text-sm text-red-600">{fieldErrors.content}</p>
@@ -236,15 +241,9 @@ export function WriteReviewForm({
 
           <div>
             <label className="mb-1.5 block text-sm font-medium">{t('proofFiles')}</label>
-            <Input type="file" multiple accept="image/*,.pdf" onChange={handleProofChange} />
+            <Input type="file" accept="image/*,.pdf" onChange={handleProofChange} required />
             <p className="mt-1 text-xs text-ink-muted">{t('proofFilesHint')}</p>
-            {proofFiles.length > 0 && (
-              <ul className="mt-2 space-y-1 text-xs text-ink-muted">
-                {proofFiles.map((file) => (
-                  <li key={`${file.name}-${file.size}`}>{file.name}</li>
-                ))}
-              </ul>
-            )}
+            {proofFile ? <p className="mt-2 text-xs text-ink-muted">{proofFile.name}</p> : null}
           </div>
 
           <Button type="submit" disabled={loading}>

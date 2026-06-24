@@ -1,6 +1,7 @@
 'use client';
 
 import { DashboardLogoutButton, DashboardNav } from '@/components/dashboard/dashboard-nav';
+import { ThemeToggle } from '@/components/layout/theme-toggle';
 import { UserAccountMenu } from '@/components/layout/user-account-menu';
 import { useAuth } from '@/components/providers/auth-provider';
 import { useRequireVerifiedAuth } from '@/hooks/use-require-verified-auth';
@@ -35,11 +36,6 @@ export function DashboardShell({ children, role }: DashboardShellProps) {
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') setMobileNavOpen(false);
-
-      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'k') {
-        event.preventDefault();
-        searchInputRef.current?.focus();
-      }
     };
 
     document.addEventListener('keydown', onKeyDown);
@@ -60,7 +56,7 @@ export function DashboardShell({ children, role }: DashboardShellProps) {
   };
 
   return (
-    <div className="min-h-screen bg-[#F4F5F7]">
+    <div className="surface-page min-h-screen">
       {mobileNavOpen ? (
         <button
           type="button"
@@ -72,7 +68,7 @@ export function DashboardShell({ children, role }: DashboardShellProps) {
 
       <aside
         className={cn(
-          'fixed inset-y-0 start-0 z-50 flex w-[280px] flex-col border-e border-slate-200 bg-white shadow-xl transition-transform duration-300 lg:hidden',
+          'fixed inset-y-0 start-0 z-50 flex w-[280px] flex-col border-e border-default bg-white shadow-xl transition-transform duration-300 dark:bg-slate-900 lg:hidden',
           mobileNavOpen ? 'translate-x-0' : '-translate-x-full rtl:translate-x-full',
         )}
         aria-hidden={!mobileNavOpen}
@@ -87,17 +83,17 @@ export function DashboardShell({ children, role }: DashboardShellProps) {
       </aside>
 
       <div className="flex min-h-screen flex-row">
-        <aside className="sticky top-0 hidden h-screen w-[280px] shrink-0 flex-col border-e border-slate-200 bg-white lg:flex">
+        <aside className="sticky top-0 hidden h-screen w-[280px] shrink-0 flex-col border-e border-default bg-white dark:bg-slate-900 lg:flex">
           <DashboardNav role={role} />
           <DashboardLogoutButton onLogout={() => void handleLogout()} />
         </aside>
 
         <div className="flex min-w-0 flex-1 flex-col">
-          <header className="flex items-center justify-between gap-4 border-b border-slate-200 bg-white px-4 py-4 sm:px-6">
+          <header className="flex items-center justify-between gap-4 border-b border-default bg-white px-4 py-4 dark:bg-slate-900 sm:px-6">
             <div className="flex min-w-0 flex-1 items-center gap-3">
               <button
                 type="button"
-                className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-slate-200 text-ink-muted hover:bg-slate-50 lg:hidden"
+                className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-default text-ink-muted hover:bg-slate-50 dark:hover:bg-slate-800 lg:hidden"
                 onClick={() => setMobileNavOpen(true)}
                 aria-expanded={mobileNavOpen}
                 aria-label={tNav('openMenu')}
@@ -113,15 +109,13 @@ export function DashboardShell({ children, role }: DashboardShellProps) {
                   value={searchQuery}
                   onChange={(event) => setSearchQuery(event.target.value)}
                   placeholder={t('searchPlaceholder')}
-                  className="h-11 w-full rounded-xl border border-slate-200 bg-slate-50 ps-10 pe-4 text-sm outline-none focus:border-brand-500 sm:pe-16"
+                  className="h-11 w-full rounded-xl border border-default bg-slate-50 ps-10 pe-4 text-sm text-ink outline-none focus:border-brand-500 dark:bg-slate-800 dark:text-slate-100"
                 />
-                <span className="pointer-events-none absolute end-3 top-1/2 hidden -translate-y-1/2 rounded-md bg-white px-2 py-0.5 text-xs text-ink-muted sm:inline">
-                  ⌘K
-                </span>
               </form>
             </div>
 
             <div className="flex items-center gap-3">
+              <ThemeToggle />
               <UserAccountMenu />
             </div>
           </header>

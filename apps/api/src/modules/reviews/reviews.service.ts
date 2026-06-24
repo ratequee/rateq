@@ -35,6 +35,7 @@ import {
 } from './mappers/review.mapper';
 import type { ListReviewsQueryDto } from './dto/list-reviews-query.dto';
 import type { CreateReviewReplyDto } from './dto/create-reply.dto';
+import type { SetResolutionWindowDto } from './dto/set-resolution-window.dto';
 import { ModerationAction } from '@prisma/client';
 
 @Injectable()
@@ -134,6 +135,14 @@ export class ReviewsService {
         throw new BadRequestException('Overall rating is required');
       }
       serviceRatings = undefined;
+    }
+
+    if (!input.proofUrls?.length) {
+      throw new BadRequestException('A proof file is required when submitting a review');
+    }
+
+    if (input.proofUrls.length > 1) {
+      throw new BadRequestException('Only one proof file is allowed per review');
     }
 
     const review = await this.reviewsRepository.create({
@@ -300,6 +309,8 @@ export class ReviewsService {
       throw new BadRequestException('This review is not awaiting your resolution decision');
     }
 
+    this.assertResolutionDeadlinePassed(review);
+
     await this.reviewsRepository.updateModerationResult(reviewId, {
       status: 'APPROVED',
       moderationScore: review.moderationScore,
@@ -345,6 +356,8 @@ export class ReviewsService {
       throw new BadRequestException('This review is not awaiting your resolution decision');
     }
 
+    this.assertResolutionDeadlinePassed(review);
+
     await this.reviewsRepository.updateModerationResult(reviewId, {
       status: 'REJECTED',
       moderationScore: review.moderationScore,
@@ -366,6 +379,47 @@ export class ReviewsService {
       companyEmail,
       companyName,
       reviewTitle: review.title,
+    });
+
+    const updated = await this.reviewsRepository.findById(reviewId);
+    return toReviewPublic(updated!);
+  }
+
+  async setResolutionWindow(
+    user: AuthenticatedUser,
+    reviewId: string,
+    dto: SetResolutionWindowDto,
+  ): Promise<ReviewPublic> {
+    const review = await this.reviewsRepository.findById(reviewId);
+
+    if (!review) {
+      throw new NotFoundException('Review not found');
+    }
+
+    if (review.status !== 'RESOLUTION_PENDING') {
+      throw new BadRequestException('Only reviews awaiting resolution can have a window set');
+    }
+
+    if (review.resolutionDeadlineAt) {
+      throw new BadRequestException('Resolution window has already been set for this review');
+    }
+
+    const company = await this.companiesRepository.findById(review.companyId);
+
+    if (!company) {
+      throw new NotFoundException('Company not found');
+    }
+
+    if (company.ownerId !== user.id && user.role !== UserRole.ADMIN) {
+      throw new ForbiddenException('Only the company owner can set the resolution window');
+    }
+
+    const deadline = new Date();
+    deadline.setDate(deadline.getDate() + dto.days);
+
+    await this.reviewsRepository.updateResolutionWindow(reviewId, {
+      resolutionWindowDays: dto.days,
+      resolutionDeadlineAt: deadline,
     });
 
     const updated = await this.reviewsRepository.findById(reviewId);
@@ -533,6 +587,16 @@ export class ReviewsService {
     }
 
     return companies;
+  }
+
+  private assertResolutionDeadlinePassed(review: { resolutionDeadlineAt: Date | null }): void {
+    if (!review.resolutionDeadlineAt) {
+      throw new BadRequestException('The company has not set a resolution window yet');
+    }
+
+    if (new Date() < review.resolutionDeadlineAt) {
+      throw new BadRequestException('The resolution window has not ended yet');
+    }
   }
 
   private extractClientIp(request: Request): string | undefined {

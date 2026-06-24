@@ -177,6 +177,19 @@ export class ReviewsRepository {
     });
   }
 
+  updateResolutionWindow(
+    reviewId: string,
+    data: { resolutionWindowDays: number; resolutionDeadlineAt: Date },
+  ): Promise<Review> {
+    return this.prisma.review.update({
+      where: { id: reviewId },
+      data: {
+        resolutionWindowDays: data.resolutionWindowDays,
+        resolutionDeadlineAt: data.resolutionDeadlineAt,
+      },
+    });
+  }
+
   createReply(reviewId: string, companyId: string, content: string) {
     return this.prisma.reviewReply.create({
       data: { reviewId, companyId, content },

@@ -21,6 +21,7 @@ import { ReviewsService } from './reviews.service';
 import { CreateReviewDto } from './dto/create-review.dto';
 import { CreateReviewReplyDto } from './dto/create-reply.dto';
 import { ListReviewsQueryDto } from './dto/list-reviews-query.dto';
+import { SetResolutionWindowDto } from './dto/set-resolution-window.dto';
 import { PaginatedReviewsDto, ReviewPublicDto } from './dto/review-response.dto';
 
 @ApiTags('reviews')
@@ -84,6 +85,20 @@ export class ReviewsController {
   @ApiResponse({ status: 200, type: PaginatedReviewsDto })
   listMine(@CurrentUser() user: AuthenticatedUser, @Query() query: ListReviewsQueryDto) {
     return this.reviewsService.listMyReviews(user.id, query);
+  }
+
+  @Patch(':reviewId/resolution/window')
+  @HttpCode(HttpStatus.OK)
+  @ApiBearerAuth()
+  @Roles(UserRole.COMPANY, UserRole.ADMIN)
+  @ApiOperation({ summary: 'Company sets a 7 or 10 day resolution window' })
+  @ApiResponse({ status: 200, type: ReviewPublicDto })
+  setResolutionWindow(
+    @CurrentUser() user: AuthenticatedUser,
+    @Param('reviewId') reviewId: string,
+    @Body() dto: SetResolutionWindowDto,
+  ) {
+    return this.reviewsService.setResolutionWindow(user, reviewId, dto);
   }
 
   @Patch(':reviewId/resolution/proceed')

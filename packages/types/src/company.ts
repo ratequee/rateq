@@ -17,17 +17,30 @@ export interface ReviewRatingDistribution {
   5: number;
 }
 
+export interface CompanyCatalogLabel {
+  id: string;
+  label: string;
+}
+
 export interface CompanyPublic {
   id: string;
   name: string;
+  nameAr: string | null;
   slug: string;
   description: string | null;
+  descriptionEn: string | null;
+  descriptionAr: string | null;
   logo: string | null;
   coverUrl: string | null;
   email: string | null;
   phone: string | null;
   websiteUrl: string | null;
   services: string[];
+  serviceItems: CompanyCatalogLabel[];
+  activityItems: CompanyCatalogLabel[];
+  yearsEstablished: number | null;
+  publicProjectCount: number | null;
+  privateProjectCount: number | null;
   projects: CompanyProjectPublic[];
   country: string;
   city: string;
@@ -43,6 +56,7 @@ export interface CompanyPublic {
 
 export interface CompanyDetail extends CompanyPublic {
   updatedAt: string;
+  profileChangeStatus: 'none' | 'pending';
 }
 
 export type PaginatedCompaniesResponse = PaginatedResponse<CompanyPublic>;
@@ -58,6 +72,9 @@ export interface CompanySearchFilters {
 
 export interface CreateCompanyInput {
   name: string;
+  nameAr?: string;
+  descriptionEn?: string;
+  descriptionAr?: string;
   description?: string;
   logo: string;
   coverUrl: string;
@@ -73,6 +90,11 @@ export interface CreateCompanyInput {
   tradeLicenseUrl: string;
   country: string;
   city: string;
+  serviceIds?: string[];
+  activityIds?: string[];
+  yearsEstablished?: number;
+  publicProjectCount?: number;
+  privateProjectCount?: number;
 }
 
 export interface UpdateCompanyProjectInput {
@@ -83,9 +105,17 @@ export interface UpdateCompanyProjectInput {
 
 export interface UpdateCompanyInput {
   name?: string;
+  nameAr?: string;
   description?: string;
+  descriptionEn?: string;
+  descriptionAr?: string;
   websiteUrl?: string | null;
   services?: string[];
+  serviceIds?: string[];
+  activityIds?: string[];
+  yearsEstablished?: number;
+  publicProjectCount?: number;
+  privateProjectCount?: number;
   projects?: UpdateCompanyProjectInput[];
   logo?: string | null;
   coverUrl?: string;

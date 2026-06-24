@@ -19,7 +19,7 @@ import type {
   UpdateCompanyVerificationInput,
 } from '@rateq/types';
 import { UserRole } from '@rateq/types';
-import { UserRole as PrismaUserRole } from '@prisma/client';
+import { UserRole as PrismaUserRole, Prisma } from '@prisma/client';
 import { slugify, withSlugSuffix } from '@rateq/utils';
 import { PrismaService } from '../../infrastructure/database/prisma.service';
 import { buildPaginationMeta } from '../../common/utils/pagination.util';
@@ -27,7 +27,8 @@ import { CompaniesRepository } from './repositories/companies.repository';
 import { CategoriesService } from '../categories/categories.service';
 import { PhoneOtpService } from '../phone-verification/phone-otp.service';
 import { EmailService } from '../auth/services/email.service';
-import { toCompanyDetail, toCompanyPublic } from './mappers/company.mapper';
+import { CompanyCatalogService } from './company-catalog.service';
+import { toCompanyDetail, toCompanyPublic, parseCompanyIdList } from './mappers/company.mapper';
 import { toReviewPublic } from '../reviews/mappers/review.mapper';
 import {
   toAdminCompanyVerificationDetail,
@@ -46,6 +47,7 @@ export class CompaniesService {
     private readonly categoriesService: CategoriesService,
     private readonly phoneOtpService: PhoneOtpService,
     private readonly emailService: EmailService,
+    private readonly catalogService: CompanyCatalogService,
   ) {}
 
   async search(query: SearchCompaniesQueryDto): Promise<PaginatedCompaniesResponse> {
@@ -86,7 +88,35 @@ export class CompaniesService {
       company.id,
     );
 
-    return toCompanyPublic(company, { ratingDistribution });
+    return this.mapCompanyPublic(company, { ratingDistribution });
+  }
+
+  private async mapCompanyPublic(
+    company: NonNullable<Awaited<ReturnType<CompaniesRepository['findBySlug']>>>,
+    extras?: { ratingDistribution?: import('@rateq/types').ReviewRatingDistribution },
+  ) {
+    const serviceIds = parseCompanyIdList(company.serviceIds);
+    const activityIds = parseCompanyIdList(company.activityIds);
+    const [serviceItems, activityItems] = await Promise.all([
+      this.catalogService.resolveLabels(serviceIds, 'en'),
+      this.catalogService.resolveLabels(activityIds, 'en'),
+    ]);
+
+    return toCompanyPublic(company, { ...extras, serviceItems, activityItems });
+  }
+
+  private async mapCompanyDetail(
+    company: NonNullable<Awaited<ReturnType<CompaniesRepository['findByOwnerId']>>>,
+    extras?: { ratingDistribution?: import('@rateq/types').ReviewRatingDistribution },
+  ) {
+    const serviceIds = parseCompanyIdList(company.serviceIds);
+    const activityIds = parseCompanyIdList(company.activityIds);
+    const [serviceItems, activityItems] = await Promise.all([
+      this.catalogService.resolveLabels(serviceIds, 'en'),
+      this.catalogService.resolveLabels(activityIds, 'en'),
+    ]);
+
+    return toCompanyDetail(company, { ...extras, serviceItems, activityItems });
   }
 
   async register(user: AuthenticatedUser, input: CreateCompanyInput): Promise<CompanyDetail> {
@@ -118,12 +148,22 @@ export class CompaniesService {
     await this.categoriesService.assertExists(input.categoryId);
     await this.phoneOtpService.assertPhoneVerified(user.id, input.phone, 'company');
 
+    if (input.serviceIds?.length) {
+      await this.catalogService.assertIdsExist(input.serviceIds, 'service');
+    }
+    if (input.activityIds?.length) {
+      await this.catalogService.assertIdsExist(input.activityIds, 'activity');
+    }
+
     await this.companiesRepository.create({
       name: input.name.trim(),
+      nameAr: input.nameAr?.trim() ?? null,
       slug,
       email: user.email,
       phone: input.phone.trim(),
-      description: input.description?.trim() ?? null,
+      description: input.descriptionEn?.trim() ?? input.description?.trim() ?? null,
+      descriptionEn: input.descriptionEn?.trim() ?? input.description?.trim() ?? null,
+      descriptionAr: input.descriptionAr?.trim() ?? null,
       logo: input.logo,
       coverUrl: input.coverUrl,
       address: input.address.trim(),
@@ -137,6 +177,11 @@ export class CompaniesService {
       verificationStatus: 'PENDING',
       country: input.country.trim(),
       city: input.city.trim(),
+      serviceIds: input.serviceIds ?? [],
+      activityIds: input.activityIds ?? [],
+      yearsEstablished: input.yearsEstablished ?? null,
+      publicProjectCount: input.publicProjectCount ?? null,
+      privateProjectCount: input.privateProjectCount ?? null,
       category: { connect: { id: input.categoryId } },
       owner: { connect: { id: user.id } },
     });
@@ -151,7 +196,7 @@ export class CompaniesService {
     await this.phoneOtpService.clearSession(user.id, 'company');
 
     const withRelations = await this.companiesRepository.findByOwnerId(user.id);
-    return toCompanyDetail(withRelations!);
+    return this.mapCompanyDetail(withRelations!);
   }
 
   async getMyCompany(userId: string): Promise<CompanyDetail> {
@@ -165,7 +210,7 @@ export class CompaniesService {
       company.id,
     );
 
-    return toCompanyDetail(company, { ratingDistribution });
+    return this.mapCompanyDetail(company, { ratingDistribution });
   }
 
   async getDashboard(userId: string): Promise<CompanyDashboard> {
@@ -185,7 +230,7 @@ export class CompaniesService {
       ]);
 
     return {
-      company: toCompanyDetail(company),
+      company: await this.mapCompanyDetail(company),
       stats: {
         ...reviewStats,
         averageRating: Number(company.ratingAverage),
@@ -229,6 +274,29 @@ export class CompaniesService {
           'Document uploads cannot be changed from the profile settings page',
         );
       }
+
+      if (input.serviceIds?.length) {
+        await this.catalogService.assertIdsExist(input.serviceIds, 'service');
+      }
+      if (input.activityIds?.length) {
+        await this.catalogService.assertIdsExist(input.activityIds, 'activity');
+      }
+
+      const pendingChanges = this.mergePendingChanges(
+        company.pendingProfileChanges as Record<string, unknown> | null,
+        input,
+      );
+
+      await this.companiesRepository.update(company.id, {
+        profileChangeStatus: 'PENDING',
+        pendingProfileChanges: pendingChanges as Prisma.InputJsonValue,
+      });
+
+      const refreshed = await this.companiesRepository.findByOwnerId(userId);
+      const ratingDistribution = await this.companiesRepository.getApprovedRatingDistribution(
+        company.id,
+      );
+      return this.mapCompanyDetail(refreshed!, { ratingDistribution });
     }
 
     const updated = await this.applyUpdate(company.id, company.slug, input);
@@ -241,10 +309,75 @@ export class CompaniesService {
         verificationStatus: 'PENDING',
         revisionNotes: null,
       });
-      return toCompanyDetail(reset);
+      const refreshed = await this.companiesRepository.findById(reset.id);
+      const ratingDistribution = await this.companiesRepository.getApprovedRatingDistribution(
+        reset.id,
+      );
+      return this.mapCompanyDetail(refreshed!, { ratingDistribution });
     }
 
     return updated;
+  }
+
+  async listAdminProfileChanges(): Promise<CompanyDetail[]> {
+    const companies = await this.prisma.company.findMany({
+      where: { profileChangeStatus: 'PENDING', verificationStatus: 'APPROVED' },
+      include: {
+        owner: { select: { id: true, email: true, isActive: true } },
+        category: { select: { id: true, name: true, slug: true } },
+        projects: { orderBy: { sortOrder: 'asc' } },
+      },
+      orderBy: { updatedAt: 'desc' },
+    });
+
+    return Promise.all(companies.map((company) => this.mapCompanyDetail(company)));
+  }
+
+  async approveProfileChanges(companyId: string): Promise<CompanyDetail> {
+    const company = await this.companiesRepository.findById(companyId);
+    if (!company) throw new NotFoundException('Company not found');
+    if (company.profileChangeStatus !== 'PENDING' || !company.pendingProfileChanges) {
+      throw new BadRequestException('No pending profile changes for this company');
+    }
+
+    const pending = company.pendingProfileChanges as UpdateCompanyInput;
+    await this.applyUpdate(company.id, company.slug, pending);
+
+    await this.companiesRepository.update(companyId, {
+      profileChangeStatus: 'NONE',
+      pendingProfileChanges: Prisma.JsonNull,
+    });
+
+    const refreshed = await this.companiesRepository.findById(companyId);
+    const ratingDistribution =
+      await this.companiesRepository.getApprovedRatingDistribution(companyId);
+    return this.mapCompanyDetail(refreshed!, { ratingDistribution });
+  }
+
+  async rejectProfileChanges(companyId: string): Promise<CompanyDetail> {
+    const company = await this.companiesRepository.findById(companyId);
+    if (!company) throw new NotFoundException('Company not found');
+    if (company.profileChangeStatus !== 'PENDING') {
+      throw new BadRequestException('No pending profile changes for this company');
+    }
+
+    await this.companiesRepository.update(companyId, {
+      profileChangeStatus: 'NONE',
+      pendingProfileChanges: Prisma.JsonNull,
+    });
+
+    const refreshed = await this.companiesRepository.findById(companyId);
+    const ratingDistribution =
+      await this.companiesRepository.getApprovedRatingDistribution(companyId);
+    return this.mapCompanyDetail(refreshed!, { ratingDistribution });
+  }
+
+  private mergePendingChanges(
+    existing: Record<string, unknown> | null,
+    input: UpdateCompanyInput,
+  ): UpdateCompanyInput {
+    const base = (existing ?? {}) as UpdateCompanyInput;
+    return { ...base, ...input };
   }
 
   async adminUpdate(companyId: string, input: UpdateCompanyInput): Promise<CompanyDetail> {
@@ -391,8 +524,16 @@ export class CompaniesService {
 
     await this.companiesRepository.update(companyId, {
       ...(input.name !== undefined && { name: input.name.trim(), slug }),
+      ...(input.nameAr !== undefined && { nameAr: input.nameAr?.trim() ?? null }),
       ...(input.description !== undefined && {
         description: input.description?.trim() ?? null,
+      }),
+      ...(input.descriptionEn !== undefined && {
+        descriptionEn: input.descriptionEn?.trim() ?? null,
+        description: input.descriptionEn?.trim() ?? null,
+      }),
+      ...(input.descriptionAr !== undefined && {
+        descriptionAr: input.descriptionAr?.trim() ?? null,
       }),
       ...(input.websiteUrl !== undefined && {
         websiteUrl: input.websiteUrl?.trim() ?? null,
@@ -402,6 +543,17 @@ export class CompaniesService {
           .map((service) => service.trim())
           .filter(Boolean)
           .slice(0, 20),
+      }),
+      ...(input.serviceIds !== undefined && { serviceIds: input.serviceIds }),
+      ...(input.activityIds !== undefined && { activityIds: input.activityIds }),
+      ...(input.yearsEstablished !== undefined && {
+        yearsEstablished: input.yearsEstablished,
+      }),
+      ...(input.publicProjectCount !== undefined && {
+        publicProjectCount: input.publicProjectCount,
+      }),
+      ...(input.privateProjectCount !== undefined && {
+        privateProjectCount: input.privateProjectCount,
       }),
       ...(input.logo !== undefined && { logo: input.logo }),
       ...(input.coverUrl !== undefined && { coverUrl: input.coverUrl }),
@@ -436,7 +588,7 @@ export class CompaniesService {
     const refreshed = await this.companiesRepository.findById(companyId);
     const ratingDistribution =
       await this.companiesRepository.getApprovedRatingDistribution(companyId);
-    return toCompanyDetail(refreshed!, { ratingDistribution });
+    return this.mapCompanyDetail(refreshed!, { ratingDistribution });
   }
 
   private async generateUniqueSlug(name: string, excludeId?: string): Promise<string> {

@@ -5,6 +5,7 @@ import { Link, usePathname } from '@/i18n/routing';
 import { cn } from '@/lib/utils';
 import {
   Building2,
+  FileText,
   FolderKanban,
   Globe,
   Home,
@@ -60,10 +61,23 @@ export const DASHBOARD_NAV_ITEMS: {
     roles: ['company'],
   },
   { href: '/dashboard/admin/categories', key: 'categories', icon: LayoutGrid, roles: ['admin'] },
+  {
+    href: '/dashboard/admin/catalog',
+    key: 'companyCatalog',
+    icon: Building2,
+    roles: ['admin'],
+  },
+  { href: '/dashboard/admin/blog', key: 'blog', icon: FileText, roles: ['admin'] },
   { href: '/dashboard/admin/payments', key: 'payments', icon: Wallet, roles: ['admin'] },
   { href: '#', key: 'payments', icon: Wallet, roles: ['company'] },
   { href: '/dashboard/company/profile', key: 'settings', icon: Settings, roles: ['company'] },
   { href: '/dashboard/reviewer/profile', key: 'settings', icon: Settings, roles: ['reviewer'] },
+  {
+    href: '/search',
+    key: 'visitCompanies',
+    icon: Building2,
+    roles: ['admin', 'company', 'reviewer'],
+  },
   {
     href: '/',
     key: 'viewSite',
@@ -72,7 +86,7 @@ export const DASHBOARD_NAV_ITEMS: {
   },
 ];
 
-const REVIEWER_NAV_KEYS = new Set(['home', 'reviews', 'settings', 'viewSite']);
+const REVIEWER_NAV_KEYS = new Set(['home', 'reviews', 'settings', 'visitCompanies', 'viewSite']);
 const HIDDEN_NAV_KEYS = new Set(['payments']);
 
 export function getDashboardNavItems(role: 'admin' | 'company' | 'reviewer') {
@@ -100,13 +114,13 @@ export function DashboardNav({ role, onNavigate, showClose, onClose }: Dashboard
 
   return (
     <>
-      <div className="flex shrink-0 items-center justify-between border-b border-slate-100 px-6 py-5">
+      <div className="flex shrink-0 items-center justify-between border-b border-subtle px-6 py-5">
         <Logo />
         {showClose ? (
           <button
             type="button"
             onClick={onClose}
-            className="flex h-10 w-10 items-center justify-center rounded-xl text-ink-muted hover:bg-slate-100 lg:hidden"
+            className="flex h-10 w-10 items-center justify-center rounded-xl text-ink-muted hover:bg-slate-100 dark:hover:bg-slate-800 lg:hidden"
             aria-label={tNav('closeMenu')}
           >
             <X className="h-5 w-5" />
@@ -126,7 +140,7 @@ export function DashboardNav({ role, onNavigate, showClose, onClose }: Dashboard
                 'flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition-colors',
                 active
                   ? 'bg-brand-500 text-white'
-                  : 'text-ink-muted hover:bg-brand-50 hover:text-brand-500',
+                  : 'text-ink-muted hover:bg-brand-50 hover:text-brand-500 dark:hover:bg-brand-950/50 dark:hover:text-brand-300',
               )}
             >
               <Icon className="h-4 w-4 shrink-0" />
@@ -147,11 +161,11 @@ export function DashboardLogoutButton({ onLogout }: DashboardLogoutButtonProps) 
   const t = useTranslations('dashboardShell');
 
   return (
-    <div className="shrink-0 border-t border-slate-100 px-4 py-4">
+    <div className="shrink-0 border-t border-subtle px-4 py-4">
       <button
         type="button"
         onClick={onLogout}
-        className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-ink-muted transition-colors hover:bg-red-50 hover:text-red-600"
+        className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-ink-muted transition-colors hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-950/40 dark:hover:text-red-400"
       >
         <LogOut className="h-4 w-4 shrink-0" />
         {t('logout')}

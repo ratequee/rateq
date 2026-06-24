@@ -7,7 +7,7 @@ import { fetchCategoryBySlug } from '@/lib/categories-data';
 import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
 import type { JSX } from 'react';
-import { MobileAppsCta } from '@/components/home/mobile-apps-cta';
+// import { MobileAppsCta } from '@/components/home/mobile-apps-cta';
 
 export const dynamic = 'force-dynamic';
 
@@ -74,7 +74,7 @@ export default async function CategoryDetailPage({
       />
       <CategoryCompaniesSection companies={companies} total={total} />
       <RelatedCategoriesSection category={category} />
-      <MobileAppsCta />
+      {/* <MobileAppsCta /> */}
     </>
   );
 }

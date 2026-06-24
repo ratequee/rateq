@@ -35,4 +35,22 @@ export class AdminCompaniesController {
   updateVerification(@Param('id') id: string, @Body() dto: UpdateCompanyVerificationDto) {
     return this.companiesService.setAdminVerificationStatus(id, dto);
   }
+
+  @Get('profile-changes')
+  @ApiOperation({ summary: 'List companies with pending profile change requests' })
+  listProfileChanges() {
+    return this.companiesService.listAdminProfileChanges();
+  }
+
+  @Patch(':id/profile-changes/approve')
+  @ApiOperation({ summary: 'Approve pending profile changes for an approved company' })
+  approveProfileChanges(@Param('id') id: string) {
+    return this.companiesService.approveProfileChanges(id);
+  }
+
+  @Patch(':id/profile-changes/reject')
+  @ApiOperation({ summary: 'Reject pending profile changes for an approved company' })
+  rejectProfileChanges(@Param('id') id: string) {
+    return this.companiesService.rejectProfileChanges(id);
+  }
 }

@@ -1,7 +1,9 @@
 import type {
   CompleteReviewerProfileInput,
   CreateCompanyInput,
+  InvitationPublic,
   OnboardingStatus,
+  SendInvitationInput,
   UpdateCompanyInput,
 } from '@rateq/types';
 import type { CompanyDetail } from '@rateq/types';
@@ -37,6 +39,18 @@ export const onboardingApi = {
   updateCompany: async (data: UpdateCompanyInput) =>
     apiClient<CompanyDetail>('/companies/me', {
       method: 'PATCH',
+      body: JSON.stringify(data),
+      token: await token(),
+    }),
+
+  listReviewerInvitations: async () =>
+    apiClient<InvitationPublic[]>('/companies/me/invitations/reviewers', {
+      token: await token(),
+    }),
+
+  inviteReviewer: async (data: SendInvitationInput) =>
+    apiClient<InvitationPublic>('/companies/me/invitations/reviewers', {
+      method: 'POST',
       body: JSON.stringify(data),
       token: await token(),
     }),

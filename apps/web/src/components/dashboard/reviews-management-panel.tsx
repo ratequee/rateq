@@ -33,10 +33,10 @@ const STATUS_OPTIONS: Array<ReviewStatus | 'all'> = [
 ];
 
 const statusStyles: Record<ReviewStatus, string> = {
-  PENDING: 'bg-amber-50 text-amber-700',
-  RESOLUTION_PENDING: 'bg-sky-50 text-sky-700',
-  APPROVED: 'bg-emerald-50 text-emerald-700',
-  REJECTED: 'bg-red-50 text-red-700',
+  PENDING: 'bg-amber-50 text-amber-700 dark:bg-amber-950/50 dark:text-amber-300',
+  RESOLUTION_PENDING: 'bg-sky-50 text-sky-700 dark:bg-sky-950/50 dark:text-sky-300',
+  APPROVED: 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-300',
+  REJECTED: 'bg-red-50 text-red-700 dark:bg-red-950/50 dark:text-red-400',
 };
 
 function buildParams(input: {
@@ -53,6 +53,11 @@ function buildParams(input: {
   if (input.categoryId) params.set('categoryId', input.categoryId);
   if (input.search.trim()) params.set('search', input.search.trim());
   return params;
+}
+
+function isResolutionDeadlinePassed(review: ReviewPublic): boolean {
+  if (!review.resolutionDeadlineAt) return false;
+  return Date.now() >= new Date(review.resolutionDeadlineAt).getTime();
 }
 
 export function ReviewsManagementPanel({ mode, companyId }: ReviewsManagementPanelProps) {
@@ -192,12 +197,25 @@ export function ReviewsManagementPanel({ mode, companyId }: ReviewsManagementPan
     await runAction(() => reviewsApi.withdrawResolution(token, reviewId), t('withdrawSuccess'));
   };
 
+  const handleSetResolutionWindow = async (reviewId: string, days: 7 | 10) => {
+    const token = await ensureValidAccessToken();
+    if (!token) return;
+    await runAction(
+      () => reviewsApi.setResolutionWindow(token, reviewId, days),
+      t('resolutionWindowSet', { days }),
+    );
+  };
+
+  const resolutionDeadlinePassed = selectedReview
+    ? isResolutionDeadlinePassed(selectedReview)
+    : false;
+
   const totalPages = meta?.totalPages ?? 1;
 
   return (
     <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)]">
       <div className="space-y-4">
-        <div className="rounded-2xl border border-slate-100 bg-white p-4 shadow-sm">
+        <div className="surface-card p-4">
           <div className="grid gap-3 sm:grid-cols-2">
             <Input
               value={searchInput}
@@ -211,7 +229,7 @@ export function ReviewsManagementPanel({ mode, companyId }: ReviewsManagementPan
                 setPage(1);
                 setStatus(e.target.value as ReviewStatus | 'all');
               }}
-              className="h-10 rounded-md border border-slate-200 bg-white px-3 text-sm"
+              className="select-field sm:col-span-2"
             >
               {STATUS_OPTIONS.map((option) => (
                 <option key={option} value={option}>
@@ -226,7 +244,7 @@ export function ReviewsManagementPanel({ mode, companyId }: ReviewsManagementPan
                   setPage(1);
                   setCategoryId(e.target.value);
                 }}
-                className="h-10 rounded-md border border-slate-200 bg-white px-3 text-sm"
+                className="select-field sm:col-span-2"
               >
                 <option value="">{t('allCategories')}</option>
                 {categories.map((category) => (
@@ -250,38 +268,38 @@ export function ReviewsManagementPanel({ mode, companyId }: ReviewsManagementPan
           </div>
         </div>
 
-        <div className="overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-sm">
-          <div className="border-b border-slate-100 px-5 py-4">
-            <h2 className="text-lg font-bold text-ink">{t('reviewsTitle')}</h2>
+        <div className="surface-card overflow-hidden">
+          <div className="border-b border-subtle px-5 py-4">
+            <h2 className="text-lg font-bold text-primary">{t('reviewsTitle')}</h2>
             {meta ? (
-              <p className="mt-1 text-sm text-ink-muted">
+              <p className="mt-1 text-sm text-secondary">
                 {t('resultsCount', { count: meta.total })}
               </p>
             ) : null}
           </div>
 
           {loading ? (
-            <div className="flex items-center justify-center px-5 py-16 text-ink-muted">
+            <div className="flex items-center justify-center px-5 py-16 text-secondary">
               <Loader2 className="h-5 w-5 animate-spin" />
             </div>
           ) : reviews.length === 0 ? (
-            <p className="px-5 py-16 text-center text-sm text-ink-muted">{t('empty')}</p>
+            <p className="px-5 py-16 text-center text-sm text-secondary">{t('empty')}</p>
           ) : (
-            <div className="divide-y divide-slate-100">
+            <div className="divide-y divide-slate-100 dark:divide-slate-800">
               {reviews.map((review) => (
                 <button
                   key={review.id}
                   type="button"
                   onClick={() => setSelectedId(review.id)}
                   className={cn(
-                    'w-full px-5 py-4 text-start transition-colors hover:bg-slate-50',
-                    selectedId === review.id && 'bg-brand-50/60',
+                    'w-full px-5 py-4 text-start transition-colors hover:bg-slate-50 dark:hover:bg-slate-800/80',
+                    selectedId === review.id && 'bg-brand-50/60 dark:bg-brand-950/30',
                   )}
                 >
                   <div className="flex items-start justify-between gap-3">
                     <div>
-                      <p className="font-semibold text-ink">{review.title}</p>
-                      <p className="mt-1 text-sm text-ink-muted">
+                      <p className="font-semibold text-primary">{review.title}</p>
+                      <p className="mt-1 text-sm text-secondary">
                         {mode === 'reviewer'
                           ? review.company?.name
                           : (review.author?.displayName ?? t('unknownReviewer'))}
@@ -299,7 +317,7 @@ export function ReviewsManagementPanel({ mode, companyId }: ReviewsManagementPan
                   </div>
                   <div className="mt-3 flex items-center gap-3">
                     <StarRating value={review.rating} size="sm" />
-                    <span className="text-xs text-ink-muted">
+                    <span className="text-xs text-secondary">
                       {new Date(review.createdAt).toLocaleDateString(locale, {
                         month: 'short',
                         day: 'numeric',
@@ -313,7 +331,7 @@ export function ReviewsManagementPanel({ mode, companyId }: ReviewsManagementPan
           )}
 
           {totalPages > 1 ? (
-            <div className="flex items-center justify-between border-t border-slate-100 px-5 py-4">
+            <div className="flex items-center justify-between border-t border-subtle px-5 py-4">
               <Button
                 type="button"
                 variant="outline"
@@ -322,7 +340,7 @@ export function ReviewsManagementPanel({ mode, companyId }: ReviewsManagementPan
               >
                 {t('previous')}
               </Button>
-              <span className="text-sm text-ink-muted">
+              <span className="text-sm text-secondary">
                 {t('pageOf', { page, total: totalPages })}
               </span>
               <Button
@@ -338,16 +356,16 @@ export function ReviewsManagementPanel({ mode, companyId }: ReviewsManagementPan
         </div>
       </div>
 
-      <div className="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm">
+      <div className="surface-card p-5">
         {!selectedReview ? (
-          <p className="py-16 text-center text-sm text-ink-muted">{t('selectReview')}</p>
+          <p className="py-16 text-center text-sm text-secondary">{t('selectReview')}</p>
         ) : (
           <div className="space-y-5">
             <div>
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div>
-                  <h3 className="text-xl font-bold text-ink">{selectedReview.title}</h3>
-                  <p className="mt-1 text-sm text-ink-muted">
+                  <h3 className="text-xl font-bold text-primary">{selectedReview.title}</h3>
+                  <p className="mt-1 text-sm text-secondary">
                     {selectedReview.company?.name ?? t('unknownCompany')}
                   </p>
                 </div>
@@ -362,7 +380,7 @@ export function ReviewsManagementPanel({ mode, companyId }: ReviewsManagementPan
               </div>
               <div className="mt-4 flex items-center gap-3">
                 <StarRating value={selectedReview.rating} />
-                <span className="text-sm text-ink-muted">
+                <span className="text-sm text-secondary">
                   {new Date(selectedReview.createdAt).toLocaleString(locale, {
                     dateStyle: 'medium',
                     timeStyle: 'short',
@@ -372,16 +390,16 @@ export function ReviewsManagementPanel({ mode, companyId }: ReviewsManagementPan
             </div>
 
             <div>
-              <p className="mb-2 text-sm font-semibold text-ink">{t('reviewContent')}</p>
-              <p className="whitespace-pre-wrap text-sm leading-7 text-ink-muted">
+              <p className="mb-2 text-sm font-semibold text-primary">{t('reviewContent')}</p>
+              <p className="whitespace-pre-wrap text-sm leading-7 text-secondary">
                 {selectedReview.content}
               </p>
             </div>
 
             {selectedReview.reply ? (
-              <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
+              <div className="rounded-xl border border-default surface-muted p-4">
                 <div className="mb-2 flex items-center justify-between gap-2">
-                  <div className="flex items-center gap-2 text-sm font-semibold text-ink">
+                  <div className="flex items-center gap-2 text-sm font-semibold text-primary">
                     <MessageSquareText className="h-4 w-4" />
                     {t('companyReply')}
                   </div>
@@ -397,16 +415,16 @@ export function ReviewsManagementPanel({ mode, companyId }: ReviewsManagementPan
                     </Button>
                   ) : null}
                 </div>
-                <p className="whitespace-pre-wrap text-sm leading-7 text-ink-muted">
+                <p className="whitespace-pre-wrap text-sm leading-7 text-secondary">
                   {selectedReview.reply.content}
                 </p>
               </div>
             ) : null}
 
             {mode === 'admin' ? (
-              <div className="space-y-3 border-t border-slate-100 pt-4">
+              <div className="space-y-3 border-t border-subtle pt-4">
                 {selectedReview.status === 'RESOLUTION_PENDING' ? (
-                  <p className="text-sm text-ink-muted">{t('adminResolutionHint')}</p>
+                  <p className="text-sm text-secondary">{t('adminResolutionHint')}</p>
                 ) : null}
                 <div className="flex flex-wrap gap-2">
                   <Button
@@ -449,7 +467,7 @@ export function ReviewsManagementPanel({ mode, companyId }: ReviewsManagementPan
             {mode === 'reviewer' &&
             selectedReview.status === 'REJECTED' &&
             selectedReview.company?.slug ? (
-              <div className="border-t border-slate-100 pt-4">
+              <div className="border-t border-subtle pt-4">
                 <Link href={`/companies/${selectedReview.company.slug}#write-review`}>
                   <Button type="button" variant="outline-brand">
                     {t('reviewAgain')}
@@ -458,13 +476,63 @@ export function ReviewsManagementPanel({ mode, companyId }: ReviewsManagementPan
               </div>
             ) : null}
 
+            {mode === 'company' && selectedReview.status === 'RESOLUTION_PENDING' ? (
+              <div className="space-y-3 border-t border-subtle pt-4">
+                {!selectedReview.resolutionDeadlineAt ? (
+                  <>
+                    <p className="text-sm text-secondary">{t('companyResolutionHint')}</p>
+                    <div className="flex flex-wrap gap-2">
+                      <Button
+                        type="button"
+                        disabled={acting}
+                        onClick={() => void handleSetResolutionWindow(selectedReview.id, 7)}
+                      >
+                        {t('setWindow7')}
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="outline-brand"
+                        disabled={acting}
+                        onClick={() => void handleSetResolutionWindow(selectedReview.id, 10)}
+                      >
+                        {t('setWindow10')}
+                      </Button>
+                    </div>
+                  </>
+                ) : (
+                  <p className="text-sm text-secondary">
+                    {t('resolutionWindowActive', {
+                      date: new Date(selectedReview.resolutionDeadlineAt).toLocaleString(locale, {
+                        dateStyle: 'medium',
+                        timeStyle: 'short',
+                      }),
+                    })}
+                  </p>
+                )}
+              </div>
+            ) : null}
+
             {mode === 'reviewer' && selectedReview.status === 'RESOLUTION_PENDING' ? (
-              <div className="space-y-3 border-t border-slate-100 pt-4">
-                <p className="text-sm text-ink-muted">{t('resolutionHint')}</p>
+              <div className="space-y-3 border-t border-subtle pt-4">
+                <p className="text-sm text-secondary">
+                  {!selectedReview.resolutionDeadlineAt
+                    ? t('resolutionWaitingCompany')
+                    : resolutionDeadlinePassed
+                      ? t('resolutionHint')
+                      : t('resolutionWaitingDeadline', {
+                          date: new Date(selectedReview.resolutionDeadlineAt).toLocaleString(
+                            locale,
+                            {
+                              dateStyle: 'medium',
+                              timeStyle: 'short',
+                            },
+                          ),
+                        })}
+                </p>
                 <div className="flex flex-wrap gap-2">
                   <Button
                     type="button"
-                    disabled={acting}
+                    disabled={acting || !resolutionDeadlinePassed}
                     onClick={() => void handleProceed(selectedReview.id)}
                   >
                     {t('proceed')}
@@ -472,7 +540,7 @@ export function ReviewsManagementPanel({ mode, companyId }: ReviewsManagementPan
                   <Button
                     type="button"
                     variant="outline"
-                    disabled={acting}
+                    disabled={acting || !resolutionDeadlinePassed}
                     onClick={() => void handleWithdraw(selectedReview.id)}
                   >
                     {t('withdraw')}

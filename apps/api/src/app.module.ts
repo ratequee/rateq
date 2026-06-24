@@ -16,6 +16,7 @@ import { CategoriesModule } from './modules/categories/categories.module';
 import { AdminModule } from './modules/admin/admin.module';
 import { ContactModule } from './modules/contact/contact.module';
 import { PlatformModule } from './modules/platform/platform.module';
+import { BlogModule } from './modules/blog/blog.module';
 
 /**
  * Root application module — modular monolith.
@@ -49,6 +50,7 @@ import { PlatformModule } from './modules/platform/platform.module';
     AdminModule,
     ContactModule,
     PlatformModule,
+    BlogModule,
   ],
   providers: [
     {

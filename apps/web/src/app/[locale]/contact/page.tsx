@@ -4,7 +4,7 @@ import { ContactInfoSection } from '@/components/contact/contact-info-section';
 import { getTranslations } from 'next-intl/server';
 import type { Metadata } from 'next';
 import type { JSX } from 'react';
-import { MobileAppsCta } from '@/components/home/mobile-apps-cta';
+// import { MobileAppsCta } from '@/components/home/mobile-apps-cta';
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations('contact');
@@ -25,7 +25,7 @@ export default async function ContactPage(): Promise<JSX.Element> {
         </div>
       </section>
 
-      <MobileAppsCta />
+      {/* <MobileAppsCta /> */}
     </>
   );
 }

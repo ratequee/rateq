@@ -20,14 +20,18 @@ export function FeaturedCompanyCard({ company }: FeaturedCompanyCardProps) {
   );
 
   return (
-    <article className="group flex h-full flex-col overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-sm transition-shadow hover:shadow-card">
+    <Link
+      href={`/companies/${company.slug}`}
+      className="group flex h-full flex-col overflow-hidden rounded-2xl border border-subtle bg-white shadow-sm transition-shadow hover:shadow-card dark:bg-slate-900"
+      aria-label={t('viewCompany', { name: company.name })}
+    >
       <div className="relative h-44 shrink-0 overflow-hidden sm:h-48">
         {company.coverUrl ? (
           <>
             <img
               src={company.coverUrl}
               alt=""
-              className="absolute inset-0 h-full w-full object-cover"
+              className="absolute inset-0 h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
             />
             <div className="absolute inset-0 bg-black/25" />
           </>
@@ -66,7 +70,9 @@ export function FeaturedCompanyCard({ company }: FeaturedCompanyCardProps) {
             </div>
           )}
           <div className="flex flex-col">
-            <h3 className="text-lg font-semibold text-ink">{company.name}</h3>
+            <h3 className="text-lg font-semibold text-ink transition-colors group-hover:text-brand-500">
+              {company.name}
+            </h3>
             <p className="mt-0.5 text-sm text-ink-muted">
               {company.city}, {company.country}
             </p>
@@ -83,16 +89,12 @@ export function FeaturedCompanyCard({ company }: FeaturedCompanyCardProps) {
             <span className="text-xs text-ink-muted sm:text-sm">
               ({company.reviewCount.toLocaleString()} {t('reviewsLabel')})
             </span>
-            <Link
-              href={`/companies/${company.slug}`}
-              className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-gold-300 text-white transition-colors hover:bg-gold-600"
-              aria-label={t('viewCompany', { name: company.name })}
-            >
+            <span className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-gold-300 text-white transition-colors group-hover:bg-gold-600">
               <ArrowRight className="h-5 w-5 rtl:rotate-180" />
-            </Link>
+            </span>
           </div>
         </div>
       </div>
-    </article>
+    </Link>
   );
 }

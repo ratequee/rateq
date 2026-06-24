@@ -9,7 +9,21 @@ import { CATEGORY_IDS, type CategoryId } from '@/lib/categories';
 
 interface MockCompany extends Omit<
   CompanyPublic,
-  'email' | 'phone' | 'coverUrl' | 'websiteUrl' | 'services' | 'projects' | 'ratingDistribution'
+  | 'email'
+  | 'phone'
+  | 'coverUrl'
+  | 'websiteUrl'
+  | 'services'
+  | 'projects'
+  | 'ratingDistribution'
+  | 'nameAr'
+  | 'descriptionEn'
+  | 'descriptionAr'
+  | 'serviceItems'
+  | 'activityItems'
+  | 'yearsEstablished'
+  | 'publicProjectCount'
+  | 'privateProjectCount'
 > {
   email?: string | null;
   phone?: string | null;
@@ -18,6 +32,14 @@ interface MockCompany extends Omit<
   services?: string[];
   projects?: CompanyPublic['projects'];
   ratingDistribution?: CompanyPublic['ratingDistribution'];
+  nameAr?: string | null;
+  descriptionEn?: string | null;
+  descriptionAr?: string | null;
+  serviceItems?: CompanyPublic['serviceItems'];
+  activityItems?: CompanyPublic['activityItems'];
+  yearsEstablished?: number | null;
+  publicProjectCount?: number | null;
+  privateProjectCount?: number | null;
   categoryId: CategoryId;
   keywords: string[];
 }
@@ -832,8 +854,16 @@ function toPublicCompany(company: MockCompany): CompanyPublic {
     phone: null,
     coverUrl: null,
     ...publicCompany,
+    nameAr: publicCompany.nameAr ?? null,
+    descriptionEn: publicCompany.descriptionEn ?? publicCompany.description ?? null,
+    descriptionAr: publicCompany.descriptionAr ?? null,
     websiteUrl: publicCompany.websiteUrl ?? null,
     services: publicCompany.services ?? [],
+    serviceItems: publicCompany.serviceItems ?? [],
+    activityItems: publicCompany.activityItems ?? [],
+    yearsEstablished: publicCompany.yearsEstablished ?? null,
+    publicProjectCount: publicCompany.publicProjectCount ?? null,
+    privateProjectCount: publicCompany.privateProjectCount ?? null,
     projects: publicCompany.projects ?? [],
     ratingDistribution: publicCompany.ratingDistribution ?? { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 },
   };

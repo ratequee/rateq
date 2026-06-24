@@ -1,12 +1,13 @@
 'use client';
 
+import { CatalogMultiSelect } from '@/components/profile/catalog-multi-select';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useProfile } from '@/components/providers/profile-provider';
+import { fetchCompanyCatalogClient } from '@/lib/company-catalog-api';
 import { onboardingApi } from '@/lib/onboarding-api';
 import { ApiError } from '@/lib/api';
-import { ensureValidAccessToken } from '@/lib/auth-session';
-import { Plus, Trash2 } from 'lucide-react';
+import type { CompanyCatalogItemPublic } from '@rateq/types';
 import { useTranslations } from 'next-intl';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
@@ -16,32 +17,49 @@ export function CompanyPublicProfileForm() {
   const { onboarding, refreshOnboarding } = useProfile();
   const company = onboarding?.company;
 
-  const [description, setDescription] = useState('');
+  const [nameEn, setNameEn] = useState('');
+  const [nameAr, setNameAr] = useState('');
+  const [descriptionEn, setDescriptionEn] = useState('');
+  const [descriptionAr, setDescriptionAr] = useState('');
   const [websiteUrl, setWebsiteUrl] = useState('');
-  const [services, setServices] = useState<string[]>(['']);
+  const [serviceIds, setServiceIds] = useState<string[]>([]);
+  const [activityIds, setActivityIds] = useState<string[]>([]);
+  const [yearsEstablished, setYearsEstablished] = useState('');
+  const [publicProjectCount, setPublicProjectCount] = useState('');
+  const [privateProjectCount, setPrivateProjectCount] = useState('');
+  const [services, setServices] = useState<CompanyCatalogItemPublic[]>([]);
+  const [activities, setActivities] = useState<CompanyCatalogItemPublic[]>([]);
   const [submitting, setSubmitting] = useState(false);
+
+  const pendingApproval = company?.profileChangeStatus === 'pending';
+
+  useEffect(() => {
+    void Promise.all([
+      fetchCompanyCatalogClient('service'),
+      fetchCompanyCatalogClient('activity'),
+    ]).then(([serviceItems, activityItems]) => {
+      setServices(serviceItems);
+      setActivities(activityItems);
+    });
+  }, []);
 
   useEffect(() => {
     if (!company) return;
-    setDescription(company.description ?? '');
+    setNameEn(company.name ?? '');
+    setNameAr(company.nameAr ?? '');
+    setDescriptionEn(company.descriptionEn ?? company.description ?? '');
+    setDescriptionAr(company.descriptionAr ?? '');
     setWebsiteUrl(company.websiteUrl ?? '');
-    setServices(company.services?.length ? company.services : ['']);
+    setServiceIds(company.serviceItems?.map((item) => item.id) ?? []);
+    setActivityIds(company.activityItems?.map((item) => item.id) ?? []);
+    setYearsEstablished(company.yearsEstablished != null ? String(company.yearsEstablished) : '');
+    setPublicProjectCount(
+      company.publicProjectCount != null ? String(company.publicProjectCount) : '',
+    );
+    setPrivateProjectCount(
+      company.privateProjectCount != null ? String(company.privateProjectCount) : '',
+    );
   }, [company]);
-
-  const updateService = (index: number, value: string) => {
-    setServices((current) => current.map((item, i) => (i === index ? value : item)));
-  };
-
-  const addService = () => {
-    setServices((current) => (current.length >= 20 ? current : [...current, '']));
-  };
-
-  const removeService = (index: number) => {
-    setServices((current) => {
-      const next = current.filter((_, i) => i !== index);
-      return next.length ? next : [''];
-    });
-  };
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -49,19 +67,22 @@ export function CompanyPublicProfileForm() {
 
     setSubmitting(true);
     try {
-      const token = await ensureValidAccessToken();
-      if (!token) throw new Error(t('sessionExpired'));
-
-      const normalizedServices = services.map((service) => service.trim()).filter(Boolean);
-
       await onboardingApi.updateCompany({
-        description: description.trim() || undefined,
+        name: nameEn.trim() || undefined,
+        nameAr: nameAr.trim() || undefined,
+        descriptionEn: descriptionEn.trim() || undefined,
+        descriptionAr: descriptionAr.trim() || undefined,
         websiteUrl: websiteUrl.trim() || null,
-        services: normalizedServices,
+        serviceIds,
+        activityIds,
+        yearsEstablished: yearsEstablished ? Number(yearsEstablished) : undefined,
+        publicProjectCount: publicProjectCount ? Number(publicProjectCount) : undefined,
+        privateProjectCount: privateProjectCount ? Number(privateProjectCount) : undefined,
       });
 
       await refreshOnboarding();
-      toast.success(t('publicProfileUpdated'));
+      const needsApproval = company.verificationStatus === 'approved';
+      toast.success(needsApproval ? t('publicProfilePendingApproval') : t('publicProfileUpdated'));
     } catch (err) {
       const message = err instanceof ApiError ? err.message : t('saveError');
       toast.error(message);
@@ -75,21 +96,52 @@ export function CompanyPublicProfileForm() {
   return (
     <form
       onSubmit={handleSubmit}
-      className="space-y-5 rounded-2xl border border-slate-100 bg-white p-6 shadow-sm"
+      className="space-y-5 rounded-2xl border border-subtle surface-card p-6 shadow-sm"
     >
       <div>
-        <h2 className="text-lg font-semibold text-ink">{t('publicProfileTitle')}</h2>
-        <p className="mt-1 text-sm text-ink-muted">{t('publicProfileSubtitle')}</p>
+        <h2 className="text-lg font-semibold text-primary">{t('publicProfileTitle')}</h2>
+        <p className="mt-1 text-sm text-secondary">{t('publicProfileSubtitle')}</p>
+        {pendingApproval ? (
+          <p className="mt-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-800 dark:border-amber-900 dark:bg-amber-950/40 dark:text-amber-200">
+            {t('profileChangesPending')}
+          </p>
+        ) : null}
       </div>
 
-      <Field label={t('companyAbout')} hint={t('companyAboutHint')}>
+      <div className="grid gap-4 sm:grid-cols-2">
+        <Field label={t('companyNameEn')} hint={t('companyNameEnHint')}>
+          <Input value={nameEn} onChange={(e) => setNameEn(e.target.value)} className="h-11" />
+        </Field>
+        <Field label={t('companyNameAr')} hint={t('companyNameArHint')}>
+          <Input
+            value={nameAr}
+            onChange={(e) => setNameAr(e.target.value)}
+            className="h-11"
+            dir="rtl"
+          />
+        </Field>
+      </div>
+
+      <Field label={t('companyAboutEn')} hint={t('companyAboutHint')}>
         <textarea
-          value={description}
-          onChange={(e) => setDescription(e.target.value)}
-          rows={5}
+          value={descriptionEn}
+          onChange={(e) => setDescriptionEn(e.target.value)}
+          rows={4}
           maxLength={5000}
-          className="w-full rounded-md border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500"
+          className="w-full rounded-md border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500 dark:border-slate-700 dark:bg-slate-900"
           placeholder={t('companyAboutPlaceholder')}
+        />
+      </Field>
+
+      <Field label={t('companyAboutAr')} hint={t('companyAboutArHint')}>
+        <textarea
+          value={descriptionAr}
+          onChange={(e) => setDescriptionAr(e.target.value)}
+          rows={4}
+          maxLength={5000}
+          dir="rtl"
+          className="w-full rounded-md border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500 dark:border-slate-700 dark:bg-slate-900"
+          placeholder={t('companyAboutArPlaceholder')}
         />
       </Field>
 
@@ -102,42 +154,54 @@ export function CompanyPublicProfileForm() {
         />
       </Field>
 
-      <div>
-        <div className="mb-2 flex items-center justify-between gap-3">
-          <div>
-            <p className="text-sm font-medium text-ink">{t('companyServices')}</p>
-            <p className="text-xs text-ink-muted">{t('companyServicesHint')}</p>
-          </div>
-          <Button type="button" variant="outline" size="sm" onClick={addService}>
-            <Plus className="h-4 w-4" />
-            {t('addService')}
-          </Button>
-        </div>
-        <div className="space-y-2">
-          {services.map((service, index) => (
-            <div key={index} className="flex gap-2">
-              <Input
-                value={service}
-                onChange={(e) => updateService(index, e.target.value)}
-                placeholder={t('servicePlaceholder')}
-                className="h-10"
-                maxLength={100}
-              />
-              <Button
-                type="button"
-                variant="ghost"
-                className="h-10 w-10 shrink-0 px-0"
-                onClick={() => removeService(index)}
-                aria-label={t('removeService')}
-              >
-                <Trash2 className="h-4 w-4" />
-              </Button>
-            </div>
-          ))}
-        </div>
+      <CatalogMultiSelect
+        label={t('companyServices')}
+        hint={t('companyServicesCatalogHint')}
+        items={services}
+        selectedIds={serviceIds}
+        onChange={setServiceIds}
+      />
+
+      <CatalogMultiSelect
+        label={t('companyActivities')}
+        hint={t('companyActivitiesHint')}
+        items={activities}
+        selectedIds={activityIds}
+        onChange={setActivityIds}
+      />
+
+      <div className="grid gap-4 sm:grid-cols-3">
+        <Field label={t('yearsEstablished')} hint={t('yearsEstablishedHint')}>
+          <Input
+            type="number"
+            min={0}
+            max={200}
+            value={yearsEstablished}
+            onChange={(e) => setYearsEstablished(e.target.value)}
+            className="h-11"
+          />
+        </Field>
+        <Field label={t('publicProjectCount')} hint={t('publicProjectCountHint')}>
+          <Input
+            type="number"
+            min={0}
+            value={publicProjectCount}
+            onChange={(e) => setPublicProjectCount(e.target.value)}
+            className="h-11"
+          />
+        </Field>
+        <Field label={t('privateProjectCount')} hint={t('privateProjectCountHint')}>
+          <Input
+            type="number"
+            min={0}
+            value={privateProjectCount}
+            onChange={(e) => setPrivateProjectCount(e.target.value)}
+            className="h-11"
+          />
+        </Field>
       </div>
 
-      <Button type="submit" disabled={submitting} className="w-full">
+      <Button type="submit" disabled={submitting} className="w-full sm:w-auto">
         {submitting ? t('saving') : t('savePublicProfile')}
       </Button>
     </form>
@@ -148,17 +212,15 @@ function Field({
   label,
   hint,
   children,
-  className,
 }: {
   label: string;
   hint?: string;
   children: React.ReactNode;
-  className?: string;
 }) {
   return (
-    <div className={className}>
-      <label className="mb-1.5 block text-sm font-medium text-ink">{label}</label>
-      {hint ? <p className="mb-2 text-xs text-ink-muted">{hint}</p> : null}
+    <div>
+      <p className="mb-1.5 text-sm font-medium text-primary">{label}</p>
+      {hint ? <p className="mb-2 text-xs text-secondary">{hint}</p> : null}
       {children}
     </div>
   );

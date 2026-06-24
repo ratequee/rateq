@@ -1,5 +1,6 @@
 import { AuthProvider } from '@/components/providers/auth-provider';
 import { ProfileProvider } from '@/components/providers/profile-provider';
+import { ThemeProvider } from '@/components/providers/theme-provider';
 import { AppShell } from '@/components/layout/app-shell';
 import { SiteFooter } from '@/components/layout/site-footer';
 import { routing } from '@/i18n/routing';
@@ -53,12 +54,14 @@ export default async function LocaleLayout({
       className={`min-h-screen ${isRtl ? `${notoArabic.className} font-arabic` : `${nunito.className} font-sans`} ${notoArabic.variable}`}
     >
       <NextIntlClientProvider messages={messages}>
-        <AuthProvider>
-          <ProfileProvider>
-            <AppShell footer={<SiteFooter />}>{children}</AppShell>
-            <Toaster richColors position={isRtl ? 'top-left' : 'top-right'} />
-          </ProfileProvider>
-        </AuthProvider>
+        <ThemeProvider>
+          <AuthProvider>
+            <ProfileProvider>
+              <AppShell footer={<SiteFooter />}>{children}</AppShell>
+              <Toaster richColors position={isRtl ? 'top-left' : 'top-right'} />
+            </ProfileProvider>
+          </AuthProvider>
+        </ThemeProvider>
       </NextIntlClientProvider>
     </div>
   );

@@ -2,6 +2,7 @@
 
 import { DashboardShell } from '@/components/dashboard/dashboard-shell';
 import { CompanyPublicProfileForm } from '@/components/dashboard/company-public-profile-form';
+import { CompanyInviteReviewersPanel } from '@/components/dashboard/company-invite-reviewers-panel';
 import { CompanyAddressMapField } from '@/components/profile/company-address-map-field';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -238,7 +239,10 @@ export default function CompanyProfileSettingsPage() {
           </Button>
         </form>
 
-        <CompanyPublicProfileForm />
+        <div className="space-y-6">
+          <CompanyPublicProfileForm />
+          <CompanyInviteReviewersPanel />
+        </div>
       </div>
     </DashboardShell>
   );

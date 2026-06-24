@@ -4,7 +4,7 @@ import { fetchCategories } from '@/lib/categories-data';
 import { getTranslations } from 'next-intl/server';
 import type { Metadata } from 'next';
 import type { JSX } from 'react';
-import { MobileAppsCta } from '@/components/home/mobile-apps-cta';
+// import { MobileAppsCta } from '@/components/home/mobile-apps-cta';
 
 export const dynamic = 'force-dynamic';
 
@@ -31,7 +31,7 @@ export default async function CategoriesPage({
         initialQuery={params.q ?? ''}
         activeCategorySlug={params.category}
       />
-      <MobileAppsCta />
+      {/* <MobileAppsCta /> */}
     </>
   );
 }

@@ -12,6 +12,7 @@ import {
 } from '@/lib/profile-company-assets';
 import { onboardingApi } from '@/lib/onboarding-api';
 import { fetchCategoriesClient } from '@/lib/categories-api';
+import { fetchCompanyCatalogClient } from '@/lib/company-catalog-api';
 import { ApiError } from '@/lib/api';
 import { getFirebaseStorageErrorMessage } from '@/lib/firebase/errors';
 import { Button } from '@/components/ui/button';
@@ -39,9 +40,10 @@ import { getSuggestedDisplayName } from '@/lib/user-display-name';
 import { PhoneVerificationField } from '@/components/profile/phone-verification-field';
 import { extractQatarPhoneDigits, formatQatarPhoneForSubmit } from '@/lib/qatar-phone';
 import { CompanyAddressMapField } from '@/components/profile/company-address-map-field';
+import { CatalogMultiSelect } from '@/components/profile/catalog-multi-select';
 import type { CompanyMapLocation } from '@/lib/company-location';
 import { Building2, ExternalLink, FileText, Upload, UserRound, X } from 'lucide-react';
-import type { CategoryPublic } from '@rateq/types';
+import type { CategoryPublic, CompanyCatalogItemPublic } from '@rateq/types';
 import { useTranslations } from 'next-intl';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { toast } from 'sonner';
@@ -79,6 +81,16 @@ export default function CompleteProfilePage() {
   const [avatar, setAvatar] = useState<File | null>(null);
 
   const [companyName, setCompanyName] = useState('');
+  const [companyNameAr, setCompanyNameAr] = useState('');
+  const [descriptionEn, setDescriptionEn] = useState('');
+  const [descriptionAr, setDescriptionAr] = useState('');
+  const [serviceIds, setServiceIds] = useState<string[]>([]);
+  const [activityIds, setActivityIds] = useState<string[]>([]);
+  const [yearsEstablished, setYearsEstablished] = useState('');
+  const [publicProjectCount, setPublicProjectCount] = useState('');
+  const [privateProjectCount, setPrivateProjectCount] = useState('');
+  const [catalogServices, setCatalogServices] = useState<CompanyCatalogItemPublic[]>([]);
+  const [catalogActivities, setCatalogActivities] = useState<CompanyCatalogItemPublic[]>([]);
   const [companyPhone, setCompanyPhone] = useState('');
   const [categoryId, setCategoryId] = useState('');
   const [categories, setCategories] = useState<CategoryPublic[]>([]);
@@ -116,6 +128,13 @@ export default function CompleteProfilePage() {
   useEffect(() => {
     if (accountType !== 'company') return;
     void fetchCategoriesClient().then(setCategories);
+    void Promise.all([
+      fetchCompanyCatalogClient('service'),
+      fetchCompanyCatalogClient('activity'),
+    ]).then(([services, activities]) => {
+      setCatalogServices(services);
+      setCatalogActivities(activities);
+    });
   }, [accountType]);
 
   useEffect(() => {
@@ -135,6 +154,26 @@ export default function CompleteProfilePage() {
 
     if (onboarding?.company) {
       setCompanyName(onboarding.company.name);
+      setCompanyNameAr(onboarding.company.nameAr ?? '');
+      setDescriptionEn(onboarding.company.descriptionEn ?? onboarding.company.description ?? '');
+      setDescriptionAr(onboarding.company.descriptionAr ?? '');
+      setServiceIds(onboarding.company.serviceItems?.map((item) => item.id) ?? []);
+      setActivityIds(onboarding.company.activityItems?.map((item) => item.id) ?? []);
+      setYearsEstablished(
+        onboarding.company.yearsEstablished != null
+          ? String(onboarding.company.yearsEstablished)
+          : '',
+      );
+      setPublicProjectCount(
+        onboarding.company.publicProjectCount != null
+          ? String(onboarding.company.publicProjectCount)
+          : '',
+      );
+      setPrivateProjectCount(
+        onboarding.company.privateProjectCount != null
+          ? String(onboarding.company.privateProjectCount)
+          : '',
+      );
       setCompanyPhone(extractQatarPhoneDigits(onboarding.company.phone ?? ''));
       setCategoryId(onboarding.company.categoryId ?? '');
       setCompanyAddress(onboarding.company.address ?? '');
@@ -413,6 +452,14 @@ export default function CompleteProfilePage() {
 
       const payload = {
         name: companyName.trim(),
+        nameAr: companyNameAr.trim() || undefined,
+        descriptionEn: descriptionEn.trim() || undefined,
+        descriptionAr: descriptionAr.trim() || undefined,
+        serviceIds,
+        activityIds,
+        yearsEstablished: yearsEstablished ? Number(yearsEstablished) : undefined,
+        publicProjectCount: publicProjectCount ? Number(publicProjectCount) : undefined,
+        privateProjectCount: privateProjectCount ? Number(privateProjectCount) : undefined,
         address: companyAddress.trim(),
         latitude: companyLocation.latitude,
         longitude: companyLocation.longitude,
@@ -606,6 +653,77 @@ export default function CompleteProfilePage() {
                       className="h-11"
                     />
                   </Field>
+                  <Field label={t('companyNameAr')} fieldKey="companyNameAr">
+                    <Input
+                      value={companyNameAr}
+                      onChange={(e) => setCompanyNameAr(e.target.value)}
+                      className="h-11"
+                      dir="rtl"
+                    />
+                  </Field>
+                  <Field label={t('companyAboutEn')} fieldKey="descriptionEn">
+                    <textarea
+                      value={descriptionEn}
+                      onChange={(e) => setDescriptionEn(e.target.value)}
+                      rows={3}
+                      maxLength={5000}
+                      className="w-full rounded-md border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500"
+                    />
+                  </Field>
+                  <Field label={t('companyAboutAr')} fieldKey="descriptionAr">
+                    <textarea
+                      value={descriptionAr}
+                      onChange={(e) => setDescriptionAr(e.target.value)}
+                      rows={3}
+                      maxLength={5000}
+                      dir="rtl"
+                      className="w-full rounded-md border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500"
+                    />
+                  </Field>
+                  <CatalogMultiSelect
+                    label={t('companyServices')}
+                    hint={t('companyServicesCatalogHint')}
+                    items={catalogServices}
+                    selectedIds={serviceIds}
+                    onChange={setServiceIds}
+                  />
+                  <CatalogMultiSelect
+                    label={t('companyActivities')}
+                    hint={t('companyActivitiesHint')}
+                    items={catalogActivities}
+                    selectedIds={activityIds}
+                    onChange={setActivityIds}
+                  />
+                  <div className="grid gap-4 sm:grid-cols-3">
+                    <Field label={t('yearsEstablished')} fieldKey="yearsEstablished">
+                      <Input
+                        type="number"
+                        min={0}
+                        max={200}
+                        value={yearsEstablished}
+                        onChange={(e) => setYearsEstablished(e.target.value)}
+                        className="h-11"
+                      />
+                    </Field>
+                    <Field label={t('publicProjectCount')} fieldKey="publicProjectCount">
+                      <Input
+                        type="number"
+                        min={0}
+                        value={publicProjectCount}
+                        onChange={(e) => setPublicProjectCount(e.target.value)}
+                        className="h-11"
+                      />
+                    </Field>
+                    <Field label={t('privateProjectCount')} fieldKey="privateProjectCount">
+                      <Input
+                        type="number"
+                        min={0}
+                        value={privateProjectCount}
+                        onChange={(e) => setPrivateProjectCount(e.target.value)}
+                        className="h-11"
+                      />
+                    </Field>
+                  </div>
                   <CompanyAddressMapField
                     address={companyAddress}
                     city={companyCity}

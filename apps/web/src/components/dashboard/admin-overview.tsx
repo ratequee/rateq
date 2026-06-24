@@ -1,5 +1,7 @@
 'use client';
 
+import { AdminInviteCompanyPanel } from '@/components/dashboard/admin-invite-company-panel';
+import { AdminProfileChangesPanel } from '@/components/dashboard/admin-profile-changes-panel';
 import { AdminTopCompaniesList } from '@/components/dashboard/admin-top-companies-list';
 import { AvatarImage } from '@/components/ui/avatar-image';
 import { DashboardReviewsTable } from '@/components/dashboard/dashboard-reviews-table';
@@ -159,6 +161,11 @@ export function AdminOverview({ title }: AdminOverviewProps) {
             <p>{ta('rejectedCount', { count: stats?.rejectedReviews ?? 0 })}</p>
           </div>
         </div>
+      </div>
+
+      <div className="grid gap-6 lg:grid-cols-2">
+        <AdminInviteCompanyPanel />
+        <AdminProfileChangesPanel />
       </div>
     </div>
   );

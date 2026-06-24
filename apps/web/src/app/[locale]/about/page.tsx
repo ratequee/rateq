@@ -1,7 +1,7 @@
 import { AboutHeroSection } from '@/components/about/about-hero-section';
 import { AboutStorySection } from '@/components/about/about-story-section';
-import { MobileAppsCta } from '@/components/home/mobile-apps-cta';
-import { PartnersSection } from '@/components/home/partners-section';
+// import { MobileAppsCta } from '@/components/home/mobile-apps-cta';
+// import { PartnersSection } from '@/components/home/partners-section';
 import { fetchPlatformStats } from '@/lib/platform-data';
 import { getTranslations } from 'next-intl/server';
 import type { Metadata } from 'next';
@@ -23,8 +23,8 @@ export default async function AboutPage(): Promise<JSX.Element> {
       <AboutHeroSection />
       <WhyChooseSection />
       <AboutStorySection stats={stats} />
-      <PartnersSection />
-      <MobileAppsCta />
+      {/* <PartnersSection /> */}
+      {/* <MobileAppsCta /> */}
     </>
   );
 }

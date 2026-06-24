@@ -53,7 +53,7 @@ export function CompanyReviewsHubLayout({
         />
         {topMentions.length > 0 && (
           <div className="mt-8">
-            <h3 className="text-lg font-bold text-ink">{t('topMentions')}</h3>
+            <h3 className="text-lg font-bold text-primary">{t('topMentions')}</h3>
             <div className="mt-4 flex flex-wrap gap-2">
               {topMentions.map((mention) => (
                 <button
@@ -63,8 +63,8 @@ export function CompanyReviewsHubLayout({
                   className={cn(
                     'rounded-full border px-4 py-2 text-sm font-medium transition-colors',
                     activeMention === mention
-                      ? 'border-brand-500 bg-brand-50 text-brand-600'
-                      : 'border-transparent bg-slate-100 text-ink-muted hover:bg-slate-200',
+                      ? 'border-brand-500 bg-brand-50 text-brand-600 dark:bg-brand-950/50 dark:text-brand-300'
+                      : 'border-transparent bg-slate-100 text-secondary hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700',
                   )}
                 >
                   {mention}

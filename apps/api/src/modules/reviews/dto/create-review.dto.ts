@@ -2,6 +2,7 @@ import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import {
   ArrayMaxSize,
+  ArrayMinSize,
   IsArray,
   IsInt,
   IsNotEmpty,
@@ -68,10 +69,10 @@ export class CreateReviewDto {
   @Type(() => ReviewServiceRatingDto)
   serviceRatings?: ReviewServiceRatingDto[];
 
-  @ApiPropertyOptional({ type: [String], description: 'Firebase URLs for proof attachments' })
-  @IsOptional()
+  @ApiProperty({ type: [String], description: 'Firebase URL for one required proof attachment' })
   @IsArray()
-  @ArrayMaxSize(10)
+  @ArrayMinSize(1)
+  @ArrayMaxSize(1)
   @IsUrl({}, { each: true })
-  proofUrls?: string[];
+  proofUrls!: string[];
 }
