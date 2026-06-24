@@ -114,7 +114,7 @@ export class AdminService {
         orderBy: { createdAt: 'desc' },
         include: {
           owner: { select: { id: true, email: true, isActive: true } },
-          category: { select: { id: true, name: true, slug: true } },
+          category: { select: { id: true, nameEn: true, nameAr: true, slug: true } },
           projects: { orderBy: { sortOrder: 'asc' } },
           _count: { select: { pageViews: true } },
         },

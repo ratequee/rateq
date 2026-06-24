@@ -10,7 +10,8 @@ export function toCategoryPublic(
 ): CategoryPublic {
   return {
     id: category.id,
-    name: category.name,
+    nameEn: category.nameEn,
+    nameAr: category.nameAr,
     slug: category.slug,
     companyCount: category._count?.companies,
     services: category.services?.map(toCategoryServicePublic),

@@ -30,7 +30,7 @@ export class CompaniesRepository {
 
   private readonly companyInclude = {
     owner: { select: { id: true, email: true, isActive: true } },
-    category: { select: { id: true, name: true, slug: true } },
+    category: { select: { id: true, nameEn: true, nameAr: true, slug: true } },
     projects: { orderBy: { sortOrder: 'asc' as const } },
   } satisfies Prisma.CompanyInclude;
 
@@ -87,7 +87,7 @@ export class CompaniesRepository {
       take: filters.limit,
       orderBy: this.buildOrderBy(filters.sort),
       include: {
-        category: { select: { id: true, name: true, slug: true } },
+        category: { select: { id: true, nameEn: true, nameAr: true, slug: true } },
       },
     });
   }

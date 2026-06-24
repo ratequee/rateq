@@ -61,12 +61,6 @@ export const DASHBOARD_NAV_ITEMS: {
     roles: ['company'],
   },
   { href: '/dashboard/admin/categories', key: 'categories', icon: LayoutGrid, roles: ['admin'] },
-  {
-    href: '/dashboard/admin/catalog',
-    key: 'companyCatalog',
-    icon: Building2,
-    roles: ['admin'],
-  },
   { href: '/dashboard/admin/blog', key: 'blog', icon: FileText, roles: ['admin'] },
   { href: '/dashboard/admin/payments', key: 'payments', icon: Wallet, roles: ['admin'] },
   { href: '#', key: 'payments', icon: Wallet, roles: ['company'] },

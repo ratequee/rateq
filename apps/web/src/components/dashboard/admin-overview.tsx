@@ -86,8 +86,8 @@ export function AdminOverview({ title }: AdminOverviewProps) {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-ink sm:text-3xl">{title}</h1>
-        <p className="mt-1 text-sm text-ink-muted">{t('overviewSubtitle')}</p>
+        <h1 className="text-2xl font-bold text-primary sm:text-3xl">{title}</h1>
+        <p className="mt-1 text-sm text-secondary">{t('overviewSubtitle')}</p>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
@@ -104,9 +104,9 @@ export function AdminOverview({ title }: AdminOverviewProps) {
       </div>
 
       <div className="grid gap-6 xl:grid-cols-[1.4fr_1fr]">
-        <div className="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm">
+        <div className="rounded-2xl border border-subtle surface-card p-5 shadow-sm">
           <div className="mb-4 flex items-center justify-between gap-3">
-            <h3 className="text-lg font-bold text-ink">{t('latestRatingsChart')}</h3>
+            <h3 className="text-lg font-bold text-primary">{t('latestRatingsChart')}</h3>
             <DashboardChartDailyFilter label={t('daily')} />
           </div>
           <DashboardActivityChart
@@ -118,7 +118,7 @@ export function AdminOverview({ title }: AdminOverviewProps) {
           />
         </div>
 
-        <div className="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm">
+        <div className="rounded-2xl border border-subtle surface-card p-5 shadow-sm">
           <AdminTopCompaniesList companies={stats?.topCompanies ?? []} />
         </div>
       </div>
@@ -128,8 +128,8 @@ export function AdminOverview({ title }: AdminOverviewProps) {
       ) : null}
 
       <div className="grid gap-6 lg:grid-cols-2">
-        <div className="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm">
-          <h3 className="mb-4 text-lg font-bold text-ink">{t('topReviewers')}</h3>
+        <div className="rounded-2xl border border-subtle surface-card p-5 shadow-sm">
+          <h3 className="mb-4 text-lg font-bold text-primary">{t('topReviewers')}</h3>
           <div className="space-y-4">
             {(stats?.topReviewers ?? []).map((reviewer) => (
               <div key={reviewer.id} className="flex items-center gap-3">
@@ -139,23 +139,23 @@ export function AdminOverview({ title }: AdminOverviewProps) {
                   className="h-10 w-10 shrink-0"
                 />
                 <div className="min-w-0">
-                  <p className="font-medium text-ink">{reviewer.name}</p>
-                  <p className="truncate text-xs text-ink-muted">{reviewer.email}</p>
+                  <p className="font-medium text-primary">{reviewer.name}</p>
+                  <p className="truncate text-xs text-secondary">{reviewer.email}</p>
                 </div>
-                <span className="ms-auto text-xs text-ink-muted">
+                <span className="ms-auto text-xs text-secondary">
                   {ta('reviewCountLabel', { count: reviewer.reviewCount })}
                 </span>
               </div>
             ))}
             {!stats?.topReviewers.length ? (
-              <p className="text-sm text-ink-muted">{ta('noData')}</p>
+              <p className="text-sm text-secondary">{ta('noData')}</p>
             ) : null}
           </div>
         </div>
 
-        <div className="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm">
-          <h3 className="mb-4 text-lg font-bold text-ink">{t('pendingReviews')}</h3>
-          <div className="space-y-3 text-sm text-ink-muted">
+        <div className="rounded-2xl border border-subtle surface-card p-5 shadow-sm">
+          <h3 className="mb-4 text-lg font-bold text-primary">{t('pendingReviews')}</h3>
+          <div className="space-y-3 text-sm text-secondary">
             <p>{ta('pendingCount', { count: stats?.pendingReviews ?? 0 })}</p>
             <p>{ta('resolutionCount', { count: stats?.resolutionPendingReviews ?? 0 })}</p>
             <p>{ta('rejectedCount', { count: stats?.rejectedReviews ?? 0 })}</p>

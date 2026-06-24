@@ -2,7 +2,6 @@
 
 import type { CompanyCatalogItemPublic } from '@rateq/types';
 import { cn } from '@/lib/utils';
-import { useLocale } from 'next-intl';
 
 interface CatalogMultiSelectProps {
   label: string;
@@ -21,9 +20,6 @@ export function CatalogMultiSelect({
   onChange,
   maxItems = 30,
 }: CatalogMultiSelectProps) {
-  const locale = useLocale();
-  const isArabic = locale === 'ar';
-
   const toggle = (id: string) => {
     if (selectedIds.includes(id)) {
       onChange(selectedIds.filter((item) => item !== id));
@@ -38,31 +34,37 @@ export function CatalogMultiSelect({
   return (
     <div>
       <div className="mb-2">
-        <p className="text-sm font-medium text-ink">{label}</p>
-        {hint ? <p className="text-xs text-ink-muted">{hint}</p> : null}
+        <p className="text-sm font-medium text-primary">{label}</p>
+        {hint ? <p className="text-xs text-secondary">{hint}</p> : null}
       </div>
       {activeItems.length === 0 ? (
-        <p className="text-sm text-ink-muted">—</p>
+        <p className="text-sm text-secondary">—</p>
       ) : (
         <div className="flex flex-wrap gap-2">
           {activeItems.map((item) => {
             const selected = selectedIds.includes(item.id);
-            const displayLabel = isArabic ? item.nameAr : item.nameEn;
-            const altLabel = isArabic ? item.nameEn : item.nameAr;
             return (
               <button
                 key={item.id}
                 type="button"
                 onClick={() => toggle(item.id)}
-                title={altLabel}
                 className={cn(
-                  'rounded-full border px-4 py-2 text-sm font-medium transition-colors',
+                  'rounded-xl border px-3 py-2 text-start text-sm transition-colors',
                   selected
                     ? 'border-brand-500 bg-brand-500 text-white'
-                    : 'border-slate-200 bg-white text-ink hover:border-brand-300 dark:border-slate-700 dark:bg-slate-900',
+                    : 'border-default bg-white text-primary hover:border-brand-300 dark:bg-slate-900',
                 )}
               >
-                {displayLabel}
+                <span className="block font-medium leading-snug">{item.nameEn}</span>
+                <span
+                  className={cn(
+                    'mt-0.5 block text-xs leading-snug',
+                    selected ? 'text-white/85' : 'text-secondary',
+                  )}
+                  dir="rtl"
+                >
+                  {item.nameAr}
+                </span>
               </button>
             );
           })}

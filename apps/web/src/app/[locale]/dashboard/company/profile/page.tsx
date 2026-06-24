@@ -12,6 +12,7 @@ import { useProfile } from '@/components/providers/profile-provider';
 import { useRequireCompleteProfile } from '@/hooks/use-require-verified-auth';
 import { onboardingApi } from '@/lib/onboarding-api';
 import { fetchCategoriesClient } from '@/lib/categories-api';
+import { getCategoryLabel } from '@/lib/category-label';
 import { ApiError } from '@/lib/api';
 import { ensureValidAccessToken } from '@/lib/auth-session';
 import { isRemoteImage, isRemotePdf } from '@/lib/profile-company-assets';
@@ -229,7 +230,7 @@ export default function CompanyProfileSettingsPage() {
               <option value="">{t('selectCategory')}</option>
               {categories.map((category) => (
                 <option key={category.id} value={category.id}>
-                  {category.name}
+                  {getCategoryLabel(category, locale)}
                 </option>
               ))}
             </select>

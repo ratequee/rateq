@@ -26,6 +26,7 @@ export interface ReviewCompanySummary {
   logo?: string | null;
   categoryId?: string | null;
   categoryName?: string | null;
+  categoryNameAr?: string | null;
 }
 
 export interface ReviewPublic {

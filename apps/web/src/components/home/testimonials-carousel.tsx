@@ -5,9 +5,10 @@ import { SectionHeader } from '@/components/home/section-header';
 import { AvatarImage } from '@/components/ui/avatar-image';
 import { StarRating } from '@/components/ui/star-rating';
 import { Link } from '@/i18n/routing';
-import { formatReviewTimeAgo } from '@/lib/format-relative-time';
+import { getLocalizedCategoryName } from '@/lib/category-label';
 import type { ReviewPublic } from '@rateq/types';
 import { useLocale, useTranslations } from 'next-intl';
+import { formatReviewTimeAgo } from '@/lib/format-relative-time';
 import { useRef } from 'react';
 
 interface TestimonialsCarouselProps {
@@ -54,7 +55,8 @@ export function TestimonialsCarousel({ reviews }: TestimonialsCarouselProps) {
           {reviews.map((review) => {
             const authorName = review.author?.displayName ?? t('testimonialCompany');
             const companyName = review.company?.name ?? t('testimonialCompany');
-            const companyCategory = review.company?.categoryName ?? t('testimonialCompanyRole');
+            const companyCategory =
+              getLocalizedCategoryName(review.company ?? {}, locale) ?? t('testimonialCompanyRole');
 
             const companyBlock = (
               <>

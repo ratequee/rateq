@@ -13,7 +13,7 @@ export class CategoriesRepository {
     })[]
   > {
     return this.prisma.category.findMany({
-      orderBy: { name: 'asc' },
+      orderBy: { nameEn: 'asc' },
       include: {
         _count: { select: { companies: true } },
         services: { orderBy: [{ sortOrder: 'asc' }, { name: 'asc' }] },

@@ -95,11 +95,15 @@ export async function apiClient<T>(
   return body as T;
 }
 
-export async function apiServer<T>(path: string, init?: RequestInit): Promise<T> {
+export async function apiServer<T>(
+  path: string,
+  init?: RequestInit & { revalidate?: number | false },
+): Promise<T> {
+  const { revalidate = 60, ...fetchInit } = init ?? {};
   const response = await fetch(`${API_URL}${path}`, {
-    ...init,
-    headers: { 'Content-Type': 'application/json', ...init?.headers },
-    next: { revalidate: 60 },
+    ...fetchInit,
+    headers: { 'Content-Type': 'application/json', ...fetchInit?.headers },
+    ...(revalidate === false ? { cache: 'no-store' as const } : { next: { revalidate } }),
   });
 
   if (!response.ok) {
@@ -159,7 +163,8 @@ export const companiesApi = {
     apiServer<PaginatedCompaniesResponse>(`/companies?${params}`),
   searchClient: (params: URLSearchParams) =>
     apiClient<PaginatedCompaniesResponse>(`/companies?${params}`, { token: null }),
-  getBySlug: (slug: string) => apiServer<CompanyPublic>(`/companies/${slug}`),
+  getBySlug: (slug: string) =>
+    apiServer<CompanyPublic>(`/companies/${slug}`, { revalidate: false }),
   getDashboard: (token: string) =>
     apiClient<CompanyDashboard>('/companies/me/dashboard', { token }),
   getMyProfile: (token: string) =>
@@ -214,6 +219,7 @@ export const reviewsApi = {
   listByCompany: (companyId: string, params?: URLSearchParams) =>
     apiServer<PaginatedReviewsResponse>(
       `/reviews/company/${companyId}${params ? `?${params}` : ''}`,
+      { revalidate: false },
     ),
   listByCompanyManage: (token: string, companyId: string, params?: URLSearchParams) =>
     apiClient<PaginatedReviewsResponse>(

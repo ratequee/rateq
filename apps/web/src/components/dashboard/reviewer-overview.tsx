@@ -96,7 +96,7 @@ export function ReviewerOverview({ title, dashboard }: ReviewerOverviewProps) {
       </div>
 
       <div className="grid gap-6 xl:grid-cols-[1.4fr_1fr]">
-        <div className="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm">
+        <div className="rounded-2xl border border-subtle surface-card p-5 shadow-sm">
           <div className="mb-4 flex items-center justify-between gap-3">
             <div>
               <h3 className="text-lg font-bold text-ink">{tr('activityTitle')}</h3>
@@ -112,7 +112,7 @@ export function ReviewerOverview({ title, dashboard }: ReviewerOverviewProps) {
           />
         </div>
 
-        <div className="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm">
+        <div className="rounded-2xl border border-subtle surface-card p-5 shadow-sm">
           <ReviewerRecentlyRatedCompaniesList companies={dashboard?.recentlyRatedCompanies ?? []} />
         </div>
       </div>

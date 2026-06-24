@@ -31,7 +31,7 @@ const reviewInclude = {
       categoryId: true,
       email: true,
       owner: { select: { id: true, email: true } },
-      category: { select: { id: true, name: true } },
+      category: { select: { id: true, nameEn: true, nameAr: true } },
     },
   },
   replies: true,

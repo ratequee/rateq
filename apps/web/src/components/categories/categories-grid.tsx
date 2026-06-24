@@ -1,6 +1,7 @@
 'use client';
 
 import { CategoryCard } from '@/components/categories/category-card';
+import { categoryMatchesQuery } from '@/lib/category-label';
 import type { CategoryPublic } from '@rateq/types';
 import { useTranslations } from 'next-intl';
 
@@ -25,7 +26,7 @@ export function CategoriesGrid({
 
   const filtered = categories.filter((category) => {
     if (activeCategorySlug && category.slug !== activeCategorySlug) return false;
-    if (matchesQuery(category.name, initialQuery)) return true;
+    if (categoryMatchesQuery(category, initialQuery)) return true;
     return (category.services ?? []).some((service) => matchesQuery(service.name, initialQuery));
   });
 

@@ -1,7 +1,8 @@
 import { Link } from '@/i18n/routing';
 import type { CategoryPublic } from '@rateq/types';
 import { ChevronRight } from 'lucide-react';
-import { getTranslations } from 'next-intl/server';
+import { getCategoryLabel } from '@/lib/category-label';
+import { getTranslations, getLocale } from 'next-intl/server';
 import type { JSX } from 'react';
 
 interface CategoryBreadcrumbProps {
@@ -14,6 +15,8 @@ export async function CategoryBreadcrumb({
   variant = 'light',
 }: CategoryBreadcrumbProps): Promise<JSX.Element> {
   const t = await getTranslations('categoryPage');
+  const locale = await getLocale();
+  const label = getCategoryLabel(category, locale);
   const isDark = variant === 'dark';
 
   return (
@@ -43,7 +46,7 @@ export async function CategoryBreadcrumb({
           className={`font-medium ${isDark ? 'text-gold-300' : 'text-gold-300'}`}
           aria-current="page"
         >
-          {category.name}
+          {label}
         </li>
       </ol>
     </nav>

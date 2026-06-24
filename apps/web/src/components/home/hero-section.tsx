@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { HeroForUsersButton } from '@/components/home/hero-for-users-button';
 import { AvatarImage } from '@/components/ui/avatar-image';
 import { Link } from '@/i18n/routing';
+import { getLocalizedCategoryName } from '@/lib/category-label';
 import { formatReviewTimeAgo } from '@/lib/format-relative-time';
 import type { CompanyPublic, ReviewPublic } from '@rateq/types';
 import { getLocale, getTranslations } from 'next-intl/server';
@@ -188,7 +189,8 @@ export async function HeroSection({
                           </p>
                         </Link>
                         <p className="mt-1 text-sm text-ink-muted text-left">
-                          {featuredCompany.categoryName ?? t('featuredReviewRole')}
+                          {getLocalizedCategoryName(featuredCompany, locale) ??
+                            t('featuredReviewRole')}
                         </p>
                       </div>
                     </div>

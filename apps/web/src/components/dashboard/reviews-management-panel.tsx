@@ -5,13 +5,15 @@ import { Input } from '@/components/ui/input';
 import { StarRating } from '@/components/ui/star-rating';
 import { ensureValidAccessToken } from '@/lib/auth-session';
 import { fetchCategoriesClient } from '@/lib/categories-api';
+import { getCategoryLabel, getLocalizedCategoryName } from '@/lib/category-label';
 import { reviewsApi } from '@/lib/api';
 import { ApiError } from '@/lib/api';
 import { cn } from '@/lib/utils';
 import type { CategoryPublic, PaginatedReviewsResponse, ReviewPublic } from '@rateq/types';
 import { ReviewStatus } from '@rateq/types';
-import { Link } from '@/i18n/routing';
+import { Link, useRouter } from '@/i18n/routing';
 import { Loader2, MessageSquareText } from 'lucide-react';
+import { ReviewProofAttachments } from '@/components/dashboard/review-proof-attachments';
 import { useLocale, useTranslations } from 'next-intl';
 import { useSearchParams } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useState } from 'react';
@@ -63,6 +65,7 @@ function isResolutionDeadlinePassed(review: ReviewPublic): boolean {
 export function ReviewsManagementPanel({ mode, companyId }: ReviewsManagementPanelProps) {
   const t = useTranslations('dashboardReviews');
   const locale = useLocale();
+  const router = useRouter();
   const searchParams = useSearchParams();
   const [categories, setCategories] = useState<CategoryPublic[]>([]);
   const [reviews, setReviews] = useState<ReviewPublic[]>([]);
@@ -143,6 +146,7 @@ export function ReviewsManagementPanel({ mode, companyId }: ReviewsManagementPan
       await action();
       toast.success(successMessage);
       await loadReviews();
+      router.refresh();
     } catch (err) {
       const message = err instanceof ApiError ? err.message : t('actionError');
       toast.error(message);
@@ -249,7 +253,7 @@ export function ReviewsManagementPanel({ mode, companyId }: ReviewsManagementPan
                 <option value="">{t('allCategories')}</option>
                 {categories.map((category) => (
                   <option key={category.id} value={category.id}>
-                    {category.name}
+                    {getCategoryLabel(category, locale)}
                   </option>
                 ))}
               </select>
@@ -303,7 +307,12 @@ export function ReviewsManagementPanel({ mode, companyId }: ReviewsManagementPan
                         {mode === 'reviewer'
                           ? review.company?.name
                           : (review.author?.displayName ?? t('unknownReviewer'))}
-                        {review.company?.categoryName ? ` · ${review.company.categoryName}` : ''}
+                        {(() => {
+                          const categoryLabel = review.company
+                            ? getLocalizedCategoryName(review.company, locale)
+                            : null;
+                          return categoryLabel ? ` · ${categoryLabel}` : '';
+                        })()}
                       </p>
                     </div>
                     <span
@@ -395,6 +404,8 @@ export function ReviewsManagementPanel({ mode, companyId }: ReviewsManagementPan
                 {selectedReview.content}
               </p>
             </div>
+
+            <ReviewProofAttachments attachments={selectedReview.attachments} />
 
             {selectedReview.reply ? (
               <div className="rounded-xl border border-default surface-muted p-4">

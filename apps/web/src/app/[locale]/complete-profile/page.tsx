@@ -39,8 +39,7 @@ import { isRemoteImage, isRemotePdf } from '@/lib/profile-company-assets';
 import { getSuggestedDisplayName } from '@/lib/user-display-name';
 import { PhoneVerificationField } from '@/components/profile/phone-verification-field';
 import { extractQatarPhoneDigits, formatQatarPhoneForSubmit } from '@/lib/qatar-phone';
-import { CompanyAddressMapField } from '@/components/profile/company-address-map-field';
-import { CatalogMultiSelect } from '@/components/profile/catalog-multi-select';
+import { CompanyProfileMultiStepFields } from '@/components/profile/company-profile-multi-step-fields';
 import type { CompanyMapLocation } from '@/lib/company-location';
 import { Building2, ExternalLink, FileText, Upload, UserRound, X } from 'lucide-react';
 import type { CategoryPublic, CompanyCatalogItemPublic } from '@rateq/types';
@@ -116,6 +115,7 @@ export default function CompleteProfilePage() {
 
   const [reviewerPhoneVerified, setReviewerPhoneVerified] = useState(false);
   const [companyPhoneVerified, setCompanyPhoneVerified] = useState(false);
+  const [companyStep, setCompanyStep] = useState(1);
 
   useEffect(() => {
     if (!user) return;
@@ -350,6 +350,67 @@ export default function CompleteProfilePage() {
     return !hasValidationErrors(fieldErrors);
   };
 
+  const COMPANY_STEP1_KEYS = new Set([
+    'companyName',
+    'companyAddress',
+    'companyLocation',
+    'companyPhone',
+    'phoneVerification',
+    'categoryId',
+  ]);
+
+  const validateCompanyStep1 = () => {
+    const fieldErrors = validateCompanyProfileFields(
+      {
+        companyName,
+        companyAddress,
+        companyLocation,
+        companyPhone,
+        categoryId,
+        crNumber,
+        validationDate,
+        city: companyCity,
+        country: companyCountry,
+        registrationDocFile,
+        establishmentCardFile,
+        tradeLicenseFile,
+        logoFile,
+        coverFile,
+        hasExistingRegistrationDoc: Boolean(companyExistingAssets.registrationDocUrl),
+        hasExistingEstablishmentCard: Boolean(companyExistingAssets.establishmentCardUrl),
+        hasExistingTradeLicense: Boolean(companyExistingAssets.tradeLicenseUrl),
+        hasExistingLogo: Boolean(companyExistingAssets.logoUrl),
+        hasExistingCover: Boolean(companyExistingAssets.coverUrl),
+        companyPhoneVerified,
+      },
+      {
+        required: t('errors.required'),
+        fileTooLarge: t('errors.fileTooLarge'),
+        companyName: {
+          required: t('errors.required'),
+          invalid: t('errors.companyNameInvalid'),
+          min: t('errors.companyNameMin'),
+          max: t('errors.companyNameMax'),
+        },
+        crNumber: { invalid: t('errors.crNumberInvalid') },
+        phone: { required: t('errors.required'), invalid: t('errors.invalidPhone') },
+        phoneVerification: { required: t('errors.phoneNotVerified') },
+        locationRequired: t('errors.locationRequired'),
+      },
+    );
+
+    const stepErrors = Object.fromEntries(
+      Object.entries(fieldErrors).filter(([key]) => COMPANY_STEP1_KEYS.has(key)),
+    );
+
+    setErrors(stepErrors);
+    if (hasValidationErrors(stepErrors)) {
+      scrollToFirstError(stepErrors);
+      toast.error(t('errors.fixForm'));
+    }
+    return !hasValidationErrors(stepErrors);
+  };
+
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     if (!user) {
@@ -514,7 +575,7 @@ export default function CompleteProfilePage() {
           <p className="mt-2 text-sm text-white">{t('subtitle')}</p>
         </div>
 
-        <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
+        <div className="surface-card p-6 sm:p-8">
           {!companyPending && (
             <div className="mb-6 grid grid-cols-2 gap-3">
               <button
@@ -639,241 +700,85 @@ export default function CompleteProfilePage() {
                   </div>
                 </>
               ) : (
-                <>
-                  <Field
-                    label={t('companyName')}
-                    error={errors.companyName}
-                    fieldKey="companyName"
-                    required
-                  >
-                    <Input
-                      value={companyName}
-                      onChange={(e) => setCompanyName(sanitizeCompanyName(e.target.value))}
-                      onBlur={() => setCompanyName((prev) => prev.trim())}
-                      className="h-11"
-                    />
-                  </Field>
-                  <Field label={t('companyNameAr')} fieldKey="companyNameAr">
-                    <Input
-                      value={companyNameAr}
-                      onChange={(e) => setCompanyNameAr(e.target.value)}
-                      className="h-11"
-                      dir="rtl"
-                    />
-                  </Field>
-                  <Field label={t('companyAboutEn')} fieldKey="descriptionEn">
-                    <textarea
-                      value={descriptionEn}
-                      onChange={(e) => setDescriptionEn(e.target.value)}
-                      rows={3}
-                      maxLength={5000}
-                      className="w-full rounded-md border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500"
-                    />
-                  </Field>
-                  <Field label={t('companyAboutAr')} fieldKey="descriptionAr">
-                    <textarea
-                      value={descriptionAr}
-                      onChange={(e) => setDescriptionAr(e.target.value)}
-                      rows={3}
-                      maxLength={5000}
-                      dir="rtl"
-                      className="w-full rounded-md border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500"
-                    />
-                  </Field>
-                  <CatalogMultiSelect
-                    label={t('companyServices')}
-                    hint={t('companyServicesCatalogHint')}
-                    items={catalogServices}
-                    selectedIds={serviceIds}
-                    onChange={setServiceIds}
-                  />
-                  <CatalogMultiSelect
-                    label={t('companyActivities')}
-                    hint={t('companyActivitiesHint')}
-                    items={catalogActivities}
-                    selectedIds={activityIds}
-                    onChange={setActivityIds}
-                  />
-                  <div className="grid gap-4 sm:grid-cols-3">
-                    <Field label={t('yearsEstablished')} fieldKey="yearsEstablished">
-                      <Input
-                        type="number"
-                        min={0}
-                        max={200}
-                        value={yearsEstablished}
-                        onChange={(e) => setYearsEstablished(e.target.value)}
-                        className="h-11"
-                      />
-                    </Field>
-                    <Field label={t('publicProjectCount')} fieldKey="publicProjectCount">
-                      <Input
-                        type="number"
-                        min={0}
-                        value={publicProjectCount}
-                        onChange={(e) => setPublicProjectCount(e.target.value)}
-                        className="h-11"
-                      />
-                    </Field>
-                    <Field label={t('privateProjectCount')} fieldKey="privateProjectCount">
-                      <Input
-                        type="number"
-                        min={0}
-                        value={privateProjectCount}
-                        onChange={(e) => setPrivateProjectCount(e.target.value)}
-                        className="h-11"
-                      />
-                    </Field>
-                  </div>
-                  <CompanyAddressMapField
-                    address={companyAddress}
-                    city={companyCity}
-                    country={companyCountry}
-                    location={companyLocation}
-                    onAddressChange={setCompanyAddress}
-                    onCityChange={setCompanyCity}
-                    onCountryChange={setCompanyCountry}
-                    onLocationChange={setCompanyLocation}
-                    addressError={errors.companyAddress}
-                    locationError={errors.companyLocation}
-                    fieldKey="companyAddress"
-                  />
-                  <PhoneVerificationField
-                    phone={companyPhone}
-                    onPhoneChange={setCompanyPhone}
-                    context="company"
-                    verified={companyPhoneVerified}
-                    onVerifiedChange={setCompanyPhoneVerified}
-                    error={errors.companyPhone || errors.companyPhoneVerification}
-                    label={t('phone')}
-                    fieldKey="companyPhone"
-                  />
-                  <Field
-                    label={t('category')}
-                    error={errors.categoryId}
-                    fieldKey="categoryId"
-                    required
-                  >
-                    <select
-                      value={categoryId}
-                      onChange={(e) => setCategoryId(e.target.value)}
-                      className="h-11 w-full rounded-md border border-slate-200 bg-white px-3 text-sm outline-none focus:border-brand-500"
-                    >
-                      <option value="">{t('selectCategory')}</option>
-                      {categories.map((category) => (
-                        <option key={category.id} value={category.id}>
-                          {category.name}
-                        </option>
-                      ))}
-                    </select>
-                  </Field>
-                  <Field label={t('crNumber')} error={errors.crNumber} fieldKey="crNumber" required>
-                    <Input
-                      value={crNumber}
-                      onChange={(e) => setCrNumber(sanitizeCrNumber(e.target.value))}
-                      className="h-11"
-                    />
-                  </Field>
-                  <Field
-                    label={t('validationDate')}
-                    error={errors.validationDate}
-                    fieldKey="validationDate"
-                    required
-                  >
-                    <Input
-                      type="date"
-                      value={validationDate}
-                      onChange={(e) => setValidationDate(e.target.value)}
-                      className="h-11"
-                    />
-                  </Field>
-                  <div data-field="registrationDocFile">
-                    <FileField
-                      label={t('registrationFile')}
-                      error={errors.registrationDocFile}
-                      file={registrationDocFile}
-                      onChange={setRegistrationDocFile}
-                      existingUrl={companyExistingAssets.registrationDocUrl}
-                      onClearExisting={() =>
-                        setClearedExisting((s) => ({ ...s, registrationDoc: true }))
-                      }
-                      accept=".pdf,.jpg,.jpeg,.png"
-                      previewVariant="document"
-                      required
-                    />
-                  </div>
-                  <div data-field="establishmentCardFile">
-                    <FileField
-                      label={t('establishmentCardFile')}
-                      error={errors.establishmentCardFile}
-                      file={establishmentCardFile}
-                      onChange={setEstablishmentCardFile}
-                      existingUrl={companyExistingAssets.establishmentCardUrl}
-                      onClearExisting={() =>
-                        setClearedExisting((s) => ({ ...s, establishmentCard: true }))
-                      }
-                      accept=".pdf,.jpg,.jpeg,.png"
-                      previewVariant="document"
-                      required
-                    />
-                  </div>
-                  <div data-field="tradeLicenseFile">
-                    <FileField
-                      label={t('tradeLicenseFile')}
-                      error={errors.tradeLicenseFile}
-                      file={tradeLicenseFile}
-                      onChange={setTradeLicenseFile}
-                      existingUrl={companyExistingAssets.tradeLicenseUrl}
-                      onClearExisting={() =>
-                        setClearedExisting((s) => ({ ...s, tradeLicense: true }))
-                      }
-                      accept=".pdf,.jpg,.jpeg,.png"
-                      previewVariant="document"
-                      required
-                    />
-                  </div>
-                  <div data-field="logoFile">
-                    <FileField
-                      label={t('companyLogo')}
-                      error={errors.logoFile}
-                      file={logoFile}
-                      onChange={setLogoFile}
-                      existingUrl={companyExistingAssets.logoUrl}
-                      onClearExisting={() => setClearedExisting((s) => ({ ...s, logo: true }))}
-                      accept="image/*"
-                      previewVariant="logo"
-                      required
-                    />
-                  </div>
-                  <div data-field="coverFile">
-                    <FileField
-                      label={t('companyCover')}
-                      error={errors.coverFile}
-                      file={coverFile}
-                      onChange={setCoverFile}
-                      existingUrl={companyExistingAssets.coverUrl}
-                      onClearExisting={() => setClearedExisting((s) => ({ ...s, cover: true }))}
-                      accept="image/*"
-                      previewVariant="cover"
-                      required
-                    />
-                  </div>
-                </>
+                <CompanyProfileMultiStepFields
+                  step={companyStep}
+                  onStepChange={setCompanyStep}
+                  onValidateStep1={validateCompanyStep1}
+                  errors={errors}
+                  companyName={companyName}
+                  setCompanyName={setCompanyName}
+                  companyNameAr={companyNameAr}
+                  setCompanyNameAr={setCompanyNameAr}
+                  descriptionEn={descriptionEn}
+                  setDescriptionEn={setDescriptionEn}
+                  descriptionAr={descriptionAr}
+                  setDescriptionAr={setDescriptionAr}
+                  serviceIds={serviceIds}
+                  setServiceIds={setServiceIds}
+                  activityIds={activityIds}
+                  setActivityIds={setActivityIds}
+                  yearsEstablished={yearsEstablished}
+                  setYearsEstablished={setYearsEstablished}
+                  publicProjectCount={publicProjectCount}
+                  setPublicProjectCount={setPublicProjectCount}
+                  privateProjectCount={privateProjectCount}
+                  setPrivateProjectCount={setPrivateProjectCount}
+                  catalogServices={catalogServices}
+                  catalogActivities={catalogActivities}
+                  companyAddress={companyAddress}
+                  setCompanyAddress={setCompanyAddress}
+                  companyCity={companyCity}
+                  setCompanyCity={setCompanyCity}
+                  companyCountry={companyCountry}
+                  setCompanyCountry={setCompanyCountry}
+                  companyLocation={companyLocation}
+                  setCompanyLocation={setCompanyLocation}
+                  companyPhone={companyPhone}
+                  setCompanyPhone={setCompanyPhone}
+                  companyPhoneVerified={companyPhoneVerified}
+                  setCompanyPhoneVerified={setCompanyPhoneVerified}
+                  categoryId={categoryId}
+                  setCategoryId={setCategoryId}
+                  categories={categories}
+                  crNumber={crNumber}
+                  setCrNumber={setCrNumber}
+                  validationDate={validationDate}
+                  setValidationDate={setValidationDate}
+                  registrationDocFile={registrationDocFile}
+                  setRegistrationDocFile={setRegistrationDocFile}
+                  establishmentCardFile={establishmentCardFile}
+                  setEstablishmentCardFile={setEstablishmentCardFile}
+                  tradeLicenseFile={tradeLicenseFile}
+                  setTradeLicenseFile={setTradeLicenseFile}
+                  logoFile={logoFile}
+                  setLogoFile={setLogoFile}
+                  coverFile={coverFile}
+                  setCoverFile={setCoverFile}
+                  companyExistingAssets={companyExistingAssets}
+                  setClearedExisting={setClearedExisting}
+                  sanitizeCompanyName={sanitizeCompanyName}
+                  sanitizeCrNumber={sanitizeCrNumber}
+                  FileField={FileField}
+                  Field={Field}
+                />
               )}
 
-              <Button
-                type="submit"
-                size="lg"
-                className="mt-4 w-full bg-gold-400 text-white hover:bg-gold-500"
-                disabled={submitting}
-              >
-                {submitting
-                  ? t('saving')
-                  : accountType === 'reviewer'
-                    ? t('saveReviewerProfile')
-                    : companyRevisionRequested
-                      ? t('resubmitCompanyProfile')
-                      : t('submitCompanyProfile')}
-              </Button>
+              {(accountType === 'reviewer' || companyStep === 3) && (
+                <Button
+                  type="submit"
+                  size="lg"
+                  className="mt-4 w-full bg-gold-400 text-white hover:bg-gold-500"
+                  disabled={submitting}
+                >
+                  {submitting
+                    ? t('saving')
+                    : accountType === 'reviewer'
+                      ? t('saveReviewerProfile')
+                      : companyRevisionRequested
+                        ? t('resubmitCompanyProfile')
+                        : t('submitCompanyProfile')}
+                </Button>
+              )}
             </form>
           )}
         </div>

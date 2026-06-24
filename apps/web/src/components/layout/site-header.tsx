@@ -161,7 +161,7 @@ export function SiteHeader() {
           <div
             onClick={(event) => event.stopPropagation()}
             className={cn(
-              'flex min-h-0 w-[82%] max-w-[330px] flex-1 flex-col overflow-hidden rounded-r-[34px] bg-white shadow-2xl transition-transform duration-300',
+              'flex min-h-0 w-[82%] max-w-[330px] flex-1 flex-col overflow-hidden rounded-r-[34px] bg-white shadow-2xl transition-transform duration-300 dark:bg-slate-900',
               mobileOpen ? 'translate-x-0' : '-translate-x-full',
             )}
           >
@@ -173,7 +173,7 @@ export function SiteHeader() {
                     href={href}
                     onClick={() => setMobileOpen(false)}
                     className={cn(
-                      'block border-b border-slate-200 py-3 text-[18px] font-medium leading-[1.3] text-ink transition-colors hover:text-brand-500',
+                      'block border-b border-slate-200 py-3 text-[18px] font-medium leading-[1.3] text-primary transition-colors hover:text-brand-500 dark:border-slate-700',
                       isActive(href) && 'text-brand-500',
                     )}
                   >

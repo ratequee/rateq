@@ -41,14 +41,15 @@ export class CategoriesService {
   }
 
   async create(input: CreateCategoryInput): Promise<CategoryPublic> {
-    const name = input.name.trim();
+    const nameEn = input.nameEn.trim();
+    const nameAr = input.nameAr.trim();
 
-    if (!name) {
-      throw new BadRequestException('Category name is required');
+    if (!nameEn || !nameAr) {
+      throw new BadRequestException('Category names in English and Arabic are required');
     }
 
-    const slug = await this.generateUniqueSlug(name);
-    const category = await this.categoriesRepository.create({ name, slug });
+    const slug = await this.generateUniqueSlug(nameEn);
+    const category = await this.categoriesRepository.create({ nameEn, nameAr, slug });
     return toCategoryPublic(category);
   }
 

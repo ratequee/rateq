@@ -6,7 +6,7 @@ import { useAuth } from '@/components/providers/auth-provider';
 import { useProfile } from '@/components/providers/profile-provider';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { Link } from '@/i18n/routing';
+import { Link, useRouter } from '@/i18n/routing';
 import { OPEN_WRITE_REVIEW_EVENT } from '@/lib/write-review-events';
 import { useMyCompanyReview } from '@/lib/use-my-company-review';
 import type { CategoryServicePublic, CompanyPublic, ReviewPublic } from '@rateq/types';
@@ -30,6 +30,7 @@ export function CompanyReviewsSectionClient({
   const tr = useTranslations('review');
   const ta = useTranslations('auth');
   const tn = useTranslations('nav');
+  const router = useRouter();
   const { user } = useAuth();
   const { onboarding } = useProfile();
   const [panel, setPanel] = useState<ReviewPanel | null>(null);
@@ -82,8 +83,9 @@ export function CompanyReviewsSectionClient({
     (review: ReviewPublic) => {
       setMyReview(review);
       setPanel(null);
+      router.refresh();
     },
-    [setMyReview],
+    [router, setMyReview],
   );
 
   const panelContent = useMemo(() => {

@@ -324,7 +324,7 @@ export class CompaniesService {
       where: { profileChangeStatus: 'PENDING', verificationStatus: 'APPROVED' },
       include: {
         owner: { select: { id: true, email: true, isActive: true } },
-        category: { select: { id: true, name: true, slug: true } },
+        category: { select: { id: true, nameEn: true, nameAr: true, slug: true } },
         projects: { orderBy: { sortOrder: 'asc' } },
       },
       orderBy: { updatedAt: 'desc' },
@@ -787,7 +787,7 @@ export class CompaniesService {
             categoryId: true,
             email: true,
             owner: { select: { id: true, email: true } },
-            category: { select: { id: true, name: true } },
+            category: { select: { id: true, nameEn: true, nameAr: true } },
           },
         },
         replies: true,

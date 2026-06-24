@@ -9,7 +9,7 @@ import type {
 
 type CompanyWithPublicRelations = Company & {
   owner?: Pick<User, 'email'> | null;
-  category?: Pick<Category, 'id' | 'name' | 'slug'> | null;
+  category?: Pick<Category, 'id' | 'nameEn' | 'nameAr' | 'slug'> | null;
   projects?: CompanyProject[];
 };
 
@@ -84,7 +84,8 @@ export function toCompanyPublic(
     ratingDistribution: extras?.ratingDistribution ?? EMPTY_RATING_DISTRIBUTION,
     createdAt: company.createdAt.toISOString(),
     categoryId: company.categoryId ?? undefined,
-    categoryName: company.category?.name ?? undefined,
+    categoryName: company.category?.nameEn ?? undefined,
+    categoryNameAr: company.category?.nameAr ?? undefined,
     latitude: company.latitude ?? null,
     longitude: company.longitude ?? null,
   };

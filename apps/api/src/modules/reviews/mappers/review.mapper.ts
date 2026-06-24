@@ -60,7 +60,8 @@ function toReviewCompanySummary(
     slug: company.slug,
     logo: company.logo,
     categoryId: company.categoryId,
-    categoryName: company.category?.name ?? null,
+    categoryName: company.category?.nameEn ?? null,
+    categoryNameAr: company.category?.nameAr ?? null,
   };
 }
 

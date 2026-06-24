@@ -1,21 +1,14 @@
 'use client';
 
-import { AdminCompanyCatalogPanel } from '@/components/dashboard/admin-company-catalog-panel';
-import { DashboardShell } from '@/components/dashboard/dashboard-shell';
-import { useRequireFirebaseAdmin } from '@/hooks/use-require-firebase-admin';
-import { useTranslations } from 'next-intl';
+import { useRouter } from '@/i18n/routing';
+import { useEffect } from 'react';
 
-export default function AdminCompanyCatalogPage() {
-  const t = useTranslations('adminCatalog');
-  useRequireFirebaseAdmin();
+export default function AdminCatalogRedirectPage() {
+  const router = useRouter();
 
-  return (
-    <DashboardShell role="admin">
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-primary">{t('pageTitle')}</h1>
-        <p className="mt-1 text-sm text-secondary">{t('pageSubtitle')}</p>
-      </div>
-      <AdminCompanyCatalogPanel />
-    </DashboardShell>
-  );
+  useEffect(() => {
+    router.replace('/dashboard/admin/categories');
+  }, [router]);
+
+  return null;
 }

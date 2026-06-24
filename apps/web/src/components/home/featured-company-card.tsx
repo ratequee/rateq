@@ -3,9 +3,10 @@
 import type { CompanyPublic } from '@rateq/types';
 import { Badge } from '@/components/ui/badge';
 import { StarRating } from '@/components/ui/star-rating';
+import { getLocalizedCategoryName } from '@/lib/category-label';
 import { Link } from '@/i18n/routing';
 import { ArrowRight } from 'lucide-react';
-import { useTranslations } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 import { cn } from '@/lib/utils';
 
 interface FeaturedCompanyCardProps {
@@ -14,9 +15,11 @@ interface FeaturedCompanyCardProps {
 
 export function FeaturedCompanyCard({ company }: FeaturedCompanyCardProps) {
   const t = useTranslations('home');
+  const locale = useLocale();
+  const categoryLabel = getLocalizedCategoryName(company, locale);
 
-  const badges = [t('badgeVerifiedLabel'), company.categoryName ?? null].filter(
-    (label): label is string => Boolean(label),
+  const badges = [t('badgeVerifiedLabel'), categoryLabel].filter((label): label is string =>
+    Boolean(label),
   );
 
   return (

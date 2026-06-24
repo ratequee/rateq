@@ -1,11 +1,12 @@
 'use client';
 
 import { Link } from '@/i18n/routing';
+import { getCategoryLabel } from '@/lib/category-label';
 import { getCategoryIcon } from '@/lib/category-icons';
 import { cn } from '@/lib/utils';
 import type { CategoryPublic } from '@rateq/types';
 import { ArrowRight } from 'lucide-react';
-import { useTranslations } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 
 interface CategoryCardProps {
   category: CategoryPublic;
@@ -15,6 +16,8 @@ interface CategoryCardProps {
 
 export function CategoryCard({ category, variant = 'default', className }: CategoryCardProps) {
   const t = useTranslations('categories');
+  const locale = useLocale();
+  const label = getCategoryLabel(category, locale);
   const Icon = getCategoryIcon(category.slug);
   const href = `/categories/${category.slug}`;
   const count = category.companyCount ?? 0;
@@ -33,7 +36,7 @@ export function CategoryCard({ category, variant = 'default', className }: Categ
           <Icon className="h-9 w-9" aria-hidden />
         </div>
         <h3 className="mt-4 text-center text-sm font-semibold leading-snug text-primary">
-          {category.name}
+          {label}
         </h3>
         <p className="mt-1 text-xs text-ink-muted">{t('companyCount', { count })}</p>
       </Link>
@@ -57,9 +60,9 @@ export function CategoryCard({ category, variant = 'default', className }: Categ
             {t('popularBadge')}
           </span>
         </div>
-        <h3 className="mt-5 text-lg font-semibold text-primary">{category.name}</h3>
+        <h3 className="mt-5 text-lg font-semibold text-primary">{label}</h3>
         <p className="mt-2 line-clamp-2 text-sm leading-relaxed text-secondary">
-          {t('categoryDescription', { name: category.name })}
+          {t('categoryDescription', { name: label })}
         </p>
         <div className="mt-5 flex items-center justify-between border-t border-subtle pt-4">
           <span className="text-sm text-secondary">{t('companyCount', { count })}</span>
@@ -83,7 +86,7 @@ export function CategoryCard({ category, variant = 'default', className }: Categ
         <Icon className="h-11 w-11" aria-hidden />
       </div>
 
-      <h3 className="text-center text-lg font-bold text-primary">{category.name}</h3>
+      <h3 className="text-center text-lg font-bold text-primary">{label}</h3>
 
       {services.length > 0 ? (
         <ul className="mt-4 divide-y divide-slate-200 dark:divide-slate-700">

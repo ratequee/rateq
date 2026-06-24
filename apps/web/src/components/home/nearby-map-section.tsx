@@ -52,10 +52,14 @@ export function NearbyMapSection({ companies }: NearbyMapSectionProps) {
 
     return nearbyCompanies.filter((company) => {
       const name = company.name.toLowerCase();
-      const category = company.categoryName?.toLowerCase() ?? '';
+      const categoryEn = company.categoryName?.toLowerCase() ?? '';
+      const categoryAr = company.categoryNameAr?.toLowerCase() ?? '';
       const city = company.city.toLowerCase();
       return (
-        name.includes(normalized) || category.includes(normalized) || city.includes(normalized)
+        name.includes(normalized) ||
+        categoryEn.includes(normalized) ||
+        categoryAr.includes(normalized) ||
+        city.includes(normalized)
       );
     });
   }, [nearbyCompanies, query]);

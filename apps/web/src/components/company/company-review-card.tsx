@@ -28,7 +28,7 @@ export function CompanyReviewCard({ review, company, onReviewUpdated }: CompanyR
   const authorName = getReviewAuthorName(review.author, tp('anonymousReviewer'));
 
   return (
-    <article className="h-auto w-full self-start rounded-2xl border border-slate-100 bg-[#E5E5E5] p-5 shadow-sm sm:p-6">
+    <article className="h-auto w-full self-start rounded-2xl border border-subtle bg-slate-100 p-5 shadow-sm dark:bg-slate-800/80 sm:p-6">
       <div className="flex items-start gap-4">
         {review.author?.avatarUrl ? (
           <img
@@ -44,8 +44,8 @@ export function CompanyReviewCard({ review, company, onReviewUpdated }: CompanyR
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <div>
-              <p className="font-semibold text-ink">{authorName}</p>
-              <p className="text-xs text-ink-muted">{formatDate(review.createdAt, locale)}</p>
+              <p className="font-semibold text-primary">{authorName}</p>
+              <p className="text-xs text-secondary">{formatDate(review.createdAt, locale)}</p>
             </div>
             {review.status !== ReviewStatus.APPROVED && (
               <Badge

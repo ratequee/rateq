@@ -1,9 +1,10 @@
 import { CompanyCard } from '@/components/company/company-card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { getCategoryLabel } from '@/lib/category-label';
 import { fetchCategories } from '@/lib/categories-data';
 import { fetchCompanies } from '@/lib/companies-data';
-import { getTranslations } from 'next-intl/server';
+import { getTranslations, getLocale } from 'next-intl/server';
 import type { Metadata } from 'next';
 import type { JSX } from 'react';
 
@@ -22,6 +23,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps): Pro
   const params = await searchParams;
   const t = await getTranslations('search');
   const tc = await getTranslations('common');
+  const locale = await getLocale();
 
   const query = new URLSearchParams();
   if (params.query) query.set('query', params.query);
@@ -47,7 +49,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps): Pro
           <option value="">{t('allCategories')}</option>
           {categories.map((category) => (
             <option key={category.id} value={category.id}>
-              {category.name}
+              {getCategoryLabel(category, locale)}
             </option>
           ))}
         </select>

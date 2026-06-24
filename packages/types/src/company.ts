@@ -50,6 +50,7 @@ export interface CompanyPublic {
   createdAt: string;
   categoryId?: string | null;
   categoryName?: string | null;
+  categoryNameAr?: string | null;
   latitude?: number | null;
   longitude?: number | null;
 }

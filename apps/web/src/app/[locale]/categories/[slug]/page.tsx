@@ -4,6 +4,7 @@ import { CategoryFilters } from '@/components/categories/category-filters';
 import { RelatedCategoriesSection } from '@/components/categories/related-categories-section';
 import { fetchCompanies } from '@/lib/companies-data';
 import { fetchCategoryBySlug } from '@/lib/categories-data';
+import { getCategoryLabel } from '@/lib/category-label';
 import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
 import type { JSX } from 'react';
@@ -23,16 +24,18 @@ interface CategoryDetailPageProps {
 }
 
 export async function generateMetadata({ params }: CategoryDetailPageProps): Promise<Metadata> {
-  const { slug } = await params;
+  const { slug, locale } = await params;
   const category = await fetchCategoryBySlug(slug);
 
   if (!category) {
     return { title: 'Category' };
   }
 
+  const label = getCategoryLabel(category, locale);
+
   return {
-    title: category.name,
-    description: `${category.name} companies on RateQ`,
+    title: label,
+    description: `${label} companies on RateQ`,
   };
 }
 

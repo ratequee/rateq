@@ -8,7 +8,8 @@ export interface CategoryServicePublic {
 
 export interface CategoryPublic {
   id: string;
-  name: string;
+  nameEn: string;
+  nameAr: string;
   slug: string;
   companyCount?: number;
   services?: CategoryServicePublic[];
@@ -16,7 +17,8 @@ export interface CategoryPublic {
 }
 
 export interface CreateCategoryInput {
-  name: string;
+  nameEn: string;
+  nameAr: string;
 }
 
 export interface CreateCategoryServiceInput {

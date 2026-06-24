@@ -6,5 +6,11 @@ export class CreateCategoryDto {
   @IsString()
   @MinLength(2)
   @MaxLength(100)
-  name!: string;
+  nameEn!: string;
+
+  @ApiProperty({ example: 'التكنولوجيا' })
+  @IsString()
+  @MinLength(2)
+  @MaxLength(100)
+  nameAr!: string;
 }

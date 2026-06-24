@@ -161,7 +161,8 @@ model PasswordReset {
 
 model Category {
   id        String   @id @default(cuid())
-  name      String   @unique
+  nameEn    String   @unique @map("name_en")
+  nameAr    String   @map("name_ar")
   slug      String   @unique
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
