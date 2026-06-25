@@ -16,7 +16,7 @@ import { ApiError } from '@/lib/api';
 import { sanitizeDisplayName } from '@/lib/validation/auth-fields';
 import {
   hasValidationErrors,
-  validateReviewerProfileFields,
+  validateReviewerSettingsFields,
 } from '@/lib/validation/profile-fields';
 import { useTranslations } from 'next-intl';
 import { useEffect, useState } from 'react';
@@ -54,16 +54,14 @@ export default function ReviewerProfileSettingsPage() {
     event.preventDefault();
     if (!user) return;
 
-    const fieldErrors = validateReviewerProfileFields(
+    const fieldErrors = validateReviewerSettingsFields(
       {
         fullName,
-        phone,
         city,
         country,
         bio,
         avatar,
         hasExistingAvatar: Boolean(avatarUrl),
-        phoneVerified: true,
       },
       {
         name: {
@@ -72,11 +70,9 @@ export default function ReviewerProfileSettingsPage() {
           min: ta('validationNameMin'),
           max: ta('validationNameMax'),
         },
-        phone: { required: t('errors.required'), invalid: t('errors.invalidPhone') },
         location: { required: t('errors.required') },
         bio: { max: t('errors.bioMax') },
         avatar: { required: t('errors.required'), fileTooLarge: t('errors.fileTooLarge') },
-        phoneVerification: { required: t('errors.phoneNotVerified') },
       },
     );
 

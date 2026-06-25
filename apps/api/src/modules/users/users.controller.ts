@@ -50,7 +50,7 @@ export class UsersController {
 
   @Patch('me/profile/reviewer')
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Complete reviewer profile (onboarding)' })
+  @ApiOperation({ summary: 'Complete or update reviewer profile' })
   @ApiResponse({ status: 200, type: OnboardingStatusDto })
   completeReviewerProfile(
     @CurrentUser() user: AuthenticatedUser,

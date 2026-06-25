@@ -117,6 +117,24 @@ export class PhoneOtpService {
     }
   }
 
+  /** Skip OTP when updating a profile that already has this verified phone on file. */
+  async assertPhoneVerifiedForProfile(
+    userId: string,
+    phone: string,
+    context: PhoneVerificationContext,
+    options?: { userPhoneVerified?: boolean; existingPhone?: string | null },
+  ): Promise<void> {
+    if (
+      options?.userPhoneVerified &&
+      options.existingPhone &&
+      phonesMatch(options.existingPhone, phone)
+    ) {
+      return;
+    }
+
+    await this.assertPhoneVerified(userId, phone, context);
+  }
+
   async clearSession(userId: string, context: PhoneVerificationContext): Promise<void> {
     await this.redis.getClient().del(this.sessionKey(userId, context));
   }

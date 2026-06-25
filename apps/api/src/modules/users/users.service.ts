@@ -103,8 +103,14 @@ export class UsersService {
       throw new ConflictException('A company profile already exists for this account');
     }
 
+    const existingProfile = await this.userProfilesRepository.findByUserId(userId);
     const phone = dto.phone.trim();
-    await this.phoneOtpService.assertPhoneVerified(userId, phone, 'reviewer');
+    const isInitialCompletion = !existingProfile;
+
+    await this.phoneOtpService.assertPhoneVerifiedForProfile(userId, phone, 'reviewer', {
+      userPhoneVerified: user.phoneVerified,
+      existingPhone: existingProfile?.phone,
+    });
 
     await this.userProfilesRepository.upsert(userId, {
       fullName: dto.fullName.trim(),
@@ -119,7 +125,10 @@ export class UsersService {
       phone,
       phoneVerified: true,
     });
-    await this.phoneOtpService.clearSession(userId, 'reviewer');
+
+    if (isInitialCompletion) {
+      await this.phoneOtpService.clearSession(userId, 'reviewer');
+    }
 
     return this.getOnboardingStatus(userId);
   }

@@ -103,6 +103,43 @@ export function validateReviewerProfileFields(
   return errors;
 }
 
+export function validateReviewerSettingsFields(
+  fields: {
+    fullName: string;
+    city: string;
+    country: string;
+    bio: string;
+    avatar: File | null;
+    hasExistingAvatar: boolean;
+  },
+  messages: {
+    name: { required: string; invalid: string; min: string; max: string };
+    location: { required: string };
+    bio: { max: string };
+    avatar: { required: string; fileTooLarge: string };
+  },
+): Omit<ReviewerProfileErrors, 'phone' | 'phoneVerification'> {
+  const errors: Omit<ReviewerProfileErrors, 'phone' | 'phoneVerification'> = {};
+
+  const nameError = validateDisplayName(fields.fullName, messages.name);
+  if (nameError) errors.fullName = nameError;
+
+  if (!fields.city.trim()) errors.city = messages.location.required;
+  if (!fields.country.trim()) errors.country = messages.location.required;
+
+  if (fields.bio.trim().length > 500) {
+    errors.bio = messages.bio.max;
+  }
+
+  if (!fields.avatar && !fields.hasExistingAvatar) {
+    errors.avatar = messages.avatar.required;
+  } else if (fields.avatar && !isProfileFileWithinLimit(fields.avatar)) {
+    errors.avatar = messages.avatar.fileTooLarge;
+  }
+
+  return errors;
+}
+
 export function validateCompanyProfileFields(
   fields: {
     companyName: string;
