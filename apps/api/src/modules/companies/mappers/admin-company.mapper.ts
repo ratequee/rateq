@@ -33,6 +33,7 @@ export function toAdminCompanyVerificationSummary(
     reviewCount: company.reviewCount,
     pageVisitCount: company._count.pageViews,
     verificationStatus: toApiStatus(company.verificationStatus),
+    profileChangeStatus: company.profileChangeStatus === 'PENDING' ? 'pending' : 'none',
     createdAt: company.createdAt.toISOString(),
     owner: toOwner(company.owner),
   };
@@ -59,6 +60,7 @@ export function toAdminCompanyVerificationDetail(
     reviewCount: company.reviewCount,
     pageVisitCount: company._count.pageViews,
     verificationStatus: toApiStatus(company.verificationStatus),
+    profileChangeStatus: company.profileChangeStatus === 'PENDING' ? 'pending' : 'none',
     revisionNotes: company.revisionNotes,
     createdAt: company.createdAt.toISOString(),
     updatedAt: company.updatedAt.toISOString(),

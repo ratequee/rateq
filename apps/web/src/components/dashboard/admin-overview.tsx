@@ -1,7 +1,7 @@
 'use client';
 
 import { AdminInviteCompanyPanel } from '@/components/dashboard/admin-invite-company-panel';
-import { AdminProfileChangesPanel } from '@/components/dashboard/admin-profile-changes-panel';
+import { Link } from '@/i18n/routing';
 import { AdminTopCompaniesList } from '@/components/dashboard/admin-top-companies-list';
 import { AvatarImage } from '@/components/ui/avatar-image';
 import { DashboardReviewsTable } from '@/components/dashboard/dashboard-reviews-table';
@@ -165,7 +165,20 @@ export function AdminOverview({ title }: AdminOverviewProps) {
 
       <div className="grid gap-6 lg:grid-cols-2">
         <AdminInviteCompanyPanel />
-        <AdminProfileChangesPanel />
+        <div className="rounded-2xl border border-subtle surface-card p-6 shadow-sm">
+          <h3 className="text-lg font-semibold text-primary dark:text-white">
+            {t('nav.companyVerifications')}
+          </h3>
+          <p className="mt-1 text-sm text-secondary dark:text-slate-300">
+            Review pending profile updates submitted by verified companies.
+          </p>
+          <Link
+            href="/dashboard/admin/companies?filter=profile_changes"
+            className="mt-4 inline-flex text-sm font-semibold text-brand-600 hover:text-brand-700 dark:text-brand-300"
+          >
+            View pending profile changes →
+          </Link>
+        </div>
       </div>
     </div>
   );

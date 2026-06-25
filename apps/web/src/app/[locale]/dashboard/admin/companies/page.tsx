@@ -1,6 +1,7 @@
 'use client';
 
 import { AdminCompanyMetrics } from '@/components/dashboard/admin-company-metrics';
+import { DashboardPageHeader } from '@/components/dashboard/dashboard-page-header';
 import { DashboardShell } from '@/components/dashboard/dashboard-shell';
 import { Button } from '@/components/ui/button';
 import { useRequireAdmin } from '@/hooks/use-require-admin';
@@ -10,27 +11,41 @@ import { ApiError } from '@/lib/api';
 import type {
   AdminCompanyVerificationDetail,
   AdminCompanyVerificationSummary,
+  AdminProfileChangeField,
   CompanyVerificationStatus,
   UpdateCompanyVerificationInput,
 } from '@rateq/types';
 import { cn } from '@/lib/utils';
 import { Building2, ExternalLink, FileText, ImageIcon, Loader2 } from 'lucide-react';
 import { useLocale, useTranslations } from 'next-intl';
+import { useSearchParams } from 'next/navigation';
 import { useCallback, useEffect, useState } from 'react';
 import { toast } from 'sonner';
 
-type FilterStatus = CompanyVerificationStatus | 'all';
+type FilterStatus = CompanyVerificationStatus | 'all' | 'profile_changes';
+
+const PAGE_TITLE = 'Company verifications';
+const PAGE_SUBTITLE =
+  'Review submitted company profiles, pending profile changes, documents, and approve or reject requests.';
 
 export default function AdminCompanyVerificationsPage() {
   const t = useTranslations('adminCompanies');
   const locale = useLocale();
-  const [filter, setFilter] = useState<FilterStatus>('pending');
+  const searchParams = useSearchParams();
+  const initialFilter = (searchParams.get('filter') as FilterStatus | null) ?? 'pending';
+  const [filter, setFilter] = useState<FilterStatus>(initialFilter);
+
+  useEffect(() => {
+    const next = (searchParams.get('filter') as FilterStatus | null) ?? 'pending';
+    setFilter(next);
+  }, [searchParams]);
   const [items, setItems] = useState<AdminCompanyVerificationSummary[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [detail, setDetail] = useState<AdminCompanyVerificationDetail | null>(null);
   const [listLoading, setListLoading] = useState(true);
   const [detailLoading, setDetailLoading] = useState(false);
   const [acting, setActing] = useState(false);
+  const [profileChangeActing, setProfileChangeActing] = useState(false);
   const [revisionOpen, setRevisionOpen] = useState(false);
   const [revisionNotes, setRevisionNotes] = useState('');
 
@@ -126,8 +141,32 @@ export default function AdminCompanyVerificationsPage() {
     }
   };
 
+  const handleProfileChangeDecision = async (action: 'approve' | 'reject') => {
+    if (!selectedId) return;
+
+    setProfileChangeActing(true);
+    try {
+      if (action === 'approve') {
+        await adminApi.approveProfileChanges(selectedId);
+        toast.success(t('profileChangeApproved'));
+      } else {
+        await adminApi.rejectProfileChanges(selectedId);
+        toast.success(t('profileChangeRejected'));
+      }
+      await loadList();
+      const refreshed = await adminApi.getCompanyVerification(selectedId);
+      setDetail(refreshed);
+    } catch (err) {
+      const message = err instanceof ApiError ? err.message : t('actionError');
+      toast.error(message);
+    } finally {
+      setProfileChangeActing(false);
+    }
+  };
+
   const filters: { key: FilterStatus; label: string }[] = [
     { key: 'pending', label: t('filterPending') },
+    { key: 'profile_changes', label: t('filterProfileChanges') },
     { key: 'revision_requested', label: t('filterRevisionRequested') },
     { key: 'approved', label: t('filterApproved') },
     { key: 'rejected', label: t('filterRejected') },
@@ -136,10 +175,7 @@ export default function AdminCompanyVerificationsPage() {
 
   return (
     <DashboardShell role="admin">
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-ink">{t('title')}</h1>
-        <p className="mt-1 text-sm text-ink-muted">{t('subtitle')}</p>
-      </div>
+      <DashboardPageHeader title={PAGE_TITLE} subtitle={PAGE_SUBTITLE} />
 
       <div className="mb-4 flex flex-wrap gap-2">
         {filters.map(({ key, label }) => (
@@ -202,6 +238,11 @@ export default function AdminCompanyVerificationsPage() {
                         status={item.verificationStatus}
                         label={t(`status.${item.verificationStatus}`)}
                       />
+                      {item.profileChangeStatus === 'pending' ? (
+                        <span className="mt-1 inline-block rounded-full bg-violet-100 px-2 py-0.5 text-xs font-medium text-violet-800 dark:bg-violet-950/50 dark:text-violet-300">
+                          {t('profileChangeBadge')}
+                        </span>
+                      ) : null}
                     </div>
                   </button>
                 </li>
@@ -218,6 +259,14 @@ export default function AdminCompanyVerificationsPage() {
             </div>
           ) : !detail ? (
             <p className="py-16 text-center text-sm text-ink-muted">{t('selectCompany')}</p>
+          ) : detail.profileChangeStatus === 'pending' ? (
+            <ProfileChangeDetailPanel
+              detail={detail}
+              acting={profileChangeActing}
+              onApprove={() => void handleProfileChangeDecision('approve')}
+              onReject={() => void handleProfileChangeDecision('reject')}
+              t={t}
+            />
           ) : (
             <CompanyDetailPanel
               detail={detail}
@@ -256,6 +305,105 @@ function StatusBadge({ status, label }: { status: CompanyVerificationStatus; lab
     >
       {label}
     </span>
+  );
+}
+
+function ProfileChangeDetailPanel({
+  detail,
+  acting,
+  onApprove,
+  onReject,
+  t,
+}: {
+  detail: AdminCompanyVerificationDetail;
+  acting: boolean;
+  onApprove: () => void;
+  onReject: () => void;
+  t: ReturnType<typeof useTranslations<'adminCompanies'>>;
+}) {
+  const fields = detail.profileChangeFields ?? [];
+
+  return (
+    <div className="space-y-6">
+      <div className="flex flex-wrap items-start justify-between gap-4">
+        <div>
+          <h2 className="text-xl font-bold text-ink dark:text-white">{detail.name}</h2>
+          <p className="text-sm text-ink-muted dark:text-slate-300">
+            {detail.city}, {detail.country}
+          </p>
+          <span className="mt-2 inline-block rounded-full bg-violet-100 px-2.5 py-0.5 text-xs font-medium text-violet-800 dark:bg-violet-950/50 dark:text-violet-300">
+            {t('profileChangeBadge')}
+          </span>
+        </div>
+        <div className="flex flex-wrap items-start gap-4">
+          <AdminCompanyMetrics
+            reviewCount={detail.reviewCount}
+            pageVisitCount={detail.pageVisitCount}
+            size="md"
+          />
+          <div className="flex flex-wrap gap-2">
+            <Button variant="outline-brand" disabled={acting} onClick={onReject}>
+              {t('reject')}
+            </Button>
+            <Button disabled={acting} onClick={onApprove}>
+              {acting ? t('acting') : t('approve')}
+            </Button>
+          </div>
+        </div>
+      </div>
+
+      <section>
+        <h3 className="text-sm font-semibold text-ink dark:text-white">
+          {t('profileChangeTitle')}
+        </h3>
+        <p className="mt-1 text-sm text-ink-muted dark:text-slate-300">
+          {t('profileChangeSubtitle')}
+        </p>
+        {fields.length === 0 ? (
+          <p className="mt-4 text-sm text-secondary">{t('profileChangeEmpty')}</p>
+        ) : (
+          <div className="mt-4 overflow-x-auto rounded-xl border border-subtle">
+            <table className="min-w-full text-sm">
+              <thead className="bg-slate-50 text-start dark:bg-slate-800/60">
+                <tr>
+                  <th className="px-4 py-3 font-semibold text-primary">
+                    {t('profileChangeField')}
+                  </th>
+                  <th className="px-4 py-3 font-semibold text-primary">
+                    {t('profileChangeCurrent')}
+                  </th>
+                  <th className="px-4 py-3 font-semibold text-primary">
+                    {t('profileChangeProposed')}
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                {fields.map((field: AdminProfileChangeField) => (
+                  <tr key={field.field}>
+                    <td className="px-4 py-3 font-medium text-primary">{field.label}</td>
+                    <td className="px-4 py-3 text-secondary">{field.current}</td>
+                    <td className="px-4 py-3 font-medium text-ink dark:text-white">
+                      {field.proposed}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </section>
+
+      <dl className="grid gap-4 sm:grid-cols-2">
+        <DetailItem label={t('ownerEmail')} value={detail.owner?.email ?? t('unknownOwner')} />
+        <DetailItem
+          label={t('submittedAt')}
+          value={new Date(detail.updatedAt).toLocaleString(undefined, {
+            dateStyle: 'medium',
+            timeStyle: 'short',
+          })}
+        />
+      </dl>
+    </div>
   );
 }
 

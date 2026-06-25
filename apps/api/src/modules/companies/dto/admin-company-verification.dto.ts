@@ -4,11 +4,11 @@ import { PaginationDto } from '../../../common/dto/pagination.dto';
 
 export class ListCompanyVerificationsQueryDto extends PaginationDto {
   @ApiPropertyOptional({
-    enum: ['pending', 'approved', 'rejected', 'revision_requested'],
+    enum: ['pending', 'approved', 'rejected', 'revision_requested', 'profile_changes'],
   })
   @IsOptional()
-  @IsIn(['pending', 'approved', 'rejected', 'revision_requested'])
-  status?: 'pending' | 'approved' | 'rejected' | 'revision_requested';
+  @IsIn(['pending', 'approved', 'rejected', 'revision_requested', 'profile_changes'])
+  status?: 'pending' | 'approved' | 'rejected' | 'revision_requested' | 'profile_changes';
 }
 
 export class UpdateCompanyVerificationDto {

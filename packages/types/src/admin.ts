@@ -1,8 +1,15 @@
-import type { CompanyPublic } from './company';
+import type { CompanyPublic, UpdateCompanyInput } from './company';
 import type { CompanyVerificationStatus } from './onboarding';
 import type { PaginatedResponse } from './pagination';
 import type { ReviewPublic } from './review';
 import type { UserProfile } from './user';
+
+export interface AdminProfileChangeField {
+  field: string;
+  label: string;
+  current: string;
+  proposed: string;
+}
 
 export interface AdminDailyActivityPoint {
   date: string;
@@ -53,6 +60,7 @@ export interface AdminCompanyVerificationSummary {
   reviewCount: number;
   pageVisitCount: number;
   verificationStatus: CompanyVerificationStatus;
+  profileChangeStatus: 'none' | 'pending';
   createdAt: string;
   owner: AdminCompanyOwner | null;
 }
@@ -75,6 +83,9 @@ export interface AdminCompanyVerificationDetail {
   reviewCount: number;
   pageVisitCount: number;
   verificationStatus: CompanyVerificationStatus;
+  profileChangeStatus: 'none' | 'pending';
+  pendingProfileChanges?: UpdateCompanyInput | null;
+  profileChangeFields?: AdminProfileChangeField[];
   revisionNotes: string | null;
   createdAt: string;
   updatedAt: string;

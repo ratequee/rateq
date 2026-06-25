@@ -31,11 +31,12 @@ import { EmailService } from '../auth/services/email.service';
 import { AdminActivityService } from '../admin-activity/admin-activity.service';
 import { CompanyCatalogService } from './company-catalog.service';
 import { toCompanyDetail, toCompanyPublic, parseCompanyIdList } from './mappers/company.mapper';
-import { toReviewPublic } from '../reviews/mappers/review.mapper';
 import {
   toAdminCompanyVerificationDetail,
   toAdminCompanyVerificationSummary,
 } from './mappers/admin-company.mapper';
+import { toReviewPublic } from '../reviews/mappers/review.mapper';
+import { buildProfileChangeFields } from './mappers/profile-change-diff.util';
 import type { CompanyVerificationStatus } from '@prisma/client';
 import type { SearchCompaniesQueryDto } from './dto/search-companies-query.dto';
 
@@ -450,21 +451,24 @@ export class CompaniesService {
   }
 
   async listAdminVerifications(input: {
-    status?: 'pending' | 'approved' | 'rejected' | 'revision_requested';
+    status?: 'pending' | 'approved' | 'rejected' | 'revision_requested' | 'profile_changes';
     page: number;
     limit: number;
   }): Promise<PaginatedAdminCompanyVerifications> {
-    const prismaStatus = input.status
-      ? (input.status.toUpperCase() as CompanyVerificationStatus)
-      : undefined;
+    const repoStatus =
+      input.status === 'profile_changes'
+        ? ('profile_changes' as const)
+        : input.status
+          ? (input.status.toUpperCase() as CompanyVerificationStatus)
+          : undefined;
 
     const [companies, total] = await Promise.all([
       this.companiesRepository.findManyForAdminVerification({
-        status: prismaStatus,
+        status: repoStatus,
         page: input.page,
         limit: input.limit,
       }),
-      this.companiesRepository.countForAdminVerification(prismaStatus),
+      this.companiesRepository.countForAdminVerification(repoStatus),
     ]);
 
     return {
@@ -480,7 +484,23 @@ export class CompaniesService {
       throw new NotFoundException('Company not found');
     }
 
-    return toAdminCompanyVerificationDetail(company);
+    const base = toAdminCompanyVerificationDetail(company);
+
+    if (company.profileChangeStatus !== 'PENDING' || !company.pendingProfileChanges) {
+      return base;
+    }
+
+    const pending = company.pendingProfileChanges as UpdateCompanyInput;
+    const profileChangeFields = await buildProfileChangeFields(company, pending, async (ids) => {
+      const labels = await this.catalogService.resolveLabels(ids, 'en');
+      return new Map(labels.map((entry) => [entry.id, entry.label]));
+    });
+
+    return {
+      ...base,
+      pendingProfileChanges: pending,
+      profileChangeFields,
+    };
   }
 
   async setAdminVerificationStatus(

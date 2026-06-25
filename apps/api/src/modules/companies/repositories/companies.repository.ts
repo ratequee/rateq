@@ -98,19 +98,22 @@ export class CompaniesRepository {
   }
 
   findManyForAdminVerification(input: {
-    status?: CompanyVerificationStatus;
+    status?: CompanyVerificationStatus | 'profile_changes';
     page: number;
     limit: number;
   }) {
-    const where: Prisma.CompanyWhereInput = input.status
-      ? { verificationStatus: input.status }
-      : {};
+    const where: Prisma.CompanyWhereInput =
+      input.status === 'profile_changes'
+        ? { profileChangeStatus: 'PENDING', verificationStatus: 'APPROVED' }
+        : input.status
+          ? { verificationStatus: input.status as CompanyVerificationStatus }
+          : {};
 
     return this.prisma.company.findMany({
       where,
       skip: paginationSkip(input.page, input.limit),
       take: input.limit,
-      orderBy: { createdAt: 'desc' },
+      orderBy: input.status === 'profile_changes' ? { updatedAt: 'desc' } : { createdAt: 'desc' },
       include: {
         owner: { select: { id: true, email: true } },
         _count: { select: { pageViews: true } },
@@ -118,8 +121,15 @@ export class CompaniesRepository {
     });
   }
 
-  countForAdminVerification(status?: CompanyVerificationStatus): Promise<number> {
-    const where: Prisma.CompanyWhereInput = status ? { verificationStatus: status } : {};
+  countForAdminVerification(
+    status?: CompanyVerificationStatus | 'profile_changes',
+  ): Promise<number> {
+    const where: Prisma.CompanyWhereInput =
+      status === 'profile_changes'
+        ? { profileChangeStatus: 'PENDING', verificationStatus: 'APPROVED' }
+        : status
+          ? { verificationStatus: status as CompanyVerificationStatus }
+          : {};
     return this.prisma.company.count({ where });
   }
 

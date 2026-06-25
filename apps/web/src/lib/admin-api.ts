@@ -27,7 +27,7 @@ export const adminApi = {
     apiClient<{ allowed: boolean }>('/auth/firebase-admin-access', { token: await token() }),
 
   listCompanyVerifications: async (params: {
-    status?: 'pending' | 'approved' | 'rejected' | 'revision_requested';
+    status?: 'pending' | 'approved' | 'rejected' | 'revision_requested' | 'profile_changes';
     page?: number;
     limit?: number;
   }) => {
