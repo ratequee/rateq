@@ -68,7 +68,7 @@ export function ReviewReplyForm({
       onSubmit={handleSubmit}
       className="mt-4 space-y-3 rounded-xl border border-dashed border-brand-200 bg-white p-4 dark:border-slate-600 dark:bg-slate-900"
     >
-      <label className="block text-xs font-semibold uppercase tracking-wide text-brand-600">
+      <label className="block text-xs font-semibold uppercase tracking-wide text-brand-600 dark:text-brand-300">
         {t('writeReply')}
       </label>
       <textarea

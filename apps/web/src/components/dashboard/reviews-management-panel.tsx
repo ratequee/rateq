@@ -409,9 +409,9 @@ export function ReviewsManagementPanel({ mode, companyId }: ReviewsManagementPan
             <ReviewProofAttachments attachments={selectedReview.attachments} />
 
             {selectedReview.reply ? (
-              <div className="rounded-xl border border-default surface-muted p-4">
+              <div className="rounded-xl border border-brand-100 bg-brand-50/50 p-4 dark:border-brand-900/60 dark:bg-brand-950/30">
                 <div className="mb-2 flex items-center justify-between gap-2">
-                  <div className="flex items-center gap-2 text-sm font-semibold text-primary">
+                  <div className="flex items-center gap-2 text-sm font-semibold text-brand-700 dark:text-brand-300">
                     <MessageSquareText className="h-4 w-4" />
                     {t('companyReply')}
                   </div>
@@ -427,7 +427,7 @@ export function ReviewsManagementPanel({ mode, companyId }: ReviewsManagementPan
                     </Button>
                   ) : null}
                 </div>
-                <p className="whitespace-pre-wrap text-sm leading-7 text-secondary">
+                <p className="whitespace-pre-wrap text-sm leading-7 text-ink dark:text-slate-200">
                   {selectedReview.reply.content}
                 </p>
               </div>

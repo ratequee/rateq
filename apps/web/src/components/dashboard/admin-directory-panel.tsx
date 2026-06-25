@@ -25,10 +25,10 @@ import { toast } from 'sonner';
 type DirectoryTab = 'reviewers' | 'companies' | 'reviews';
 
 const reviewStatusStyles: Record<string, string> = {
-  PENDING: 'bg-amber-50 text-amber-700',
-  RESOLUTION_PENDING: 'bg-sky-50 text-sky-700',
-  APPROVED: 'bg-emerald-50 text-emerald-700',
-  REJECTED: 'bg-red-50 text-red-700',
+  PENDING: 'bg-amber-50 text-amber-700 dark:bg-amber-950/50 dark:text-amber-300',
+  RESOLUTION_PENDING: 'bg-sky-50 text-sky-700 dark:bg-sky-950/50 dark:text-sky-300',
+  APPROVED: 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-300',
+  REJECTED: 'bg-red-50 text-red-700 dark:bg-red-950/50 dark:text-red-400',
 };
 
 function EntityReviewsList({
@@ -83,9 +83,9 @@ function EntityReviewsList({
           </div>
           <p className="mt-2 line-clamp-3 text-sm text-secondary">{review.content}</p>
           {review.reply ? (
-            <div className="mt-3 rounded-lg bg-slate-50 p-3">
+            <div className="mt-3 rounded-lg border border-brand-100 bg-brand-50/50 p-3 dark:border-brand-900/60 dark:bg-brand-950/30">
               <div className="mb-1 flex items-center justify-between gap-2">
-                <span className="flex items-center gap-1 text-xs font-semibold text-primary">
+                <span className="flex items-center gap-1 text-xs font-semibold text-brand-700 dark:text-brand-300">
                   <MessageSquareText className="h-3.5 w-3.5" />
                   {tr('companyReply')}
                 </span>
@@ -99,7 +99,9 @@ function EntityReviewsList({
                   {tr('deleteReply')}
                 </Button>
               </div>
-              <p className="text-sm text-secondary">{review.reply.content}</p>
+              <p className="text-sm leading-relaxed text-ink dark:text-slate-200">
+                {review.reply.content}
+              </p>
             </div>
           ) : null}
           <div className="mt-3">

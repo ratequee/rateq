@@ -106,11 +106,13 @@ export function CompanyReviewCard({ review, company, onReviewUpdated }: CompanyR
         </div>
 
         {review.reply && (
-          <div className="mt-4 rounded-xl border border-brand-100 bg-brand-50/50 p-4">
-            <p className="text-xs font-semibold uppercase tracking-wide text-brand-600">
+          <div className="mt-4 rounded-xl border border-brand-100 bg-brand-50/50 p-4 dark:border-brand-900/60 dark:bg-brand-950/30">
+            <p className="text-xs font-semibold uppercase tracking-wide text-brand-600 dark:text-brand-300">
               {tp('companyReply')}
             </p>
-            <p className="mt-2 text-sm leading-relaxed text-ink">{review.reply.content}</p>
+            <p className="mt-2 text-sm leading-relaxed text-ink dark:text-slate-200">
+              {review.reply.content}
+            </p>
           </div>
         )}
 
