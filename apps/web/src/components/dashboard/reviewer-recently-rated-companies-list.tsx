@@ -18,12 +18,12 @@ export function ReviewerRecentlyRatedCompaniesList({
   const locale = useLocale();
 
   if (!companies.length) {
-    return <p className="text-sm text-ink-muted">{tr('noData')}</p>;
+    return <p className="text-sm text-secondary">{tr('noData')}</p>;
   }
 
   return (
     <div className="space-y-3">
-      <h3 className="text-lg font-bold text-ink">{t('recentlyRatedCompanies')}</h3>
+      <h3 className="text-lg font-bold text-primary">{t('recentlyRatedCompanies')}</h3>
       <div className="space-y-3">
         {companies.map((company) => {
           const reviewedAt = new Date(company.reviewedAt);
@@ -32,7 +32,7 @@ export function ReviewerRecentlyRatedCompaniesList({
             <Link
               key={`${company.id}-${company.reviewedAt}`}
               href={`/companies/${company.slug}`}
-              className="flex items-center justify-between gap-4 rounded-xl border border-slate-100 bg-white p-4 shadow-sm transition-colors hover:border-brand-100 hover:bg-brand-50/40"
+              className="flex items-center justify-between gap-4 rounded-xl surface-card border p-4 shadow-sm transition-colors hover:border-brand-100 hover:bg-brand-50/40 dark:hover:border-slate-600 dark:hover:bg-slate-800"
             >
               <div className="flex min-w-0 flex-1 items-center gap-3">
                 <AvatarImage
@@ -42,8 +42,8 @@ export function ReviewerRecentlyRatedCompaniesList({
                   className="h-14 w-14 shrink-0 shadow-md ring-1 ring-slate-100"
                 />
                 <div className="min-w-0 text-start">
-                  <p className="truncate font-semibold text-ink">{company.name}</p>
-                  <p className="text-sm text-ink-muted">
+                  <p className="truncate font-semibold text-primary">{company.name}</p>
+                  <p className="text-sm text-secondary">
                     {reviewedAt.toLocaleDateString(locale, {
                       month: 'short',
                       day: 'numeric',

@@ -1,5 +1,6 @@
 'use client';
 
+import { CategoryBilingualName } from '@/components/categories/category-bilingual-name';
 import { Link } from '@/i18n/routing';
 import { getCategoryLabel } from '@/lib/category-label';
 import { getCategoryIcon } from '@/lib/category-icons';
@@ -18,6 +19,7 @@ export function CategoryCard({ category, variant = 'default', className }: Categ
   const t = useTranslations('categories');
   const locale = useLocale();
   const label = getCategoryLabel(category, locale);
+  const descriptionName = label;
   const Icon = getCategoryIcon(category.slug);
   const href = `/categories/${category.slug}`;
   const count = category.companyCount ?? 0;
@@ -35,9 +37,13 @@ export function CategoryCard({ category, variant = 'default', className }: Categ
         <div className="flex h-16 w-16 items-center justify-center rounded-xl bg-gold-300 text-white">
           <Icon className="h-9 w-9" aria-hidden />
         </div>
-        <h3 className="mt-4 text-center text-sm font-semibold leading-snug text-primary dark:text-white">
-          {label}
-        </h3>
+        <CategoryBilingualName
+          nameEn={category.nameEn}
+          nameAr={category.nameAr}
+          className="mt-4 text-center"
+          primaryClassName="text-sm font-semibold leading-snug text-primary dark:text-white"
+          secondaryClassName="text-xs font-medium text-ink-muted dark:text-white/75"
+        />
         <p className="mt-1 text-xs text-ink-muted dark:text-white/85">
           {t('companyCount', { count })}
         </p>
@@ -58,17 +64,25 @@ export function CategoryCard({ category, variant = 'default', className }: Categ
           <div className="flex h-[80px] w-[80px] shrink-0 items-center justify-center rounded-2xl bg-brand-500 text-white">
             <Icon className="h-10 w-10" aria-hidden />
           </div>
-          <span className="rounded-full bg-gold-50 px-3 py-1 text-xs font-medium text-brand-600">
+          <span className="rounded-full bg-gold-50 px-3 py-1 text-xs font-medium text-brand-600 dark:bg-gold-500/20 dark:text-gold-300">
             {t('popularBadge')}
           </span>
         </div>
-        <h3 className="mt-5 text-lg font-semibold text-primary">{label}</h3>
-        <p className="mt-2 line-clamp-2 text-sm leading-relaxed text-secondary">
-          {t('categoryDescription', { name: label })}
+        <CategoryBilingualName
+          nameEn={category.nameEn}
+          nameAr={category.nameAr}
+          className="mt-5"
+          primaryClassName="text-lg font-semibold text-primary dark:text-white"
+          secondaryClassName="text-sm font-medium text-secondary dark:text-white/80"
+        />
+        <p className="mt-2 line-clamp-2 text-sm leading-relaxed text-secondary dark:text-white/80">
+          {t('categoryDescription', { name: descriptionName })}
         </p>
-        <div className="mt-5 flex items-center justify-between border-t border-subtle pt-4">
-          <span className="text-sm text-secondary">{t('companyCount', { count })}</span>
-          <span className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-brand-50 text-brand-500 transition-colors group-hover:bg-brand-500 group-hover:text-white">
+        <div className="mt-5 flex items-center justify-between border-t border-subtle pt-4 dark:border-slate-700">
+          <span className="text-sm text-secondary dark:text-white/80">
+            {t('companyCount', { count })}
+          </span>
+          <span className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-brand-50 text-brand-500 transition-colors group-hover:bg-brand-500 group-hover:text-white dark:bg-slate-700 dark:text-white dark:group-hover:bg-brand-500">
             <ArrowRight className="h-4 w-4 rtl:rotate-180" />
           </span>
         </div>
@@ -88,18 +102,24 @@ export function CategoryCard({ category, variant = 'default', className }: Categ
         <Icon className="h-11 w-11" aria-hidden />
       </div>
 
-      <h3 className="text-center text-lg font-bold text-primary">{label}</h3>
+      <CategoryBilingualName
+        nameEn={category.nameEn}
+        nameAr={category.nameAr}
+        className="text-center"
+        primaryClassName="text-lg font-bold text-primary dark:text-white"
+        secondaryClassName="text-sm font-medium text-secondary dark:text-white/80"
+      />
 
       {services.length > 0 ? (
         <ul className="mt-4 divide-y divide-slate-200 dark:divide-slate-700">
           {services.map((service) => (
-            <li key={service.id} className="py-3 text-sm text-secondary">
+            <li key={service.id} className="py-3 text-sm text-secondary dark:text-white/80">
               {service.name}
             </li>
           ))}
         </ul>
       ) : (
-        <p className="mt-4 border-t border-default py-3 text-center text-sm text-secondary">
+        <p className="mt-4 border-t border-default py-3 text-center text-sm text-secondary dark:text-white/80">
           {t('noServices')}
         </p>
       )}

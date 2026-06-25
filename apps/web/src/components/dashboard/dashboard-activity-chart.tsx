@@ -127,7 +127,7 @@ export function DashboardActivityChart({
   return (
     <div className={cn('space-y-4', className)}>
       <div className="relative">
-        <div className="pointer-events-none absolute inset-y-0 start-0 flex w-10 flex-col justify-between py-1 text-[10px] tabular-nums text-ink-muted sm:text-xs">
+        <div className="pointer-events-none absolute inset-y-0 start-0 flex w-10 flex-col justify-between py-1 text-[10px] tabular-nums text-secondary sm:text-xs">
           {yTicks.map((tick) => (
             <span key={tick}>{useCountAxis ? tick : `${tick}%`}</span>
           ))}
@@ -203,7 +203,7 @@ export function DashboardActivityChart({
           </svg>
 
           {!hasActivity && emptyLabel ? (
-            <p className="pointer-events-none absolute inset-0 flex items-center justify-center text-sm text-ink-muted">
+            <p className="pointer-events-none absolute inset-0 flex items-center justify-center text-sm text-secondary">
               {emptyLabel}
             </p>
           ) : null}
@@ -211,7 +211,7 @@ export function DashboardActivityChart({
       </div>
 
       <div
-        className="ms-10 grid gap-1 text-center text-[10px] text-ink-muted sm:text-xs"
+        className="ms-10 grid gap-1 text-center text-[10px] text-secondary sm:text-xs"
         style={{ gridTemplateColumns: `repeat(${Math.max(data.length, 1)}, minmax(0, 1fr))` }}
       >
         {data.map((point) => (
@@ -222,11 +222,11 @@ export function DashboardActivityChart({
       </div>
 
       <div className="flex flex-wrap items-center justify-center gap-3 pt-1">
-        <span className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs text-ink-muted shadow-sm">
+        <span className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs text-secondary shadow-sm dark:border-slate-700 dark:bg-slate-800">
           <span className="h-2.5 w-2.5 rounded-full bg-brand-500" aria-hidden />
           {companiesLabel}
         </span>
-        <span className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs text-ink-muted shadow-sm">
+        <span className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs text-secondary shadow-sm dark:border-slate-700 dark:bg-slate-800">
           <span className="h-2.5 w-2.5 rounded-full bg-gold-300" aria-hidden />
           {reviewersLabel}
         </span>
@@ -237,7 +237,7 @@ export function DashboardActivityChart({
 
 export function DashboardChartDailyFilter({ label }: { label: string }) {
   return (
-    <span className="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-medium text-ink-muted">
+    <span className="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-medium text-secondary">
       {label}
       <ChevronDown className="h-3.5 w-3.5" aria-hidden />
     </span>

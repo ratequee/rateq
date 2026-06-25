@@ -12,7 +12,6 @@ import { useProfile } from '@/components/providers/profile-provider';
 import { useRequireCompleteProfile } from '@/hooks/use-require-verified-auth';
 import { onboardingApi } from '@/lib/onboarding-api';
 import { fetchCategoriesClient } from '@/lib/categories-api';
-import { getCategoryLabel } from '@/lib/category-label';
 import { ApiError } from '@/lib/api';
 import { ensureValidAccessToken } from '@/lib/auth-session';
 import { isRemoteImage, isRemotePdf } from '@/lib/profile-company-assets';
@@ -149,30 +148,30 @@ export default function CompanyProfileSettingsPage() {
     <DashboardShell role="company">
       <div className="mx-auto max-w-2xl">
         <div className="mb-6">
-          <h1 className="text-2xl font-bold text-ink">{t('profileSettingsTitle')}</h1>
-          <p className="mt-1 text-sm text-ink-muted">{t('profileSettingsSubtitle')}</p>
+          <h1 className="text-2xl font-bold text-primary">{t('profileSettingsTitle')}</h1>
+          <p className="mt-1 text-sm text-secondary">{t('profileSettingsSubtitle')}</p>
           {company?.email && (
-            <p className="mt-2 text-sm text-ink-muted">
+            <p className="mt-2 text-sm text-secondary">
               {t('accountEmailLabel')}:{' '}
-              <span className="font-medium text-ink">{company.email}</span>
+              <span className="font-medium text-primary">{company.email}</span>
             </p>
           )}
         </div>
 
         {(registrationDetails.length > 0 || documents.length > 0) && (
-          <section className="mb-6 rounded-2xl border border-slate-100 bg-white p-6 shadow-sm">
-            <h2 className="text-lg font-semibold text-ink">{t('submittedDocumentsTitle')}</h2>
-            <p className="mt-1 text-sm text-ink-muted">{t('submittedDocumentsHint')}</p>
+          <section className="mb-6 rounded-2xl surface-card border p-6 shadow-sm">
+            <h2 className="text-lg font-semibold text-primary">{t('submittedDocumentsTitle')}</h2>
+            <p className="mt-1 text-sm text-secondary">{t('submittedDocumentsHint')}</p>
 
             {registrationDetails.length > 0 ? (
               <dl className="mt-4 grid gap-3 sm:grid-cols-2">
                 {registrationDetails.map(({ label, value }) => (
                   <div
                     key={label}
-                    className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3"
+                    className="rounded-xl border border-slate-200 bg-slate-50 dark:border-slate-700 dark:bg-slate-800 px-4 py-3"
                   >
-                    <dt className="text-xs font-medium text-ink-muted">{label}</dt>
-                    <dd className="mt-1 text-sm font-medium text-ink">{value}</dd>
+                    <dt className="text-xs font-medium text-secondary">{label}</dt>
+                    <dd className="mt-1 text-sm font-medium text-primary">{value}</dd>
                   </div>
                 ))}
               </dl>
@@ -194,7 +193,7 @@ export default function CompanyProfileSettingsPage() {
 
         <form
           onSubmit={handleSubmit}
-          className="mb-6 space-y-4 rounded-2xl border border-slate-100 bg-white p-6 shadow-sm"
+          className="mb-6 space-y-4 rounded-2xl surface-card border p-6 shadow-sm"
         >
           <Field label={t('companyName')} error={errors.companyName} required>
             <Input
@@ -225,12 +224,12 @@ export default function CompanyProfileSettingsPage() {
             <select
               value={categoryId}
               onChange={(e) => setCategoryId(e.target.value)}
-              className="h-11 w-full rounded-md border border-slate-200 bg-white px-3 text-sm outline-none focus:border-brand-500"
+              className="select-field h-11"
             >
               <option value="">{t('selectCategory')}</option>
               {categories.map((category) => (
                 <option key={category.id} value={category.id}>
-                  {getCategoryLabel(category, locale)}
+                  {category.nameEn} / {category.nameAr}
                 </option>
               ))}
             </select>
@@ -254,7 +253,7 @@ function DocumentPreviewCard({ label, url }: { label: string; url: string }) {
 
   return (
     <div className="overflow-hidden rounded-xl border border-slate-200">
-      <div className="border-b border-slate-100 bg-slate-50 px-3 py-2 text-xs font-medium text-ink">
+      <div className="border-b border-slate-100 bg-slate-50 px-3 py-2 text-xs font-medium text-primary dark:border-slate-700 dark:bg-slate-800">
         {label}
       </div>
       {isRemoteImage(url) ? (
@@ -292,7 +291,7 @@ function Field({
 }) {
   return (
     <div>
-      <label className="mb-1.5 block text-sm font-medium text-ink">
+      <label className="mb-1.5 block text-sm font-medium text-primary">
         {label}
         {required && <span className="text-red-500"> *</span>}
       </label>

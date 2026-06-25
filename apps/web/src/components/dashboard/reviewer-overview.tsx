@@ -78,8 +78,8 @@ export function ReviewerOverview({ title, dashboard }: ReviewerOverviewProps) {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-ink sm:text-3xl">{title}</h1>
-        <p className="mt-1 text-sm text-ink-muted">{t('overviewSubtitle')}</p>
+        <h1 className="text-2xl font-bold text-primary sm:text-3xl">{title}</h1>
+        <p className="mt-1 text-sm text-secondary">{t('overviewSubtitle')}</p>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
@@ -99,8 +99,8 @@ export function ReviewerOverview({ title, dashboard }: ReviewerOverviewProps) {
         <div className="rounded-2xl border border-subtle surface-card p-5 shadow-sm">
           <div className="mb-4 flex items-center justify-between gap-3">
             <div>
-              <h3 className="text-lg font-bold text-ink">{tr('activityTitle')}</h3>
-              <p className="mt-0.5 text-xs text-ink-muted">{tr('last7Days')}</p>
+              <h3 className="text-lg font-bold text-primary">{tr('activityTitle')}</h3>
+              <p className="mt-0.5 text-xs text-secondary">{tr('last7Days')}</p>
             </div>
           </div>
           <DashboardActivityChart

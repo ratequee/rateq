@@ -1,5 +1,5 @@
 import { CategoryBreadcrumb } from '@/components/categories/category-breadcrumb';
-import { getCategoryLabel } from '@/lib/category-label';
+import { CategoryBilingualName } from '@/components/categories/category-bilingual-name';
 import type { CategoryPublic } from '@rateq/types';
 import { getTranslations, getLocale } from 'next-intl/server';
 import type { JSX } from 'react';
@@ -13,7 +13,7 @@ export async function CategoryDetailHero({
 }: CategoryDetailHeroProps): Promise<JSX.Element> {
   const tc = await getTranslations('categories');
   const locale = await getLocale();
-  const label = getCategoryLabel(category, locale);
+  const label = locale === 'ar' ? category.nameAr : category.nameEn;
 
   return (
     <section
@@ -29,7 +29,13 @@ export async function CategoryDetailHero({
       <div className="relative mx-auto flex max-w-page flex-row flex-wrap items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
         <div className="grid items-center gap-8 lg:grid-cols-[1fr_auto] lg:gap-12">
           <div>
-            <h1 className="text-3xl font-bold text-white sm:text-4xl lg:text-5xl">{label}</h1>
+            <CategoryBilingualName
+              nameEn={category.nameEn}
+              nameAr={category.nameAr}
+              as="div"
+              primaryClassName="text-3xl font-bold text-white sm:text-4xl lg:text-5xl"
+              secondaryClassName="text-2xl font-semibold text-white/90 sm:text-3xl"
+            />
             <p className="mt-4 max-w-2xl text-base leading-relaxed text-white/90 sm:text-lg">
               {tc('categoryDescription', { name: label })}
             </p>

@@ -77,7 +77,7 @@ export function BlogContent({ content }: BlogContentProps) {
     .filter(Boolean);
 
   return (
-    <div className="prose prose-slate max-w-none text-ink-muted">
+    <div className="prose prose-slate max-w-none text-ink-muted dark:prose-invert dark:text-slate-300">
       {paragraphs.map((paragraph, index) => (
         <p key={index} className="mb-4 whitespace-pre-wrap leading-relaxed last:mb-0">
           {paragraph}

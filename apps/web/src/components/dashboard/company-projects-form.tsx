@@ -128,11 +128,11 @@ export function CompanyProjectsForm() {
   return (
     <form
       onSubmit={handleSubmit}
-      className="space-y-5 rounded-2xl border border-slate-100 bg-white p-6 shadow-sm"
+      className="space-y-5 rounded-2xl surface-card border p-6 shadow-sm"
     >
       <div>
-        <h2 className="text-lg font-semibold text-ink">{t('companyProjects')}</h2>
-        <p className="mt-1 text-sm text-ink-muted">{t('companyProjectsHint')}</p>
+        <h2 className="text-lg font-semibold text-primary">{t('companyProjects')}</h2>
+        <p className="mt-1 text-sm text-secondary">{t('companyProjectsHint')}</p>
       </div>
 
       <div>
@@ -143,7 +143,7 @@ export function CompanyProjectsForm() {
           </Button>
         </div>
         {projects.length === 0 ? (
-          <p className="text-sm text-ink-muted">{t('noProjectsYet')}</p>
+          <p className="text-sm text-secondary">{t('noProjectsYet')}</p>
         ) : (
           <div className="space-y-4">
             {projects.map((project, index) => (
@@ -223,7 +223,7 @@ function Field({
 }) {
   return (
     <div className={className}>
-      <label className="mb-1.5 block text-sm font-medium text-ink">
+      <label className="mb-1.5 block text-sm font-medium text-primary">
         {label}
         {required ? <span className="text-red-500"> *</span> : null}
       </label>

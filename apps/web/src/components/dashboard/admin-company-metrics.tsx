@@ -26,10 +26,10 @@ export function AdminCompanyMetrics({
         className,
       )}
     >
-      <p className={cn('font-medium text-ink', size === 'md' && 'text-base')}>
+      <p className={cn('font-medium text-primary', size === 'md' && 'text-base')}>
         {t('reviewCount', { count: reviewCount })}
       </p>
-      <p className="text-ink-muted">{t('pageVisitCount', { count: pageVisitCount })}</p>
+      <p className="text-secondary">{t('pageVisitCount', { count: pageVisitCount })}</p>
     </div>
   );
 }

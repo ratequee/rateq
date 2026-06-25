@@ -62,14 +62,14 @@ export function AdminProjectsPanel() {
         ))}
       </div>
 
-      <div className="overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-sm">
+      <div className="overflow-hidden rounded-2xl surface-card border shadow-sm">
         <div className="border-b border-slate-100 px-5 py-4">
-          <h2 className="text-lg font-bold text-ink">{t('tableTitle')}</h2>
-          <p className="mt-1 text-sm text-ink-muted">{t('tableSubtitle')}</p>
+          <h2 className="text-lg font-bold text-primary">{t('tableTitle')}</h2>
+          <p className="mt-1 text-sm text-secondary">{t('tableSubtitle')}</p>
         </div>
         <div className="overflow-x-auto">
           <table className="min-w-full text-sm">
-            <thead className="bg-slate-50 text-ink-muted">
+            <thead className="bg-slate-50 text-secondary">
               <tr>
                 <th className="px-5 py-3 text-start font-medium">{t('table.project')}</th>
                 <th className="px-5 py-3 text-start font-medium">{t('table.company')}</th>
@@ -88,11 +88,13 @@ export function AdminProjectsPanel() {
                         alt=""
                         className="h-12 w-16 rounded-lg object-cover"
                       />
-                      <span className="font-medium text-ink">{t(`rows.${project.id}.title`)}</span>
+                      <span className="font-medium text-primary">
+                        {t(`rows.${project.id}.title`)}
+                      </span>
                     </div>
                   </td>
-                  <td className="px-5 py-4 text-ink">{t(`rows.${project.id}.company`)}</td>
-                  <td className="px-5 py-4 text-ink-muted">{t(`rows.${project.id}.category`)}</td>
+                  <td className="px-5 py-4 text-primary">{t(`rows.${project.id}.company`)}</td>
+                  <td className="px-5 py-4 text-secondary">{t(`rows.${project.id}.category`)}</td>
                   <td className="px-5 py-4">
                     <span
                       className={cn(
@@ -103,7 +105,7 @@ export function AdminProjectsPanel() {
                       {t(`status.${project.status}`)}
                     </span>
                   </td>
-                  <td className="px-5 py-4 text-ink-muted">
+                  <td className="px-5 py-4 text-secondary">
                     {new Date(`${project.submittedAt}T00:00:00`).toLocaleDateString(locale, {
                       month: 'short',
                       day: 'numeric',

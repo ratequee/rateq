@@ -52,27 +52,29 @@ export default async function BlogDetailPage({
   const { translation } = post;
 
   return (
-    <article className="bg-white">
-      <div className="border-b border-slate-100 bg-slate-50/60 py-8 sm:py-10">
+    <article className="bg-white dark:bg-slate-950">
+      <div className="border-b border-slate-100 bg-slate-50/60 py-8 dark:border-slate-800 dark:bg-slate-900 sm:py-10">
         <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
           <Link
             href="/blog"
-            className="inline-flex items-center gap-2 text-sm font-medium text-brand-500 transition-colors hover:text-brand-600"
+            className="inline-flex items-center gap-2 text-sm font-medium text-brand-500 transition-colors hover:text-brand-600 dark:text-white dark:hover:text-white/85"
           >
             <ArrowLeft className="h-4 w-4 rtl:rotate-180" />
             {t('backToBlog')}
           </Link>
           <time
             dateTime={post.publishedAt ?? post.createdAt}
-            className="mt-6 block text-sm text-ink-light"
+            className="mt-6 block text-sm text-ink-light dark:text-white/75"
           >
             {formatBlogDate(post.publishedAt ?? post.createdAt, locale)}
           </time>
-          <h1 className="mt-3 text-3xl font-bold leading-tight text-ink sm:text-4xl">
+          <h1 className="mt-3 text-3xl font-bold leading-tight text-ink dark:text-white sm:text-4xl">
             {translation.title}
           </h1>
           {translation.excerpt ? (
-            <p className="mt-4 text-lg leading-relaxed text-ink-muted">{translation.excerpt}</p>
+            <p className="mt-4 text-lg leading-relaxed text-ink-muted dark:text-white/90">
+              {translation.excerpt}
+            </p>
           ) : null}
         </div>
       </div>

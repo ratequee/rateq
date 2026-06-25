@@ -47,7 +47,7 @@ function EntityReviewsList({
   const locale = useLocale();
 
   if (!reviews.length) {
-    return <p className="text-sm text-ink-muted">{t('noReviews')}</p>;
+    return <p className="text-sm text-secondary">{t('noReviews')}</p>;
   }
 
   return (
@@ -56,8 +56,8 @@ function EntityReviewsList({
         <div key={review.id} className="rounded-xl border border-slate-100 p-4">
           <div className="flex flex-wrap items-start justify-between gap-2">
             <div className="min-w-0">
-              <p className="font-medium text-ink">{review.title}</p>
-              <p className="mt-1 text-xs text-ink-muted">
+              <p className="font-medium text-primary">{review.title}</p>
+              <p className="mt-1 text-xs text-secondary">
                 {review.company?.name ?? tr('unknownCompany')} ·{' '}
                 {review.author?.displayName ?? tr('unknownReviewer')}
               </p>
@@ -73,7 +73,7 @@ function EntityReviewsList({
           </div>
           <div className="mt-2 flex items-center gap-2">
             <StarRating value={review.rating} size="sm" />
-            <span className="text-xs text-ink-muted">
+            <span className="text-xs text-secondary">
               {new Date(review.createdAt).toLocaleDateString(locale, {
                 month: 'short',
                 day: 'numeric',
@@ -81,11 +81,11 @@ function EntityReviewsList({
               })}
             </span>
           </div>
-          <p className="mt-2 line-clamp-3 text-sm text-ink-muted">{review.content}</p>
+          <p className="mt-2 line-clamp-3 text-sm text-secondary">{review.content}</p>
           {review.reply ? (
             <div className="mt-3 rounded-lg bg-slate-50 p-3">
               <div className="mb-1 flex items-center justify-between gap-2">
-                <span className="flex items-center gap-1 text-xs font-semibold text-ink">
+                <span className="flex items-center gap-1 text-xs font-semibold text-primary">
                   <MessageSquareText className="h-3.5 w-3.5" />
                   {tr('companyReply')}
                 </span>
@@ -99,7 +99,7 @@ function EntityReviewsList({
                   {tr('deleteReply')}
                 </Button>
               </div>
-              <p className="text-sm text-ink-muted">{review.reply.content}</p>
+              <p className="text-sm text-secondary">{review.reply.content}</p>
             </div>
           ) : null}
           <div className="mt-3">
@@ -356,7 +356,7 @@ export function AdminDirectoryPanel() {
               'inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-medium transition-colors',
               tab === id
                 ? 'bg-brand-500 text-white'
-                : 'border border-slate-200 bg-white text-ink-muted hover:bg-brand-50 hover:text-brand-600',
+                : 'border border-slate-200 bg-white text-secondary hover:bg-brand-50 hover:text-brand-600',
             )}
           >
             <Icon className="h-4 w-4" />
@@ -369,7 +369,7 @@ export function AdminDirectoryPanel() {
 
       {tab === 'reviewers' ? (
         <div className="grid gap-6 xl:grid-cols-[360px_1fr]">
-          <div className="rounded-2xl border border-slate-100 bg-white p-4 shadow-sm">
+          <div className="rounded-2xl surface-card border p-4 shadow-sm">
             <form
               className="mb-4 flex gap-2"
               onSubmit={(event) => {
@@ -405,18 +405,18 @@ export function AdminDirectoryPanel() {
                         : 'hover:bg-slate-50',
                     )}
                   >
-                    <span className="font-medium text-ink">
+                    <span className="font-medium text-primary">
                       {user.fullName ?? user.displayName ?? user.email}
                     </span>
-                    <span className="text-xs text-ink-muted">{user.email}</span>
-                    <span className="mt-1 text-xs text-ink-muted">
+                    <span className="text-xs text-secondary">{user.email}</span>
+                    <span className="mt-1 text-xs text-secondary">
                       {t('reviewCount', { count: user.reviewCount })}
                       {!user.isActive ? ` · ${t('inactive')}` : ''}
                     </span>
                   </button>
                 ))}
                 {!reviewers.length ? (
-                  <p className="py-8 text-center text-sm text-ink-muted">{t('emptyReviewers')}</p>
+                  <p className="py-8 text-center text-sm text-secondary">{t('emptyReviewers')}</p>
                 ) : null}
               </div>
             )}
@@ -431,7 +431,7 @@ export function AdminDirectoryPanel() {
                 >
                   {tr('previous')}
                 </Button>
-                <span className="text-xs text-ink-muted">
+                <span className="text-xs text-secondary">
                   {tr('pageOf', { page: reviewerPage, total: reviewerTotalPages })}
                 </span>
                 <Button
@@ -447,25 +447,25 @@ export function AdminDirectoryPanel() {
             ) : null}
           </div>
 
-          <div className="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm">
+          <div className="rounded-2xl surface-card border p-5 shadow-sm">
             {detailLoading ? (
               <div className="flex justify-center py-16">
                 <Loader2 className="h-6 w-6 animate-spin text-brand-500" />
               </div>
             ) : !reviewerDetail ? (
-              <p className="py-16 text-center text-sm text-ink-muted">{t('selectReviewer')}</p>
+              <p className="py-16 text-center text-sm text-secondary">{t('selectReviewer')}</p>
             ) : (
               <div className="space-y-5">
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div>
-                    <h3 className="text-xl font-bold text-ink">
+                    <h3 className="text-xl font-bold text-primary">
                       {reviewerDetail.fullName ??
                         reviewerDetail.displayName ??
                         reviewerDetail.email}
                     </h3>
-                    <p className="mt-1 text-sm text-ink-muted">{reviewerDetail.email}</p>
+                    <p className="mt-1 text-sm text-secondary">{reviewerDetail.email}</p>
                     {reviewerDetail.city || reviewerDetail.country ? (
-                      <p className="text-sm text-ink-muted">
+                      <p className="text-sm text-secondary">
                         {[reviewerDetail.city, reviewerDetail.country].filter(Boolean).join(', ')}
                       </p>
                     ) : null}
@@ -500,7 +500,9 @@ export function AdminDirectoryPanel() {
                   </Button>
                 </div>
                 <div>
-                  <h4 className="mb-3 text-sm font-semibold text-ink">{t('reviewsAndReplies')}</h4>
+                  <h4 className="mb-3 text-sm font-semibold text-primary">
+                    {t('reviewsAndReplies')}
+                  </h4>
                   <EntityReviewsList
                     reviews={reviewerDetail.reviews}
                     acting={acting}
@@ -516,7 +518,7 @@ export function AdminDirectoryPanel() {
 
       {tab === 'companies' ? (
         <div className="grid gap-6 xl:grid-cols-[360px_1fr]">
-          <div className="rounded-2xl border border-slate-100 bg-white p-4 shadow-sm">
+          <div className="rounded-2xl surface-card border p-4 shadow-sm">
             <form
               className="mb-4 flex gap-2"
               onSubmit={(event) => {
@@ -554,8 +556,8 @@ export function AdminDirectoryPanel() {
                   >
                     <div className="flex items-start justify-between gap-3">
                       <div className="min-w-0">
-                        <span className="font-medium text-ink">{company.name}</span>
-                        <span className="mt-0.5 block text-xs text-ink-muted">
+                        <span className="font-medium text-primary">{company.name}</span>
+                        <span className="mt-0.5 block text-xs text-secondary">
                           {company.city}, {company.country}
                         </span>
                       </div>
@@ -564,13 +566,13 @@ export function AdminDirectoryPanel() {
                         pageVisitCount={company.pageVisitCount}
                       />
                     </div>
-                    <span className="mt-2 block text-xs text-ink-muted">
+                    <span className="mt-2 block text-xs text-secondary">
                       {tc(`status.${company.verificationStatus}`)}
                     </span>
                   </button>
                 ))}
                 {!companies.length ? (
-                  <p className="py-8 text-center text-sm text-ink-muted">{t('emptyCompanies')}</p>
+                  <p className="py-8 text-center text-sm text-secondary">{t('emptyCompanies')}</p>
                 ) : null}
               </div>
             )}
@@ -585,7 +587,7 @@ export function AdminDirectoryPanel() {
                 >
                   {tr('previous')}
                 </Button>
-                <span className="text-xs text-ink-muted">
+                <span className="text-xs text-secondary">
                   {tr('pageOf', { page: companyPage, total: companyTotalPages })}
                 </span>
                 <Button
@@ -601,27 +603,27 @@ export function AdminDirectoryPanel() {
             ) : null}
           </div>
 
-          <div className="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm">
+          <div className="rounded-2xl surface-card border p-5 shadow-sm">
             {detailLoading ? (
               <div className="flex justify-center py-16">
                 <Loader2 className="h-6 w-6 animate-spin text-brand-500" />
               </div>
             ) : !companyDetail ? (
-              <p className="py-16 text-center text-sm text-ink-muted">{t('selectCompany')}</p>
+              <p className="py-16 text-center text-sm text-secondary">{t('selectCompany')}</p>
             ) : (
               <div className="space-y-5">
                 <div className="flex items-start justify-between gap-4">
                   <div>
-                    <h3 className="text-xl font-bold text-ink">{companyDetail.name}</h3>
-                    <p className="mt-1 text-sm text-ink-muted">
+                    <h3 className="text-xl font-bold text-primary">{companyDetail.name}</h3>
+                    <p className="mt-1 text-sm text-secondary">
                       {companyDetail.city}, {companyDetail.country}
                     </p>
                     {companyDetail.ownerEmail ? (
-                      <p className="text-sm text-ink-muted">
+                      <p className="text-sm text-secondary">
                         {t('ownerEmail', { email: companyDetail.ownerEmail })}
                       </p>
                     ) : null}
-                    <p className="mt-1 text-sm text-ink-muted">
+                    <p className="mt-1 text-sm text-secondary">
                       {t('verificationStatus', {
                         status: tc(`status.${companyDetail.verificationStatus}`),
                       })}
@@ -661,7 +663,9 @@ export function AdminDirectoryPanel() {
                   </Button>
                 </div>
                 <div>
-                  <h4 className="mb-3 text-sm font-semibold text-ink">{t('reviewsAndReplies')}</h4>
+                  <h4 className="mb-3 text-sm font-semibold text-primary">
+                    {t('reviewsAndReplies')}
+                  </h4>
                   <EntityReviewsList
                     reviews={companyDetail.reviews}
                     acting={acting}

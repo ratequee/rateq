@@ -118,18 +118,19 @@ export default function ReviewerProfileSettingsPage() {
     <DashboardShell role="reviewer">
       <div className="mx-auto max-w-2xl">
         <div className="mb-6">
-          <h1 className="text-2xl font-bold text-ink">{t('profileSettingsTitle')}</h1>
-          <p className="mt-1 text-sm text-ink-muted">{t('profileSettingsSubtitle')}</p>
+          <h1 className="text-2xl font-bold text-primary">{t('profileSettingsTitle')}</h1>
+          <p className="mt-1 text-sm text-secondary">{t('profileSettingsSubtitle')}</p>
           {user?.email && (
-            <p className="mt-2 text-sm text-ink-muted">
-              {t('accountEmailLabel')}: <span className="font-medium text-ink">{user.email}</span>
+            <p className="mt-2 text-sm text-secondary">
+              {t('accountEmailLabel')}:{' '}
+              <span className="font-medium text-primary">{user.email}</span>
             </p>
           )}
         </div>
 
         <form
           onSubmit={handleSubmit}
-          className="space-y-4 rounded-2xl border border-slate-100 bg-white p-6 shadow-sm"
+          className="space-y-4 rounded-2xl surface-card border p-6 shadow-sm"
         >
           <Field label={t('fullName')} error={errors.fullName} required>
             <Input
@@ -159,7 +160,7 @@ export default function ReviewerProfileSettingsPage() {
               onChange={(e) => setBio(e.target.value)}
               rows={3}
               maxLength={500}
-              className="w-full rounded-md border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500"
+              className="textarea-field"
             />
           </Field>
           <Field label={t('profileImage')} error={errors.avatar} required>
@@ -196,11 +197,11 @@ function Field({
 }) {
   return (
     <div>
-      <label className="mb-1.5 block text-sm font-medium text-ink">
+      <label className="mb-1.5 block text-sm font-medium text-primary">
         {label}
         {required && <span className="text-red-500"> *</span>}
         {optionalLabel && (
-          <span className="ms-1 font-normal text-ink-muted">({optionalLabel})</span>
+          <span className="ms-1 font-normal text-secondary">({optionalLabel})</span>
         )}
       </label>
       {children}

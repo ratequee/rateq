@@ -20,19 +20,21 @@ export async function CategoryCompaniesSection({
   const rest = companies.slice(3);
 
   return (
-    <section className="py-12 sm:py-16 lg:py-20">
+    <section className="py-12 dark:bg-slate-950 sm:py-16 lg:py-20">
       <div className="mx-auto max-w-page px-4 sm:px-6 lg:px-8">
         <div className="mb-8 flex flex-wrap items-end justify-between gap-4">
           <div>
-            <h2 className="text-2xl font-bold text-ink sm:text-3xl">{t('companiesTitle')}</h2>
-            <p className="mt-2 text-sm text-ink-muted sm:text-base">
+            <h2 className="text-2xl font-bold text-ink dark:text-white sm:text-3xl">
+              {t('companiesTitle')}
+            </h2>
+            <p className="mt-2 text-sm text-ink-muted dark:text-white/85 sm:text-base">
               {t('companiesSubtitle', { count: total })}
             </p>
           </div>
         </div>
 
         {companies.length === 0 ? (
-          <p className="py-16 text-center text-ink-muted">{tc('noResults')}</p>
+          <p className="py-16 text-center text-ink-muted dark:text-white/85">{tc('noResults')}</p>
         ) : (
           <>
             {featured.length > 0 && (

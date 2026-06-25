@@ -71,14 +71,14 @@ export function AdminPaymentsPanel() {
         ))}
       </div>
 
-      <div className="overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-sm">
+      <div className="overflow-hidden rounded-2xl surface-card border shadow-sm">
         <div className="border-b border-slate-100 px-5 py-4">
-          <h2 className="text-lg font-bold text-ink">{t('tableTitle')}</h2>
-          <p className="mt-1 text-sm text-ink-muted">{t('tableSubtitle')}</p>
+          <h2 className="text-lg font-bold text-primary">{t('tableTitle')}</h2>
+          <p className="mt-1 text-sm text-secondary">{t('tableSubtitle')}</p>
         </div>
         <div className="overflow-x-auto">
           <table className="min-w-full text-sm">
-            <thead className="bg-slate-50 text-ink-muted">
+            <thead className="bg-slate-50 text-secondary">
               <tr>
                 <th className="px-5 py-3 text-start font-medium">{t('table.reference')}</th>
                 <th className="px-5 py-3 text-start font-medium">{t('table.payer')}</th>
@@ -91,10 +91,10 @@ export function AdminPaymentsPanel() {
             <tbody>
               {ADMIN_PAYMENT_ROWS.map((payment) => (
                 <tr key={payment.id} className="border-t border-slate-100">
-                  <td className="px-5 py-4 font-medium text-ink">{payment.reference}</td>
-                  <td className="px-5 py-4 text-ink">{t(`rows.${payment.id}.payer`)}</td>
-                  <td className="px-5 py-4 text-ink-muted">{t(`rows.${payment.id}.plan`)}</td>
-                  <td className="px-5 py-4 font-medium text-ink">
+                  <td className="px-5 py-4 font-medium text-primary">{payment.reference}</td>
+                  <td className="px-5 py-4 text-primary">{t(`rows.${payment.id}.payer`)}</td>
+                  <td className="px-5 py-4 text-secondary">{t(`rows.${payment.id}.plan`)}</td>
+                  <td className="px-5 py-4 font-medium text-primary">
                     {formatQar(payment.amountQar, locale)}
                   </td>
                   <td className="px-5 py-4">
@@ -107,7 +107,7 @@ export function AdminPaymentsPanel() {
                       {t(`status.${payment.status}`)}
                     </span>
                   </td>
-                  <td className="px-5 py-4 text-ink-muted">
+                  <td className="px-5 py-4 text-secondary">
                     {new Date(payment.paidAt).toLocaleDateString(locale, {
                       month: 'short',
                       day: 'numeric',

@@ -120,7 +120,7 @@ export async function HeroSection({
 
           <div className="relative mx-auto w-full max-w-full md:mx-[10px] lg:mx-0 lg:max-w-none lg:justify-self-end">
             {miniReview ? (
-              <div className="absolute -start-[-10px] lg:-start-10 top-2 z-10 max-w-[350px] rounded-xl border border-slate-100 bg-white p-3 shadow-card sm:block lg:-end-8 lg:top-8">
+              <div className="absolute -start-[-10px] top-2 z-10 max-w-[350px] rounded-xl border border-slate-100 bg-white p-3 shadow-card dark:border-slate-700 dark:bg-slate-800 dark:shadow-xl sm:block lg:-start-10 lg:-end-8 lg:top-8">
                 <div className="flex items-start gap-3">
                   {miniReview.author?.avatarUrl ? (
                     <img
@@ -139,17 +139,17 @@ export async function HeroSection({
                   )}
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center justify-between gap-2">
-                      <p className="truncate text-sm font-semibold text-ink">
+                      <p className="truncate text-sm font-semibold text-ink dark:text-white">
                         {miniReview.author?.displayName ?? t('miniReviewAuthor')}
                       </p>
-                      <span className="shrink-0 text-xs text-ink-light">
+                      <span className="shrink-0 text-xs text-ink-light dark:text-white/70">
                         {formatReviewTimeAgo(miniReview.createdAt, locale)}
                       </span>
                     </div>
                     <div className="mt-1 flex items-center gap-2">
                       <StarRating value={miniReview.rating} size="sm" />
                     </div>
-                    <p className="mt-2 line-clamp-3 text-xs leading-relaxed text-ink-muted">
+                    <p className="mt-2 line-clamp-3 text-xs leading-relaxed text-ink-muted dark:text-white/85">
                       {miniReview.content}
                     </p>
                   </div>
@@ -158,7 +158,7 @@ export async function HeroSection({
             ) : null}
 
             {featuredCompany ? (
-              <div className="overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-hero">
+              <div className="overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-hero dark:border-slate-700 dark:bg-slate-800 dark:shadow-xl">
                 <div
                   className="h-40 bg-gradient-to-br from-brand-500 to-brand-700 sm:h-48"
                   style={{
@@ -179,22 +179,22 @@ export async function HeroSection({
                           alt={featuredCompany.name}
                           width={120}
                           height={120}
-                          className="mt-[-50px] h-[120px] w-[120px] rounded-full border-4 border-white object-cover"
+                          className="mt-[-50px] h-[120px] w-[120px] rounded-full border-4 border-white object-cover dark:border-slate-700"
                         />
                       ) : (
                         <AvatarImage
                           src={null}
                           name={featuredCompany.name}
-                          className="mt-[-50px] h-[120px] w-[120px] border-4 border-white text-3xl"
+                          className="mt-[-50px] h-[120px] w-[120px] border-4 border-white text-3xl dark:border-slate-700"
                         />
                       )}
                       <div className="flex flex-col items-start">
                         <Link href={`/companies/${featuredCompany.slug}`}>
-                          <p className="text-lg font-semibold text-ink text-left hover:text-brand-500">
+                          <p className="text-left text-lg font-semibold text-ink hover:text-brand-500 dark:text-white dark:hover:text-white/90">
                             {featuredCompany.name}
                           </p>
                         </Link>
-                        <p className="mt-1 text-sm text-ink-muted text-left">
+                        <p className="mt-1 text-left text-sm text-ink-muted dark:text-white/80">
                           {getLocalizedCategoryName(featuredCompany, locale) ??
                             t('featuredReviewRole')}
                         </p>
@@ -205,23 +205,23 @@ export async function HeroSection({
                     </Badge>
                   </div>
                   {featuredCompany.description ? (
-                    <p className="mt-4 text-md leading-relaxed text-ink-muted line-clamp-3">
+                    <p className="text-md mt-4 line-clamp-3 leading-relaxed text-ink-muted dark:text-white/85">
                       {featuredCompany.description}
                     </p>
                   ) : null}
-                  <div className="mt-5 flex flex-wrap items-end gap-3 border-t border-slate-100 pt-5">
-                    <span className="text-5xl font-bold text-ink">
+                  <div className="mt-5 flex flex-wrap items-end gap-3 border-t border-slate-100 pt-5 dark:border-slate-700">
+                    <span className="text-5xl font-bold text-ink dark:text-white">
                       {featuredCompany.ratingAverage.toFixed(1)}
                     </span>
                     <StarRating value={featuredCompany.ratingAverage} size="lg" />
-                    <span className="text-sm text-ink-muted">
+                    <span className="text-sm text-ink-muted dark:text-white/80">
                       ({featuredCompany.reviewCount.toLocaleString(locale)} {t('statReviews')})
                     </span>
                   </div>
                 </div>
               </div>
             ) : (
-              <div className="overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-hero p-8 text-center text-ink-muted">
+              <div className="overflow-hidden rounded-2xl border border-slate-100 bg-white p-8 text-center text-ink-muted shadow-hero dark:border-slate-700 dark:bg-slate-800 dark:text-white/85 dark:shadow-xl">
                 {t('exploreCompanies')}
               </div>
             )}
