@@ -25,7 +25,7 @@ export function FeaturedCompanyCard({ company }: FeaturedCompanyCardProps) {
   return (
     <Link
       href={`/companies/${company.slug}`}
-      className="group flex h-full flex-col overflow-hidden rounded-2xl border border-subtle bg-white shadow-sm transition-shadow hover:shadow-card dark:bg-slate-900"
+      className="group flex h-full flex-col overflow-hidden rounded-2xl border border-subtle bg-white shadow-sm transition-shadow hover:shadow-card dark:border-slate-700 dark:bg-slate-800"
       aria-label={t('viewCompany', { name: company.name })}
     >
       <div className="relative h-44 shrink-0 overflow-hidden sm:h-48">
@@ -73,23 +73,23 @@ export function FeaturedCompanyCard({ company }: FeaturedCompanyCardProps) {
             </div>
           )}
           <div className="flex flex-col">
-            <h3 className="text-lg font-semibold text-ink transition-colors group-hover:text-brand-500">
+            <h3 className="text-lg font-semibold text-ink transition-colors group-hover:text-brand-500 dark:text-white dark:group-hover:text-white/90">
               {company.name}
             </h3>
-            <p className="mt-0.5 text-sm text-ink-muted">
+            <p className="mt-0.5 text-sm text-ink-muted dark:text-white/85">
               {company.city}, {company.country}
             </p>
           </div>
         </div>
-        <div className="mt-4 border-t-2 border-slate-100 pt-4">
+        <div className="mt-4 border-t-2 border-slate-100 pt-4 dark:border-slate-700">
           <div className="flex items-center justify-between gap-3">
             <div className="flex items-center gap-2">
-              <span className="text-2xl font-bold text-ink">
+              <span className="text-2xl font-bold text-ink dark:text-white">
                 {company.ratingAverage.toFixed(1)}
               </span>
               <StarRating value={company.ratingAverage} size="sm" />
             </div>
-            <span className="text-xs text-ink-muted sm:text-sm">
+            <span className="text-xs text-ink-muted dark:text-white/85 sm:text-sm">
               ({company.reviewCount.toLocaleString()} {t('reviewsLabel')})
             </span>
             <span className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-gold-300 text-white transition-colors group-hover:bg-gold-600">

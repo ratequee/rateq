@@ -16,7 +16,7 @@ export function HeroForUsersButton() {
         <Button
           variant="outline-brand"
           size="lg"
-          className="min-w-[140px] border-0 shadow-lg text-brand-500 sm:min-w-[50%]"
+          className="min-w-[140px] border-0 shadow-lg text-brand-500 dark:border dark:border-white/35 dark:bg-white/10 dark:text-white dark:shadow-none dark:hover:bg-white/20 sm:min-w-[50%]"
         >
           {t('forUsers')}
         </Button>
@@ -36,7 +36,7 @@ export function HeroForUsersButton() {
       <Button
         variant="outline-brand"
         size="lg"
-        className="min-w-[140px] border-0 shadow-lg text-brand-500 sm:min-w-[50%]"
+        className="min-w-[140px] border-0 shadow-lg text-brand-500 dark:border dark:border-white/35 dark:bg-white/10 dark:text-white dark:shadow-none dark:hover:bg-white/20 sm:min-w-[50%]"
       >
         {t('forUsers')}
       </Button>

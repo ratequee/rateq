@@ -114,15 +114,22 @@ export default function RegisterPage() {
         <div className="flex flex-col items-center justify-between">
           <div className="mb-4">
             <Link href="/">
-              <Logo variant="default" />
+              <Logo variant="auto" />
             </Link>
           </div>
-          <h2 className="text-2xl font-bold text-ink sm:text-2xl">{t('registerTitle')}</h2>
-          <p className="mt-2 text-sm text-ink-muted sm:text-center">{tp('registerSubtitle')}</p>
+          <h2 className="text-2xl font-bold text-ink dark:text-white sm:text-2xl">
+            {t('registerTitle')}
+          </h2>
+          <p className="mt-2 text-sm text-ink-muted dark:text-white/85 sm:text-center">
+            {tp('registerSubtitle')}
+          </p>
         </div>
         <form onSubmit={handleSubmit} className="mt-8 space-y-5">
           <div>
-            <label htmlFor="name" className="mb-1.5 block text-sm font-medium text-ink">
+            <label
+              htmlFor="name"
+              className="mb-1.5 block text-sm font-medium text-ink dark:text-white"
+            >
               {t('name')}
             </label>
             <Input
@@ -134,13 +141,16 @@ export default function RegisterPage() {
               onBlur={() => setName((prev) => prev.trim())}
               placeholder={tp('namePlaceholder')}
               required
-              className="h-11"
+              className="h-11 dark:border-slate-700 dark:bg-slate-800"
               aria-invalid={Boolean(fieldErrors.name)}
             />
             {fieldErrors.name && <p className="mt-1 text-sm text-red-600">{fieldErrors.name}</p>}
           </div>
           <div>
-            <label htmlFor="email" className="mb-1.5 block text-sm font-medium text-ink">
+            <label
+              htmlFor="email"
+              className="mb-1.5 block text-sm font-medium text-ink dark:text-white"
+            >
               {t('email')}
             </label>
             <Input
@@ -151,7 +161,7 @@ export default function RegisterPage() {
               onChange={(e) => setEmail(sanitizeEmail(e.target.value))}
               placeholder={tp('emailPlaceholder')}
               required
-              className="h-11"
+              className="h-11 dark:border-slate-700 dark:bg-slate-800"
               aria-invalid={Boolean(fieldErrors.email)}
             />
             {fieldErrors.email && <p className="mt-1 text-sm text-red-600">{fieldErrors.email}</p>}
@@ -159,7 +169,7 @@ export default function RegisterPage() {
 
           <div>
             <div className="mb-1.5 flex items-center justify-between gap-2">
-              <label htmlFor="password" className="text-sm font-medium text-ink">
+              <label htmlFor="password" className="text-sm font-medium text-ink dark:text-white">
                 {t('password')}
               </label>
             </div>
@@ -172,13 +182,13 @@ export default function RegisterPage() {
                 onChange={(e) => setPassword(sanitizePassword(e.target.value))}
                 placeholder={tp('passwordPlaceholder')}
                 required
-                className="h-11 pe-10"
+                className="h-11 pe-10 dark:border-slate-700 dark:bg-slate-800"
                 aria-invalid={Boolean(fieldErrors.password)}
               />
               <button
                 type="button"
                 onClick={() => setShowPassword((prev) => !prev)}
-                className="absolute end-3 top-1/2 -translate-y-1/2 text-ink-muted transition-colors hover:text-ink"
+                className="absolute end-3 top-1/2 -translate-y-1/2 text-ink-muted transition-colors hover:text-ink dark:text-white/70 dark:hover:text-white"
                 aria-label={showPassword ? tp('hidePassword') : tp('showPassword')}
               >
                 {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
@@ -187,7 +197,7 @@ export default function RegisterPage() {
             {fieldErrors.password && (
               <p className="mt-1 text-sm text-red-600">{fieldErrors.password}</p>
             )}
-            <p className="mt-1 text-xs text-ink-muted">{tp('passwordHint')}</p>
+            <p className="mt-1 text-xs text-ink-muted dark:text-white/75">{tp('passwordHint')}</p>
           </div>
           <Button
             type="submit"
@@ -200,21 +210,23 @@ export default function RegisterPage() {
           </Button>
         </form>
 
-        <p className="mt-4 text-center text-sm text-ink-muted">
+        <p className="mt-4 text-center text-sm text-ink-muted dark:text-white/85">
           {t('hasAccount')}{' '}
           <Link
             href="/login"
-            className="font-semibold text-brand-500 hover:text-brand-600 hover:underline"
+            className="font-semibold text-brand-500 hover:text-brand-600 hover:underline dark:text-white dark:hover:text-white/85"
           >
             {tn('login')}
           </Link>
         </p>
         <div className="relative my-8">
           <div className="absolute inset-0 flex items-center">
-            <div className="w-full border-t border-slate-200" />
+            <div className="w-full border-t border-slate-200 dark:border-slate-700" />
           </div>
           <div className="relative flex justify-center text-xs uppercase">
-            <span className="bg-white px-3 text-ink-muted">{tp('orContinue')}</span>
+            <span className="bg-white px-3 text-ink-muted dark:bg-slate-900 dark:text-white/75">
+              {tp('orContinue')}
+            </span>
           </div>
         </div>
         <div className="flex items-center justify-center gap-6">

@@ -47,7 +47,7 @@ export async function HeroSection({
 
   return (
     <section
-      className="relative overflow-hidden bg-gradient-to-b from-white via-white to-slate-50/80 pb-12 pt-6 sm:pb-30 sm:pt-8 lg:pb-50"
+      className="relative overflow-hidden bg-gradient-to-b from-white via-white to-slate-50/80 pb-12 pt-6 dark:from-slate-950 dark:via-slate-950 dark:to-slate-900 sm:pb-30 sm:pt-8 lg:pb-50"
       style={{
         backgroundImage: 'url(/images/herobg.svg)',
         backgroundSize: 'cover',
@@ -56,26 +56,32 @@ export async function HeroSection({
         paddingBottom: '200px',
       }}
     >
-      <div className="mx-auto max-w-page px-4 sm:px-6 lg:px-8">
+      <div
+        className="pointer-events-none absolute inset-0 hidden bg-slate-950/80 dark:block"
+        aria-hidden
+      />
+      <div className="relative mx-auto max-w-page px-4 sm:px-6 lg:px-8">
         <div className="grid items-center gap-10 lg:grid-cols-2 lg:gap-12">
           <div className="max-w-full">
             <div className="flex flex-col justify-center md:justify-start items-center md:items-start">
-              <h1 className="text-center md:text-left text-3xl font-bold leading-tight tracking-tight text-ink sm:text-4xl md:text-5xl md:leading-[1.1]">
+              <h1 className="text-center text-3xl font-bold leading-tight tracking-tight text-ink dark:text-white md:text-left sm:text-4xl md:text-5xl md:leading-[1.1]">
                 {t('heroTitlePrefix')}{' '}
-                <span className="uppercase text-gold-300">{t('heroTitleHighlight')}</span>{' '}
+                <span className="uppercase text-gold-300 dark:text-gold-400">
+                  {t('heroTitleHighlight')}
+                </span>{' '}
                 <hr className="w-full border-0" />
                 {t('heroTitleSuffix')}
               </h1>
-              <p className="mt-4 lg:text-base text-center text-ink-muted sm:text-lg">
+              <p className="mt-4 text-center text-ink-muted dark:text-white/90 sm:text-lg lg:text-base">
                 {t('heroSubtitle')}
               </p>
             </div>
             <form action={`/${locale}/search`} className="mt-8">
-              <div className="relative flex items-center rounded-xl border border-slate-200 bg-white shadow-sm focus-within:border-brand-500 focus-within:ring-2 focus-within:ring-brand-500/20">
+              <div className="relative flex items-center rounded-xl border border-slate-200 bg-white shadow-sm focus-within:border-brand-500 focus-within:ring-2 focus-within:ring-brand-500/20 dark:border-slate-600 dark:bg-slate-900/90 dark:focus-within:border-brand-400">
                 <Input
                   name="query"
                   placeholder={t('searchPlaceholder')}
-                  className="h-14 flex-1 border-0 bg-transparent ps-5 text-base shadow-none focus-visible:ring-0"
+                  className="h-14 flex-1 border-0 bg-transparent ps-5 text-base text-ink shadow-none focus-visible:ring-0 dark:text-white dark:placeholder:text-white/60"
                   required
                 />
                 <Button
@@ -103,7 +109,7 @@ export async function HeroSection({
               {trustBadges.map(({ icon: IconComponent, label }) => (
                 <li
                   key={label}
-                  className="flex justify-center items-center gap-2 rounded-lg border-0 shadow-lg bg-white p-4 text-sm font-medium text-ink"
+                  className="flex items-center justify-center gap-2 rounded-lg border-0 bg-white p-4 text-sm font-medium text-ink shadow-lg dark:bg-slate-800/90 dark:text-white"
                 >
                   {IconComponent}
                   {label}

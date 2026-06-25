@@ -23,7 +23,7 @@ export function CategoryCarousel({ categories }: CategoryCarouselProps) {
   };
 
   return (
-    <section className="mt-[50px] py-12 sm:py-16 lg:py-20">
+    <section className="mt-[50px] py-12 dark:bg-slate-900 sm:py-16 lg:py-20">
       <div className="mx-auto max-w-page px-4 sm:px-6 lg:px-8">
         <SectionHeader
           title={t('categoriesTitle')}
@@ -41,7 +41,9 @@ export function CategoryCarousel({ categories }: CategoryCarouselProps) {
         />
 
         {categories.length === 0 ? (
-          <p className="py-8 text-center text-sm text-ink-muted">{t('noCategories')}</p>
+          <p className="py-8 text-center text-sm text-ink-muted dark:text-white/85">
+            {t('noCategories')}
+          </p>
         ) : (
           <div
             ref={scrollRef}

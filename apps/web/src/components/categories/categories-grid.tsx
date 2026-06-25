@@ -31,19 +31,21 @@ export function CategoriesGrid({
   });
 
   return (
-    <section className="py-12 sm:py-16 lg:py-20">
+    <section className="py-12 dark:bg-slate-950 sm:py-16 lg:py-20">
       <div className="mx-auto max-w-page px-4 sm:px-6 lg:px-8">
         <div className="mb-8 flex flex-wrap items-end justify-between gap-4">
           <div>
-            <h2 className="text-2xl font-bold text-ink sm:text-3xl">{t('allCategoriesTitle')}</h2>
+            <h2 className="text-2xl font-bold text-ink dark:text-white sm:text-3xl">
+              {t('allCategoriesTitle')}
+            </h2>
           </div>
-          <p className="text-sm font-medium text-ink-muted">
+          <p className="text-sm font-medium text-ink-muted dark:text-white/85">
             {t('resultsCount', { count: filtered.length })}
           </p>
         </div>
 
         {filtered.length === 0 ? (
-          <p className="py-16 text-center text-ink-muted">{t('noResults')}</p>
+          <p className="py-16 text-center text-ink-muted dark:text-white/85">{t('noResults')}</p>
         ) : (
           <div className="grid grid-cols-2 gap-x-4 gap-y-12 sm:grid-cols-3 lg:grid-cols-4 lg:gap-x-6">
             {filtered.map((category) => (

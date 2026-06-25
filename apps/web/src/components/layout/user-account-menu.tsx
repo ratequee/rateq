@@ -168,7 +168,7 @@ export function AuthHeaderButtons({
       <Link href="/login" onClick={onNavigate}>
         <button
           type="button"
-          className="inline-flex h-9 min-w-[90px] items-center justify-center rounded-lg border border-brand-500 px-4 text-sm font-medium text-brand-600 transition-colors hover:bg-brand-50"
+          className="inline-flex h-9 min-w-[90px] items-center justify-center rounded-lg border border-brand-500 px-4 text-sm font-medium text-brand-600 transition-colors hover:bg-brand-50 dark:border-white/40 dark:bg-white/10 dark:text-white dark:hover:bg-white/20"
         >
           {t('login')}
         </button>

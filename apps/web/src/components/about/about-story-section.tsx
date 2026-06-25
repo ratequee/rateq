@@ -18,14 +18,16 @@ export async function AboutStorySection({ stats }: AboutStorySectionProps): Prom
   ];
 
   return (
-    <section className="overflow-hidden py-12 sm:py-16 lg:py-20">
+    <section className="overflow-hidden py-12 dark:bg-slate-950 sm:py-16 lg:py-20">
       <div className="mx-auto max-w-page px-4 sm:px-6 lg:px-8">
         <div className="mb-10 flex flex-col items-center justify-center">
-          <h2 className="text-xl font-bold text-brand-500 sm:text-3xl lg:text-xl">
+          <h2 className="text-xl font-bold text-brand-500 dark:text-brand-300 sm:text-3xl lg:text-xl">
             {t('storyTitle')}
           </h2>
-          <h2 className="text-2xl font-bold text-ink sm:text-3xl lg:text-4xl">{t('storyWhat')}</h2>
-          <p className="mt-4 text-center leading-relaxed text-ink-muted sm:text-lg">
+          <h2 className="text-2xl font-bold text-ink dark:text-white sm:text-3xl lg:text-4xl">
+            {t('storyWhat')}
+          </h2>
+          <p className="mt-4 text-center leading-relaxed text-ink-muted dark:text-white/85 sm:text-lg">
             {t('storyP1')}
           </p>
         </div>
@@ -34,10 +36,12 @@ export async function AboutStorySection({ stats }: AboutStorySectionProps): Prom
           {statItems.map(({ value, label }) => (
             <div
               key={label}
-              className="rounded-2xl border border-slate-100 bg-white p-6 text-center shadow-sm"
+              className="rounded-2xl border border-slate-100 bg-white p-6 text-center shadow-sm dark:border-slate-700 dark:bg-slate-900"
             >
-              <p className="text-3xl font-bold text-brand-500 sm:text-4xl">{value}</p>
-              <p className="mt-2 text-sm text-ink-muted sm:text-base">{label}</p>
+              <p className="text-3xl font-bold text-brand-500 dark:text-brand-300 sm:text-4xl">
+                {value}
+              </p>
+              <p className="mt-2 text-sm text-ink-muted dark:text-white/85 sm:text-base">{label}</p>
             </div>
           ))}
         </div>
@@ -54,12 +58,18 @@ export async function AboutStorySection({ stats }: AboutStorySectionProps): Prom
             />
           </div>
           <div>
-            <h2 className="text-xl font-bold text-brand-500 sm:text-3xl lg:text-xl">2018</h2>
-            <h2 className="text-2xl font-bold text-ink sm:text-3xl lg:text-4xl">{t('metaWe')}</h2>
-            <p className="mt-4 text-base leading-relaxed text-ink-muted sm:text-lg">
+            <h2 className="text-xl font-bold text-brand-500 dark:text-brand-300 sm:text-3xl lg:text-xl">
+              2018
+            </h2>
+            <h2 className="text-2xl font-bold text-ink dark:text-white sm:text-3xl lg:text-4xl">
+              {t('metaWe')}
+            </h2>
+            <p className="mt-4 text-base leading-relaxed text-ink-muted dark:text-white/85 sm:text-lg">
               {t('storyP1')}
             </p>
-            <p className="mt-4 text-base leading-relaxed text-ink-muted">{t('storyP2')}</p>
+            <p className="mt-4 text-base leading-relaxed text-ink-muted dark:text-white/85">
+              {t('storyP2')}
+            </p>
           </div>
         </div>
       </div>

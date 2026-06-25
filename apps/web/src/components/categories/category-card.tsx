@@ -28,17 +28,19 @@ export function CategoryCard({ category, variant = 'default', className }: Categ
       <Link
         href={href}
         className={cn(
-          'flex w-[140px] shrink-0 flex-col items-center rounded-2xl border border-subtle bg-white p-5 shadow-sm transition-shadow hover:border-gold-300 hover:shadow-card dark:bg-slate-900 sm:w-[160px]',
+          'flex w-[140px] shrink-0 flex-col items-center rounded-2xl border border-subtle bg-white p-5 shadow-sm transition-shadow hover:border-gold-300 hover:shadow-card dark:border-slate-700 dark:bg-slate-800 dark:hover:border-brand-500 sm:w-[160px]',
           className,
         )}
       >
         <div className="flex h-16 w-16 items-center justify-center rounded-xl bg-gold-300 text-white">
           <Icon className="h-9 w-9" aria-hidden />
         </div>
-        <h3 className="mt-4 text-center text-sm font-semibold leading-snug text-primary">
+        <h3 className="mt-4 text-center text-sm font-semibold leading-snug text-primary dark:text-white">
           {label}
         </h3>
-        <p className="mt-1 text-xs text-ink-muted">{t('companyCount', { count })}</p>
+        <p className="mt-1 text-xs text-ink-muted dark:text-white/85">
+          {t('companyCount', { count })}
+        </p>
       </Link>
     );
   }

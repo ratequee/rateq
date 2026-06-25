@@ -81,7 +81,13 @@ export function SiteHeader() {
           {mobileOpen ? (
             <X className="h-5 w-5" />
           ) : (
-            <Image src="/images/menu.svg" alt="Menu" width={20} height={20} />
+            <Image
+              src="/images/menu.svg"
+              alt="Menu"
+              width={20}
+              height={20}
+              className="dark:invert"
+            />
           )}
         </Button>
         <Link href="/" className="shrink-0 md:ml-0" onClick={() => setMobileOpen(false)}>
@@ -90,7 +96,7 @@ export function SiteHeader() {
         </Link>
 
         <nav
-          className="hidden items-center gap-6 text-sm font-medium text-ink-muted dark:text-slate-400 lg:flex"
+          className="hidden items-center gap-6 text-sm font-medium text-ink-muted dark:text-white lg:flex"
           aria-label={t('mainNav')}
         >
           {NAV_LINKS.map(({ href, key }) => (
@@ -100,8 +106,8 @@ export function SiteHeader() {
               className={cn(
                 'transition-colors hover:text-brand-500 border-b-2 border-transparent hover:border-brand-500 pb-2',
                 isActive(href)
-                  ? 'border-brand-500 text-brand-500 dark:text-brand-300'
-                  : 'border-transparent',
+                  ? 'border-brand-500 text-brand-500 dark:border-brand-300 dark:text-white'
+                  : 'border-transparent dark:hover:text-white/90',
               )}
             >
               {t(key)}
@@ -126,7 +132,7 @@ export function SiteHeader() {
               <Link href="/login" className="sm:hidden">
                 <button
                   type="button"
-                  className="text-sm font-medium text-brand-600 hover:text-brand-700"
+                  className="text-sm font-medium text-brand-600 hover:text-brand-700 dark:text-white dark:hover:text-white/85"
                 >
                   {t('login')}
                 </button>

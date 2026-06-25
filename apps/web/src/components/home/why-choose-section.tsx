@@ -48,7 +48,7 @@ export async function WhyChooseSection(): Promise<JSX.Element> {
   ];
 
   return (
-    <section className="overflow-hidden py-12 sm:py-16 lg:py-20">
+    <section className="overflow-hidden py-12 dark:bg-slate-950 sm:py-16 lg:py-20">
       <div className="mx-auto max-w-page px-4 sm:px-6 lg:px-8">
         <div className="grid items-center gap-10 lg:grid-cols-2 lg:gap-16">
           <div className="w-full h-full">
@@ -62,8 +62,10 @@ export async function WhyChooseSection(): Promise<JSX.Element> {
           </div>
 
           <div>
-            <h2 className="text-2xl font-bold text-ink sm:text-3xl lg:text-4xl">{t('whyTitle')}</h2>
-            <p className="mt-4 text-base leading-relaxed text-ink-muted sm:text-lg">
+            <h2 className="text-2xl font-bold text-ink dark:text-white sm:text-3xl lg:text-4xl">
+              {t('whyTitle')}
+            </h2>
+            <p className="mt-4 text-base leading-relaxed text-ink-muted dark:text-white/90 sm:text-lg">
               {t('whyDescription')}
             </p>
 
@@ -71,14 +73,16 @@ export async function WhyChooseSection(): Promise<JSX.Element> {
               {values.map(({ icon: Icon, titleKey, descKey }) => (
                 <li
                   key={titleKey}
-                  className="flex gap-4 rounded-2xl border-2 border-slate-100 bg-white p-5 shadow-sm"
+                  className="flex gap-4 rounded-2xl border-2 border-slate-100 bg-white p-5 shadow-sm dark:border-slate-700 dark:bg-slate-800"
                 >
                   <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl">
                     {Icon}
                   </div>
                   <div>
-                    <h3 className="font-bold text-ink">{t(titleKey)}</h3>
-                    <p className="mt-1 text-sm leading-relaxed text-ink-muted">{t(descKey)}</p>
+                    <h3 className="font-bold text-ink dark:text-white">{t(titleKey)}</h3>
+                    <p className="mt-1 text-sm leading-relaxed text-ink-muted dark:text-white/85">
+                      {t(descKey)}
+                    </p>
                   </div>
                 </li>
               ))}

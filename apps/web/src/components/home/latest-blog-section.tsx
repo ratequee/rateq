@@ -18,7 +18,7 @@ export async function LatestBlogSection({
   const t = await getTranslations('blog');
 
   return (
-    <section className="bg-white py-12 sm:py-16 lg:py-20">
+    <section className="bg-white py-12 dark:bg-slate-900 sm:py-16 lg:py-20">
       <div className="mx-auto max-w-page px-4 sm:px-6 lg:px-8">
         <SectionHeader
           title={t('homeSectionTitle')}

@@ -12,7 +12,7 @@ const buttonVariants = cva(
         outline:
           'border border-slate-200 bg-white text-ink hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:hover:bg-slate-800',
         'outline-brand':
-          'border border-brand-500 bg-white text-brand-500 hover:bg-brand-50 dark:bg-slate-900 dark:hover:bg-brand-950/40',
+          'border border-brand-500 bg-white text-brand-500 hover:bg-brand-50 dark:border-white/40 dark:bg-white/10 dark:text-white dark:hover:bg-white/20',
         ghost: 'hover:bg-slate-100 dark:hover:bg-slate-800',
         destructive: 'bg-red-600 text-white hover:bg-red-700',
       },

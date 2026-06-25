@@ -24,7 +24,7 @@ export function Breadcrumbs({
     <nav aria-label={ariaLabel} className="mb-6">
       <ol
         className={`flex flex-wrap items-center gap-1.5 text-sm ${
-          isDark ? 'text-white/70' : 'text-ink-muted'
+          isDark ? 'text-white/80' : 'text-ink-muted dark:text-white/80'
         }`}
       >
         {items.map((item, index) => {
@@ -32,10 +32,12 @@ export function Breadcrumbs({
 
           return (
             <li key={item.href} className="flex items-center gap-1.5">
-              {index > 0 && <ChevronRight className="h-4 w-4 shrink-0 rtl:rotate-180" aria-hidden />}
+              {index > 0 && (
+                <ChevronRight className="h-4 w-4 shrink-0 rtl:rotate-180" aria-hidden />
+              )}
               {isLast ? (
                 <span
-                  className={`font-medium ${isDark ? 'text-gold-300' : 'text-gold-300'}`}
+                  className={`font-medium ${isDark ? 'text-white' : 'text-gold-300 dark:text-white'}`}
                   aria-current="page"
                 >
                   {item.label}
@@ -43,7 +45,11 @@ export function Breadcrumbs({
               ) : (
                 <Link
                   href={item.href}
-                  className={`transition-colors ${isDark ? 'hover:text-white' : 'hover:text-gold-300'}`}
+                  className={`transition-colors ${
+                    isDark
+                      ? 'text-white/80 hover:text-white'
+                      : 'hover:text-gold-300 dark:text-white/80 dark:hover:text-white'
+                  }`}
                 >
                   {item.label}
                 </Link>

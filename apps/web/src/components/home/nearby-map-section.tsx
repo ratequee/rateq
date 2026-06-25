@@ -72,19 +72,21 @@ export function NearbyMapSection({ companies }: NearbyMapSectionProps) {
         : t('nearbyUsingYourLocation');
 
   return (
-    <section className="bg-white py-12 sm:py-16 lg:py-20">
-      <div className="relative z-10 mx-auto mt-[-200px] max-w-page rounded-3xl border border-slate-100 bg-white p-6 shadow-lg sm:p-8 lg:p-10">
+    <section className="bg-white py-12 dark:bg-slate-950 sm:py-16 lg:py-20">
+      <div className="relative z-10 mx-auto mt-[-200px] max-w-page rounded-3xl border border-slate-100 bg-white p-6 shadow-lg dark:border-slate-700 dark:bg-slate-900 sm:p-8 lg:p-10">
         <div className="mb-2 flex flex-wrap items-baseline justify-between gap-4">
-          <h2 className="text-lg font-bold text-ink sm:text-3xl">{t('nearbyTitle')}</h2>
+          <h2 className="text-lg font-bold text-ink dark:text-white sm:text-3xl">
+            {t('nearbyTitle')}
+          </h2>
           <Link
             href="/search"
-            className="inline-flex items-center gap-1 text-sm font-medium text-brand-500 transition-colors hover:text-brand-600"
+            className="inline-flex items-center gap-1 text-sm font-medium text-brand-500 transition-colors hover:text-brand-600 dark:text-white dark:hover:text-white/85"
           >
             {t('nearbyViewAll')}
             <ArrowRight className="h-4 w-4 rtl:rotate-180" />
           </Link>
         </div>
-        <p className="mb-6 text-sm text-ink-muted">{locationHint}</p>
+        <p className="mb-6 text-sm text-ink-muted dark:text-white/90">{locationHint}</p>
 
         <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center">
           <div className="inline-flex shrink-0 rounded-full bg-brand-100 p-1">
@@ -140,7 +142,7 @@ export function NearbyMapSection({ companies }: NearbyMapSectionProps) {
 
         <div className={cn(view !== 'list' && 'hidden', 'max-h-[400px] overflow-y-auto pe-1')}>
           {filteredCompanies.length === 0 ? (
-            <p className="rounded-2xl border border-dashed border-slate-200 py-16 text-center text-sm text-ink-muted">
+            <p className="rounded-2xl border border-dashed border-slate-200 py-16 text-center text-sm text-ink-muted dark:border-slate-600 dark:text-white/85">
               {t('nearbyNoResults')}
             </p>
           ) : (

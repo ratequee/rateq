@@ -102,13 +102,18 @@ export function ContactForm() {
 
   return (
     <div>
-      <h2 className="text-xl font-bold text-ink sm:text-2xl">{t('formTitle')}</h2>
-      <p className="mt-2 text-sm text-ink-muted sm:text-base">{t('formSubtitle')}</p>
+      <h2 className="text-xl font-bold text-ink dark:text-white sm:text-2xl">{t('formTitle')}</h2>
+      <p className="mt-2 text-sm text-ink-muted dark:text-white/90 sm:text-base">
+        {t('formSubtitle')}
+      </p>
 
       <form onSubmit={handleSubmit} className="mt-6 space-y-10" noValidate>
         <div className="grid gap-4 sm:grid-cols-2">
           <div>
-            <label htmlFor="name" className="mb-1.5 block text-sm font-medium text-ink">
+            <label
+              htmlFor="name"
+              className="mb-1.5 block text-sm font-medium text-ink dark:text-white"
+            >
               {t('nameLabel')}
             </label>
             <Input
@@ -125,7 +130,10 @@ export function ContactForm() {
             ) : null}
           </div>
           <div>
-            <label htmlFor="email" className="mb-1.5 block text-sm font-medium text-ink">
+            <label
+              htmlFor="email"
+              className="mb-1.5 block text-sm font-medium text-ink dark:text-white"
+            >
               {t('emailLabel')}
             </label>
             <Input
@@ -145,7 +153,10 @@ export function ContactForm() {
         </div>
         <div className="grid gap-4 sm:grid-cols-2">
           <div>
-            <label htmlFor="phone" className="mb-1.5 block text-sm font-medium text-ink">
+            <label
+              htmlFor="phone"
+              className="mb-1.5 block text-sm font-medium text-ink dark:text-white"
+            >
               {t('phoneLabel')}
             </label>
             <QatarPhoneInput
@@ -161,7 +172,10 @@ export function ContactForm() {
             ) : null}
           </div>
           <div>
-            <label htmlFor="subject" className="mb-1.5 block text-sm font-medium text-ink">
+            <label
+              htmlFor="subject"
+              className="mb-1.5 block text-sm font-medium text-ink dark:text-white"
+            >
               {t('subjectLabel')}
             </label>
             <select
@@ -171,7 +185,7 @@ export function ContactForm() {
               onChange={(event) => setSubject(event.target.value as ContactSubject | '')}
               aria-invalid={Boolean(fieldErrors.subject)}
               className={cn(
-                'h-10 w-full rounded-md border border-slate-200 bg-white px-3 text-sm text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500',
+                'select-field focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 dark:focus-visible:ring-brand-400',
                 fieldClassName('subject'),
               )}
             >
@@ -188,7 +202,10 @@ export function ContactForm() {
           </div>
         </div>
         <div>
-          <label htmlFor="message" className="mb-1.5 block text-sm font-medium text-ink">
+          <label
+            htmlFor="message"
+            className="mb-1.5 block text-sm font-medium text-ink dark:text-white"
+          >
             {t('messageLabel')}
           </label>
           <textarea
@@ -200,7 +217,7 @@ export function ContactForm() {
             placeholder={t('messagePlaceholder')}
             aria-invalid={Boolean(fieldErrors.message)}
             className={cn(
-              'w-full rounded-md border border-slate-200 px-3 py-2 text-sm text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500',
+              'w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 dark:border-slate-700 dark:bg-slate-900 dark:text-white dark:placeholder:text-slate-500 dark:focus-visible:ring-brand-400',
               fieldClassName('message'),
             )}
           />

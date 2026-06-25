@@ -31,7 +31,7 @@ export function TestimonialsCarousel({ reviews }: TestimonialsCarouselProps) {
   };
 
   return (
-    <section className="py-12 sm:py-16 lg:py-20">
+    <section className="py-12 dark:bg-slate-900 sm:py-16 lg:py-20">
       <div className="mx-auto max-w-page px-4 sm:px-6 lg:px-8">
         <SectionHeader
           title={t('testimonialsTitle')}
@@ -67,8 +67,8 @@ export function TestimonialsCarousel({ reviews }: TestimonialsCarouselProps) {
                   className="h-12 w-12 shrink-0"
                 />
                 <div>
-                  <p className="text-sm font-medium text-ink">{companyName}</p>
-                  <p className="text-xs text-ink-muted">{companyCategory}</p>
+                  <p className="text-sm font-medium text-ink dark:text-white">{companyName}</p>
+                  <p className="text-xs text-ink-muted dark:text-white/85">{companyCategory}</p>
                 </div>
               </>
             );
@@ -76,7 +76,7 @@ export function TestimonialsCarousel({ reviews }: TestimonialsCarouselProps) {
             return (
               <article
                 key={review.id}
-                className="flex h-full flex-col rounded-2xl border border-slate-100 bg-white p-6 shadow-sm"
+                className="flex h-full flex-col rounded-2xl border border-slate-100 bg-white p-6 shadow-sm dark:border-slate-700 dark:bg-slate-800"
               >
                 <div className="mb-4 flex items-center gap-3">
                   <AvatarImage
@@ -85,17 +85,17 @@ export function TestimonialsCarousel({ reviews }: TestimonialsCarouselProps) {
                     className="h-12 w-12 shrink-0"
                   />
                   <div className="flex min-w-0 flex-col">
-                    <p className="truncate font-semibold text-ink">{authorName}</p>
-                    <p className="text-sm text-ink-muted">
+                    <p className="truncate font-semibold text-ink dark:text-white">{authorName}</p>
+                    <p className="text-sm text-ink-muted dark:text-white/85">
                       {formatReviewTimeAgo(review.createdAt, locale)}
                     </p>
                   </div>
                 </div>
                 <StarRating value={review.rating} size="md" />
-                <blockquote className="mt-4 flex-1 text-sm leading-relaxed text-ink-muted">
+                <blockquote className="mt-4 flex-1 text-sm leading-relaxed text-ink-muted dark:text-white/90">
                   &ldquo;{review.content}&rdquo;
                 </blockquote>
-                <div className="mt-6 border-t-2 border-slate-100 pt-4">
+                <div className="mt-6 border-t-2 border-slate-100 pt-4 dark:border-slate-700">
                   {review.company?.slug ? (
                     <Link
                       href={`/companies/${review.company.slug}`}

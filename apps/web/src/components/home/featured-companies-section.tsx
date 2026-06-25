@@ -24,7 +24,7 @@ export function FeaturedCompaniesSection({ companies }: FeaturedCompaniesSection
   };
 
   return (
-    <section className="bg-slate-50/60 py-12 sm:py-16 lg:py-20">
+    <section className="bg-slate-50/60 py-12 dark:bg-slate-950 sm:py-16 lg:py-20">
       <div className="mx-auto max-w-page px-4 sm:px-6 lg:px-8">
         <SectionHeader
           title={t('featuredTitle')}
@@ -44,7 +44,7 @@ export function FeaturedCompaniesSection({ companies }: FeaturedCompaniesSection
         />
 
         {companies.length === 0 ? (
-          <p className="py-12 text-center text-ink-muted">{tc('noResults')}</p>
+          <p className="py-12 text-center text-ink-muted dark:text-white/85">{tc('noResults')}</p>
         ) : (
           <div
             ref={scrollRef}

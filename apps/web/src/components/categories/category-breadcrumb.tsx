@@ -43,7 +43,7 @@ export async function CategoryBreadcrumb({
         </li>
         <ChevronRight className="h-4 w-4 rtl:rotate-180" aria-hidden />
         <li
-          className={`font-medium ${isDark ? 'text-gold-300' : 'text-gold-300'}`}
+          className={`font-medium ${isDark ? 'text-white' : 'text-gold-300 dark:text-white'}`}
           aria-current="page"
         >
           {label}

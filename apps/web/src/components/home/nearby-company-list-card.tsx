@@ -20,7 +20,7 @@ export function NearbyCompanyListCard({ company }: NearbyCompanyListCardProps) {
   );
 
   return (
-    <article className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+    <article className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-600 dark:bg-slate-800">
       <div className="flex items-center gap-3">
         {company.logo ? (
           <img src={company.logo} alt="" className="h-12 w-12 shrink-0 rounded-full object-cover" />
@@ -30,7 +30,7 @@ export function NearbyCompanyListCard({ company }: NearbyCompanyListCardProps) {
           </div>
         )}
 
-        <h3 className="min-w-0 flex-1 truncate text-sm font-semibold text-ink sm:text-base">
+        <h3 className="min-w-0 flex-1 truncate text-sm font-semibold text-ink dark:text-white sm:text-base">
           {company.name}
         </h3>
 
@@ -43,13 +43,15 @@ export function NearbyCompanyListCard({ company }: NearbyCompanyListCardProps) {
         </Link>
       </div>
 
-      <div className="mt-3 flex items-center gap-3 border-t border-slate-100 pt-3 text-sm">
+      <div className="mt-3 flex items-center gap-3 border-t border-slate-100 pt-3 text-sm dark:border-slate-600">
         <div className="flex items-center gap-1.5">
           <Star className="h-4 w-4 fill-gold-400 text-gold-400" aria-hidden />
-          <span className="font-bold text-ink">{company.ratingAverage.toFixed(1)}</span>
+          <span className="font-bold text-ink dark:text-white">
+            {company.ratingAverage.toFixed(1)}
+          </span>
         </div>
-        <span className="h-4 w-px bg-slate-200" aria-hidden />
-        <span className="truncate text-ink-muted">{distance}</span>
+        <span className="h-4 w-px bg-slate-200 dark:bg-slate-600" aria-hidden />
+        <span className="truncate text-ink-muted dark:text-white/85">{distance}</span>
       </div>
     </article>
   );
