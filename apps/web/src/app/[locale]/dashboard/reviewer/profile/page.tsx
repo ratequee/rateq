@@ -1,6 +1,7 @@
 'use client';
 
 import { DashboardShell } from '@/components/dashboard/dashboard-shell';
+import { DashboardProfileLoading } from '@/components/dashboard/dashboard-profile-loading';
 import { useAuth } from '@/components/providers/auth-provider';
 import { useProfile } from '@/components/providers/profile-provider';
 import { Button } from '@/components/ui/button';
@@ -25,7 +26,7 @@ export default function ReviewerProfileSettingsPage() {
   const t = useTranslations('profilePage');
   const ta = useTranslations('authPage');
   const { user } = useAuth();
-  const { onboarding, refreshOnboarding } = useProfile();
+  const { onboarding, refreshOnboarding, isLoading: profileLoading } = useProfile();
   useRequireCompleteProfile();
 
   const [submitting, setSubmitting] = useState(false);
@@ -39,7 +40,7 @@ export default function ReviewerProfileSettingsPage() {
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!onboarding?.reviewerProfile) return;
+    if (profileLoading || !onboarding?.reviewerProfile) return;
     const profile = onboarding.reviewerProfile;
     setFullName(profile.fullName);
     setPhone(extractQatarPhoneDigits(profile.phone));
@@ -47,7 +48,7 @@ export default function ReviewerProfileSettingsPage() {
     setCountry(profile.country);
     setBio(profile.bio);
     setAvatarUrl(profile.avatarUrl);
-  }, [onboarding?.reviewerProfile]);
+  }, [onboarding?.reviewerProfile, profileLoading]);
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -128,55 +129,59 @@ export default function ReviewerProfileSettingsPage() {
           )}
         </div>
 
-        <form
-          onSubmit={handleSubmit}
-          className="space-y-4 rounded-2xl surface-card border p-6 shadow-sm"
-        >
-          <Field label={t('fullName')} error={errors.fullName} required>
-            <Input
-              value={fullName}
-              onChange={(e) => setFullName(sanitizeDisplayName(e.target.value))}
-              className="h-11"
-            />
-          </Field>
-          <Field label={t('phone')} error={errors.phone} required>
-            <QatarPhoneInput value={phone} readOnly disabled className="bg-slate-50" />
-          </Field>
-          <div className="grid gap-4 sm:grid-cols-2">
-            <Field label={t('city')} error={errors.city} required>
-              <Input value={city} onChange={(e) => setCity(e.target.value)} className="h-11" />
-            </Field>
-            <Field label={t('country')} error={errors.country} required>
+        {profileLoading ? (
+          <DashboardProfileLoading />
+        ) : (
+          <form
+            onSubmit={handleSubmit}
+            className="space-y-4 rounded-2xl surface-card border p-6 shadow-sm"
+          >
+            <Field label={t('fullName')} error={errors.fullName} required>
               <Input
-                value={country}
-                onChange={(e) => setCountry(e.target.value)}
+                value={fullName}
+                onChange={(e) => setFullName(sanitizeDisplayName(e.target.value))}
                 className="h-11"
               />
             </Field>
-          </div>
-          <Field label={t('bio')} error={errors.bio} optionalLabel={t('bioOptional')}>
-            <textarea
-              value={bio}
-              onChange={(e) => setBio(e.target.value)}
-              rows={3}
-              maxLength={500}
-              className="textarea-field"
-            />
-          </Field>
-          <Field label={t('profileImage')} error={errors.avatar} required>
-            {avatarUrl && !avatar && (
-              <img src={avatarUrl} alt="" className="mb-3 h-24 w-24 rounded-full object-cover" />
-            )}
-            <Input
-              type="file"
-              accept="image/*"
-              onChange={(e) => setAvatar(e.target.files?.[0] ?? null)}
-            />
-          </Field>
-          <Button type="submit" disabled={submitting} className="w-full">
-            {submitting ? t('saving') : t('saveChanges')}
-          </Button>
-        </form>
+            <Field label={t('phone')} error={errors.phone} required>
+              <QatarPhoneInput value={phone} readOnly disabled className="bg-slate-50" />
+            </Field>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <Field label={t('city')} error={errors.city} required>
+                <Input value={city} onChange={(e) => setCity(e.target.value)} className="h-11" />
+              </Field>
+              <Field label={t('country')} error={errors.country} required>
+                <Input
+                  value={country}
+                  onChange={(e) => setCountry(e.target.value)}
+                  className="h-11"
+                />
+              </Field>
+            </div>
+            <Field label={t('bio')} error={errors.bio} optionalLabel={t('bioOptional')}>
+              <textarea
+                value={bio}
+                onChange={(e) => setBio(e.target.value)}
+                rows={3}
+                maxLength={500}
+                className="textarea-field"
+              />
+            </Field>
+            <Field label={t('profileImage')} error={errors.avatar} required>
+              {avatarUrl && !avatar && (
+                <img src={avatarUrl} alt="" className="mb-3 h-24 w-24 rounded-full object-cover" />
+              )}
+              <Input
+                type="file"
+                accept="image/*"
+                onChange={(e) => setAvatar(e.target.files?.[0] ?? null)}
+              />
+            </Field>
+            <Button type="submit" disabled={submitting} className="w-full">
+              {submitting ? t('saving') : t('saveChanges')}
+            </Button>
+          </form>
+        )}
       </div>
     </DashboardShell>
   );

@@ -1,6 +1,7 @@
 import type { Company, CompanyVerificationStatus, UserProfile } from '@prisma/client';
 import type {
   AccountType,
+  CompanyCatalogLabel,
   CompanyProfileDetail,
   CompanyVerificationStatus as ApiCompanyVerificationStatus,
   OnboardingStatus,
@@ -23,9 +24,15 @@ export function toReviewerProfile(profile: UserProfile): ReviewerProfile {
   };
 }
 
-export function toCompanyProfileDetail(company: Company): CompanyProfileDetail {
+export function toCompanyProfileDetail(
+  company: Company,
+  extras?: {
+    serviceItems?: CompanyCatalogLabel[];
+    activityItems?: CompanyCatalogLabel[];
+  },
+): CompanyProfileDetail {
   return {
-    ...toCompanyDetail(company),
+    ...toCompanyDetail(company, extras),
     address: company.address,
     phone: company.phone,
     crNumber: company.crNumber,
@@ -42,8 +49,12 @@ export function toCompanyProfileDetail(company: Company): CompanyProfileDetail {
 export function buildOnboardingStatus(input: {
   reviewerProfile: UserProfile | null;
   company: Company | null;
+  companyExtras?: {
+    serviceItems?: CompanyCatalogLabel[];
+    activityItems?: CompanyCatalogLabel[];
+  };
 }): OnboardingStatus {
-  const { reviewerProfile, company } = input;
+  const { reviewerProfile, company, companyExtras } = input;
 
   let accountType: AccountType | null = null;
   if (company) {
@@ -58,6 +69,6 @@ export function buildOnboardingStatus(input: {
     isProfileComplete,
     accountType,
     reviewerProfile: reviewerProfile ? toReviewerProfile(reviewerProfile) : null,
-    company: company ? toCompanyProfileDetail(company) : null,
+    company: company ? toCompanyProfileDetail(company, companyExtras) : null,
   };
 }

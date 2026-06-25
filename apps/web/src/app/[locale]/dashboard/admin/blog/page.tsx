@@ -10,6 +10,7 @@ import { useRequireAdmin } from '@/hooks/use-require-admin';
 import { AdminPermission } from '@rateq/types';
 import { adminBlogApi } from '@/lib/admin-blog-api';
 import { ApiError } from '@/lib/api';
+import { cn } from '@/lib/utils';
 import type {
   BlogLocale,
   BlogPostAdmin,
@@ -242,7 +243,7 @@ export default function AdminBlogPage() {
 
         <form
           onSubmit={handleSubmit}
-          className="mb-8 space-y-5 rounded-2xl border border-slate-100 bg-white p-5 shadow-sm"
+          className="mb-8 space-y-5 surface-card rounded-2xl border p-5 shadow-sm"
         >
           <div className="flex items-center justify-between gap-4">
             <h2 className="text-lg font-semibold text-ink">
@@ -263,7 +264,7 @@ export default function AdminBlogPage() {
               <select
                 value={status}
                 onChange={(e) => setStatus(e.target.value as 'draft' | 'published')}
-                className="h-11 w-full rounded-xl border border-slate-200 px-3 text-sm"
+                className="select-field"
               >
                 <option value="draft">{t('statusDraft')}</option>
                 <option value="published">{t('statusPublished')}</option>
@@ -284,17 +285,16 @@ export default function AdminBlogPage() {
             </div>
           </div>
 
-          <div className="flex gap-2 border-b border-slate-100 pb-2">
+          <div className="flex gap-2 border-b border-subtle pb-2">
             {(['en', 'ar'] as BlogLocale[]).map((locale) => (
               <button
                 key={locale}
                 type="button"
                 onClick={() => setActiveLocale(locale)}
-                className={`rounded-lg px-4 py-2 text-sm font-medium ${
-                  activeLocale === locale
-                    ? 'bg-brand-500 text-white'
-                    : 'bg-slate-100 text-ink-muted hover:bg-slate-200'
-                }`}
+                className={cn(
+                  'dashboard-tab rounded-lg px-4 py-2 text-sm font-medium',
+                  activeLocale === locale ? 'dashboard-tab-active' : 'dashboard-tab-inactive',
+                )}
               >
                 {locale === 'en' ? t('englishTab') : t('arabicTab')}
               </button>
@@ -329,7 +329,7 @@ export default function AdminBlogPage() {
                 onChange={(e) => updateTranslationField(activeLocale, 'excerpt', e.target.value)}
                 placeholder={t('excerptPlaceholder')}
                 rows={2}
-                className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm"
+                className="textarea-field rounded-xl"
               />
             </div>
             <div>
@@ -394,7 +394,7 @@ export default function AdminBlogPage() {
           </Button>
         </form>
 
-        <div className="rounded-2xl border border-slate-100 bg-white shadow-sm">
+        <div className="surface-card overflow-hidden rounded-2xl border shadow-sm">
           {loading ? (
             <div className="flex items-center justify-center gap-2 p-10 text-sm text-ink-muted">
               <Loader2 className="h-4 w-4 animate-spin" />
@@ -403,7 +403,7 @@ export default function AdminBlogPage() {
           ) : posts.length === 0 ? (
             <p className="p-10 text-center text-sm text-ink-muted">{t('empty')}</p>
           ) : (
-            <ul className="divide-y divide-slate-100">
+            <ul className="divide-y divide-slate-100 dark:divide-slate-800">
               {posts.map((post) => {
                 const en = post.translations.find(
                   (item: BlogPostTranslationPublic) => item.locale === 'en',
@@ -413,7 +413,10 @@ export default function AdminBlogPage() {
                 );
 
                 return (
-                  <li key={post.id} className="flex items-start justify-between gap-4 px-5 py-4">
+                  <li
+                    key={post.id}
+                    className="flex items-start justify-between gap-4 px-5 py-4 transition-colors hover:bg-slate-50 dark:hover:bg-slate-800/60"
+                  >
                     <div className="min-w-0">
                       <p className="font-medium text-ink">
                         {en?.title ?? ar?.title ?? t('untitled')}

@@ -1,6 +1,7 @@
 'use client';
 
 import { DashboardShell } from '@/components/dashboard/dashboard-shell';
+import { DashboardProfileLoading } from '@/components/dashboard/dashboard-profile-loading';
 import { CompanyPublicProfileForm } from '@/components/dashboard/company-public-profile-form';
 import { CompanyInviteReviewersPanel } from '@/components/dashboard/company-invite-reviewers-panel';
 import { CompanyAddressMapField } from '@/components/profile/company-address-map-field';
@@ -29,7 +30,7 @@ import { toast } from 'sonner';
 export default function CompanyProfileSettingsPage() {
   const t = useTranslations('profilePage');
   const locale = useLocale();
-  const { onboarding, refreshOnboarding } = useProfile();
+  const { onboarding, refreshOnboarding, isLoading: profileLoading } = useProfile();
   useRequireCompleteProfile();
 
   const [categories, setCategories] = useState<CategoryPublic[]>([]);
@@ -51,7 +52,7 @@ export default function CompanyProfileSettingsPage() {
   }, []);
 
   useEffect(() => {
-    if (!company) return;
+    if (profileLoading || !company) return;
     setCompanyName(company.name);
     setCompanyPhone(extractQatarPhoneDigits(company.phone ?? ''));
     setCategoryId(company.categoryId ?? '');
@@ -61,7 +62,7 @@ export default function CompanyProfileSettingsPage() {
     }
     setCompanyCity(company.city);
     setCompanyCountry(company.country);
-  }, [company]);
+  }, [company, profileLoading]);
 
   const registrationDetails = useMemo(() => {
     if (!company) return [];
@@ -158,91 +159,99 @@ export default function CompanyProfileSettingsPage() {
           )}
         </div>
 
-        {(registrationDetails.length > 0 || documents.length > 0) && (
-          <section className="mb-6 rounded-2xl surface-card border p-6 shadow-sm">
-            <h2 className="text-lg font-semibold text-primary">{t('submittedDocumentsTitle')}</h2>
-            <p className="mt-1 text-sm text-secondary">{t('submittedDocumentsHint')}</p>
+        {profileLoading ? (
+          <DashboardProfileLoading />
+        ) : (
+          <>
+            {(registrationDetails.length > 0 || documents.length > 0) && (
+              <section className="mb-6 rounded-2xl surface-card border p-6 shadow-sm">
+                <h2 className="text-lg font-semibold text-primary">
+                  {t('submittedDocumentsTitle')}
+                </h2>
+                <p className="mt-1 text-sm text-secondary">{t('submittedDocumentsHint')}</p>
 
-            {registrationDetails.length > 0 ? (
-              <dl className="mt-4 grid gap-3 sm:grid-cols-2">
-                {registrationDetails.map(({ label, value }) => (
-                  <div
-                    key={label}
-                    className="rounded-xl border border-slate-200 bg-slate-50 dark:border-slate-700 dark:bg-slate-800 px-4 py-3"
-                  >
-                    <dt className="text-xs font-medium text-secondary">{label}</dt>
-                    <dd className="mt-1 text-sm font-medium text-primary">{value}</dd>
+                {registrationDetails.length > 0 ? (
+                  <dl className="mt-4 grid gap-3 sm:grid-cols-2">
+                    {registrationDetails.map(({ label, value }) => (
+                      <div
+                        key={label}
+                        className="rounded-xl border border-slate-200 bg-slate-50 dark:border-slate-700 dark:bg-slate-800 px-4 py-3"
+                      >
+                        <dt className="text-xs font-medium text-secondary">{label}</dt>
+                        <dd className="mt-1 text-sm font-medium text-primary">{value}</dd>
+                      </div>
+                    ))}
+                  </dl>
+                ) : null}
+
+                {documents.length > 0 ? (
+                  <div className="mt-4 grid gap-4 sm:grid-cols-2">
+                    {documents.map((document) => (
+                      <DocumentPreviewCard
+                        key={document.label}
+                        label={document.label}
+                        url={document.url!}
+                      />
+                    ))}
                   </div>
-                ))}
-              </dl>
-            ) : null}
+                ) : null}
+              </section>
+            )}
 
-            {documents.length > 0 ? (
-              <div className="mt-4 grid gap-4 sm:grid-cols-2">
-                {documents.map((document) => (
-                  <DocumentPreviewCard
-                    key={document.label}
-                    label={document.label}
-                    url={document.url!}
-                  />
-                ))}
-              </div>
-            ) : null}
-          </section>
-        )}
-
-        <form
-          onSubmit={handleSubmit}
-          className="mb-6 space-y-4 rounded-2xl surface-card border p-6 shadow-sm"
-        >
-          <Field label={t('companyName')} error={errors.companyName} required>
-            <Input
-              value={companyName}
-              onChange={(e) => setCompanyName(e.target.value)}
-              className="h-11"
-            />
-          </Field>
-          <CompanyAddressMapField
-            address={companyAddress}
-            city={companyCity}
-            country={companyCountry}
-            location={companyLocation}
-            onAddressChange={setCompanyAddress}
-            onCityChange={setCompanyCity}
-            onCountryChange={setCompanyCountry}
-            onLocationChange={setCompanyLocation}
-            addressError={errors.companyAddress}
-            locationError={errors.companyLocation}
-            fieldKey="companyAddress"
-          />
-
-          <Field label={t('phone')} error={errors.companyPhone} required>
-            <QatarPhoneInput value={companyPhone} readOnly disabled className="bg-slate-50" />
-          </Field>
-
-          <Field label={t('category')} error={errors.categoryId} required>
-            <select
-              value={categoryId}
-              onChange={(e) => setCategoryId(e.target.value)}
-              className="select-field h-11"
+            <form
+              onSubmit={handleSubmit}
+              className="mb-6 space-y-4 rounded-2xl surface-card border p-6 shadow-sm"
             >
-              <option value="">{t('selectCategory')}</option>
-              {categories.map((category) => (
-                <option key={category.id} value={category.id}>
-                  {category.nameEn} / {category.nameAr}
-                </option>
-              ))}
-            </select>
-          </Field>
-          <Button type="submit" disabled={submitting} className="w-full">
-            {submitting ? t('saving') : t('saveChanges')}
-          </Button>
-        </form>
+              <Field label={t('companyName')} error={errors.companyName} required>
+                <Input
+                  value={companyName}
+                  onChange={(e) => setCompanyName(e.target.value)}
+                  className="h-11"
+                />
+              </Field>
+              <CompanyAddressMapField
+                address={companyAddress}
+                city={companyCity}
+                country={companyCountry}
+                location={companyLocation}
+                onAddressChange={setCompanyAddress}
+                onCityChange={setCompanyCity}
+                onCountryChange={setCompanyCountry}
+                onLocationChange={setCompanyLocation}
+                addressError={errors.companyAddress}
+                locationError={errors.companyLocation}
+                fieldKey="companyAddress"
+              />
 
-        <div className="space-y-6">
-          <CompanyPublicProfileForm />
-          <CompanyInviteReviewersPanel />
-        </div>
+              <Field label={t('phone')} error={errors.companyPhone} required>
+                <QatarPhoneInput value={companyPhone} readOnly disabled className="bg-slate-50" />
+              </Field>
+
+              <Field label={t('category')} error={errors.categoryId} required>
+                <select
+                  value={categoryId}
+                  onChange={(e) => setCategoryId(e.target.value)}
+                  className="select-field h-11"
+                >
+                  <option value="">{t('selectCategory')}</option>
+                  {categories.map((category) => (
+                    <option key={category.id} value={category.id}>
+                      {category.nameEn} / {category.nameAr}
+                    </option>
+                  ))}
+                </select>
+              </Field>
+              <Button type="submit" disabled={submitting} className="w-full">
+                {submitting ? t('saving') : t('saveChanges')}
+              </Button>
+            </form>
+
+            <div className="space-y-6">
+              <CompanyPublicProfileForm />
+              <CompanyInviteReviewersPanel />
+            </div>
+          </>
+        )}
       </div>
     </DashboardShell>
   );
@@ -265,7 +274,7 @@ function DocumentPreviewCard({ label, url }: { label: string; url: string }) {
           href={url}
           target="_blank"
           rel="noopener noreferrer"
-          className="flex items-center justify-center gap-2 p-6 text-sm font-medium text-brand-600 hover:bg-brand-50"
+          className="flex items-center justify-center gap-2 p-6 text-sm font-medium text-brand-600 hover:bg-brand-50 dark:text-brand-300 dark:hover:bg-slate-800"
         >
           <FileText className="h-8 w-8 text-brand-500" />
           <span className="flex items-center gap-1">

@@ -53,7 +53,7 @@ function EntityReviewsList({
   return (
     <div className="space-y-3">
       {reviews.map((review) => (
-        <div key={review.id} className="rounded-xl border border-slate-100 p-4">
+        <div key={review.id} className="rounded-xl border border-subtle p-4">
           <div className="flex flex-wrap items-start justify-between gap-2">
             <div className="min-w-0">
               <p className="font-medium text-primary">{review.title}</p>
@@ -353,10 +353,8 @@ export function AdminDirectoryPanel() {
             type="button"
             onClick={() => setTab(id)}
             className={cn(
-              'inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-medium transition-colors',
-              tab === id
-                ? 'bg-brand-500 text-white'
-                : 'border border-slate-200 bg-white text-secondary hover:bg-brand-50 hover:text-brand-600',
+              'dashboard-tab inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-medium',
+              tab === id ? 'dashboard-tab-active' : 'dashboard-tab-inactive',
             )}
           >
             <Icon className="h-4 w-4" />
@@ -399,10 +397,8 @@ export function AdminDirectoryPanel() {
                     type="button"
                     onClick={() => setSelectedReviewerId(user.id)}
                     className={cn(
-                      'flex w-full flex-col rounded-xl px-3 py-3 text-start transition-colors',
-                      selectedReviewerId === user.id
-                        ? 'bg-brand-50 text-brand-700'
-                        : 'hover:bg-slate-50',
+                      'flex w-full flex-col rounded-xl px-3 py-3 text-start dashboard-list-hover',
+                      selectedReviewerId === user.id && 'dashboard-list-selected',
                     )}
                   >
                     <span className="font-medium text-primary">
@@ -474,14 +470,14 @@ export function AdminDirectoryPanel() {
                     className={cn(
                       'inline-flex rounded-full px-3 py-1 text-xs font-medium',
                       reviewerDetail.isActive
-                        ? 'bg-emerald-50 text-emerald-700'
-                        : 'bg-red-50 text-red-700',
+                        ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-300'
+                        : 'bg-red-50 text-red-700 dark:bg-red-950/50 dark:text-red-400',
                     )}
                   >
                     {reviewerDetail.isActive ? t('active') : t('inactive')}
                   </span>
                 </div>
-                <div className="flex flex-wrap gap-2 border-b border-slate-100 pb-4">
+                <div className="flex flex-wrap gap-2 border-b border-subtle pb-4">
                   <Button
                     type="button"
                     variant="outline"
@@ -548,10 +544,8 @@ export function AdminDirectoryPanel() {
                     type="button"
                     onClick={() => setSelectedCompanyId(company.id)}
                     className={cn(
-                      'w-full rounded-xl px-3 py-3 text-start transition-colors',
-                      selectedCompanyId === company.id
-                        ? 'bg-brand-50 text-brand-700'
-                        : 'hover:bg-slate-50',
+                      'w-full rounded-xl px-3 py-3 text-start dashboard-list-hover',
+                      selectedCompanyId === company.id && 'dashboard-list-selected',
                     )}
                   >
                     <div className="flex items-start justify-between gap-3">
@@ -635,7 +629,7 @@ export function AdminDirectoryPanel() {
                     size="md"
                   />
                 </div>
-                <div className="flex flex-wrap gap-2 border-b border-slate-100 pb-4">
+                <div className="flex flex-wrap gap-2 border-b border-subtle pb-4">
                   {companyDetail.ownerId ? (
                     <Button
                       type="button"

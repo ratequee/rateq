@@ -1,6 +1,7 @@
 'use client';
 
 import { CatalogMultiSelect } from '@/components/profile/catalog-multi-select';
+import { DashboardProfileLoading } from '@/components/dashboard/dashboard-profile-loading';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useProfile } from '@/components/providers/profile-provider';
@@ -14,7 +15,7 @@ import { toast } from 'sonner';
 
 export function CompanyPublicProfileForm() {
   const t = useTranslations('profilePage');
-  const { onboarding, refreshOnboarding } = useProfile();
+  const { onboarding, refreshOnboarding, isLoading: profileLoading } = useProfile();
   const company = onboarding?.company;
 
   const [nameEn, setNameEn] = useState('');
@@ -44,7 +45,7 @@ export function CompanyPublicProfileForm() {
   }, []);
 
   useEffect(() => {
-    if (!company) return;
+    if (profileLoading || !company) return;
     setNameEn(company.name ?? '');
     setNameAr(company.nameAr ?? '');
     setDescriptionEn(company.descriptionEn ?? company.description ?? '');
@@ -59,7 +60,7 @@ export function CompanyPublicProfileForm() {
     setPrivateProjectCount(
       company.privateProjectCount != null ? String(company.privateProjectCount) : '',
     );
-  }, [company]);
+  }, [company, profileLoading]);
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -90,6 +91,8 @@ export function CompanyPublicProfileForm() {
       setSubmitting(false);
     }
   };
+
+  if (profileLoading) return <DashboardProfileLoading />;
 
   if (!company) return null;
 

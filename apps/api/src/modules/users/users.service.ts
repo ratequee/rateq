@@ -24,6 +24,8 @@ import { EmailService } from '../auth/services/email.service';
 import { FirebaseAdminService } from '../auth/services/firebase-admin.service';
 import { AdminPermissionsService } from '../auth/services/admin-permissions.service';
 import { CompaniesRepository } from '../companies/repositories/companies.repository';
+import { CompanyCatalogService } from '../companies/company-catalog.service';
+import { parseCompanyIdList } from '../companies/mappers/company.mapper';
 import { UserProfilesRepository } from './repositories/user-profiles.repository';
 import { UsersRepository } from './repositories/users.repository';
 import { buildOnboardingStatus } from './mappers/onboarding.mapper';
@@ -43,6 +45,7 @@ export class UsersService {
     private readonly usersRepository: UsersRepository,
     private readonly userProfilesRepository: UserProfilesRepository,
     private readonly companiesRepository: CompaniesRepository,
+    private readonly catalogService: CompanyCatalogService,
     private readonly phoneOtpService: PhoneOtpService,
     private readonly emailService: EmailService,
     private readonly firebaseAdmin: FirebaseAdminService,
@@ -62,7 +65,22 @@ export class UsersService {
       this.companiesRepository.findByOwnerId(userId),
     ]);
 
-    return buildOnboardingStatus({ reviewerProfile, company });
+    if (!company) {
+      return buildOnboardingStatus({ reviewerProfile, company: null });
+    }
+
+    const serviceIds = parseCompanyIdList(company.serviceIds);
+    const activityIds = parseCompanyIdList(company.activityIds);
+    const [serviceItems, activityItems] = await Promise.all([
+      this.catalogService.resolveLabels(serviceIds, 'en'),
+      this.catalogService.resolveLabels(activityIds, 'en'),
+    ]);
+
+    return buildOnboardingStatus({
+      reviewerProfile,
+      company,
+      companyExtras: { serviceItems, activityItems },
+    });
   }
 
   async completeReviewerProfile(

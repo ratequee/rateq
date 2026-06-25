@@ -107,10 +107,8 @@ export default function AdminCategoriesPage() {
               type="button"
               onClick={() => setActiveTab(tab.id)}
               className={cn(
-                'rounded-full px-4 py-2 text-sm font-medium transition-colors',
-                activeTab === tab.id
-                  ? 'bg-brand-500 text-white'
-                  : 'bg-slate-100 text-secondary hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700',
+                'dashboard-tab rounded-full px-4 py-2 text-sm font-medium',
+                activeTab === tab.id ? 'dashboard-tab-active' : 'dashboard-tab-inactive',
               )}
             >
               {tab.label}

@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { adminApi } from '@/lib/admin-api';
 import { ApiError } from '@/lib/api';
+import { cn } from '@/lib/utils';
 import type { CompanyCatalogItemPublic, CompanyCatalogType } from '@rateq/types';
 import { Loader2, Plus, Trash2 } from 'lucide-react';
 import { useTranslations } from 'next-intl';
@@ -103,11 +104,10 @@ export function AdminCompanyCatalogPanel({
               key={tab}
               type="button"
               onClick={() => setType(tab)}
-              className={`rounded-full px-4 py-2 text-sm font-medium ${
-                type === tab
-                  ? 'bg-brand-500 text-white'
-                  : 'bg-slate-100 text-secondary dark:bg-slate-800'
-              }`}
+              className={cn(
+                'dashboard-tab rounded-full px-4 py-2 text-sm font-medium',
+                type === tab ? 'dashboard-tab-active' : 'dashboard-tab-inactive',
+              )}
             >
               {t(tab)}
             </button>

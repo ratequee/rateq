@@ -12,6 +12,7 @@ import {
 } from 'react';
 import { useAuth } from '@/components/providers/auth-provider';
 import { onboardingApi } from '@/lib/onboarding-api';
+import { getAccessToken, getStoredUser } from '@/lib/auth-storage';
 import { syncStoredProfileFromOnboarding } from '@/lib/profile-storage';
 
 interface ProfileContextValue {
@@ -22,14 +23,20 @@ interface ProfileContextValue {
 
 const ProfileContext = createContext<ProfileContextValue | null>(null);
 
+function hasStoredSession(): boolean {
+  if (typeof window === 'undefined') return false;
+  return Boolean(getAccessToken() && getStoredUser());
+}
+
 export function ProfileProvider({ children }: { children: ReactNode }) {
   const { user, isLoading: authLoading } = useAuth();
   const [onboarding, setOnboarding] = useState<OnboardingStatus | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(hasStoredSession);
 
   const refreshOnboarding = useCallback(async () => {
     if (!user) {
       setOnboarding(null);
+      setIsLoading(false);
       return null;
     }
 
@@ -40,7 +47,7 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
       syncStoredProfileFromOnboarding(user.id, status);
       return status;
     } catch {
-      setOnboarding(null);
+      setOnboarding((current) => current);
       return null;
     } finally {
       setIsLoading(false);
@@ -52,11 +59,12 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
 
     if (!user) {
       setOnboarding(null);
+      setIsLoading(false);
       return;
     }
 
     void refreshOnboarding();
-  }, [user, authLoading, refreshOnboarding]);
+  }, [user?.id, authLoading, refreshOnboarding]);
 
   const value = useMemo(
     () => ({

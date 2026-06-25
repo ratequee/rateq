@@ -170,9 +170,7 @@ export function DashboardNav({ role, onNavigate, showClose, onClose }: Dashboard
               onClick={onNavigate}
               className={cn(
                 'flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition-colors',
-                active
-                  ? 'bg-brand-500 text-white'
-                  : 'text-ink-muted hover:bg-brand-50 hover:text-brand-500 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-white',
+                active ? 'bg-brand-500 text-white' : 'dashboard-nav-link',
               )}
             >
               <Icon className="h-4 w-4 shrink-0" />

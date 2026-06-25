@@ -1,5 +1,6 @@
 'use client';
 
+import { DashboardProfileLoading } from '@/components/dashboard/dashboard-profile-loading';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useProfile } from '@/components/providers/profile-provider';
@@ -35,14 +36,14 @@ function isValidUrl(value: string): boolean {
 
 export function CompanyProjectsForm() {
   const t = useTranslations('profilePage');
-  const { onboarding, refreshOnboarding } = useProfile();
+  const { onboarding, refreshOnboarding, isLoading: profileLoading } = useProfile();
   const company = onboarding?.company;
 
   const [projects, setProjects] = useState<ProjectDraft[]>([]);
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
-    if (!company) return;
+    if (profileLoading || !company) return;
     setProjects(
       company.projects?.length
         ? company.projects.map((project) => ({
@@ -53,7 +54,7 @@ export function CompanyProjectsForm() {
           }))
         : [],
     );
-  }, [company]);
+  }, [company, profileLoading]);
 
   const updateProject = (index: number, patch: Partial<ProjectDraft>) => {
     setProjects((current) =>
@@ -122,6 +123,8 @@ export function CompanyProjectsForm() {
       setSubmitting(false);
     }
   };
+
+  if (profileLoading) return <DashboardProfileLoading />;
 
   if (!company) return null;
 

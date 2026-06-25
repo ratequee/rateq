@@ -14,6 +14,7 @@ import { ReviewStatus } from '@rateq/types';
 import { Link, useRouter } from '@/i18n/routing';
 import { Loader2, MessageSquareText } from 'lucide-react';
 import { ReviewProofAttachments } from '@/components/dashboard/review-proof-attachments';
+import { ReviewReplyForm } from '@/components/review/review-reply-form';
 import { useLocale, useTranslations } from 'next-intl';
 import { useSearchParams } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useState } from 'react';
@@ -296,8 +297,8 @@ export function ReviewsManagementPanel({ mode, companyId }: ReviewsManagementPan
                   type="button"
                   onClick={() => setSelectedId(review.id)}
                   className={cn(
-                    'w-full px-5 py-4 text-start transition-colors hover:bg-slate-50 dark:hover:bg-slate-800/80',
-                    selectedId === review.id && 'bg-brand-50/60 dark:bg-brand-950/30',
+                    'w-full px-5 py-4 text-start dashboard-list-hover',
+                    selectedId === review.id && 'dashboard-list-selected',
                   )}
                 >
                   <div className="flex items-start justify-between gap-3">
@@ -430,6 +431,17 @@ export function ReviewsManagementPanel({ mode, companyId }: ReviewsManagementPan
                   {selectedReview.reply.content}
                 </p>
               </div>
+            ) : mode === 'company' && companyId ? (
+              <ReviewReplyForm
+                review={selectedReview}
+                companyId={companyId}
+                trustedOwner
+                onReplied={(updated) => {
+                  setReviews((current) =>
+                    current.map((item) => (item.id === updated.id ? updated : item)),
+                  );
+                }}
+              />
             ) : null}
 
             {mode === 'admin' ? (

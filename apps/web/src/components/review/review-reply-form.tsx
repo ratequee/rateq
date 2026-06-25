@@ -15,9 +15,16 @@ interface ReviewReplyFormProps {
   review: ReviewPublic;
   companyId: string;
   onReplied?: (review: ReviewPublic) => void;
+  /** Skip onboarding ownership check when rendered inside the company dashboard. */
+  trustedOwner?: boolean;
 }
 
-export function ReviewReplyForm({ review, companyId, onReplied }: ReviewReplyFormProps) {
+export function ReviewReplyForm({
+  review,
+  companyId,
+  onReplied,
+  trustedOwner = false,
+}: ReviewReplyFormProps) {
   const t = useTranslations('review');
   const { user } = useAuth();
   const { onboarding } = useProfile();
@@ -26,7 +33,7 @@ export function ReviewReplyForm({ review, companyId, onReplied }: ReviewReplyFor
 
   const canReply =
     user &&
-    onboarding?.company?.id === companyId &&
+    (trustedOwner || onboarding?.company?.id === companyId) &&
     review.status === ReviewStatus.APPROVED &&
     !review.reply;
 
@@ -59,7 +66,7 @@ export function ReviewReplyForm({ review, companyId, onReplied }: ReviewReplyFor
   return (
     <form
       onSubmit={handleSubmit}
-      className="mt-4 space-y-3 rounded-xl border border-dashed border-brand-200 bg-white p-4"
+      className="mt-4 space-y-3 rounded-xl border border-dashed border-brand-200 bg-white p-4 dark:border-slate-600 dark:bg-slate-900"
     >
       <label className="block text-xs font-semibold uppercase tracking-wide text-brand-600">
         {t('writeReply')}
@@ -71,7 +78,7 @@ export function ReviewReplyForm({ review, companyId, onReplied }: ReviewReplyFor
         required
         minLength={5}
         placeholder={t('replyPlaceholder')}
-        className="w-full rounded-md border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500"
+        className="textarea-field"
       />
       <Button type="submit" size="sm" disabled={loading}>
         {loading ? '...' : t('replySubmit')}
