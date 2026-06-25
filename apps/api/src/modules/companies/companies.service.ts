@@ -19,6 +19,7 @@ import type {
   UpdateCompanyVerificationInput,
 } from '@rateq/types';
 import { UserRole } from '@rateq/types';
+import { AdminActivityAction, AdminActivityEntityType } from '@rateq/types';
 import { UserRole as PrismaUserRole, Prisma } from '@prisma/client';
 import { slugify, withSlugSuffix } from '@rateq/utils';
 import { PrismaService } from '../../infrastructure/database/prisma.service';
@@ -27,6 +28,7 @@ import { CompaniesRepository } from './repositories/companies.repository';
 import { CategoriesService } from '../categories/categories.service';
 import { PhoneOtpService } from '../phone-verification/phone-otp.service';
 import { EmailService } from '../auth/services/email.service';
+import { AdminActivityService } from '../admin-activity/admin-activity.service';
 import { CompanyCatalogService } from './company-catalog.service';
 import { toCompanyDetail, toCompanyPublic, parseCompanyIdList } from './mappers/company.mapper';
 import { toReviewPublic } from '../reviews/mappers/review.mapper';
@@ -48,6 +50,7 @@ export class CompaniesService {
     private readonly phoneOtpService: PhoneOtpService,
     private readonly emailService: EmailService,
     private readonly catalogService: CompanyCatalogService,
+    private readonly adminActivity: AdminActivityService,
   ) {}
 
   async search(query: SearchCompaniesQueryDto): Promise<PaginatedCompaniesResponse> {
@@ -333,7 +336,7 @@ export class CompaniesService {
     return Promise.all(companies.map((company) => this.mapCompanyDetail(company)));
   }
 
-  async approveProfileChanges(companyId: string): Promise<CompanyDetail> {
+  async approveProfileChanges(companyId: string, adminId: string): Promise<CompanyDetail> {
     const company = await this.companiesRepository.findById(companyId);
     if (!company) throw new NotFoundException('Company not found');
     if (company.profileChangeStatus !== 'PENDING' || !company.pendingProfileChanges) {
@@ -348,13 +351,21 @@ export class CompaniesService {
       pendingProfileChanges: Prisma.JsonNull,
     });
 
+    await this.adminActivity.log({
+      adminId,
+      entityType: AdminActivityEntityType.COMPANY_PROFILE_CHANGE,
+      entityId: companyId,
+      entityLabel: company.name,
+      action: AdminActivityAction.APPROVED,
+    });
+
     const refreshed = await this.companiesRepository.findById(companyId);
     const ratingDistribution =
       await this.companiesRepository.getApprovedRatingDistribution(companyId);
     return this.mapCompanyDetail(refreshed!, { ratingDistribution });
   }
 
-  async rejectProfileChanges(companyId: string): Promise<CompanyDetail> {
+  async rejectProfileChanges(companyId: string, adminId: string): Promise<CompanyDetail> {
     const company = await this.companiesRepository.findById(companyId);
     if (!company) throw new NotFoundException('Company not found');
     if (company.profileChangeStatus !== 'PENDING') {
@@ -364,6 +375,14 @@ export class CompaniesService {
     await this.companiesRepository.update(companyId, {
       profileChangeStatus: 'NONE',
       pendingProfileChanges: Prisma.JsonNull,
+    });
+
+    await this.adminActivity.log({
+      adminId,
+      entityType: AdminActivityEntityType.COMPANY_PROFILE_CHANGE,
+      entityId: companyId,
+      entityLabel: company.name,
+      action: AdminActivityAction.REJECTED,
     });
 
     const refreshed = await this.companiesRepository.findById(companyId);
@@ -427,6 +446,7 @@ export class CompaniesService {
   async setAdminVerificationStatus(
     companyId: string,
     input: UpdateCompanyVerificationInput,
+    adminId: string,
   ): Promise<AdminCompanyVerificationDetail> {
     const company = await this.companiesRepository.findByIdWithOwner(companyId);
 
@@ -447,6 +467,14 @@ export class CompaniesService {
         await this.emailService.sendCompanyVerificationApprovedEmail(ownerEmail, companyName);
       }
 
+      await this.adminActivity.log({
+        adminId,
+        entityType: AdminActivityEntityType.COMPANY_VERIFICATION,
+        entityId: companyId,
+        entityLabel: companyName,
+        action: AdminActivityAction.APPROVED,
+      });
+
       const withOwner = await this.companiesRepository.findByIdWithOwner(updated.id);
       return toAdminCompanyVerificationDetail(withOwner!);
     }
@@ -455,6 +483,14 @@ export class CompaniesService {
       if (ownerEmail) {
         await this.emailService.sendCompanyVerificationRejectedEmail(ownerEmail, companyName);
       }
+
+      await this.adminActivity.log({
+        adminId,
+        entityType: AdminActivityEntityType.COMPANY_VERIFICATION,
+        entityId: companyId,
+        entityLabel: companyName,
+        action: AdminActivityAction.REJECTED,
+      });
 
       const ownerId = company.ownerId;
       await this.companiesRepository.delete(companyId);
@@ -490,6 +526,14 @@ export class CompaniesService {
         revisionNotes,
       );
     }
+
+    await this.adminActivity.log({
+      adminId,
+      entityType: AdminActivityEntityType.COMPANY_VERIFICATION,
+      entityId: companyId,
+      entityLabel: companyName,
+      action: AdminActivityAction.REVISION_REQUESTED,
+    });
 
     const withOwner = await this.companiesRepository.findByIdWithOwner(updated.id);
     return toAdminCompanyVerificationDetail(withOwner!);

@@ -39,9 +39,9 @@ export function isCompanyRevisionRequested(onboarding?: OnboardingStatus | null)
 export function canAccessDashboard(
   user: AuthenticatedUser,
   onboarding?: OnboardingStatus | null,
-  isFirebaseAdmin = false,
+  hasAdminAccess = false,
 ): boolean {
-  if (user.role === UserRole.ADMIN && isFirebaseAdmin) return true;
+  if (user.role === UserRole.ADMIN && hasAdminAccess) return true;
 
   const locked = getLockedAccountType(onboarding);
   if (!locked) {
@@ -89,17 +89,17 @@ export function isOnboardingComplete(
 export function getPostAuthRedirect(
   user: AuthenticatedUser,
   onboarding?: OnboardingStatus | null,
-  isFirebaseAdmin = false,
+  hasAdminAccess = false,
 ): string {
   if (!user.isVerified) {
     return '/check-email';
   }
 
-  if (isFirebaseAdmin) {
+  if (hasAdminAccess) {
     return '/dashboard/admin';
   }
 
-  if (!canAccessDashboard(user, onboarding, isFirebaseAdmin)) {
+  if (!canAccessDashboard(user, onboarding, hasAdminAccess)) {
     return '/complete-profile';
   }
 

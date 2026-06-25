@@ -2,12 +2,13 @@
 
 import { AdminDirectoryPanel } from '@/components/dashboard/admin-directory-panel';
 import { DashboardShell } from '@/components/dashboard/dashboard-shell';
-import { useRequireFirebaseAdmin } from '@/hooks/use-require-firebase-admin';
+import { useRequireAdmin } from '@/hooks/use-require-admin';
+import { AdminPermission } from '@rateq/types';
 import { useTranslations } from 'next-intl';
 
 export default function AdminDirectoryPage() {
   const t = useTranslations('adminDirectory');
-  useRequireFirebaseAdmin();
+  useRequireAdmin(AdminPermission.DIRECTORY);
 
   return (
     <DashboardShell role="admin">

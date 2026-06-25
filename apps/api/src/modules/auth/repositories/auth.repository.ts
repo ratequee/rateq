@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import type { Prisma, User, UserRole } from '@prisma/client';
+import type { AdminPermission, Prisma, User, UserRole } from '@prisma/client';
 import { PrismaService } from '../../../infrastructure/database/prisma.service';
 
 @Injectable()
@@ -73,6 +73,19 @@ export class AuthRepository {
     return this.prisma.user.update({
       where: { id: userId },
       data: { role },
+    });
+  }
+
+  updateUserAdminAccess(
+    userId: string,
+    data: { role?: UserRole; adminPermissions?: AdminPermission[] },
+  ): Promise<User> {
+    return this.prisma.user.update({
+      where: { id: userId },
+      data: {
+        ...(data.role !== undefined ? { role: data.role } : {}),
+        ...(data.adminPermissions !== undefined ? { adminPermissions: data.adminPermissions } : {}),
+      },
     });
   }
 

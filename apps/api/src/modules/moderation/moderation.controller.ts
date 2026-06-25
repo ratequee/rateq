@@ -1,9 +1,21 @@
-import { Controller, Delete, Get, HttpCode, HttpStatus, Param, Patch, Query } from '@nestjs/common';
+import {
+  Controller,
+  Delete,
+  Get,
+  HttpCode,
+  HttpStatus,
+  Param,
+  Patch,
+  Query,
+  UseGuards,
+} from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import type { AuthenticatedUser } from '@rateq/types';
-import { UserRole } from '@rateq/types';
+import { AdminPermission, UserRole } from '@rateq/types';
+import { RequireAdminPermission } from '../../common/decorators/require-admin-permission.decorator';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { Roles } from '../../common/decorators/roles.decorator';
+import { AdminPermissionGuard } from '../auth/guards/admin-permission.guard';
 import { MessageResponseDto } from '../auth/dto/auth-response.dto';
 import { ListReviewsQueryDto } from '../reviews/dto/list-reviews-query.dto';
 import { ReviewsService } from '../reviews/reviews.service';
@@ -13,6 +25,9 @@ import { ModerationService } from './moderation.service';
 @ApiTags('moderation')
 @ApiBearerAuth()
 @Controller('moderation')
+@Roles(UserRole.ADMIN)
+@UseGuards(AdminPermissionGuard)
+@RequireAdminPermission(AdminPermission.MODERATION)
 export class ModerationController {
   constructor(
     private readonly moderationService: ModerationService,
@@ -21,21 +36,18 @@ export class ModerationController {
   ) {}
 
   @Get('reviews')
-  @Roles(UserRole.ADMIN)
   @ApiOperation({ summary: 'List all reviews for admin moderation' })
   listReviews(@Query() query: ListReviewsQueryDto) {
     return this.reviewsService.listForAdmin(query);
   }
 
   @Get('reviews/pending')
-  @Roles(UserRole.ADMIN)
   @ApiOperation({ summary: 'List pending reviews for admin moderation (legacy alias)' })
   listPending(@Query() query: ListReviewsQueryDto) {
     return this.reviewsService.listForAdmin({ ...query, status: query.status ?? undefined });
   }
 
   @Patch('reviews/:id/approve')
-  @Roles(UserRole.ADMIN)
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Manually approve a review' })
   @ApiResponse({ status: 200, type: MessageResponseDto })
@@ -45,7 +57,6 @@ export class ModerationController {
   }
 
   @Patch('reviews/:id/reject')
-  @Roles(UserRole.ADMIN)
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Manually reject a review' })
   @ApiResponse({ status: 200, type: MessageResponseDto })
@@ -55,7 +66,6 @@ export class ModerationController {
   }
 
   @Patch('reviews/:id/resolve')
-  @Roles(UserRole.ADMIN)
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Send a negative review to company-reviewer resolution' })
   @ApiResponse({ status: 200, type: MessageResponseDto })
@@ -65,7 +75,6 @@ export class ModerationController {
   }
 
   @Delete('reviews/:id')
-  @Roles(UserRole.ADMIN)
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Delete a published review' })
   @ApiResponse({ status: 200, type: MessageResponseDto })
@@ -75,7 +84,6 @@ export class ModerationController {
   }
 
   @Delete('reviews/:id/reply')
-  @Roles(UserRole.ADMIN)
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Delete a company reply on a review' })
   @ApiResponse({ status: 200, type: MessageResponseDto })
@@ -85,7 +93,6 @@ export class ModerationController {
   }
 
   @Get('reviews/:id/logs')
-  @Roles(UserRole.ADMIN)
   @ApiOperation({ summary: 'Get moderation logs for a review' })
   getLogs(@Param('id') id: string) {
     return this.moderationRepository.findLogsByReviewId(id);

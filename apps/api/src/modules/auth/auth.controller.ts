@@ -84,9 +84,16 @@ export class AuthController {
 
   @Get('firebase-admin-access')
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Check if the current Firebase-linked user may access admin features' })
+  @ApiOperation({ summary: 'Check if the current user may access admin features (legacy alias)' })
   firebaseAdminAccess(@CurrentUser() user: AuthenticatedUser) {
-    return this.authService.getFirebaseAdminAccess(user.id);
+    return this.authService.getAdminAccess(user.id);
+  }
+
+  @Get('admin-access')
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Get admin dashboard access and permissions for the current user' })
+  adminAccess(@CurrentUser() user: AuthenticatedUser) {
+    return this.authService.getAdminAccess(user.id);
   }
 
   @Public()

@@ -1,9 +1,11 @@
 import type {
   AdminCompanyDetail,
   AdminCompanyListItem,
+  AdminPermission,
   AdminPlatformStats,
   AdminUserDetail,
   MessageResponse,
+  PaginatedAdminActivityResponse,
   PaginatedCompaniesResponse,
   UserProfile,
 } from '@rateq/types';
@@ -27,10 +29,26 @@ export const adminApi = {
   getCompanyDetail: (token: string, companyId: string) =>
     apiClient<AdminCompanyDetail>(`/admin/companies/${companyId}/detail`, { token }),
 
-  updateUser: (token: string, userId: string, data: { isActive?: boolean; isVerified?: boolean }) =>
+  updateUser: (
+    token: string,
+    userId: string,
+    data: {
+      isActive?: boolean;
+      isVerified?: boolean;
+      role?: import('@rateq/types').UserRole;
+      adminPermissions?: AdminPermission[];
+    },
+  ) =>
     apiClient<UserProfile>(`/users/${userId}`, {
       method: 'PATCH',
       body: JSON.stringify(data),
+      token,
+    }),
+
+  listTeam: (token: string) => apiClient<UserProfile[]>('/admin/team', { token }),
+
+  listActivity: (token: string, page = 1, limit = 20) =>
+    apiClient<PaginatedAdminActivityResponse>(`/admin/activity?page=${page}&limit=${limit}`, {
       token,
     }),
 

@@ -154,7 +154,9 @@ export const authApi = {
       token,
     }),
   firebaseAdminAccess: (token: string) =>
-    apiClient<{ allowed: boolean }>('/auth/firebase-admin-access', { token }),
+    apiClient<import('@rateq/types').AdminAccess>('/auth/firebase-admin-access', { token }),
+  adminAccess: (token: string) =>
+    apiClient<import('@rateq/types').AdminAccess>('/auth/admin-access', { token }),
 };
 
 // Companies

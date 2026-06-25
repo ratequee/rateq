@@ -20,6 +20,7 @@
     "db:generate": "pnpm --filter @rateq/api db:generate",
     "db:migrate": "pnpm --filter @rateq/api db:migrate",
     "db:push": "pnpm --filter @rateq/api db:push",
+    "db:deploy": "pnpm --filter @rateq/api exec prisma migrate deploy",
     "db:studio": "pnpm --filter @rateq/api db:studio",
     "prepare": "husky"
   },

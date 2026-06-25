@@ -1,6 +1,6 @@
 'use client';
 
-import type { AuthenticatedUser } from '@rateq/types';
+import type { AdminAccess, AuthenticatedUser } from '@rateq/types';
 import {
   createContext,
   useCallback,
@@ -29,7 +29,11 @@ import type { AuthResponse } from '@rateq/types';
 interface AuthContextValue {
   user: AuthenticatedUser | null;
   isLoading: boolean;
+  adminAccess: AdminAccess | null;
+  adminAccessLoading: boolean;
+  /** @deprecated Use adminAccess.allowed */
   isFirebaseAdmin: boolean;
+  /** @deprecated Use adminAccessLoading */
   firebaseAdminLoading: boolean;
   login: (email: string, password: string) => Promise<AuthenticatedUser>;
   register: (data: { email: string; password: string; name?: string }) => Promise<void>;
@@ -67,29 +71,28 @@ async function exchangeFirebaseSession(): Promise<AuthenticatedUser> {
   }
 }
 
-async function loadFirebaseAdminFlag(): Promise<boolean> {
+async function loadAdminAccess(): Promise<AdminAccess> {
   const token = getAccessToken();
-  if (!token) return false;
+  if (!token) return { allowed: false, permissions: [] };
   try {
-    const result = await authApi.firebaseAdminAccess(token);
-    return result.allowed;
+    return await authApi.adminAccess(token);
   } catch {
-    return false;
+    return { allowed: false, permissions: [] };
   }
 }
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<AuthenticatedUser | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [isFirebaseAdmin, setIsFirebaseAdmin] = useState(false);
-  const [firebaseAdminLoading, setFirebaseAdminLoading] = useState(false);
+  const [adminAccess, setAdminAccess] = useState<AdminAccess | null>(null);
+  const [adminAccessLoading, setAdminAccessLoading] = useState(false);
 
-  const refreshFirebaseAdmin = useCallback(async () => {
-    setFirebaseAdminLoading(true);
+  const refreshAdminAccess = useCallback(async () => {
+    setAdminAccessLoading(true);
     try {
-      setIsFirebaseAdmin(await loadFirebaseAdminFlag());
+      setAdminAccess(await loadAdminAccess());
     } finally {
-      setFirebaseAdminLoading(false);
+      setAdminAccessLoading(false);
     }
   }, []);
 
@@ -97,9 +100,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     (response: AuthResponse) => {
       saveAuth(response.tokens, response.user);
       setUser(response.user);
-      void refreshFirebaseAdmin();
+      void refreshAdminAccess();
     },
-    [refreshFirebaseAdmin],
+    [refreshAdminAccess],
   );
 
   const logout = useCallback(async () => {
@@ -123,7 +126,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     clearAuth();
     setUser(null);
-    setIsFirebaseAdmin(false);
+    setAdminAccess(null);
   }, []);
 
   const ensureEmailVerifiedSession = useCallback(
@@ -156,10 +159,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
 
       setUser(sessionUser);
-      await refreshFirebaseAdmin();
+      await refreshAdminAccess();
       return sessionUser;
     },
-    [refreshFirebaseAdmin],
+    [refreshAdminAccess],
   );
 
   const login = useCallback(
@@ -220,9 +223,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     await firebaseSignInWithGoogle();
     const sessionUser = await exchangeFirebaseSession();
     setUser(sessionUser);
-    await refreshFirebaseAdmin();
+    await refreshAdminAccess();
     return sessionUser;
-  }, [refreshFirebaseAdmin]);
+  }, [refreshAdminAccess]);
 
   const refreshSession = useCallback(async () => {
     const token = getAccessToken();
@@ -235,7 +238,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const me = await authApi.me(token);
       syncFirebaseDisplayNameToClient(me);
       setUser(me);
-      await refreshFirebaseAdmin();
+      await refreshAdminAccess();
       return me;
     } catch {
       clearAuth();
@@ -252,7 +255,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       await firebaseSendPasswordReset(email);
     },
-    [refreshFirebaseAdmin],
+    [refreshAdminAccess],
   );
 
   useEffect(() => {
@@ -261,7 +264,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     if (!token || !stored) {
       setIsLoading(false);
-      setIsFirebaseAdmin(false);
+      setAdminAccess(null);
       return;
     }
 
@@ -271,22 +274,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       .then(async (me) => {
         syncFirebaseDisplayNameToClient(me);
         setUser(me);
-        await refreshFirebaseAdmin();
+        await refreshAdminAccess();
       })
       .catch(() => {
         clearAuth();
         setUser(null);
-        setIsFirebaseAdmin(false);
+        setAdminAccess(null);
       })
       .finally(() => setIsLoading(false));
-  }, [refreshFirebaseAdmin]);
+  }, [refreshAdminAccess]);
 
   const value = useMemo(
     () => ({
       user,
       isLoading,
-      isFirebaseAdmin,
-      firebaseAdminLoading,
+      adminAccess,
+      adminAccessLoading,
+      isFirebaseAdmin: adminAccess?.allowed ?? false,
+      firebaseAdminLoading: adminAccessLoading,
       login,
       register,
       loginWithGoogle,
@@ -299,8 +304,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     [
       user,
       isLoading,
-      isFirebaseAdmin,
-      firebaseAdminLoading,
+      adminAccess,
+      adminAccessLoading,
       login,
       register,
       loginWithGoogle,

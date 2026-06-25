@@ -2,6 +2,8 @@ import { BadRequestException, Injectable, Logger, NotFoundException } from '@nes
 import type { ReviewStatus } from '@prisma/client';
 import { ModerationAction } from '@prisma/client';
 import { EmailService } from '../auth/services/email.service';
+import { AdminActivityService } from '../admin-activity/admin-activity.service';
+import { AdminActivityAction, AdminActivityEntityType } from '@rateq/types';
 import { ReviewsRepository } from '../reviews/repositories/reviews.repository';
 import { resolveCompanyOwnerEmail, resolveReviewerContact } from '../reviews/mappers/review.mapper';
 import { ModerationRepository } from './repositories/moderation.repository';
@@ -21,6 +23,7 @@ export class ModerationService {
     private readonly moderationRepository: ModerationRepository,
     private readonly moderationEngine: ModerationEngineService,
     private readonly emailService: EmailService,
+    private readonly adminActivity: AdminActivityService,
   ) {}
 
   async processReview(reviewId: string): Promise<void> {
@@ -136,6 +139,14 @@ export class ModerationService {
 
     await this.reviewsRepository.deleteById(reviewId);
 
+    await this.adminActivity.log({
+      adminId,
+      entityType: AdminActivityEntityType.REVIEW,
+      entityId: reviewId,
+      entityLabel: review.title,
+      action: AdminActivityAction.DELETED,
+    });
+
     if (wasApproved) {
       await this.reviewsRepository.recalculateCompanyRating(companyId);
       await this.reviewsRepository.decrementUserReviewCount(userId);
@@ -174,6 +185,15 @@ export class ModerationService {
     }
 
     await this.reviewsRepository.deleteReply(reviewId);
+
+    await this.adminActivity.log({
+      adminId,
+      entityType: AdminActivityEntityType.REVIEW,
+      entityId: reviewId,
+      entityLabel: `Reply on "${review.title}"`,
+      action: AdminActivityAction.DELETED,
+    });
+
     this.logger.log(`Admin ${adminId} deleted reply on review ${reviewId}`);
   }
 
@@ -229,6 +249,14 @@ export class ModerationService {
       reviewerEmail: reviewer.email,
       companyName,
       reviewTitle: review.title,
+    });
+
+    await this.adminActivity.log({
+      adminId,
+      entityType: AdminActivityEntityType.REVIEW,
+      entityId: reviewId,
+      entityLabel: review.title,
+      action: AdminActivityAction.RESOLVED,
     });
   }
 
@@ -287,6 +315,23 @@ export class ModerationService {
       score: review.moderationScore,
       action,
     });
+
+    const activityAction =
+      status === 'APPROVED'
+        ? AdminActivityAction.APPROVED
+        : status === 'REJECTED'
+          ? AdminActivityAction.REJECTED
+          : null;
+
+    if (activityAction) {
+      await this.adminActivity.log({
+        adminId,
+        entityType: AdminActivityEntityType.REVIEW,
+        entityId: reviewId,
+        entityLabel: review.title,
+        action: activityAction,
+      });
+    }
 
     if (previousStatus !== 'APPROVED' && status === 'APPROVED') {
       await this.reviewsRepository.recalculateCompanyRating(review.companyId);

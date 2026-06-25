@@ -1,3 +1,4 @@
+import type { AdminPermission } from './admin-permissions';
 import type { UserRole } from './enums';
 
 export interface AuthTokens {
@@ -17,6 +18,7 @@ export interface AuthenticatedUser {
   email: string;
   displayName: string | null;
   role: UserRole;
+  adminPermissions: AdminPermission[];
   isVerified: boolean;
   phone: string | null;
   phoneVerified: boolean;

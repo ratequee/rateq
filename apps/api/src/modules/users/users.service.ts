@@ -17,11 +17,12 @@ import type {
   PaginatedUsersResponse,
   UserProfile,
 } from '@rateq/types';
-import { UserRole } from '@rateq/types';
+import { AdminPermission, hasAdminPermission, UserRole } from '@rateq/types';
 import * as bcrypt from 'bcrypt';
 import { buildPaginationMeta } from '../../common/utils/pagination.util';
 import { EmailService } from '../auth/services/email.service';
 import { FirebaseAdminService } from '../auth/services/firebase-admin.service';
+import { AdminPermissionsService } from '../auth/services/admin-permissions.service';
 import { CompaniesRepository } from '../companies/repositories/companies.repository';
 import { UserProfilesRepository } from './repositories/user-profiles.repository';
 import { UsersRepository } from './repositories/users.repository';
@@ -45,6 +46,7 @@ export class UsersService {
     private readonly phoneOtpService: PhoneOtpService,
     private readonly emailService: EmailService,
     private readonly firebaseAdmin: FirebaseAdminService,
+    private readonly adminPermissions: AdminPermissionsService,
   ) {}
 
   async syncPhoneVerification(
@@ -185,8 +187,51 @@ export class UsersService {
       throw new NotFoundException('User not found');
     }
 
+    const actorUser = await this.usersRepository.findById(actor.id);
+
+    if (!actorUser) {
+      throw new ForbiddenException('Actor not found');
+    }
+
+    const sensitiveChange = dto.role !== undefined || dto.adminPermissions !== undefined;
+
+    if (sensitiveChange && !this.adminPermissions.isTeamManager(actorUser)) {
+      throw new ForbiddenException('Only team managers can change admin roles or permissions');
+    }
+
     if (dto.role === UserRole.ADMIN && actor.role !== UserRole.ADMIN) {
       throw new ForbiddenException('Only admins can assign the ADMIN role');
+    }
+
+    if (dto.role === UserRole.ADMIN && user.role !== PrismaUserRole.ADMIN) {
+      if (!dto.adminPermissions?.length) {
+        throw new BadRequestException(
+          'Assign at least one permission when promoting a user to admin',
+        );
+      }
+    }
+
+    if (
+      dto.adminPermissions !== undefined &&
+      dto.adminPermissions.length === 0 &&
+      user.role === PrismaUserRole.ADMIN
+    ) {
+      throw new BadRequestException('Admin users must keep at least one permission');
+    }
+
+    if (dto.adminPermissions !== undefined) {
+      const hadTeam = hasAdminPermission(
+        this.adminPermissions.toPermissions(user),
+        AdminPermission.TEAM,
+      );
+      const willHaveTeam = hasAdminPermission(dto.adminPermissions, AdminPermission.TEAM);
+
+      if (hadTeam && !willHaveTeam) {
+        const teamManagers = await this.usersRepository.countTeamManagers();
+        if (teamManagers <= 1) {
+          throw new BadRequestException('Cannot remove the last team manager');
+        }
+      }
     }
 
     const isDemotingAdmin =
@@ -201,8 +246,12 @@ export class UsersService {
 
     const updated = await this.usersRepository.updateById(targetId, {
       ...(dto.role !== undefined && { role: dto.role as PrismaUserRole }),
+      ...(dto.adminPermissions !== undefined && {
+        adminPermissions: this.adminPermissions.toPrismaPermissions(dto.adminPermissions),
+      }),
       ...(dto.isVerified !== undefined && { isVerified: dto.isVerified }),
       ...(dto.isActive !== undefined && { isActive: dto.isActive }),
+      ...(isDemotingAdmin ? { adminPermissions: [] } : {}),
     });
 
     if (dto.isActive === false) {

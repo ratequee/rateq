@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { DatabaseModule } from '../../infrastructure/database/database.module';
 import { EmailModule } from '../auth/email.module';
 import { FirebaseAdminModule } from '../auth/firebase-admin.module';
+import { AdminActivityModule } from '../admin-activity/admin-activity.module';
 import { CategoriesModule } from '../categories/categories.module';
 import { PhoneVerificationModule } from '../phone-verification/phone-verification.module';
 import { AdminCompaniesController } from './admin-companies.controller';
@@ -22,6 +23,7 @@ import { CompaniesRepository } from './repositories/companies.repository';
     EmailModule,
     CategoriesModule,
     PhoneVerificationModule,
+    AdminActivityModule,
   ],
   controllers: [
     CompaniesController,

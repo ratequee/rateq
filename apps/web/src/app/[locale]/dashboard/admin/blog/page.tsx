@@ -6,7 +6,8 @@ import { hasMeaningfulBlogContent } from '@/components/blog/blog-content';
 import { DashboardShell } from '@/components/dashboard/dashboard-shell';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { useRequireFirebaseAdmin } from '@/hooks/use-require-firebase-admin';
+import { useRequireAdmin } from '@/hooks/use-require-admin';
+import { AdminPermission } from '@rateq/types';
 import { adminBlogApi } from '@/lib/admin-blog-api';
 import { ApiError } from '@/lib/api';
 import type {
@@ -85,7 +86,7 @@ export default function AdminBlogPage() {
   const [coverUrl, setCoverUrl] = useState('');
   const [translations, setTranslations] = useState<TranslationForm>(emptyTranslations());
 
-  useRequireFirebaseAdmin();
+  useRequireAdmin(AdminPermission.CONTENT);
 
   const loadPosts = useCallback(async () => {
     setLoading(true);

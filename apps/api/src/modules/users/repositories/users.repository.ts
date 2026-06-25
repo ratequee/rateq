@@ -34,6 +34,12 @@ export class UsersRepository {
     return this.prisma.user.count({ where: { role: 'ADMIN' } });
   }
 
+  countTeamManagers(): Promise<number> {
+    return this.prisma.user.count({
+      where: { role: 'ADMIN', adminPermissions: { has: 'TEAM' } },
+    });
+  }
+
   findMany(filters: ListUsersFilters): Promise<User[]> {
     const where = this.buildWhereClause(filters);
 

@@ -18,6 +18,7 @@ import type { RegisterDto } from './dto/register.dto';
 import type { LoginDto } from './dto/login.dto';
 import { FirebaseAdminService } from './services/firebase-admin.service';
 import { FirebaseAdminAccessService } from './services/firebase-admin-access.service';
+import { AdminPermissionsService } from './services/admin-permissions.service';
 import type { FirebaseLoginDto } from './dto/firebase-login.dto';
 
 const BCRYPT_ROUNDS = 12;
@@ -30,6 +31,7 @@ export class AuthService {
     private readonly emailService: EmailService,
     private readonly firebaseAdmin: FirebaseAdminService,
     private readonly firebaseAdminAccess: FirebaseAdminAccessService,
+    private readonly adminPermissions: AdminPermissionsService,
   ) {}
 
   async register(dto: RegisterDto): Promise<AuthResponse> {
@@ -158,21 +160,31 @@ export class AuthService {
     return user;
   }
 
-  async getFirebaseAdminAccess(userId: string): Promise<{ allowed: boolean }> {
+  async getFirebaseAdminAccess(userId: string) {
+    return this.getAdminAccess(userId);
+  }
+
+  async getAdminAccess(userId: string) {
     const user = await this.authRepository.findUserById(userId);
 
-    if (!user?.firebaseUid) {
-      return { allowed: false };
+    if (!user) {
+      return { allowed: false, permissions: [] };
     }
 
-    return { allowed: this.firebaseAdminAccess.isWhitelisted(user.firebaseUid) };
+    return this.adminPermissions.getAdminAccess(user);
   }
 
   private async syncFirebaseAdminRole(user: User, firebaseUid: string): Promise<User> {
     const shouldBeAdmin = this.firebaseAdminAccess.isWhitelisted(firebaseUid);
+    const fullPermissions = this.adminPermissions.toPrismaPermissions(
+      this.adminPermissions.fullPermissions(),
+    );
 
     if (shouldBeAdmin && user.role !== PrismaUserRole.ADMIN) {
-      return this.authRepository.updateUserRole(user.id, PrismaUserRole.ADMIN);
+      return this.authRepository.updateUserAdminAccess(user.id, {
+        role: PrismaUserRole.ADMIN,
+        adminPermissions: fullPermissions,
+      });
     }
 
     if (
@@ -181,7 +193,16 @@ export class AuthService {
       user.firebaseUid &&
       this.firebaseAdminAccess.hasAnyAdmin()
     ) {
-      return this.authRepository.updateUserRole(user.id, PrismaUserRole.USER);
+      return this.authRepository.updateUserAdminAccess(user.id, {
+        role: PrismaUserRole.USER,
+        adminPermissions: [],
+      });
+    }
+
+    if (shouldBeAdmin && user.role === PrismaUserRole.ADMIN && user.adminPermissions.length === 0) {
+      return this.authRepository.updateUserAdminAccess(user.id, {
+        adminPermissions: fullPermissions,
+      });
     }
 
     return user;

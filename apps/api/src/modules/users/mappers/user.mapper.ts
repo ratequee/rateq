@@ -1,6 +1,9 @@
 import type { User } from '@prisma/client';
 import type { UserProfile } from '@rateq/types';
 import { UserRole } from '@rateq/types';
+import { AdminPermissionsService } from '../../auth/services/admin-permissions.service';
+
+const adminPermissionsService = new AdminPermissionsService();
 
 export type SafeUser = Omit<User, 'passwordHash'>;
 
@@ -16,6 +19,7 @@ export function toUserProfile(
     id: user.id,
     email: user.email,
     role: user.role as UserRole,
+    adminPermissions: adminPermissionsService.toPermissions(user),
     isVerified: user.isVerified,
     isActive: user.isActive,
     reviewCount: user.reviewCount,

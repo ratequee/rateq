@@ -5,6 +5,7 @@ import type {
   AdminPlatformStats,
   AdminUserDetail,
   PaginatedCompaniesResponse,
+  UserProfile,
 } from '@rateq/types';
 import { buildPaginationMeta } from '../../common/utils/pagination.util';
 import { CompaniesRepository } from '../companies/repositories/companies.repository';
@@ -221,5 +222,15 @@ export class AdminService {
       companiesCount: companyIds.size,
       reviewersCount: userIds.size,
     }));
+  }
+
+  async listTeamMembers(): Promise<UserProfile[]> {
+    const admins = await this.usersRepository.findMany({
+      role: 'ADMIN',
+      page: 1,
+      limit: 100,
+    });
+
+    return admins.map(toUserProfile);
   }
 }

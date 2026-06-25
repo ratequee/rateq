@@ -65,6 +65,30 @@ enum BlogPostStatus {
   PUBLISHED
 }
 
+enum AdminPermission {
+  STATS
+  COMPANIES
+  DIRECTORY
+  MODERATION
+  CONTENT
+  INVITATIONS
+  TEAM
+}
+
+enum AdminActivityEntityType {
+  COMPANY_VERIFICATION
+  COMPANY_PROFILE_CHANGE
+  REVIEW
+}
+
+enum AdminActivityAction {
+  APPROVED
+  REJECTED
+  REVISION_REQUESTED
+  RESOLVED
+  DELETED
+}
+
 // ---------------------------------------------------------------------------
 // Users
 // ---------------------------------------------------------------------------
@@ -75,7 +99,8 @@ model User {
   displayName  String?  @map("display_name")
   firebaseUid  String?  @unique @map("firebase_uid")
   passwordHash String?  @map("password_hash")
-  role          UserRole @default(USER)
+  role              UserRole          @default(USER)
+  adminPermissions  AdminPermission[] @default([]) @map("admin_permissions")
   phone         String?
   phoneVerified Boolean  @default(false) @map("phone_verified")
   isVerified    Boolean  @default(false) @map("is_verified")
@@ -92,6 +117,7 @@ model User {
   passwordResets     PasswordReset[]
   companyPageViews   CompanyPageView[]
   sentInvitations    UserInvitation[]   @relation("InvitationSender")
+  adminActivityLogs  AdminActivityLog[] @relation("AdminActivityActor")
 
   @@index([role])
   @@index([createdAt])
@@ -390,6 +416,27 @@ model ReviewReply {
   @@unique([reviewId])
   @@index([companyId])
   @@map("review_replies")
+}
+
+// ---------------------------------------------------------------------------
+// Admin activity audit
+// ---------------------------------------------------------------------------
+
+model AdminActivityLog {
+  id          String                 @id @default(cuid())
+  adminId     String                 @map("admin_id")
+  entityType  AdminActivityEntityType @map("entity_type")
+  entityId    String                 @map("entity_id")
+  entityLabel String                 @map("entity_label")
+  action      AdminActivityAction
+  createdAt   DateTime               @default(now()) @map("created_at")
+
+  admin User @relation("AdminActivityActor", fields: [adminId], references: [id], onDelete: Cascade)
+
+  @@index([createdAt])
+  @@index([adminId, createdAt])
+  @@index([entityType, entityId])
+  @@map("admin_activity_logs")
 }
 
 // ---------------------------------------------------------------------------

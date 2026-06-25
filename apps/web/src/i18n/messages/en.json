@@ -772,6 +772,7 @@
       "companyVerifications": "Company verifications",
       "directory": "Directory",
       "blog": "Blog",
+      "team": "Admin team",
       "viewSite": "View public site",
       "visitCompanies": "Visit companies",
       "companyCatalog": "Company catalog"
@@ -1170,7 +1171,6 @@
   },
   "adminCategories": {
     "title": "Business categories",
-    "subtitle": "Manage categories and the services reviewers can rate for each category.",
     "mergedSubtitle": "Manage business categories, company services, and activities in one place.",
     "tabCategories": "Categories & attributes",
     "nameEnLabel": "Name (English)",
@@ -1205,6 +1205,56 @@
     "serviceNameTooShort": "Service name must be at least 2 characters.",
     "expandCategory": "Manage services",
     "collapseCategory": "Hide services"
+  },
+  "adminTeam": {
+    "title": "Admin team",
+    "subtitle": "Promote staff to admin and control what each person can access.",
+    "loadError": "Could not load admin team.",
+    "empty": "No admin team members yet.",
+    "save": "Save permissions",
+    "saved": "Permissions updated.",
+    "saveError": "Could not update permissions.",
+    "permissionsRequired": "Select at least one permission.",
+    "superAdmin": "Team manager",
+    "promoteTitle": "Add admin",
+    "promoteSubtitle": "Promote an existing user by email and choose their access.",
+    "promoteEmailPlaceholder": "user@example.com",
+    "promoteAction": "Promote to admin",
+    "promoteInvalid": "Enter an email and select at least one permission.",
+    "promoteNotFound": "No user found with that email.",
+    "promoted": "User promoted to admin.",
+    "promoteError": "Could not promote user.",
+    "permissions": {
+      "stats": "Dashboard overview",
+      "companies": "Company verifications",
+      "directory": "User & company directory",
+      "moderation": "Review moderation",
+      "content": "Categories, catalog & blog",
+      "invitations": "Invitations",
+      "team": "Manage admin team"
+    }
+  },
+  "adminActivity": {
+    "title": "Admin activity",
+    "subtitle": "See which team member approved, rejected, or updated each request.",
+    "loadError": "Could not load admin activity.",
+    "empty": "No admin actions recorded yet.",
+    "entry": "{admin} {action} {entity}: {label}",
+    "previous": "Previous",
+    "next": "Next",
+    "page": "Page {page} of {total}",
+    "actions": {
+      "APPROVED": "approved",
+      "REJECTED": "rejected",
+      "REVISION_REQUESTED": "sent for revision",
+      "RESOLVED": "sent for resolution",
+      "DELETED": "deleted"
+    },
+    "entities": {
+      "COMPANY_VERIFICATION": "company verification",
+      "COMPANY_PROFILE_CHANGE": "profile update",
+      "REVIEW": "review"
+    }
   },
   "blog": {
     "metaTitle": "Blog | RateQ",

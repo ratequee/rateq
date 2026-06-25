@@ -9,12 +9,15 @@ import {
   Patch,
   Post,
   Query,
+  UseGuards,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import type { AuthenticatedUser } from '@rateq/types';
-import { UserRole } from '@rateq/types';
+import { AdminPermission, UserRole } from '@rateq/types';
+import { RequireAdminPermission } from '../../common/decorators/require-admin-permission.decorator';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { Roles } from '../../common/decorators/roles.decorator';
+import { AdminPermissionGuard } from '../auth/guards/admin-permission.guard';
 import { SyncPhoneVerificationDto } from './dto/phone-otp.dto';
 import { MessageResponseDto } from '../auth/dto/auth-response.dto';
 import { UsersService } from './users.service';
@@ -77,6 +80,8 @@ export class UsersController {
 
   @Get()
   @Roles(UserRole.ADMIN)
+  @UseGuards(AdminPermissionGuard)
+  @RequireAdminPermission(AdminPermission.DIRECTORY, AdminPermission.TEAM)
   @ApiOperation({ summary: 'List users with pagination and filters (admin)' })
   @ApiResponse({ status: 200, type: PaginatedUsersDto })
   listUsers(@Query() query: ListUsersQueryDto) {
@@ -85,6 +90,8 @@ export class UsersController {
 
   @Get(':id')
   @Roles(UserRole.ADMIN)
+  @UseGuards(AdminPermissionGuard)
+  @RequireAdminPermission(AdminPermission.DIRECTORY, AdminPermission.TEAM)
   @ApiOperation({ summary: 'Get user by ID (admin)' })
   @ApiResponse({ status: 200, type: UserProfileDto })
   findById(@Param('id') id: string) {
@@ -93,6 +100,8 @@ export class UsersController {
 
   @Patch(':id')
   @Roles(UserRole.ADMIN)
+  @UseGuards(AdminPermissionGuard)
+  @RequireAdminPermission(AdminPermission.DIRECTORY, AdminPermission.TEAM)
   @ApiOperation({ summary: 'Update user role or verification status (admin)' })
   @ApiResponse({ status: 200, type: UserProfileDto })
   adminUpdate(
@@ -105,6 +114,8 @@ export class UsersController {
 
   @Delete(':id')
   @Roles(UserRole.ADMIN)
+  @UseGuards(AdminPermissionGuard)
+  @RequireAdminPermission(AdminPermission.DIRECTORY, AdminPermission.TEAM)
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Delete user account (admin)' })
   @ApiResponse({ status: 200, type: MessageResponseDto })

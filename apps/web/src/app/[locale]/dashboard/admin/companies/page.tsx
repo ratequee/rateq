@@ -3,7 +3,8 @@
 import { AdminCompanyMetrics } from '@/components/dashboard/admin-company-metrics';
 import { DashboardShell } from '@/components/dashboard/dashboard-shell';
 import { Button } from '@/components/ui/button';
-import { useRequireFirebaseAdmin } from '@/hooks/use-require-firebase-admin';
+import { useRequireAdmin } from '@/hooks/use-require-admin';
+import { AdminPermission } from '@rateq/types';
 import { adminApi } from '@/lib/admin-api';
 import { ApiError } from '@/lib/api';
 import type {
@@ -33,7 +34,7 @@ export default function AdminCompanyVerificationsPage() {
   const [revisionOpen, setRevisionOpen] = useState(false);
   const [revisionNotes, setRevisionNotes] = useState('');
 
-  useRequireFirebaseAdmin();
+  useRequireAdmin(AdminPermission.COMPANIES);
 
   const loadList = useCallback(async () => {
     setListLoading(true);

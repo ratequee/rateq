@@ -1,3 +1,4 @@
+import type { AdminPermission } from './admin-permissions';
 import type { UserRole } from './enums';
 import type { PaginatedResponse } from './pagination';
 
@@ -5,6 +6,7 @@ export interface UserProfile {
   id: string;
   email: string;
   role: UserRole;
+  adminPermissions: AdminPermission[];
   isVerified: boolean;
   isActive: boolean;
   reviewCount: number;
@@ -20,6 +22,7 @@ export type PaginatedUsersResponse = PaginatedResponse<UserProfile>;
 
 export interface AdminUpdateUserInput {
   role?: UserRole;
+  adminPermissions?: AdminPermission[];
   isVerified?: boolean;
   isActive?: boolean;
 }

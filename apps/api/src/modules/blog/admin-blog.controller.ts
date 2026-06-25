@@ -12,7 +12,9 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
-import { FirebaseAdminGuard } from '../auth/guards/firebase-admin.guard';
+import { AdminPermission } from '@rateq/types';
+import { RequireAdminPermission } from '../../common/decorators/require-admin-permission.decorator';
+import { AdminPermissionGuard } from '../auth/guards/admin-permission.guard';
 import { BlogService } from './blog.service';
 import { CreateBlogPostDto, UpdateBlogPostDto } from './dto/blog-post.dto';
 import { AdminListBlogPostsQueryDto } from './dto/list-blog-posts-query.dto';
@@ -20,7 +22,8 @@ import { AdminListBlogPostsQueryDto } from './dto/list-blog-posts-query.dto';
 @ApiTags('admin-blog')
 @ApiBearerAuth()
 @Controller('admin/blog')
-@UseGuards(FirebaseAdminGuard)
+@UseGuards(AdminPermissionGuard)
+@RequireAdminPermission(AdminPermission.CONTENT)
 export class AdminBlogController {
   constructor(private readonly blogService: BlogService) {}
 

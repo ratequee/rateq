@@ -2,7 +2,9 @@
 
 import { Logo } from '@/components/brand/logo';
 import { Link, usePathname } from '@/i18n/routing';
+import { useAuth } from '@/components/providers/auth-provider';
 import { cn } from '@/lib/utils';
+import { AdminPermission, hasAdminPermission } from '@rateq/types';
 import {
   Building2,
   FileText,
@@ -12,6 +14,7 @@ import {
   LayoutGrid,
   LogOut,
   Settings,
+  Shield,
   Star,
   Users,
   Wallet,
@@ -25,13 +28,21 @@ export const DASHBOARD_NAV_ITEMS: {
   key: string;
   icon: LucideIcon;
   roles: Array<'admin' | 'company' | 'reviewer'>;
+  adminPermission?: AdminPermission;
 }[] = [
-  { href: '/dashboard/admin', key: 'home', icon: Home, roles: ['admin'] },
+  {
+    href: '/dashboard/admin',
+    key: 'home',
+    icon: Home,
+    roles: ['admin'],
+    adminPermission: AdminPermission.STATS,
+  },
   {
     href: '/dashboard/admin/companies',
     key: 'companyVerifications',
     icon: Building2,
     roles: ['admin'],
+    adminPermission: AdminPermission.COMPANIES,
   },
   { href: '/dashboard/reviewer', key: 'home', icon: Home, roles: ['reviewer'] },
   { href: '/dashboard/company', key: 'home', icon: Home, roles: ['company'] },
@@ -40,6 +51,7 @@ export const DASHBOARD_NAV_ITEMS: {
     key: 'directory',
     icon: Users,
     roles: ['admin'],
+    adminPermission: AdminPermission.DIRECTORY,
   },
   {
     href: '/dashboard/reviewer/reviews',
@@ -60,8 +72,27 @@ export const DASHBOARD_NAV_ITEMS: {
     icon: FolderKanban,
     roles: ['company'],
   },
-  { href: '/dashboard/admin/categories', key: 'categories', icon: LayoutGrid, roles: ['admin'] },
-  { href: '/dashboard/admin/blog', key: 'blog', icon: FileText, roles: ['admin'] },
+  {
+    href: '/dashboard/admin/categories',
+    key: 'categories',
+    icon: LayoutGrid,
+    roles: ['admin'],
+    adminPermission: AdminPermission.CONTENT,
+  },
+  {
+    href: '/dashboard/admin/blog',
+    key: 'blog',
+    icon: FileText,
+    roles: ['admin'],
+    adminPermission: AdminPermission.CONTENT,
+  },
+  {
+    href: '/dashboard/admin/team',
+    key: 'team',
+    icon: Shield,
+    roles: ['admin'],
+    adminPermission: AdminPermission.TEAM,
+  },
   { href: '/dashboard/admin/payments', key: 'payments', icon: Wallet, roles: ['admin'] },
   { href: '#', key: 'payments', icon: Wallet, roles: ['company'] },
   { href: '/dashboard/company/profile', key: 'settings', icon: Settings, roles: ['company'] },
@@ -83,11 +114,17 @@ export const DASHBOARD_NAV_ITEMS: {
 const REVIEWER_NAV_KEYS = new Set(['home', 'reviews', 'settings', 'visitCompanies', 'viewSite']);
 const HIDDEN_NAV_KEYS = new Set(['payments']);
 
-export function getDashboardNavItems(role: 'admin' | 'company' | 'reviewer') {
+export function getDashboardNavItems(
+  role: 'admin' | 'company' | 'reviewer',
+  adminPermissions: AdminPermission[] = [],
+) {
   return DASHBOARD_NAV_ITEMS.filter((item) => {
     if (HIDDEN_NAV_KEYS.has(item.key)) return false;
     if (item.key === 'projects' && role !== 'company') return false;
     if (!item.roles.includes(role)) return false;
+    if (role === 'admin' && item.adminPermission) {
+      return hasAdminPermission(adminPermissions, item.adminPermission);
+    }
     if (role === 'reviewer') return REVIEWER_NAV_KEYS.has(item.key);
     return true;
   });
@@ -104,7 +141,8 @@ export function DashboardNav({ role, onNavigate, showClose, onClose }: Dashboard
   const t = useTranslations('dashboardShell');
   const tNav = useTranslations('nav');
   const pathname = usePathname();
-  const navItems = getDashboardNavItems(role);
+  const { adminAccess } = useAuth();
+  const navItems = getDashboardNavItems(role, adminAccess?.permissions ?? []);
 
   return (
     <>

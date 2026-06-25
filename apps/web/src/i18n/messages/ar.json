@@ -772,6 +772,7 @@
       "companyVerifications": "طلبات الشركات",
       "directory": "الدليل",
       "blog": "المدونة",
+      "team": "فريق الإدارة",
       "viewSite": "عرض الموقع العام",
       "visitCompanies": "زيارة الشركات",
       "companyCatalog": "كتالوج الشركات"
@@ -1205,6 +1206,56 @@
     "serviceNameTooShort": "يجب أن يكون اسم الخدمة حرفين على الأقل.",
     "expandCategory": "إدارة الخدمات",
     "collapseCategory": "إخفاء الخدمات"
+  },
+  "adminTeam": {
+    "title": "فريق الإدارة",
+    "subtitle": "ترقية الموظفين إلى مشرفين والتحكم في صلاحيات كل شخص.",
+    "loadError": "تعذر تحميل فريق الإدارة.",
+    "empty": "لا يوجد مشرفون بعد.",
+    "save": "حفظ الصلاحيات",
+    "saved": "تم تحديث الصلاحيات.",
+    "saveError": "تعذر تحديث الصلاحيات.",
+    "permissionsRequired": "اختر صلاحية واحدة على الأقل.",
+    "superAdmin": "مدير الفريق",
+    "promoteTitle": "إضافة مشرف",
+    "promoteSubtitle": "رقِّ مستخدماً موجوداً عبر البريد وحدد صلاحياته.",
+    "promoteEmailPlaceholder": "user@example.com",
+    "promoteAction": "ترقية إلى مشرف",
+    "promoteInvalid": "أدخل البريد واختر صلاحية واحدة على الأقل.",
+    "promoteNotFound": "لم يتم العثور على مستخدم بهذا البريد.",
+    "promoted": "تمت ترقية المستخدم إلى مشرف.",
+    "promoteError": "تعذر ترقية المستخدم.",
+    "permissions": {
+      "stats": "نظرة عامة على لوحة التحكم",
+      "companies": "اعتماد الشركات",
+      "directory": "دليل المستخدمين والشركات",
+      "moderation": "إشراف التقييمات",
+      "content": "الفئات والكتالوج والمدونة",
+      "invitations": "الدعوات",
+      "team": "إدارة فريق المشرفين"
+    }
+  },
+  "adminActivity": {
+    "title": "نشاط المشرفين",
+    "subtitle": "اعرف أي موظف وافق أو رفض أو حدّث كل طلب.",
+    "loadError": "تعذر تحميل نشاط المشرفين.",
+    "empty": "لا يوجد نشاط مسجّل بعد.",
+    "entry": "{admin} {action} {entity}: {label}",
+    "previous": "السابق",
+    "next": "التالي",
+    "page": "صفحة {page} من {total}",
+    "actions": {
+      "APPROVED": "وافق على",
+      "REJECTED": "رفض",
+      "REVISION_REQUESTED": "أرسل للمراجعة",
+      "RESOLVED": "أرسل للتسوية",
+      "DELETED": "حذف"
+    },
+    "entities": {
+      "COMPANY_VERIFICATION": "طلب اعتماد شركة",
+      "COMPANY_PROFILE_CHANGE": "تحديث ملف شركة",
+      "REVIEW": "تقييم"
+    }
   },
   "blog": {
     "metaTitle": "المدونة | RateQ",

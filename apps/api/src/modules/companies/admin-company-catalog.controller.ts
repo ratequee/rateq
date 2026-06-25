@@ -10,7 +10,9 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
-import { FirebaseAdminGuard } from '../auth/guards/firebase-admin.guard';
+import { AdminPermission } from '@rateq/types';
+import { RequireAdminPermission } from '../../common/decorators/require-admin-permission.decorator';
+import { AdminPermissionGuard } from '../auth/guards/admin-permission.guard';
 import { CompanyCatalogService } from './company-catalog.service';
 import { CreateCompanyCatalogItemDto } from './dto/create-company-catalog-item.dto';
 import { UpdateCompanyCatalogItemDto } from './dto/update-company-catalog-item.dto';
@@ -19,7 +21,8 @@ import { ListCompanyCatalogQueryDto } from './dto/list-company-catalog-query.dto
 @ApiTags('admin-company-catalog')
 @ApiBearerAuth()
 @Controller('admin/company-catalog')
-@UseGuards(FirebaseAdminGuard)
+@UseGuards(AdminPermissionGuard)
+@RequireAdminPermission(AdminPermission.CONTENT)
 export class AdminCompanyCatalogController {
   constructor(private readonly catalogService: CompanyCatalogService) {}
 

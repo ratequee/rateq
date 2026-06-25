@@ -2,12 +2,13 @@
 
 import { AdminProjectsPanel } from '@/components/dashboard/admin-projects-panel';
 import { DashboardShell } from '@/components/dashboard/dashboard-shell';
-import { useRequireFirebaseAdmin } from '@/hooks/use-require-firebase-admin';
+import { useRequireAdmin } from '@/hooks/use-require-admin';
+import { AdminPermission } from '@rateq/types';
 import { useTranslations } from 'next-intl';
 
 export default function AdminProjectsPage() {
   const t = useTranslations('adminProjects');
-  useRequireFirebaseAdmin();
+  useRequireAdmin(AdminPermission.STATS);
 
   return (
     <DashboardShell role="admin">

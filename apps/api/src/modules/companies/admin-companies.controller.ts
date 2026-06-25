@@ -1,6 +1,10 @@
 import { Body, Controller, Get, Param, Patch, Query, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
-import { FirebaseAdminGuard } from '../auth/guards/firebase-admin.guard';
+import type { AuthenticatedUser } from '@rateq/types';
+import { AdminPermission } from '@rateq/types';
+import { CurrentUser } from '../../common/decorators/current-user.decorator';
+import { RequireAdminPermission } from '../../common/decorators/require-admin-permission.decorator';
+import { AdminPermissionGuard } from '../auth/guards/admin-permission.guard';
 import { CompaniesService } from './companies.service';
 import {
   ListCompanyVerificationsQueryDto,
@@ -10,7 +14,8 @@ import {
 @ApiTags('admin-companies')
 @ApiBearerAuth()
 @Controller('admin/companies')
-@UseGuards(FirebaseAdminGuard)
+@UseGuards(AdminPermissionGuard)
+@RequireAdminPermission(AdminPermission.COMPANIES)
 export class AdminCompaniesController {
   constructor(private readonly companiesService: CompaniesService) {}
 
@@ -32,8 +37,12 @@ export class AdminCompaniesController {
 
   @Patch('verifications/:id')
   @ApiOperation({ summary: 'Approve or reject a company profile (Firebase admin)' })
-  updateVerification(@Param('id') id: string, @Body() dto: UpdateCompanyVerificationDto) {
-    return this.companiesService.setAdminVerificationStatus(id, dto);
+  updateVerification(
+    @Param('id') id: string,
+    @Body() dto: UpdateCompanyVerificationDto,
+    @CurrentUser() admin: AuthenticatedUser,
+  ) {
+    return this.companiesService.setAdminVerificationStatus(id, dto, admin.id);
   }
 
   @Get('profile-changes')
@@ -44,13 +53,13 @@ export class AdminCompaniesController {
 
   @Patch(':id/profile-changes/approve')
   @ApiOperation({ summary: 'Approve pending profile changes for an approved company' })
-  approveProfileChanges(@Param('id') id: string) {
-    return this.companiesService.approveProfileChanges(id);
+  approveProfileChanges(@Param('id') id: string, @CurrentUser() admin: AuthenticatedUser) {
+    return this.companiesService.approveProfileChanges(id, admin.id);
   }
 
   @Patch(':id/profile-changes/reject')
   @ApiOperation({ summary: 'Reject pending profile changes for an approved company' })
-  rejectProfileChanges(@Param('id') id: string) {
-    return this.companiesService.rejectProfileChanges(id);
+  rejectProfileChanges(@Param('id') id: string, @CurrentUser() admin: AuthenticatedUser) {
+    return this.companiesService.rejectProfileChanges(id, admin.id);
   }
 }

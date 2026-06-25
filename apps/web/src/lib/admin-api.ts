@@ -1,11 +1,9 @@
 import type {
   AdminCompanyVerificationDetail,
   CategoryPublic,
-  CategoryServicePublic,
   CompanyCatalogItemPublic,
   CompanyDetail,
   CreateCategoryInput,
-  CreateCategoryServiceInput,
   CreateCompanyCatalogItemInput,
   InvitationPublic,
   PaginatedAdminCompanyVerifications,
@@ -64,19 +62,6 @@ export const adminApi = {
 
   removeCategory: async (id: string) =>
     apiClient<{ message: string }>(`/admin/categories/${id}`, {
-      method: 'DELETE',
-      token: await token(),
-    }),
-
-  addCategoryService: async (categoryId: string, data: CreateCategoryServiceInput) =>
-    apiClient<CategoryServicePublic>(`/admin/categories/${categoryId}/services`, {
-      method: 'POST',
-      body: JSON.stringify(data),
-      token: await token(),
-    }),
-
-  removeCategoryService: async (categoryId: string, serviceId: string) =>
-    apiClient<{ message: string }>(`/admin/categories/${categoryId}/services/${serviceId}`, {
       method: 'DELETE',
       token: await token(),
     }),
