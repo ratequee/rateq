@@ -1,68 +1,25 @@
 'use client';
 
 import { DashboardShell } from '@/components/dashboard/dashboard-shell';
+import { DashboardPageHeader } from '@/components/dashboard/dashboard-page-header';
 import { DashboardProfileLoading } from '@/components/dashboard/dashboard-profile-loading';
 import { CompanyPublicProfileForm } from '@/components/dashboard/company-public-profile-form';
+import { CompanySettingsForm } from '@/components/dashboard/company-settings-form';
 import { CompanyInviteReviewersPanel } from '@/components/dashboard/company-invite-reviewers-panel';
-import { CompanyAddressMapField } from '@/components/profile/company-address-map-field';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { QatarPhoneInput } from '@/components/ui/qatar-phone-input';
-import { extractQatarPhoneDigits } from '@/lib/qatar-phone';
 import { useProfile } from '@/components/providers/profile-provider';
 import { useRequireCompleteProfile } from '@/hooks/use-require-verified-auth';
-import { onboardingApi } from '@/lib/onboarding-api';
-import { fetchCategoriesClient } from '@/lib/categories-api';
-import { ApiError } from '@/lib/api';
-import { ensureValidAccessToken } from '@/lib/auth-session';
 import { isRemoteImage, isRemotePdf } from '@/lib/profile-company-assets';
-import {
-  hasValidationErrors,
-  validateCompanySettingsFields,
-} from '@/lib/validation/profile-fields';
-import type { CompanyMapLocation } from '@/lib/company-location';
-import type { CategoryPublic } from '@rateq/types';
 import { ExternalLink, FileText } from 'lucide-react';
 import { useLocale, useTranslations } from 'next-intl';
-import { useEffect, useMemo, useState } from 'react';
-import { toast } from 'sonner';
+import { useMemo } from 'react';
 
 export default function CompanyProfileSettingsPage() {
   const t = useTranslations('profilePage');
   const locale = useLocale();
-  const { onboarding, refreshOnboarding, isLoading: profileLoading } = useProfile();
+  const { onboarding, isLoading: profileLoading } = useProfile();
   useRequireCompleteProfile();
 
-  const [categories, setCategories] = useState<CategoryPublic[]>([]);
-  const [submitting, setSubmitting] = useState(false);
-  const [errors, setErrors] = useState<Record<string, string>>({});
-
-  const [companyName, setCompanyName] = useState('');
-  const [companyPhone, setCompanyPhone] = useState('');
-  const [categoryId, setCategoryId] = useState('');
-  const [companyAddress, setCompanyAddress] = useState('');
-  const [companyLocation, setCompanyLocation] = useState<CompanyMapLocation | null>(null);
-  const [companyCity, setCompanyCity] = useState('');
-  const [companyCountry, setCompanyCountry] = useState('');
-
   const company = onboarding?.company;
-
-  useEffect(() => {
-    void fetchCategoriesClient().then(setCategories);
-  }, []);
-
-  useEffect(() => {
-    if (profileLoading || !company) return;
-    setCompanyName(company.name);
-    setCompanyPhone(extractQatarPhoneDigits(company.phone ?? ''));
-    setCategoryId(company.categoryId ?? '');
-    setCompanyAddress(company.address ?? '');
-    if (company.latitude != null && company.longitude != null) {
-      setCompanyLocation({ latitude: company.latitude, longitude: company.longitude });
-    }
-    setCompanyCity(company.city);
-    setCompanyCountry(company.country);
-  }, [company, profileLoading]);
 
   const registrationDetails = useMemo(() => {
     if (!company) return [];
@@ -95,73 +52,23 @@ export default function CompanyProfileSettingsPage() {
     [company, t],
   );
 
-  const handleSubmit = async (event: React.FormEvent) => {
-    event.preventDefault();
-
-    const fieldErrors = validateCompanySettingsFields(
-      {
-        companyName,
-        companyAddress,
-        companyLocation,
-        categoryId,
-        city: companyCity,
-        country: companyCountry,
-      },
-      {
-        required: t('errors.required'),
-        companyName: { min: t('errors.companyNameMin'), max: t('errors.companyNameMax') },
-        locationRequired: t('errors.locationRequired'),
-      },
-    );
-
-    setErrors(fieldErrors);
-    if (hasValidationErrors(fieldErrors)) {
-      toast.error(t('errors.fixForm'));
-      return;
-    }
-
-    setSubmitting(true);
-    try {
-      const token = await ensureValidAccessToken();
-      if (!token) throw new Error(t('sessionExpired'));
-
-      await onboardingApi.updateCompany({
-        name: companyName.trim(),
-        address: companyAddress.trim(),
-        latitude: companyLocation?.latitude,
-        longitude: companyLocation?.longitude,
-        categoryId,
-        country: companyCountry.trim(),
-        city: companyCity.trim(),
-      });
-
-      await refreshOnboarding();
-      toast.success(t('profileUpdated'));
-    } catch (err) {
-      const message = err instanceof ApiError ? err.message : t('saveError');
-      toast.error(message);
-    } finally {
-      setSubmitting(false);
-    }
-  };
-
   return (
     <DashboardShell role="company">
       <div className="mx-auto max-w-2xl">
-        <div className="mb-6">
-          <h1 className="text-2xl font-bold text-primary">{t('profileSettingsTitle')}</h1>
-          <p className="mt-1 text-sm text-secondary">{t('profileSettingsSubtitle')}</p>
-          {company?.email && (
-            <p className="mt-2 text-sm text-secondary">
-              {t('accountEmailLabel')}:{' '}
-              <span className="font-medium text-primary">{company.email}</span>
-            </p>
-          )}
-        </div>
+        <DashboardPageHeader
+          title={t('profileSettingsTitle')}
+          subtitle={t('profileSettingsSubtitle')}
+        />
+        {company?.email ? (
+          <p className="-mt-4 mb-6 text-sm text-secondary dark:text-slate-300">
+            {t('accountEmailLabel')}:{' '}
+            <span className="font-medium text-primary dark:text-white">{company.email}</span>
+          </p>
+        ) : null}
 
         {profileLoading ? (
           <DashboardProfileLoading />
-        ) : (
+        ) : company ? (
           <>
             {(registrationDetails.length > 0 || documents.length > 0) && (
               <section className="mb-6 rounded-2xl surface-card border p-6 shadow-sm">
@@ -175,7 +82,7 @@ export default function CompanyProfileSettingsPage() {
                     {registrationDetails.map(({ label, value }) => (
                       <div
                         key={label}
-                        className="rounded-xl border border-slate-200 bg-slate-50 dark:border-slate-700 dark:bg-slate-800 px-4 py-3"
+                        className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 dark:border-slate-700 dark:bg-slate-800"
                       >
                         <dt className="text-xs font-medium text-secondary">{label}</dt>
                         <dd className="mt-1 text-sm font-medium text-primary">{value}</dd>
@@ -198,60 +105,14 @@ export default function CompanyProfileSettingsPage() {
               </section>
             )}
 
-            <form
-              onSubmit={handleSubmit}
-              className="mb-6 space-y-4 rounded-2xl surface-card border p-6 shadow-sm"
-            >
-              <Field label={t('companyName')} error={errors.companyName} required>
-                <Input
-                  value={companyName}
-                  onChange={(e) => setCompanyName(e.target.value)}
-                  className="h-11"
-                />
-              </Field>
-              <CompanyAddressMapField
-                address={companyAddress}
-                city={companyCity}
-                country={companyCountry}
-                location={companyLocation}
-                onAddressChange={setCompanyAddress}
-                onCityChange={setCompanyCity}
-                onCountryChange={setCompanyCountry}
-                onLocationChange={setCompanyLocation}
-                addressError={errors.companyAddress}
-                locationError={errors.companyLocation}
-                fieldKey="companyAddress"
-              />
-
-              <Field label={t('phone')} error={errors.companyPhone} required>
-                <QatarPhoneInput value={companyPhone} readOnly disabled className="bg-slate-50" />
-              </Field>
-
-              <Field label={t('category')} error={errors.categoryId} required>
-                <select
-                  value={categoryId}
-                  onChange={(e) => setCategoryId(e.target.value)}
-                  className="select-field h-11"
-                >
-                  <option value="">{t('selectCategory')}</option>
-                  {categories.map((category) => (
-                    <option key={category.id} value={category.id}>
-                      {category.nameEn} / {category.nameAr}
-                    </option>
-                  ))}
-                </select>
-              </Field>
-              <Button type="submit" disabled={submitting} className="w-full">
-                {submitting ? t('saving') : t('saveChanges')}
-              </Button>
-            </form>
+            <CompanySettingsForm key={company.updatedAt} company={company} />
 
             <div className="space-y-6">
               <CompanyPublicProfileForm />
               <CompanyInviteReviewersPanel />
             </div>
           </>
-        )}
+        ) : null}
       </div>
     </DashboardShell>
   );
@@ -261,7 +122,7 @@ function DocumentPreviewCard({ label, url }: { label: string; url: string }) {
   const t = useTranslations('profilePage');
 
   return (
-    <div className="overflow-hidden rounded-xl border border-slate-200">
+    <div className="overflow-hidden rounded-xl border border-slate-200 dark:border-slate-700">
       <div className="border-b border-slate-100 bg-slate-50 px-3 py-2 text-xs font-medium text-primary dark:border-slate-700 dark:bg-slate-800">
         {label}
       </div>
@@ -283,29 +144,6 @@ function DocumentPreviewCard({ label, url }: { label: string; url: string }) {
           </span>
         </a>
       )}
-    </div>
-  );
-}
-
-function Field({
-  label,
-  error,
-  children,
-  required = false,
-}: {
-  label: string;
-  error?: string;
-  children: React.ReactNode;
-  required?: boolean;
-}) {
-  return (
-    <div>
-      <label className="mb-1.5 block text-sm font-medium text-primary">
-        {label}
-        {required && <span className="text-red-500"> *</span>}
-      </label>
-      {children}
-      {error && <p className="mt-1 text-xs text-red-500">{error}</p>}
     </div>
   );
 }

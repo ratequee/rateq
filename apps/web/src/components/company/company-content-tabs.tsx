@@ -3,11 +3,12 @@
 import { CompanyReviewsSectionClient } from '@/components/company/company-reviews-section-client';
 import { CompanyReviewsHubLayout } from '@/components/company/company-reviews-hub-layout';
 import { cn } from '@/lib/utils';
+import { StarRating } from '@/components/ui/star-rating';
 import type {
-  CategoryServicePublic,
   CompanyCatalogLabel,
   CompanyProjectPublic,
   CompanyPublic,
+  CompanyServiceRatingAggregate,
   ReviewPublic,
 } from '@rateq/types';
 import { useTranslations } from 'next-intl';
@@ -19,7 +20,6 @@ interface CompanyContentTabsProps {
   company: CompanyPublic;
   reviews: ReviewPublic[];
   topMentions: string[];
-  categoryServices: CategoryServicePublic[];
   projects: CompanyProjectPublic[];
   serviceItems?: CompanyCatalogLabel[];
   activityItems?: CompanyCatalogLabel[];
@@ -88,25 +88,61 @@ function CatalogPills({
   );
 }
 
+function ServiceRatingsList({ aggregates }: { aggregates: CompanyServiceRatingAggregate[] }) {
+  const t = useTranslations('companyPage');
+  const rated = aggregates.filter((entry) => entry.reviewCount > 0);
+
+  if (rated.length === 0) return null;
+
+  return (
+    <div className="mb-8">
+      <h3 className="mb-4 text-sm font-semibold text-primary">{t('serviceRatingsTitle')}</h3>
+      <ul className="space-y-4">
+        {rated.map((entry) => (
+          <li
+            key={entry.catalogItemId}
+            className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-default bg-slate-50 px-4 py-3 dark:bg-slate-800/60"
+          >
+            <span className="text-sm font-medium text-primary">{entry.label}</span>
+            <div className="flex flex-wrap items-center gap-2">
+              <StarRating value={entry.averageRating} size="sm" />
+              <span className="text-xs text-secondary">
+                {t('serviceRatingSummary', {
+                  rating: entry.averageRating.toFixed(1),
+                  count: entry.reviewCount,
+                })}
+              </span>
+            </div>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
 function ServicesTabContent({
   serviceItems,
   activityItems,
   services,
+  serviceRatingAggregates,
 }: {
   serviceItems: CompanyCatalogLabel[];
   activityItems: CompanyCatalogLabel[];
   services: string[];
+  serviceRatingAggregates: CompanyServiceRatingAggregate[];
 }) {
   const t = useTranslations('companyPage');
   const hasCatalog = serviceItems.length > 0 || activityItems.length > 0;
   const hasLegacy = services.length > 0;
+  const hasRatings = serviceRatingAggregates.some((entry) => entry.reviewCount > 0);
 
-  if (!hasCatalog && !hasLegacy) {
+  if (!hasCatalog && !hasLegacy && !hasRatings) {
     return <p className="py-12 text-center text-sm text-ink-muted">{t('noServices')}</p>;
   }
 
   return (
     <div>
+      <ServiceRatingsList aggregates={serviceRatingAggregates} />
       <CatalogPills
         title={t('servicesTitle')}
         items={serviceItems}
@@ -121,7 +157,6 @@ export function CompanyContentTabs({
   company,
   reviews,
   topMentions,
-  categoryServices,
   projects,
   serviceItems = [],
   activityItems = [],
@@ -161,7 +196,7 @@ export function CompanyContentTabs({
       <div className="p-5 sm:p-8">
         {activeTab === 'reviews' ? (
           <div className="space-y-8">
-            <CompanyReviewsSectionClient company={company} categoryServices={categoryServices} />
+            <CompanyReviewsSectionClient company={company} />
             <CompanyReviewsHubLayout
               companyId={company.id}
               reviews={reviews}
@@ -179,6 +214,7 @@ export function CompanyContentTabs({
             serviceItems={serviceItems}
             activityItems={activityItems}
             services={services}
+            serviceRatingAggregates={company.serviceRatingAggregates ?? []}
           />
         ) : null}
       </div>

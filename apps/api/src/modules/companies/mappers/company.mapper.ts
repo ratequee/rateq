@@ -4,6 +4,7 @@ import type {
   CompanyDetail,
   CompanyProjectPublic,
   CompanyPublic,
+  CompanyServiceRatingAggregate,
   ReviewRatingDistribution,
 } from '@rateq/types';
 
@@ -55,6 +56,7 @@ export function toCompanyPublic(
     ratingDistribution?: ReviewRatingDistribution;
     serviceItems?: CompanyCatalogLabel[];
     activityItems?: CompanyCatalogLabel[];
+    serviceRatingAggregates?: CompanyServiceRatingAggregate[];
   },
 ): CompanyPublic {
   return {
@@ -73,6 +75,7 @@ export function toCompanyPublic(
     services: parseServices(company.services),
     serviceItems: extras?.serviceItems ?? [],
     activityItems: extras?.activityItems ?? [],
+    serviceRatingAggregates: extras?.serviceRatingAggregates ?? [],
     yearsEstablished: company.yearsEstablished,
     publicProjectCount: company.publicProjectCount,
     privateProjectCount: company.privateProjectCount,

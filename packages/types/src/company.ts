@@ -22,6 +22,13 @@ export interface CompanyCatalogLabel {
   label: string;
 }
 
+export interface CompanyServiceRatingAggregate {
+  catalogItemId: string;
+  label: string;
+  averageRating: number;
+  reviewCount: number;
+}
+
 export interface CompanyPublic {
   id: string;
   name: string;
@@ -38,6 +45,7 @@ export interface CompanyPublic {
   services: string[];
   serviceItems: CompanyCatalogLabel[];
   activityItems: CompanyCatalogLabel[];
+  serviceRatingAggregates?: CompanyServiceRatingAggregate[];
   yearsEstablished: number | null;
   publicProjectCount: number | null;
   privateProjectCount: number | null;

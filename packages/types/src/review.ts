@@ -8,7 +8,7 @@ export interface ReviewAuthor {
 }
 
 export interface ReviewServiceRatingPublic {
-  categoryServiceId: string;
+  catalogItemId: string;
   serviceName: string;
   rating: number;
 }
@@ -55,7 +55,7 @@ export interface ReviewReplyPublic {
 }
 
 export interface ReviewServiceRatingInput {
-  categoryServiceId: string;
+  catalogItemId: string;
   rating: number;
 }
 

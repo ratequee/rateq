@@ -9,24 +9,18 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Link, useRouter } from '@/i18n/routing';
 import { OPEN_WRITE_REVIEW_EVENT } from '@/lib/write-review-events';
 import { useMyCompanyReview } from '@/lib/use-my-company-review';
-import type { CategoryServicePublic, CompanyPublic, ReviewPublic } from '@rateq/types';
+import type { CompanyPublic, ReviewPublic } from '@rateq/types';
 import { UserRole } from '@rateq/types';
 import { useTranslations } from 'next-intl';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
-const EMPTY_CATEGORY_SERVICES: CategoryServicePublic[] = [];
-
 interface CompanyReviewsSectionClientProps {
   company: CompanyPublic;
-  categoryServices?: CategoryServicePublic[];
 }
 
 type ReviewPanel = 'form' | 'already-reviewed' | 'login' | 'cannot-own' | 'verify';
 
-export function CompanyReviewsSectionClient({
-  company,
-  categoryServices = EMPTY_CATEGORY_SERVICES,
-}: CompanyReviewsSectionClientProps) {
+export function CompanyReviewsSectionClient({ company }: CompanyReviewsSectionClientProps) {
   const tr = useTranslations('review');
   const ta = useTranslations('auth');
   const tn = useTranslations('nav');
@@ -39,6 +33,7 @@ export function CompanyReviewsSectionClient({
   );
 
   const isOwner = onboarding?.company?.id === company.id;
+  const companyServices = company.serviceItems ?? [];
 
   const openWriteReview = useCallback(async () => {
     if (!user) {
@@ -94,9 +89,9 @@ export function CompanyReviewsSectionClient({
     switch (panel) {
       case 'already-reviewed':
         return (
-          <Card className="border-amber-200 bg-amber-50">
+          <Card className="border-amber-200 bg-amber-50 dark:border-amber-900 dark:bg-amber-950/40">
             <CardContent className="flex flex-col gap-3 p-5 sm:flex-row sm:items-center sm:justify-between">
-              <p className="text-sm text-amber-900">{tr('alreadyReviewed')}</p>
+              <p className="text-sm text-amber-900 dark:text-amber-200">{tr('alreadyReviewed')}</p>
               <Button type="button" variant="ghost" size="sm" onClick={() => setPanel(null)}>
                 {tr('dismiss')}
               </Button>
@@ -105,9 +100,9 @@ export function CompanyReviewsSectionClient({
         );
       case 'login':
         return (
-          <Card className="border-slate-200">
+          <Card className="border-subtle">
             <CardContent className="flex flex-col gap-3 p-5 sm:flex-row sm:items-center sm:justify-between">
-              <p className="text-sm text-ink-muted">{tr('loginToReview')}</p>
+              <p className="text-sm text-secondary">{tr('loginToReview')}</p>
               <Link href="/login">
                 <Button variant="outline-brand" size="sm">
                   {tn('login')}
@@ -118,22 +113,24 @@ export function CompanyReviewsSectionClient({
         );
       case 'cannot-own':
         return (
-          <Card className="border-slate-200 bg-slate-50">
-            <CardContent className="p-4 text-sm text-ink-muted">
+          <Card className="border-subtle surface-muted">
+            <CardContent className="p-4 text-sm text-secondary">
               {tr('cannotReviewOwn')}
             </CardContent>
           </Card>
         );
       case 'verify':
         return (
-          <Card className="border-amber-200 bg-amber-50">
-            <CardContent className="p-4 text-sm text-amber-800">{ta('verifyNotice')}</CardContent>
+          <Card className="border-amber-200 bg-amber-50 dark:border-amber-900 dark:bg-amber-950/40">
+            <CardContent className="p-4 text-sm text-amber-800 dark:text-amber-200">
+              {ta('verifyNotice')}
+            </CardContent>
           </Card>
         );
       default:
         return null;
     }
-  }, [myReview, panel, ta, tn, tr]);
+  }, [panel, ta, tn, tr]);
 
   return (
     <section id="reviews">
@@ -142,9 +139,9 @@ export function CompanyReviewsSectionClient({
           <ReviewerReviewStatusCard review={myReview} />
         ) : null}
         {lastInactiveReview && !myReview && panel !== 'form' ? (
-          <Card className="border-slate-200 bg-slate-50">
+          <Card className="border-subtle surface-muted">
             <CardContent className="flex flex-col gap-3 p-5 sm:flex-row sm:items-center sm:justify-between">
-              <p className="text-sm text-ink-muted">{tr('reviewAgainHint')}</p>
+              <p className="text-sm text-secondary">{tr('reviewAgainHint')}</p>
               <Button
                 type="button"
                 variant="outline-brand"
@@ -158,9 +155,9 @@ export function CompanyReviewsSectionClient({
         ) : null}
         {panel === 'form' ? (
           <WriteReviewForm
+            key={companyServices.map((service) => service.id).join(',')}
             companyId={company.id}
-            categoryId={company.categoryId}
-            categoryServices={categoryServices}
+            companyServices={companyServices}
             onSubmitted={handleReviewSubmitted}
             onCancel={() => setPanel(null)}
           />

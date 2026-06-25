@@ -7,12 +7,12 @@ import {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
   type ReactNode,
 } from 'react';
 import { useAuth } from '@/components/providers/auth-provider';
 import { onboardingApi } from '@/lib/onboarding-api';
-import { getAccessToken, getStoredUser } from '@/lib/auth-storage';
 import { syncStoredProfileFromOnboarding } from '@/lib/profile-storage';
 
 interface ProfileContextValue {
@@ -23,56 +23,70 @@ interface ProfileContextValue {
 
 const ProfileContext = createContext<ProfileContextValue | null>(null);
 
-function hasStoredSession(): boolean {
-  if (typeof window === 'undefined') return false;
-  return Boolean(getAccessToken() && getStoredUser());
-}
-
 export function ProfileProvider({ children }: { children: ReactNode }) {
   const { user, isLoading: authLoading } = useAuth();
   const [onboarding, setOnboarding] = useState<OnboardingStatus | null>(null);
-  const [isLoading, setIsLoading] = useState(hasStoredSession);
+  const [fetchState, setFetchState] = useState<'idle' | 'loading' | 'done'>('idle');
+  const loadedUserIdRef = useRef<string | null>(null);
+  const requestIdRef = useRef(0);
 
   const refreshOnboarding = useCallback(async () => {
     if (!user) {
       setOnboarding(null);
-      setIsLoading(false);
+      setFetchState('done');
+      loadedUserIdRef.current = null;
       return null;
     }
 
-    setIsLoading(true);
+    const requestId = ++requestIdRef.current;
+    setFetchState('loading');
+
     try {
       const status = await onboardingApi.getStatus();
+      if (requestId !== requestIdRef.current) return null;
+
       setOnboarding(status);
       syncStoredProfileFromOnboarding(user.id, status);
+      loadedUserIdRef.current = user.id;
+      setFetchState('done');
       return status;
     } catch {
+      if (requestId !== requestIdRef.current) return null;
+
       setOnboarding((current) => current);
+      loadedUserIdRef.current = user.id;
+      setFetchState('done');
       return null;
-    } finally {
-      setIsLoading(false);
     }
-  }, [user]);
+  }, [user?.id]);
 
   useEffect(() => {
     if (authLoading) return;
 
     if (!user) {
       setOnboarding(null);
-      setIsLoading(false);
+      setFetchState('done');
+      loadedUserIdRef.current = null;
       return;
+    }
+
+    if (loadedUserIdRef.current !== user.id) {
+      setOnboarding(null);
+      setFetchState('loading');
     }
 
     void refreshOnboarding();
   }, [user?.id, authLoading, refreshOnboarding]);
 
+  const isLoading = authLoading || (Boolean(user) && fetchState !== 'done');
+
   const value = useMemo(
     () => ({
       onboarding,
-      isLoading: authLoading || isLoading,
+      isLoading,
       refreshOnboarding,
     }),
-    [onboarding, authLoading, isLoading, refreshOnboarding],
+    [onboarding, isLoading, refreshOnboarding],
   );
 
   return <ProfileContext.Provider value={value}>{children}</ProfileContext.Provider>;

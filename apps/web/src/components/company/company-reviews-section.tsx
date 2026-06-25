@@ -1,15 +1,12 @@
-import type { CategoryServicePublic, CompanyPublic } from '@rateq/types';
+'use client';
+
 import { CompanyReviewsSectionClient } from '@/components/company/company-reviews-section-client';
-import type { JSX } from 'react';
+import type { CompanyPublic } from '@rateq/types';
 
 interface CompanyReviewsSectionProps {
   company: CompanyPublic;
-  categoryServices?: CategoryServicePublic[];
 }
 
-export function CompanyReviewsSection({
-  company,
-  categoryServices = [],
-}: CompanyReviewsSectionProps): JSX.Element {
-  return <CompanyReviewsSectionClient company={company} categoryServices={categoryServices} />;
+export function CompanyReviewsSection({ company }: CompanyReviewsSectionProps) {
+  return <CompanyReviewsSectionClient company={company} />;
 }

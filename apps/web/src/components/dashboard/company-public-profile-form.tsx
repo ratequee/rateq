@@ -8,31 +8,42 @@ import { useProfile } from '@/components/providers/profile-provider';
 import { fetchCompanyCatalogClient } from '@/lib/company-catalog-api';
 import { onboardingApi } from '@/lib/onboarding-api';
 import { ApiError } from '@/lib/api';
-import type { CompanyCatalogItemPublic } from '@rateq/types';
+import type { CompanyCatalogItemPublic, CompanyProfileDetail } from '@rateq/types';
 import { useTranslations } from 'next-intl';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 
-export function CompanyPublicProfileForm() {
+function CompanyPublicProfileFormFields({ company }: { company: CompanyProfileDetail }) {
   const t = useTranslations('profilePage');
-  const { onboarding, refreshOnboarding, isLoading: profileLoading } = useProfile();
-  const company = onboarding?.company;
+  const { refreshOnboarding } = useProfile();
 
-  const [nameEn, setNameEn] = useState('');
-  const [nameAr, setNameAr] = useState('');
-  const [descriptionEn, setDescriptionEn] = useState('');
-  const [descriptionAr, setDescriptionAr] = useState('');
-  const [websiteUrl, setWebsiteUrl] = useState('');
-  const [serviceIds, setServiceIds] = useState<string[]>([]);
-  const [activityIds, setActivityIds] = useState<string[]>([]);
-  const [yearsEstablished, setYearsEstablished] = useState('');
-  const [publicProjectCount, setPublicProjectCount] = useState('');
-  const [privateProjectCount, setPrivateProjectCount] = useState('');
+  const [nameEn, setNameEn] = useState(() => company.name ?? '');
+  const [nameAr, setNameAr] = useState(() => company.nameAr ?? '');
+  const [descriptionEn, setDescriptionEn] = useState(
+    () => company.descriptionEn ?? company.description ?? '',
+  );
+  const [descriptionAr, setDescriptionAr] = useState(() => company.descriptionAr ?? '');
+  const [websiteUrl, setWebsiteUrl] = useState(() => company.websiteUrl ?? '');
+  const [serviceIds, setServiceIds] = useState<string[]>(
+    () => company.serviceItems?.map((item) => item.id) ?? [],
+  );
+  const [activityIds, setActivityIds] = useState<string[]>(
+    () => company.activityItems?.map((item) => item.id) ?? [],
+  );
+  const [yearsEstablished, setYearsEstablished] = useState(() =>
+    company.yearsEstablished != null ? String(company.yearsEstablished) : '',
+  );
+  const [publicProjectCount, setPublicProjectCount] = useState(() =>
+    company.publicProjectCount != null ? String(company.publicProjectCount) : '',
+  );
+  const [privateProjectCount, setPrivateProjectCount] = useState(() =>
+    company.privateProjectCount != null ? String(company.privateProjectCount) : '',
+  );
   const [services, setServices] = useState<CompanyCatalogItemPublic[]>([]);
   const [activities, setActivities] = useState<CompanyCatalogItemPublic[]>([]);
   const [submitting, setSubmitting] = useState(false);
 
-  const pendingApproval = company?.profileChangeStatus === 'pending';
+  const pendingApproval = company.profileChangeStatus === 'pending';
 
   useEffect(() => {
     void Promise.all([
@@ -44,27 +55,8 @@ export function CompanyPublicProfileForm() {
     });
   }, []);
 
-  useEffect(() => {
-    if (profileLoading || !company) return;
-    setNameEn(company.name ?? '');
-    setNameAr(company.nameAr ?? '');
-    setDescriptionEn(company.descriptionEn ?? company.description ?? '');
-    setDescriptionAr(company.descriptionAr ?? '');
-    setWebsiteUrl(company.websiteUrl ?? '');
-    setServiceIds(company.serviceItems?.map((item) => item.id) ?? []);
-    setActivityIds(company.activityItems?.map((item) => item.id) ?? []);
-    setYearsEstablished(company.yearsEstablished != null ? String(company.yearsEstablished) : '');
-    setPublicProjectCount(
-      company.publicProjectCount != null ? String(company.publicProjectCount) : '',
-    );
-    setPrivateProjectCount(
-      company.privateProjectCount != null ? String(company.privateProjectCount) : '',
-    );
-  }, [company, profileLoading]);
-
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
-    if (!company) return;
 
     setSubmitting(true);
     try {
@@ -91,10 +83,6 @@ export function CompanyPublicProfileForm() {
       setSubmitting(false);
     }
   };
-
-  if (profileLoading) return <DashboardProfileLoading />;
-
-  if (!company) return null;
 
   return (
     <form
@@ -131,7 +119,7 @@ export function CompanyPublicProfileForm() {
           onChange={(e) => setDescriptionEn(e.target.value)}
           rows={4}
           maxLength={5000}
-          className="w-full rounded-md border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500 dark:border-slate-700 dark:bg-slate-900"
+          className="textarea-field"
           placeholder={t('companyAboutPlaceholder')}
         />
       </Field>
@@ -143,7 +131,7 @@ export function CompanyPublicProfileForm() {
           rows={4}
           maxLength={5000}
           dir="rtl"
-          className="w-full rounded-md border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500 dark:border-slate-700 dark:bg-slate-900"
+          className="textarea-field"
           placeholder={t('companyAboutArPlaceholder')}
         />
       </Field>
@@ -209,6 +197,16 @@ export function CompanyPublicProfileForm() {
       </Button>
     </form>
   );
+}
+
+export function CompanyPublicProfileForm() {
+  const { onboarding, isLoading: profileLoading } = useProfile();
+  const company = onboarding?.company;
+
+  if (profileLoading) return <DashboardProfileLoading />;
+  if (!company) return null;
+
+  return <CompanyPublicProfileFormFields key={company.updatedAt} company={company} />;
 }
 
 function Field({

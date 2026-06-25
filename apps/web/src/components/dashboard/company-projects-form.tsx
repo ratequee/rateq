@@ -8,10 +8,10 @@ import { uploadUserFile } from '@/lib/firebase/storage';
 import { onboardingApi } from '@/lib/onboarding-api';
 import { ApiError } from '@/lib/api';
 import { ensureValidAccessToken } from '@/lib/auth-session';
-import type { UpdateCompanyProjectInput } from '@rateq/types';
+import type { CompanyProfileDetail, UpdateCompanyProjectInput } from '@rateq/types';
 import { Plus, Trash2 } from 'lucide-react';
 import { useTranslations } from 'next-intl';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { toast } from 'sonner';
 
 interface ProjectDraft {
@@ -25,6 +25,16 @@ function createEmptyProject(): ProjectDraft {
   return { title: '', imageUrl: '', projectUrl: '', imageFile: null };
 }
 
+function buildProjectDrafts(company: CompanyProfileDetail): ProjectDraft[] {
+  if (!company.projects?.length) return [];
+  return company.projects.map((project) => ({
+    title: project.title,
+    imageUrl: project.imageUrl,
+    projectUrl: project.projectUrl,
+    imageFile: null,
+  }));
+}
+
 function isValidUrl(value: string): boolean {
   try {
     const url = new URL(value);
@@ -34,27 +44,11 @@ function isValidUrl(value: string): boolean {
   }
 }
 
-export function CompanyProjectsForm() {
+function CompanyProjectsFormFields({ company }: { company: CompanyProfileDetail }) {
   const t = useTranslations('profilePage');
-  const { onboarding, refreshOnboarding, isLoading: profileLoading } = useProfile();
-  const company = onboarding?.company;
-
-  const [projects, setProjects] = useState<ProjectDraft[]>([]);
+  const { refreshOnboarding } = useProfile();
+  const [projects, setProjects] = useState<ProjectDraft[]>(() => buildProjectDrafts(company));
   const [submitting, setSubmitting] = useState(false);
-
-  useEffect(() => {
-    if (profileLoading || !company) return;
-    setProjects(
-      company.projects?.length
-        ? company.projects.map((project) => ({
-            title: project.title,
-            imageUrl: project.imageUrl,
-            projectUrl: project.projectUrl,
-            imageFile: null,
-          }))
-        : [],
-    );
-  }, [company, profileLoading]);
 
   const updateProject = (index: number, patch: Partial<ProjectDraft>) => {
     setProjects((current) =>
@@ -73,7 +67,6 @@ export function CompanyProjectsForm() {
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
-    if (!company) return;
 
     setSubmitting(true);
     try {
@@ -124,10 +117,6 @@ export function CompanyProjectsForm() {
     }
   };
 
-  if (profileLoading) return <DashboardProfileLoading />;
-
-  if (!company) return null;
-
   return (
     <form
       onSubmit={handleSubmit}
@@ -150,7 +139,10 @@ export function CompanyProjectsForm() {
         ) : (
           <div className="space-y-4">
             {projects.map((project, index) => (
-              <div key={index} className="rounded-xl border border-slate-200 p-4">
+              <div
+                key={index}
+                className="rounded-xl border border-slate-200 p-4 dark:border-slate-700"
+              >
                 <div className="flex items-start justify-between gap-3">
                   <Field label={t('projectTitle')} required>
                     <Input
@@ -211,6 +203,16 @@ export function CompanyProjectsForm() {
       </Button>
     </form>
   );
+}
+
+export function CompanyProjectsForm() {
+  const { onboarding, isLoading: profileLoading } = useProfile();
+  const company = onboarding?.company;
+
+  if (profileLoading) return <DashboardProfileLoading />;
+  if (!company) return null;
+
+  return <CompanyProjectsFormFields key={company.updatedAt} company={company} />;
 }
 
 function Field({

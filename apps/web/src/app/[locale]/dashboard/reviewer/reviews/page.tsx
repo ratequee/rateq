@@ -1,5 +1,6 @@
 'use client';
 
+import { DashboardPageHeader } from '@/components/dashboard/dashboard-page-header';
 import { DashboardShell } from '@/components/dashboard/dashboard-shell';
 import { ReviewsManagementPanel } from '@/components/dashboard/reviews-management-panel';
 import { useTranslations } from 'next-intl';
@@ -9,10 +10,7 @@ export default function ReviewerReviewsPage() {
 
   return (
     <DashboardShell role="reviewer">
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-ink">{t('reviewerTitle')}</h1>
-        <p className="mt-1 text-sm text-ink-muted">{t('reviewerSubtitle')}</p>
-      </div>
+      <DashboardPageHeader title={t('reviewerTitle')} subtitle={t('reviewerSubtitle')} />
       <ReviewsManagementPanel mode="reviewer" />
     </DashboardShell>
   );

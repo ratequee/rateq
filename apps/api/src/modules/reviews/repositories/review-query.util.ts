@@ -37,7 +37,9 @@ const reviewInclude = {
   replies: true,
   attachments: true,
   serviceRatings: {
-    include: { categoryService: { select: { id: true, name: true } } },
+    include: {
+      companyCatalogItem: { select: { id: true, nameEn: true, nameAr: true } },
+    },
   },
 } satisfies Prisma.ReviewInclude;
 

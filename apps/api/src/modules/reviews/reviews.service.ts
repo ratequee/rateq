@@ -20,7 +20,7 @@ import type { AppConfig } from '../../common/config/env.validation';
 import { buildPaginationMeta } from '../../common/utils/pagination.util';
 import { PrismaService } from '../../infrastructure/database/prisma.service';
 import { CompaniesRepository } from '../companies/repositories/companies.repository';
-import { CategoriesService } from '../categories/categories.service';
+import { parseCompanyIdList } from '../companies/mappers/company.mapper';
 import { EmailService } from '../auth/services/email.service';
 import { ReviewsRepository } from './repositories/reviews.repository';
 import { InjectQueue } from '@nestjs/bullmq';
@@ -43,7 +43,6 @@ export class ReviewsService {
   constructor(
     private readonly reviewsRepository: ReviewsRepository,
     private readonly companiesRepository: CompaniesRepository,
-    private readonly categoriesService: CategoriesService,
     private readonly emailService: EmailService,
     @InjectQueue(REVIEW_MODERATION_QUEUE)
     private readonly moderationQueue: Queue<ReviewModerationJobPayload>,
@@ -94,36 +93,37 @@ export class ReviewsService {
 
     await this.rateLimitService.assertWithinLimit(user.id, hashedIp);
 
-    const categoryServices = company.categoryId
-      ? await this.categoriesService.listServices(company.categoryId)
-      : [];
+    const companyServiceIds = parseCompanyIdList(company.serviceIds);
 
     let aggregateRating = input.rating;
-    let serviceRatings = input.serviceRatings;
+    let serviceRatings = input.serviceRatings?.map((entry) => ({
+      companyCatalogItemId: entry.catalogItemId,
+      rating: entry.rating,
+    }));
 
-    if (categoryServices.length > 0) {
+    if (companyServiceIds.length > 0) {
       if (!serviceRatings?.length) {
-        throw new BadRequestException('Rate each service for this company category');
+        throw new BadRequestException('Rate each service listed on this company profile');
       }
 
-      const expectedIds = new Set(categoryServices.map((service) => service.id));
-      const providedIds = new Set(serviceRatings.map((entry) => entry.categoryServiceId));
+      const expectedIds = new Set(companyServiceIds);
+      const providedIds = new Set(serviceRatings.map((entry) => entry.companyCatalogItemId));
 
       if (providedIds.size !== expectedIds.size) {
-        throw new BadRequestException('Provide a rating for every service in this category');
+        throw new BadRequestException('Provide a rating for every service on this company profile');
       }
 
       for (const serviceId of expectedIds) {
         if (!providedIds.has(serviceId)) {
-          throw new BadRequestException('Provide a rating for every service in this category');
+          throw new BadRequestException(
+            'Provide a rating for every service on this company profile',
+          );
         }
       }
 
       for (const entry of serviceRatings) {
-        if (!expectedIds.has(entry.categoryServiceId)) {
-          throw new BadRequestException(
-            'One or more service ratings are invalid for this category',
-          );
+        if (!expectedIds.has(entry.companyCatalogItemId)) {
+          throw new BadRequestException('One or more service ratings are invalid for this company');
         }
       }
 

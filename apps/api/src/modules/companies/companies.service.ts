@@ -20,7 +20,7 @@ import type {
 } from '@rateq/types';
 import { UserRole } from '@rateq/types';
 import { AdminActivityAction, AdminActivityEntityType } from '@rateq/types';
-import { UserRole as PrismaUserRole, Prisma } from '@prisma/client';
+import { UserRole as PrismaUserRole, Prisma, ReviewStatus } from '@prisma/client';
 import { slugify, withSlugSuffix } from '@rateq/utils';
 import { PrismaService } from '../../infrastructure/database/prisma.service';
 import { buildPaginationMeta } from '../../common/utils/pagination.util';
@@ -94,18 +94,58 @@ export class CompaniesService {
     return this.mapCompanyPublic(company, { ratingDistribution });
   }
 
+  private async getServiceRatingAggregates(
+    companyId: string,
+    serviceIds: string[],
+    locale: 'en' | 'ar' = 'en',
+  ): Promise<import('@rateq/types').CompanyServiceRatingAggregate[]> {
+    if (!serviceIds.length) return [];
+
+    const [groups, labels] = await Promise.all([
+      this.prisma.reviewServiceRating.groupBy({
+        by: ['companyCatalogItemId'],
+        where: {
+          companyCatalogItemId: { in: serviceIds },
+          review: { companyId, status: ReviewStatus.APPROVED },
+        },
+        _avg: { rating: true },
+        _count: { _all: true },
+      }),
+      this.catalogService.resolveLabels(serviceIds, locale),
+    ]);
+
+    const groupMap = new Map(groups.map((group) => [group.companyCatalogItemId, group]));
+    const labelMap = new Map(labels.map((label) => [label.id, label.label]));
+
+    return serviceIds.map((catalogItemId) => {
+      const group = groupMap.get(catalogItemId);
+      return {
+        catalogItemId,
+        label: labelMap.get(catalogItemId) ?? 'Service',
+        averageRating: group?._avg.rating ? Number(group._avg.rating) : 0,
+        reviewCount: group?._count._all ?? 0,
+      };
+    });
+  }
+
   private async mapCompanyPublic(
     company: NonNullable<Awaited<ReturnType<CompaniesRepository['findBySlug']>>>,
     extras?: { ratingDistribution?: import('@rateq/types').ReviewRatingDistribution },
   ) {
     const serviceIds = parseCompanyIdList(company.serviceIds);
     const activityIds = parseCompanyIdList(company.activityIds);
-    const [serviceItems, activityItems] = await Promise.all([
+    const [serviceItems, activityItems, serviceRatingAggregates] = await Promise.all([
       this.catalogService.resolveLabels(serviceIds, 'en'),
       this.catalogService.resolveLabels(activityIds, 'en'),
+      this.getServiceRatingAggregates(company.id, serviceIds),
     ]);
 
-    return toCompanyPublic(company, { ...extras, serviceItems, activityItems });
+    return toCompanyPublic(company, {
+      ...extras,
+      serviceItems,
+      activityItems,
+      serviceRatingAggregates,
+    });
   }
 
   private async mapCompanyDetail(
@@ -836,7 +876,9 @@ export class CompaniesService {
         },
         replies: true,
         attachments: true,
-        serviceRatings: { include: { categoryService: { select: { id: true, name: true } } } },
+        serviceRatings: {
+          include: { companyCatalogItem: { select: { id: true, nameEn: true, nameAr: true } } },
+        },
       },
     });
 

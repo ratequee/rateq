@@ -7,7 +7,6 @@ import { StarRating } from '@/components/ui/star-rating';
 import { ApiError, reviewsApi } from '@/lib/api';
 import { isAccountDeactivatedApiError } from '@/lib/account-status';
 import { ensureValidAccessToken } from '@/lib/auth-session';
-import { fetchCategoryServicesClient } from '@/lib/categories-api';
 import { uploadReviewProofFiles } from '@/lib/review-proof-upload';
 import { getDeviceFingerprint } from '@/lib/device-fingerprint';
 import {
@@ -16,83 +15,51 @@ import {
   validateReviewFields,
   type ReviewFieldErrors,
 } from '@/lib/validation/review-fields';
-import type { CategoryServicePublic, ReviewPublic } from '@rateq/types';
+import type { CompanyCatalogLabel, ReviewPublic } from '@rateq/types';
 import { useTranslations } from 'next-intl';
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { toast } from 'sonner';
 
-const EMPTY_CATEGORY_SERVICES: CategoryServicePublic[] = [];
+const EMPTY_COMPANY_SERVICES: CompanyCatalogLabel[] = [];
 
 interface WriteReviewFormProps {
   companyId: string;
-  categoryId?: string | null;
-  categoryServices?: CategoryServicePublic[];
+  companyServices?: CompanyCatalogLabel[];
   className?: string;
   onSubmitted?: (review: ReviewPublic) => void;
   onCancel?: () => void;
 }
 
-function buildDefaultServiceRatings(services: CategoryServicePublic[]): Record<string, number> {
+function buildDefaultServiceRatings(services: CompanyCatalogLabel[]): Record<string, number> {
   return Object.fromEntries(services.map((service) => [service.id, 5]));
 }
 
 export function WriteReviewForm({
   companyId,
-  categoryId,
-  categoryServices: initialCategoryServices = EMPTY_CATEGORY_SERVICES,
+  companyServices = EMPTY_COMPANY_SERVICES,
   className,
   onSubmitted,
   onCancel,
 }: WriteReviewFormProps) {
   const t = useTranslations('review');
   const [overallRating, setOverallRating] = useState(5);
-  const [categoryServices, setCategoryServices] =
-    useState<CategoryServicePublic[]>(initialCategoryServices);
   const [serviceRatings, setServiceRatings] = useState<Record<string, number>>(() =>
-    buildDefaultServiceRatings(initialCategoryServices),
+    buildDefaultServiceRatings(companyServices),
   );
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [proofFile, setProofFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
   const [fieldErrors, setFieldErrors] = useState<ReviewFieldErrors>({});
-  const initialServicesKey = initialCategoryServices.map((service) => service.id).join(',');
 
-  useEffect(() => {
-    if (initialCategoryServices.length > 0) {
-      setCategoryServices(initialCategoryServices);
-      setServiceRatings(buildDefaultServiceRatings(initialCategoryServices));
-      return;
-    }
-
-    if (!categoryId) {
-      setCategoryServices(EMPTY_CATEGORY_SERVICES);
-      setServiceRatings({});
-      return;
-    }
-
-    let cancelled = false;
-
-    void fetchCategoryServicesClient(categoryId).then((services) => {
-      if (cancelled) return;
-
-      setCategoryServices(services);
-      setServiceRatings(buildDefaultServiceRatings(services));
-    });
-
-    return () => {
-      cancelled = true;
-    };
-  }, [categoryId, initialServicesKey, initialCategoryServices]);
-
-  const usesServiceRatings = categoryServices.length > 0;
+  const usesServiceRatings = companyServices.length > 0;
 
   const aggregatedPreview = useMemo(() => {
     if (!usesServiceRatings) return overallRating;
-    const values = categoryServices.map((service) => serviceRatings[service.id] ?? 0);
+    const values = companyServices.map((service) => serviceRatings[service.id] ?? 0);
     if (values.some((value) => value < 1)) return 0;
     return Math.round(values.reduce((sum, value) => sum + value, 0) / values.length);
-  }, [categoryServices, overallRating, serviceRatings, usesServiceRatings]);
+  }, [companyServices, overallRating, serviceRatings, usesServiceRatings]);
 
   const handleProofChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0] ?? null;
@@ -146,8 +113,8 @@ export function WriteReviewForm({
         ...(deviceFingerprint ? { deviceFingerprint } : {}),
         ...(usesServiceRatings
           ? {
-              serviceRatings: categoryServices.map((service) => ({
-                categoryServiceId: service.id,
+              serviceRatings: companyServices.map((service) => ({
+                catalogItemId: service.id,
                 rating: serviceRatings[service.id] ?? 5,
               })),
             }
@@ -160,7 +127,7 @@ export function WriteReviewForm({
       setContent('');
       setOverallRating(5);
       setProofFile(null);
-      setServiceRatings(buildDefaultServiceRatings(categoryServices));
+      setServiceRatings(buildDefaultServiceRatings(companyServices));
       onSubmitted?.(review);
     } catch (err) {
       if (isAccountDeactivatedApiError(err)) {
@@ -179,20 +146,20 @@ export function WriteReviewForm({
     <Card className={className}>
       <CardHeader className="flex flex-row items-center justify-between gap-4 space-y-0">
         <CardTitle>{t('submit')}</CardTitle>
-        {onCancel && (
+        {onCancel ? (
           <Button type="button" variant="ghost" size="sm" onClick={onCancel}>
             {t('cancel')}
           </Button>
-        )}
+        ) : null}
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
           {usesServiceRatings ? (
             <div className="space-y-4">
-              <p className="text-sm text-ink-muted">{t('serviceRatingsHint')}</p>
-              {categoryServices.map((service) => (
+              <p className="text-sm text-secondary">{t('serviceRatingsHint')}</p>
+              {companyServices.map((service) => (
                 <div key={service.id}>
-                  <label className="text-sm font-medium">{service.name}</label>
+                  <label className="text-sm font-medium text-primary">{service.label}</label>
                   <StarRating
                     value={serviceRatings[service.id] ?? 5}
                     interactive
@@ -202,19 +169,19 @@ export function WriteReviewForm({
                   />
                 </div>
               ))}
-              <p className="text-sm text-ink-muted">
+              <p className="text-sm text-secondary">
                 {t('aggregatedRating', { rating: aggregatedPreview })}
               </p>
             </div>
           ) : (
             <div>
-              <label className="text-sm font-medium">{t('rating')}</label>
+              <label className="text-sm font-medium text-primary">{t('rating')}</label>
               <StarRating value={overallRating} interactive onChange={setOverallRating} />
             </div>
           )}
 
           <div>
-            <label className="text-sm font-medium">{t('title')}</label>
+            <label className="text-sm font-medium text-primary">{t('title')}</label>
             <Input
               value={title}
               onChange={(e) => setTitle(sanitizeReviewTitle(e.target.value))}
@@ -226,13 +193,13 @@ export function WriteReviewForm({
             ) : null}
           </div>
           <div>
-            <label className="text-sm font-medium">{t('content')}</label>
+            <label className="text-sm font-medium text-primary">{t('content')}</label>
             <textarea
               value={content}
               onChange={(e) => setContent(sanitizeReviewContent(e.target.value))}
               rows={4}
               aria-invalid={Boolean(fieldErrors.content)}
-              className="mt-1 w-full rounded-md border border-default bg-white px-3 py-2 text-sm text-primary focus:ring-2 focus:ring-brand-500 dark:bg-slate-900"
+              className="textarea-field mt-1"
             />
             {fieldErrors.content ? (
               <p className="mt-1 text-sm text-red-600">{fieldErrors.content}</p>
@@ -240,10 +207,12 @@ export function WriteReviewForm({
           </div>
 
           <div>
-            <label className="mb-1.5 block text-sm font-medium">{t('proofFiles')}</label>
+            <label className="mb-1.5 block text-sm font-medium text-primary">
+              {t('proofFiles')}
+            </label>
             <Input type="file" accept="image/*,.pdf" onChange={handleProofChange} required />
-            <p className="mt-1 text-xs text-ink-muted">{t('proofFilesHint')}</p>
-            {proofFile ? <p className="mt-2 text-xs text-ink-muted">{proofFile.name}</p> : null}
+            <p className="mt-1 text-xs text-secondary">{t('proofFilesHint')}</p>
+            {proofFile ? <p className="mt-2 text-xs text-secondary">{proofFile.name}</p> : null}
           </div>
 
           <Button type="submit" disabled={loading}>

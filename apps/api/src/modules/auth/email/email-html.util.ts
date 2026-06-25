@@ -5,6 +5,8 @@ export interface EmailLayoutOptions {
   preheader: string;
   eyebrow?: string;
   title: string;
+  /** Raw HTML for the visible heading when bilingual markup is needed. */
+  titleHtml?: string;
   bodyHtml: string;
   footerNote?: string;
 }
@@ -127,7 +129,7 @@ export interface BilingualEmailLayoutOptions extends EmailLayoutOptions {
 export function renderBilingualEmailLayout(options: BilingualEmailLayoutOptions): string {
   return renderEmailLayout({
     ...options,
-    title: bilingualTitle(options.title, options.titleAr),
+    titleHtml: bilingualTitle(options.title, options.titleAr),
     bodyHtml: emailBilingualBlock(options.bodyHtml, options.bodyHtmlAr),
   });
 }
@@ -142,6 +144,7 @@ export function renderEmailLayout(options: EmailLayoutOptions): string {
   const safePreheader = escapeHtml(options.preheader);
   const safeEyebrow = options.eyebrow ? escapeHtml(options.eyebrow) : '';
   const safeTitle = escapeHtml(options.title);
+  const headingHtml = options.titleHtml ?? safeTitle;
   const safeLogoUrl = escapeHtml(EMAIL_LOGO_URL);
   const footerNote = options.footerNote
     ? `<p style="margin:0 0 8px;font-family:Arial,Helvetica,sans-serif;font-size:12px;line-height:1.6;color:${INK_MUTED};">${escapeHtml(options.footerNote)}</p>`
@@ -210,7 +213,7 @@ export function renderEmailLayout(options: EmailLayoutOptions): string {
                   : ''
               }
               <h1 style="margin:0 0 20px;font-family:Arial,Helvetica,sans-serif;font-size:26px;font-weight:800;line-height:1.25;color:${INK};letter-spacing:-0.4px;">
-                ${safeTitle}
+                ${headingHtml}
               </h1>
               ${options.bodyHtml}
             </td>

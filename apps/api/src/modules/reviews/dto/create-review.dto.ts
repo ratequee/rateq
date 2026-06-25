@@ -20,7 +20,7 @@ export class ReviewServiceRatingDto {
   @ApiProperty()
   @IsString()
   @IsNotEmpty()
-  categoryServiceId!: string;
+  catalogItemId!: string;
 
   @ApiProperty({ minimum: 1, maximum: 5 })
   @Type(() => Number)

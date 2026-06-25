@@ -4,7 +4,6 @@ import { CompanyHeroSection } from '@/components/company/company-hero-section';
 import { CompanyRatingBreakdown } from '@/components/company/company-rating-breakdown';
 import { RelatedCompaniesSection } from '@/components/company/related-companies-section';
 import { fetchCompanyBySlug } from '@/lib/companies-data';
-import { fetchCategoryServicesForCompany } from '@/lib/categories-data';
 import { reviewsApi } from '@/lib/api';
 import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
@@ -50,8 +49,6 @@ export default async function CompanyPage({ params }: CompanyPageProps): Promise
   if (!company) {
     notFound();
   }
-
-  const categoryServices = await fetchCategoryServicesForCompany(company.categoryId);
 
   let reviews = { data: [] as Awaited<ReturnType<typeof reviewsApi.listByCompany>>['data'] };
   try {
@@ -227,7 +224,6 @@ export default async function CompanyPage({ params }: CompanyPageProps): Promise
             company={company}
             reviews={reviews.data}
             topMentions={topMentions}
-            categoryServices={categoryServices}
             projects={company.projects}
             serviceItems={company.serviceItems}
             activityItems={company.activityItems}

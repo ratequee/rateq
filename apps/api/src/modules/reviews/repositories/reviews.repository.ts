@@ -42,7 +42,7 @@ export class ReviewsRepository {
     content: string;
     hashedIp?: string;
     deviceFingerprint?: string;
-    serviceRatings?: { categoryServiceId: string; rating: number }[];
+    serviceRatings?: { companyCatalogItemId: string; rating: number }[];
     proofUrls?: string[];
   }): Promise<Review> {
     const { serviceRatings, proofUrls, ...reviewData } = data;
@@ -55,7 +55,7 @@ export class ReviewsRepository {
           ? {
               serviceRatings: {
                 create: serviceRatings.map((entry) => ({
-                  categoryServiceId: entry.categoryServiceId,
+                  companyCatalogItemId: entry.companyCatalogItemId,
                   rating: entry.rating,
                 })),
               },

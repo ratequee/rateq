@@ -3,6 +3,7 @@
 import { BlogCoverUpload } from '@/components/blog/blog-cover-upload';
 import { BlogRichTextEditor } from '@/components/blog/blog-rich-text-editor';
 import { hasMeaningfulBlogContent } from '@/components/blog/blog-content';
+import { DashboardPageHeader } from '@/components/dashboard/dashboard-page-header';
 import { DashboardShell } from '@/components/dashboard/dashboard-shell';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -231,11 +232,8 @@ export default function AdminBlogPage() {
     <DashboardShell role="admin">
       <div className="mx-auto max-w-5xl">
         <div className="mb-6 flex flex-wrap items-start justify-between gap-4">
-          <div>
-            <h1 className="text-2xl font-bold text-ink">{t('title')}</h1>
-            <p className="mt-1 text-sm text-ink-muted">{t('subtitle')}</p>
-          </div>
-          <Button type="button" className="gap-2" onClick={startCreate}>
+          <DashboardPageHeader title={t('title')} subtitle={t('subtitle')} className="mb-0" />
+          <Button type="button" className="gap-2 shrink-0" onClick={startCreate}>
             <Plus className="h-4 w-4" />
             {t('newPost')}
           </Button>

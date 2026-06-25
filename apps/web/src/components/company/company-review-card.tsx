@@ -74,6 +74,20 @@ export function CompanyReviewCard({ review, company, onReviewUpdated }: CompanyR
           {review.title && <p className="text-sm font-semibold text-ink">{review.title}</p>}
         </div>
 
+        {review.serviceRatings && review.serviceRatings.length > 0 ? (
+          <ul className="mt-4 space-y-2 rounded-xl border border-subtle bg-white/60 p-3 dark:bg-slate-900/40">
+            {review.serviceRatings.map((entry) => (
+              <li
+                key={entry.catalogItemId}
+                className="flex flex-wrap items-center justify-between gap-2 text-sm"
+              >
+                <span className="font-medium text-primary">{entry.serviceName}</span>
+                <StarRating value={entry.rating} size="sm" />
+              </li>
+            ))}
+          </ul>
+        ) : null}
+
         <p className="mt-3 text-sm leading-relaxed text-ink">{review.content}</p>
         <hr className="my-4 border-t border-slate-400" />
         <div className="flex items-center gap-2">

@@ -28,7 +28,7 @@ type ReviewWithRelations = Review & {
   replies?: ReviewReply[];
   attachments?: ReviewAttachment[];
   serviceRatings?: (ReviewServiceRating & {
-    categoryService?: { id: string; name: string };
+    companyCatalogItem?: { id: string; nameEn: string; nameAr: string };
   })[];
 };
 
@@ -70,8 +70,8 @@ export function toReviewPublic(review: ReviewWithRelations): ReviewPublic {
 
   const serviceRatings: ReviewServiceRatingPublic[] | undefined = review.serviceRatings?.length
     ? review.serviceRatings.map((entry) => ({
-        categoryServiceId: entry.categoryServiceId,
-        serviceName: entry.categoryService?.name ?? 'Service',
+        catalogItemId: entry.companyCatalogItemId,
+        serviceName: entry.companyCatalogItem?.nameEn ?? 'Service',
         rating: entry.rating,
       }))
     : undefined;

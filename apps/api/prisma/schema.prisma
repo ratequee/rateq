@@ -208,8 +208,7 @@ model CategoryService {
   createdAt  DateTime @default(now()) @map("created_at")
   updatedAt  DateTime @updatedAt @map("updated_at")
 
-  category            Category             @relation(fields: [categoryId], references: [id], onDelete: Cascade)
-  reviewServiceRatings ReviewServiceRating[]
+  category Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
 
   @@unique([categoryId, slug])
   @@index([categoryId, sortOrder])
@@ -317,6 +316,8 @@ model CompanyCatalogItem {
   createdAt DateTime           @default(now()) @map("created_at")
   updatedAt DateTime           @updatedAt @map("updated_at")
 
+  reviewServiceRatings ReviewServiceRating[]
+
   @@index([type, isActive, sortOrder])
   @@map("company_catalog_items")
 }
@@ -390,16 +391,16 @@ model ReviewAttachment {
 }
 
 model ReviewServiceRating {
-  id                String @id @default(cuid())
-  reviewId          String @map("review_id")
-  categoryServiceId String @map("category_service_id")
-  rating            Int
+  id                   String @id @default(cuid())
+  reviewId             String @map("review_id")
+  companyCatalogItemId String @map("company_catalog_item_id")
+  rating               Int
 
-  review          Review          @relation(fields: [reviewId], references: [id], onDelete: Cascade)
-  categoryService CategoryService @relation(fields: [categoryServiceId], references: [id], onDelete: Cascade)
+  review             Review             @relation(fields: [reviewId], references: [id], onDelete: Cascade)
+  companyCatalogItem CompanyCatalogItem @relation(fields: [companyCatalogItemId], references: [id], onDelete: Cascade)
 
-  @@unique([reviewId, categoryServiceId])
-  @@index([categoryServiceId])
+  @@unique([reviewId, companyCatalogItemId])
+  @@index([companyCatalogItemId])
   @@map("review_service_ratings")
 }
 

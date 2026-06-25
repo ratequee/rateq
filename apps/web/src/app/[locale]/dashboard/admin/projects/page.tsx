@@ -1,6 +1,7 @@
 'use client';
 
 import { AdminProjectsPanel } from '@/components/dashboard/admin-projects-panel';
+import { DashboardPageHeader } from '@/components/dashboard/dashboard-page-header';
 import { DashboardShell } from '@/components/dashboard/dashboard-shell';
 import { useRequireAdmin } from '@/hooks/use-require-admin';
 import { AdminPermission } from '@rateq/types';
@@ -12,10 +13,7 @@ export default function AdminProjectsPage() {
 
   return (
     <DashboardShell role="admin">
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-ink">{t('title')}</h1>
-        <p className="mt-1 text-sm text-ink-muted">{t('subtitle')}</p>
-      </div>
+      <DashboardPageHeader title={t('title')} subtitle={t('subtitle')} />
       <AdminProjectsPanel />
     </DashboardShell>
   );
