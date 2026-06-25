@@ -225,12 +225,14 @@ export function CompanyAddressMapField({
       <div>
         <label
           htmlFor={`${fieldKey}-address`}
-          className="mb-1.5 block text-sm font-medium text-ink"
+          className="mb-1.5 block text-sm font-medium text-ink dark:text-white"
         >
           {t('companyAddress')}
           <span className="text-red-600"> *</span>
         </label>
-        <p className="mb-3 text-sm text-ink-muted">{t('companyAddressMapHint')}</p>
+        <p className="mb-3 text-sm text-ink-muted dark:text-slate-300">
+          {t('companyAddressMapHint')}
+        </p>
         <div className="flex flex-col gap-2 sm:flex-row">
           <Input
             id={`${fieldKey}-address`}
@@ -267,8 +269,8 @@ export function CompanyAddressMapField({
         ref={mapContainerRef}
         data-field="companyLocation"
         className={cn(
-          'h-64 w-full overflow-hidden rounded-xl border bg-slate-100',
-          displayError ? 'border-red-300' : 'border-slate-200',
+          'h-64 w-full overflow-hidden rounded-xl border bg-slate-100 dark:bg-slate-800',
+          displayError ? 'border-red-300 dark:border-red-800' : 'border-default',
         )}
       />
 
@@ -277,7 +279,7 @@ export function CompanyAddressMapField({
           type="button"
           disabled={locating}
           onClick={handleUseCurrentLocation}
-          className="inline-flex items-center gap-2 text-sm font-medium text-brand-600 hover:text-brand-700 disabled:opacity-60"
+          className="inline-flex items-center gap-2 text-sm font-medium text-brand-600 hover:text-brand-700 disabled:opacity-60 dark:text-brand-300 dark:hover:text-white"
         >
           {locating ? (
             <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
@@ -287,16 +289,20 @@ export function CompanyAddressMapField({
           {t('companyLocationUseMyLocation')}
         </button>
         {location ? (
-          <p className="text-xs text-ink-muted">
+          <p className="text-xs text-ink-muted dark:text-slate-300">
             {t('companyLocationSelected', { coordinates: formatMapCoordinates(location) })}
           </p>
         ) : (
-          <p className="text-xs text-ink-muted">{t('companyAddressMapPending')}</p>
+          <p className="text-xs text-ink-muted dark:text-slate-300">
+            {t('companyAddressMapPending')}
+          </p>
         )}
       </div>
 
       {resolvedPlace ? (
-        <p className="text-sm text-ink-muted">{t('companyAddressResolved', { city, country })}</p>
+        <p className="text-sm text-ink-muted dark:text-slate-300">
+          {t('companyAddressResolved', { city, country })}
+        </p>
       ) : null}
 
       {displayError && <p className="text-sm text-red-600">{displayError}</p>}

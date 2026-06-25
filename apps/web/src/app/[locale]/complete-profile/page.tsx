@@ -589,9 +589,10 @@ export default function CompleteProfilePage() {
                 className={cn(
                   'rounded-xl border px-4 py-2 text-start transition-colors flex gap-2 items-center justify-center',
                   accountType === 'reviewer'
-                    ? 'border-brand-500 bg-brand-50 text-brand-600'
-                    : 'border-slate-200 bg-white text-ink-muted hover:border-brand-200',
-                  reviewerRoleDisabled && 'cursor-not-allowed opacity-50 hover:border-slate-200',
+                    ? 'border-brand-500 bg-brand-50 text-brand-600 dark:bg-brand-950/40 dark:text-brand-300'
+                    : 'border-slate-200 bg-white text-ink-muted hover:border-brand-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:border-brand-700',
+                  reviewerRoleDisabled &&
+                    'cursor-not-allowed opacity-50 hover:border-slate-200 dark:hover:border-slate-700',
                 )}
               >
                 <UserRound className="h-5 w-5" />
@@ -608,9 +609,10 @@ export default function CompleteProfilePage() {
                 className={cn(
                   'rounded-xl border px-4 py-2 text-start transition-colors flex gap-2 items-center justify-center',
                   accountType === 'company'
-                    ? 'border-brand-500 bg-brand-50 text-brand-600'
-                    : 'border-slate-200 bg-white text-ink-muted hover:border-brand-200',
-                  companyRoleDisabled && 'cursor-not-allowed opacity-50 hover:border-slate-200',
+                    ? 'border-brand-500 bg-brand-50 text-brand-600 dark:bg-brand-950/40 dark:text-brand-300'
+                    : 'border-slate-200 bg-white text-ink-muted hover:border-brand-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:border-brand-700',
+                  companyRoleDisabled &&
+                    'cursor-not-allowed opacity-50 hover:border-slate-200 dark:hover:border-slate-700',
                 )}
               >
                 <Building2 className="h-5 w-5" />
@@ -620,11 +622,11 @@ export default function CompleteProfilePage() {
           )}
 
           {companyPending ? (
-            <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800">
+            <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800 dark:border-amber-900/60 dark:bg-amber-950/30 dark:text-amber-200">
               {t('companyPendingMessage')}
             </div>
           ) : companyRevisionRequested ? (
-            <div className="mb-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+            <div className="mb-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900 dark:border-amber-900/60 dark:bg-amber-950/30 dark:text-amber-200">
               <p className="font-medium">{t('companyRevisionTitle')}</p>
               {onboarding?.company?.revisionNotes ? (
                 <p className="mt-2 whitespace-pre-wrap">{onboarding.company.revisionNotes}</p>
@@ -682,7 +684,7 @@ export default function CompleteProfilePage() {
                       onChange={(e) => setBio(e.target.value)}
                       rows={3}
                       maxLength={500}
-                      className="w-full rounded-md border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500"
+                      className="textarea-field"
                     />
                   </Field>
                   <div data-field="avatar">
@@ -804,11 +806,13 @@ function Field({
 }) {
   return (
     <div data-field={fieldKey}>
-      <label className="mb-1.5 block text-sm font-medium text-ink">
+      <label className="mb-1.5 block text-sm font-medium text-ink dark:text-white">
         {label}
         {required && <span className="text-red-500"> *</span>}
         {optionalLabel && (
-          <span className="ms-1 font-normal text-ink-muted">({optionalLabel})</span>
+          <span className="ms-1 font-normal text-ink-muted dark:text-slate-300">
+            ({optionalLabel})
+          </span>
         )}
       </label>
       {children}
@@ -904,7 +908,7 @@ function FileField({
 
   const displayError = sizeError ?? error;
   const previewFrameClass = cn(
-    'relative mb-3 overflow-hidden border border-slate-200 bg-slate-50',
+    'relative mb-3 overflow-hidden border border-default surface-muted',
     previewVariant === 'avatar' && 'h-24 w-24 rounded-full',
     previewVariant === 'logo' && 'h-24 w-24 rounded-2xl',
     (previewVariant === 'cover' || previewVariant === 'document') && 'h-36 w-full rounded-2xl',
@@ -912,11 +916,11 @@ function FileField({
 
   return (
     <div>
-      <label className="mb-1.5 block text-sm font-medium text-ink">
+      <label className="mb-1.5 block text-sm font-medium text-ink dark:text-white">
         {label}
         {required && <span className="text-red-500"> *</span>}
       </label>
-      <p className="mb-2 text-xs text-ink-muted">{t('maxFileSize')}</p>
+      <p className="mb-2 text-xs text-ink-muted dark:text-slate-300">{t('maxFileSize')}</p>
 
       {showNewImagePreview && (
         <div className={previewFrameClass}>
@@ -944,11 +948,11 @@ function FileField({
       )}
 
       {file && isPdf && (
-        <div className="relative mb-3 flex items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 pe-12">
-          <FileText className="h-8 w-8 shrink-0 text-brand-500" />
+        <div className="relative mb-3 flex items-center gap-3 rounded-2xl border border-default surface-muted px-4 py-3 pe-12">
+          <FileText className="h-8 w-8 shrink-0 text-brand-500 dark:text-brand-300" />
           <div className="min-w-0">
-            <p className="truncate text-sm font-medium text-ink">{file.name}</p>
-            <p className="text-xs text-ink-muted">{t('pdfSelected')}</p>
+            <p className="truncate text-sm font-medium text-ink dark:text-white">{file.name}</p>
+            <p className="text-xs text-ink-muted dark:text-slate-300">{t('pdfSelected')}</p>
           </div>
           <RemovePreviewButton
             onClick={handleRemove}
@@ -959,15 +963,15 @@ function FileField({
       )}
 
       {(showExistingPdf || showExistingGenericDoc) && (
-        <div className="relative mb-3 flex items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 pe-12">
-          <FileText className="h-8 w-8 shrink-0 text-brand-500" />
+        <div className="relative mb-3 flex items-center gap-3 rounded-2xl border border-default surface-muted px-4 py-3 pe-12">
+          <FileText className="h-8 w-8 shrink-0 text-brand-500 dark:text-brand-300" />
           <div className="min-w-0 flex-1">
-            <p className="text-sm font-medium text-ink">{t('existingFile')}</p>
+            <p className="text-sm font-medium text-ink dark:text-white">{t('existingFile')}</p>
             <a
               href={existingUrl!}
               target="_blank"
               rel="noopener noreferrer"
-              className="mt-0.5 inline-flex items-center gap-1 text-xs font-medium text-brand-600 hover:underline"
+              className="mt-0.5 inline-flex items-center gap-1 text-xs font-medium text-brand-600 hover:underline dark:text-brand-300"
             >
               {t('viewExistingFile')}
               <ExternalLink className="h-3 w-3" />
@@ -981,10 +985,12 @@ function FileField({
         </div>
       )}
 
-      <label className="flex cursor-pointer items-center justify-between gap-3 rounded-xl border border-dashed border-slate-300 px-4 py-3 hover:border-brand-400 hover:bg-brand-50/40">
+      <label className="flex cursor-pointer items-center justify-between gap-3 rounded-xl border border-dashed border-default px-4 py-3 hover:border-brand-400 hover:bg-brand-50/40 dark:hover:border-brand-600 dark:hover:bg-brand-950/20">
         <div className="flex min-w-0 items-center gap-3">
-          <Upload className="h-4 w-4 shrink-0 text-brand-500" />
-          <span className="truncate text-sm text-ink-muted">{file?.name ?? t('chooseFile')}</span>
+          <Upload className="h-4 w-4 shrink-0 text-brand-500 dark:text-brand-300" />
+          <span className="truncate text-sm text-ink-muted dark:text-slate-300">
+            {file?.name ?? t('chooseFile')}
+          </span>
         </div>
         <input
           ref={inputRef}

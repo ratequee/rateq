@@ -1,8 +1,8 @@
 'use client';
 
 import { Suspense } from 'react';
+import { AuthLayout } from '@/components/auth/auth-layout';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardTitle } from '@/components/ui/card';
 import { apiClient } from '@/lib/api';
 import { Link } from '@/i18n/routing';
 import { useSearchParams } from 'next/navigation';
@@ -37,24 +37,28 @@ function VerifyEmailContent() {
   }, [token]);
 
   return (
-    <div className="mx-auto max-w-md px-4 py-12">
-      <Card>
-        <CardContent className="p-6 text-center space-y-4">
-          <CardTitle>Email verification</CardTitle>
-          {status === 'loading' && <p>Verifying...</p>}
-          {status !== 'loading' && <p>{message}</p>}
-          <Link href="/login">
-            <Button>Log in</Button>
-          </Link>
-        </CardContent>
-      </Card>
-    </div>
+    <AuthLayout variant="login">
+      <div className="space-y-4 text-center">
+        <h2 className="text-2xl font-bold text-ink dark:text-white">Email verification</h2>
+        {status === 'loading' && (
+          <p className="text-sm text-ink-muted dark:text-slate-300">Verifying...</p>
+        )}
+        {status !== 'loading' && <p className="text-sm text-ink dark:text-slate-200">{message}</p>}
+        <Link href="/login">
+          <Button className="w-full">Log in</Button>
+        </Link>
+      </div>
+    </AuthLayout>
   );
 }
 
 export default function VerifyEmailPage() {
   return (
-    <Suspense fallback={<div className="p-12 text-center">Loading...</div>}>
+    <Suspense
+      fallback={
+        <div className="p-12 text-center text-ink-muted dark:text-slate-300">Loading...</div>
+      }
+    >
       <VerifyEmailContent />
     </Suspense>
   );

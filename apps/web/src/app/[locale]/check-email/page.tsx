@@ -76,19 +76,27 @@ function CheckEmailContent() {
               <Logo variant="default" />
             </Link>
           </div>
-          <h2 className="text-2xl font-bold text-ink sm:text-2xl">{tp('checkEmailTitle')}</h2>
-          <p className="mt-2 text-center text-sm text-ink-muted">{tp('checkEmailSubtitle')}</p>
+          <h2 className="text-2xl font-bold text-ink dark:text-white sm:text-2xl">
+            {tp('checkEmailTitle')}
+          </h2>
+          <p className="mt-2 text-center text-sm text-ink-muted dark:text-slate-300">
+            {tp('checkEmailSubtitle')}
+          </p>
           {emailFromQuery && (
-            <p className="mt-3 text-center text-sm font-medium text-ink">{emailFromQuery}</p>
+            <p className="mt-3 text-center text-sm font-medium text-ink dark:text-white">
+              {emailFromQuery}
+            </p>
           )}
         </div>
 
-        <div className="mt-8 space-y-4 rounded-xl border border-brand-100 bg-brand-50/40 p-4 text-sm leading-relaxed text-ink-muted">
+        <div className="mt-8 space-y-4 rounded-xl border border-brand-100 bg-brand-50/40 p-4 text-sm leading-relaxed text-ink-muted dark:border-brand-900/60 dark:bg-brand-950/30 dark:text-slate-200">
           <p>{tp('checkEmailInstructions')}</p>
         </div>
 
         <form onSubmit={handleResend} className="mt-6 space-y-4">
-          <p className="text-sm font-medium text-ink">{tp('resendVerificationTitle')}</p>
+          <p className="text-sm font-medium text-ink dark:text-white">
+            {tp('resendVerificationTitle')}
+          </p>
           <div>
             <Input
               type="email"
@@ -118,11 +126,11 @@ function CheckEmailContent() {
           </Button>
         </form>
 
-        <p className="mt-6 text-center text-sm text-ink-muted">
+        <p className="mt-6 text-center text-sm text-ink-muted dark:text-slate-300">
           {tp('alreadyVerified')}{' '}
           <Link
             href="/login"
-            className="font-semibold text-brand-500 hover:text-brand-600 hover:underline"
+            className="font-semibold text-brand-500 hover:text-brand-600 hover:underline dark:text-brand-300 dark:hover:text-white"
           >
             {tp('backToLogin')}
           </Link>
@@ -134,7 +142,11 @@ function CheckEmailContent() {
 
 export default function CheckEmailPage() {
   return (
-    <Suspense fallback={<div className="p-12 text-center text-ink-muted">Loading...</div>}>
+    <Suspense
+      fallback={
+        <div className="p-12 text-center text-ink-muted dark:text-slate-300">Loading...</div>
+      }
+    >
       <CheckEmailContent />
     </Suspense>
   );

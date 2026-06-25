@@ -252,13 +252,16 @@ export function PhoneVerificationField({
         aria-hidden
       />
       <div>
-        <label htmlFor={`${fieldKey}-phone`} className="mb-1.5 block text-sm font-medium text-ink">
+        <label
+          htmlFor={`${fieldKey}-phone`}
+          className="mb-1.5 block text-sm font-medium text-ink dark:text-white"
+        >
           {label}
           <span className="text-red-600"> *</span>
         </label>
 
         {showLinkedPhoneHint && linkedFirebasePhone ? (
-          <div className="mb-3 rounded-xl border border-sky-200 bg-sky-50 px-4 py-3 text-sm text-sky-950">
+          <div className="mb-3 rounded-xl border border-sky-200 bg-sky-50 px-4 py-3 text-sm text-sky-950 dark:border-sky-900/60 dark:bg-sky-950/30 dark:text-sky-100">
             <div className="flex gap-2">
               <Info className="mt-0.5 h-4 w-4 shrink-0" aria-hidden />
               <div className="space-y-2">
@@ -266,7 +269,7 @@ export function PhoneVerificationField({
                 <button
                   type="button"
                   onClick={handleUseLinkedNumber}
-                  className="font-medium text-brand-600 hover:text-brand-700"
+                  className="font-medium text-brand-600 hover:text-brand-700 dark:text-brand-300 dark:hover:text-white"
                 >
                   {t('phoneUseLinkedNumber')}
                 </button>
@@ -291,7 +294,7 @@ export function PhoneVerificationField({
             aria-invalid={Boolean(error)}
           />
           {verified && !editingNumber ? (
-            <div className="inline-flex h-11 shrink-0 items-center justify-center gap-1.5 rounded-md border border-emerald-200 bg-emerald-50 px-4 text-sm font-semibold text-emerald-700">
+            <div className="inline-flex h-11 shrink-0 items-center justify-center gap-1.5 rounded-md border border-emerald-200 bg-emerald-50 px-4 text-sm font-semibold text-emerald-700 dark:border-emerald-900/60 dark:bg-emerald-950/30 dark:text-emerald-300">
               <CheckCircle2 className="h-4 w-4" aria-hidden />
               {t('phoneVerifiedLabel')}
             </div>
@@ -312,8 +315,8 @@ export function PhoneVerificationField({
       </div>
 
       {otpSent && editingNumber && !verified && (
-        <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
-          <p className="mb-3 text-sm text-ink-muted">{t('phoneOtpHint')}</p>
+        <div className="rounded-xl border border-default surface-muted p-4">
+          <p className="mb-3 text-sm text-ink-muted dark:text-slate-300">{t('phoneOtpHint')}</p>
           <div className="flex flex-col gap-2 sm:flex-row">
             <Input
               inputMode="numeric"
