@@ -99,7 +99,7 @@ export async function apiServer<T>(
   path: string,
   init?: RequestInit & { revalidate?: number | false },
 ): Promise<T> {
-  const { revalidate = 60, ...fetchInit } = init ?? {};
+  const { revalidate = false, ...fetchInit } = init ?? {};
   const response = await fetch(`${API_URL}${path}`, {
     ...fetchInit,
     headers: { 'Content-Type': 'application/json', ...fetchInit?.headers },

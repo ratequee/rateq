@@ -13,8 +13,16 @@ interface CompanyReviewQuoteCardProps {
 
 export function CompanyReviewQuoteCard({ review, authorName }: CompanyReviewQuoteCardProps) {
   const t = useTranslations('review');
+  const tp = useTranslations('companyPage');
   const name = authorName ?? getReviewAuthorName(review.author, 'Reviewer');
   const showStatus = review.status !== ReviewStatus.APPROVED;
+  const locale = typeof document !== 'undefined' ? document.documentElement.lang : 'en';
+
+  const replyDate =
+    review.reply &&
+    new Intl.DateTimeFormat(locale, { dateStyle: 'medium' }).format(
+      new Date(review.reply.createdAt),
+    );
 
   return (
     <article
@@ -61,6 +69,18 @@ export function CompanyReviewQuoteCard({ review, authorName }: CompanyReviewQuot
           <p className="text-sm text-secondary">{review.title}</p>
         </div>
       </footer>
+
+      {review.reply ? (
+        <div className="mt-6 rounded-xl border border-brand-100 bg-brand-50/50 p-4 dark:border-brand-900/60 dark:bg-brand-950/30">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <p className="text-xs font-semibold uppercase tracking-wide text-brand-600 dark:text-brand-300">
+              {tp('companyReply')}
+            </p>
+            {replyDate ? <p className="text-xs text-secondary">{replyDate}</p> : null}
+          </div>
+          <p className="mt-2 text-sm leading-relaxed text-primary">{review.reply.content}</p>
+        </div>
+      ) : null}
     </article>
   );
 }

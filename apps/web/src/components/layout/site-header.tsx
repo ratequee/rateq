@@ -14,7 +14,7 @@ import { cn } from '@/lib/utils';
 import Image from 'next/image';
 import { LayoutDashboard, LogOut } from 'lucide-react';
 import { useProfile } from '@/components/providers/profile-provider';
-import { canAccessDashboard, getDashboardPath } from '@/lib/profile-routing';
+import { canAccessDashboard, getDashboardHref } from '@/lib/profile-routing';
 
 const NAV_LINKS = [
   { href: '/', key: 'home' as const },
@@ -26,7 +26,7 @@ const NAV_LINKS = [
 
 export function SiteHeader() {
   const t = useTranslations('nav');
-  const { user, logout, isLoading, isFirebaseAdmin, firebaseAdminLoading } = useAuth();
+  const { user, logout, isLoading, adminAccess, adminAccessLoading } = useAuth();
   const { onboarding, isLoading: profileLoading } = useProfile();
   const pathname = usePathname();
   const router = useRouter();
@@ -34,12 +34,12 @@ export function SiteHeader() {
   const [loggingOut, setLoggingOut] = useState(false);
   const isActive = (href: string) => pathname === href;
 
-  const profileBusy = profileLoading || firebaseAdminLoading;
+  const profileBusy = profileLoading || adminAccessLoading;
   const dashboardEnabled =
     Boolean(user) &&
     !profileBusy &&
     user!.isVerified &&
-    canAccessDashboard(user!, onboarding, isFirebaseAdmin);
+    canAccessDashboard(user!, onboarding, adminAccess);
 
   const handleMobileLogout = async () => {
     setMobileOpen(false);
@@ -196,9 +196,7 @@ export function SiteHeader() {
                   <>
                     {dashboardEnabled ? (
                       <Link
-                        href={
-                          isFirebaseAdmin ? '/dashboard/admin' : getDashboardPath(user, onboarding)
-                        }
+                        href={getDashboardHref(user, onboarding, adminAccess)}
                         onClick={() => setMobileOpen(false)}
                       >
                         <Button variant="outline-brand" className="h-11 w-full gap-2 rounded-xl">

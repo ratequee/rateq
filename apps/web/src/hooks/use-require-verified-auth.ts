@@ -26,23 +26,23 @@ export function useRequireVerifiedAuth(): void {
 }
 
 export function useRedirectVerifiedFromCheckEmail(): void {
-  const { user, isLoading, isFirebaseAdmin, firebaseAdminLoading } = useAuth();
+  const { user, isLoading, adminAccess, adminAccessLoading } = useAuth();
   const { onboarding, isLoading: profileLoading } = useProfile();
   const router = useRouter();
 
   useEffect(() => {
-    if (isLoading || profileLoading || firebaseAdminLoading || !user?.isVerified) return;
-    router.replace(getPostAuthRedirect(user, onboarding, isFirebaseAdmin));
-  }, [user, onboarding, isLoading, profileLoading, firebaseAdminLoading, isFirebaseAdmin, router]);
+    if (isLoading || profileLoading || adminAccessLoading || !user?.isVerified) return;
+    router.replace(getPostAuthRedirect(user, onboarding, adminAccess));
+  }, [user, onboarding, isLoading, profileLoading, adminAccessLoading, adminAccess, router]);
 }
 
 export function useRequireCompleteProfile(): void {
-  const { user, isLoading, isFirebaseAdmin, firebaseAdminLoading } = useAuth();
+  const { user, isLoading, adminAccess, adminAccessLoading } = useAuth();
   const { onboarding, isLoading: profileLoading } = useProfile();
   const router = useRouter();
 
   useEffect(() => {
-    if (isLoading || profileLoading || firebaseAdminLoading) return;
+    if (isLoading || profileLoading || adminAccessLoading) return;
     if (!user) {
       router.replace('/login');
       return;
@@ -51,8 +51,8 @@ export function useRequireCompleteProfile(): void {
       router.replace('/check-email');
       return;
     }
-    if (!canAccessDashboard(user, onboarding, isFirebaseAdmin)) {
+    if (!canAccessDashboard(user, onboarding, adminAccess)) {
       router.replace('/complete-profile');
     }
-  }, [user, onboarding, isLoading, profileLoading, firebaseAdminLoading, isFirebaseAdmin, router]);
+  }, [user, onboarding, isLoading, profileLoading, adminAccessLoading, adminAccess, router]);
 }

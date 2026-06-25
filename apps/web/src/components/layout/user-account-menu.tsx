@@ -3,7 +3,7 @@
 import { useAuth } from '@/components/providers/auth-provider';
 import { useProfile } from '@/components/providers/profile-provider';
 import { Link, useRouter } from '@/i18n/routing';
-import { canAccessDashboard, getDashboardPath, getPostAuthRedirect } from '@/lib/profile-routing';
+import { canAccessDashboard, getDashboardHref } from '@/lib/profile-routing';
 import { resolveAccountMenuDisplayName } from '@/lib/user-display-name';
 import { cn } from '@/lib/utils';
 import { LayoutDashboard, LogOut } from 'lucide-react';
@@ -17,7 +17,7 @@ interface UserAccountMenuProps {
 
 export function UserAccountMenu({ className, align = 'end' }: UserAccountMenuProps) {
   const t = useTranslations('nav');
-  const { user, logout, isFirebaseAdmin, firebaseAdminLoading } = useAuth();
+  const { user, logout, adminAccess, adminAccessLoading } = useAuth();
   const { onboarding, isLoading: profileLoading } = useProfile();
   const router = useRouter();
   const menuId = useId();
@@ -25,20 +25,14 @@ export function UserAccountMenu({ className, align = 'end' }: UserAccountMenuPro
   const [open, setOpen] = useState(false);
   const [loggingOut, setLoggingOut] = useState(false);
 
-  const loading = profileLoading || firebaseAdminLoading;
+  const loading = profileLoading || adminAccessLoading;
   const dashboardEnabled =
     Boolean(user) &&
     !loading &&
     user!.isVerified &&
-    canAccessDashboard(user!, onboarding, isFirebaseAdmin);
+    canAccessDashboard(user!, onboarding, adminAccess);
 
-  const dashboardHref = user
-    ? isFirebaseAdmin
-      ? '/dashboard/admin'
-      : dashboardEnabled
-        ? getDashboardPath(user, onboarding)
-        : getPostAuthRedirect(user, onboarding, isFirebaseAdmin)
-    : '/login';
+  const dashboardHref = user ? getDashboardHref(user, onboarding, adminAccess) : '/login';
 
   const dashboardDisabledReason = !user?.isVerified
     ? t('dashboardDisabledUnverified')

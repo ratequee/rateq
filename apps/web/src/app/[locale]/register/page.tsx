@@ -8,6 +8,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Link, useRouter } from '@/i18n/routing';
 import { isEmailVerificationPendingError } from '@/lib/auth-flow-errors';
+import { authApi } from '@/lib/api';
+import { getAccessToken } from '@/lib/auth-storage';
 import { getPostAuthRedirect } from '@/lib/profile-routing';
 import type { AuthenticatedUser } from '@rateq/types';
 import { getFirebaseAuthErrorMessage } from '@/lib/firebase/errors';
@@ -69,8 +71,19 @@ export default function RegisterPage() {
   const { refreshOnboarding } = useProfile();
 
   const redirectAfterAuth = async (sessionUser: AuthenticatedUser) => {
-    const status = await refreshOnboarding();
-    await router.push(getPostAuthRedirect(sessionUser, status));
+    const [status, token] = await Promise.all([
+      refreshOnboarding(),
+      Promise.resolve(getAccessToken()),
+    ]);
+    let adminAccess = null;
+    if (token) {
+      try {
+        adminAccess = await authApi.adminAccess(token);
+      } catch {
+        adminAccess = null;
+      }
+    }
+    await router.push(getPostAuthRedirect(sessionUser, status, adminAccess));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {

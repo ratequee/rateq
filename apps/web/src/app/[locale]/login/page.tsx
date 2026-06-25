@@ -60,16 +60,15 @@ export default function LoginPage() {
       refreshOnboarding(),
       Promise.resolve(getAccessToken()),
     ]);
-    let isFirebaseAdmin = false;
+    let adminAccess = null;
     if (token) {
       try {
-        const access = await authApi.firebaseAdminAccess(token);
-        isFirebaseAdmin = access.allowed;
+        adminAccess = await authApi.adminAccess(token);
       } catch {
-        isFirebaseAdmin = false;
+        adminAccess = null;
       }
     }
-    router.push(getPostAuthRedirect(sessionUser, status, isFirebaseAdmin));
+    router.push(getPostAuthRedirect(sessionUser, status, adminAccess));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {

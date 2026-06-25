@@ -191,7 +191,8 @@ export class AuthService {
       !shouldBeAdmin &&
       user.role === PrismaUserRole.ADMIN &&
       user.firebaseUid &&
-      this.firebaseAdminAccess.hasAnyAdmin()
+      this.firebaseAdminAccess.hasAnyAdmin() &&
+      user.adminPermissions.length === 0
     ) {
       return this.authRepository.updateUserAdminAccess(user.id, {
         role: PrismaUserRole.USER,

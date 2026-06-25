@@ -3,12 +3,14 @@
 import { Button } from '@/components/ui/button';
 import { Link } from '@/i18n/routing';
 import { useAuth } from '@/components/providers/auth-provider';
-import { UserRole } from '@rateq/types';
+import { useProfile } from '@/components/providers/profile-provider';
+import { getDashboardHref } from '@/lib/profile-routing';
 import { useTranslations } from 'next-intl';
 
 export function HeroForUsersButton() {
   const t = useTranslations('home');
-  const { user } = useAuth();
+  const { user, adminAccess } = useAuth();
+  const { onboarding } = useProfile();
 
   if (!user) {
     return (
@@ -24,15 +26,8 @@ export function HeroForUsersButton() {
     );
   }
 
-  const dashboardHref =
-    user.role === UserRole.ADMIN
-      ? '/dashboard/admin'
-      : user.role === UserRole.COMPANY
-        ? '/dashboard/company'
-        : '/dashboard/reviewer';
-
   return (
-    <Link href={dashboardHref}>
+    <Link href={getDashboardHref(user, onboarding, adminAccess)}>
       <Button
         variant="outline-brand"
         size="lg"

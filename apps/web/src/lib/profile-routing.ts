@@ -1,5 +1,6 @@
-import type { AuthenticatedUser, OnboardingStatus } from '@rateq/types';
-import { UserRole } from '@rateq/types';
+import type { AdminAccess, AuthenticatedUser, OnboardingStatus } from '@rateq/types';
+import { UserRole, canAccessAdminDashboard } from '@rateq/types';
+import { getFirstAllowedAdminRoute } from '@/lib/admin-permissions';
 import { getStoredProfile } from '@/lib/profile-storage';
 
 export function getCompanyVerificationStatus(
@@ -36,12 +37,39 @@ export function isCompanyRevisionRequested(onboarding?: OnboardingStatus | null)
   );
 }
 
+function normalizeAdminAccess(
+  user: AuthenticatedUser,
+  adminAccess?: AdminAccess | null | boolean,
+): AdminAccess {
+  if (adminAccess && typeof adminAccess === 'object') {
+    return adminAccess;
+  }
+
+  const allowed =
+    typeof adminAccess === 'boolean'
+      ? adminAccess
+      : user.role === UserRole.ADMIN && canAccessAdminDashboard(user.adminPermissions);
+
+  return {
+    allowed,
+    permissions: user.adminPermissions ?? [],
+  };
+}
+
+export function getAdminDashboardHref(
+  user: AuthenticatedUser,
+  adminAccess?: AdminAccess | null,
+): string {
+  const access = normalizeAdminAccess(user, adminAccess);
+  return getFirstAllowedAdminRoute(access) ?? '/dashboard/admin';
+}
+
 export function canAccessDashboard(
   user: AuthenticatedUser,
   onboarding?: OnboardingStatus | null,
-  hasAdminAccess = false,
+  adminAccess?: AdminAccess | null | boolean,
 ): boolean {
-  if (user.role === UserRole.ADMIN && hasAdminAccess) return true;
+  if (normalizeAdminAccess(user, adminAccess).allowed) return true;
 
   const locked = getLockedAccountType(onboarding);
   if (!locked) {
@@ -60,8 +88,11 @@ export function canAccessDashboard(
 export function getDashboardPath(
   user: AuthenticatedUser,
   onboarding?: OnboardingStatus | null,
+  adminAccess?: AdminAccess | null | boolean,
 ): string {
-  if (user.role === UserRole.ADMIN) return '/dashboard/admin';
+  if (normalizeAdminAccess(user, adminAccess).allowed) {
+    return getAdminDashboardHref(user, normalizeAdminAccess(user, adminAccess));
+  }
 
   const accountType =
     onboarding?.accountType ??
@@ -89,21 +120,22 @@ export function isOnboardingComplete(
 export function getPostAuthRedirect(
   user: AuthenticatedUser,
   onboarding?: OnboardingStatus | null,
-  hasAdminAccess = false,
+  adminAccess?: AdminAccess | null | boolean,
 ): string {
   if (!user.isVerified) {
     return '/check-email';
   }
 
-  if (hasAdminAccess) {
-    return '/dashboard/admin';
+  const access = normalizeAdminAccess(user, adminAccess);
+  if (access.allowed) {
+    return getAdminDashboardHref(user, access);
   }
 
-  if (!canAccessDashboard(user, onboarding, hasAdminAccess)) {
+  if (!canAccessDashboard(user, onboarding, access)) {
     return '/complete-profile';
   }
 
-  return getDashboardPath(user, onboarding);
+  return getDashboardPath(user, onboarding, access);
 }
 
 export function getProfileRedirect(user: AuthenticatedUser): string | null {
@@ -117,4 +149,21 @@ export function getProfileRedirect(user: AuthenticatedUser): string | null {
   }
 
   return getDashboardPath(user);
+}
+
+export function getDashboardHref(
+  user: AuthenticatedUser,
+  onboarding?: OnboardingStatus | null,
+  adminAccess?: AdminAccess | null,
+): string {
+  const access = normalizeAdminAccess(user, adminAccess);
+  if (access.allowed) {
+    return getAdminDashboardHref(user, access);
+  }
+
+  if (!canAccessDashboard(user, onboarding, access)) {
+    return getPostAuthRedirect(user, onboarding, access);
+  }
+
+  return getDashboardPath(user, onboarding, access);
 }
