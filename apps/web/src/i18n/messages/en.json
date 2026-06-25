@@ -335,7 +335,9 @@
     "sortReviews": "Most reviews",
     "sortNewest": "Newest",
     "sortName": "Name A–Z",
-    "allCategories": "All categories"
+    "allCategories": "All categories",
+    "category": "Category",
+    "resultsCount": "{count} results"
   },
   "company": {
     "reviews": "Customer reviews",

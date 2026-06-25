@@ -335,7 +335,9 @@
     "sortReviews": "الأكثر مراجعات",
     "sortNewest": "الأحدث",
     "sortName": "الاسم أ–ي",
-    "allCategories": "جميع التصنيفات"
+    "allCategories": "جميع التصنيفات",
+    "category": "التصنيف",
+    "resultsCount": "{count} نتيجة"
   },
   "company": {
     "reviews": "مراجعات العملاء",
