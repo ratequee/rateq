@@ -1,10 +1,6 @@
 'use client';
 
-import {
-  homeDarkBorder,
-  homeDarkCard,
-  homeDarkCardElevated,
-} from '@/components/home/home-dark-surfaces';
+import { homeDarkBorder, homeDarkCardElevated } from '@/components/home/home-dark-surfaces';
 import { cn } from '@/lib/utils';
 
 import { NearbyCompaniesMap } from '@/components/home/nearby-companies-map';
