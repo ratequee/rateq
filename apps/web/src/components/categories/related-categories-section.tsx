@@ -20,7 +20,7 @@ export async function RelatedCategoriesSection({
   if (related.length === 0) return <></>;
 
   return (
-    <section className="border-t border-slate-100 bg-slate-50/60 py-12 dark:border-slate-800 dark:bg-slate-900 sm:py-16">
+    <section className="border-t border-slate-100 bg-slate-50/60 py-12 dark:border-dm-border dark:bg-dm-surface sm:py-16">
       <div className="mx-auto max-w-page px-4 sm:px-6 lg:px-8">
         <div className="mb-8 flex flex-wrap items-center justify-between gap-4">
           <h2 className="text-2xl font-bold text-ink dark:text-white sm:text-3xl">

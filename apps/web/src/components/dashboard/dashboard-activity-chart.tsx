@@ -222,11 +222,11 @@ export function DashboardActivityChart({
       </div>
 
       <div className="flex flex-wrap items-center justify-center gap-3 pt-1">
-        <span className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs text-secondary shadow-sm dark:border-slate-700 dark:bg-slate-800">
+        <span className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs text-secondary shadow-sm dark:border-dm-border dark:bg-dm-elevated">
           <span className="h-2.5 w-2.5 rounded-full bg-brand-500" aria-hidden />
           {companiesLabel}
         </span>
-        <span className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs text-secondary shadow-sm dark:border-slate-700 dark:bg-slate-800">
+        <span className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs text-secondary shadow-sm dark:border-dm-border dark:bg-dm-elevated">
           <span className="h-2.5 w-2.5 rounded-full bg-gold-300" aria-hidden />
           {reviewersLabel}
         </span>

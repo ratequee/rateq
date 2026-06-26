@@ -1,6 +1,6 @@
 'use client';
 
-import { homeDarkBorder, homeDarkCardElevated } from '@/components/home/home-dark-surfaces';
+import { darkBorder, darkCardElevated } from '@/lib/dark-surfaces';
 import { cn } from '@/lib/utils';
 
 import { NearbyCompaniesMap } from '@/components/home/nearby-companies-map';
@@ -74,11 +74,11 @@ export function NearbyMapSection({ companies }: NearbyMapSectionProps) {
         : t('nearbyUsingYourLocation');
 
   return (
-    <section className="bg-white py-12 dark:bg-[#323232] sm:py-16 lg:py-20">
+    <section className="bg-white py-12 dark:bg-dm-bg sm:py-16 lg:py-20">
       <div
         className={cn(
           'relative z-10 mx-auto mt-[-200px] max-w-page rounded-3xl border border-slate-100 bg-white p-6 shadow-lg sm:p-8 lg:p-10',
-          homeDarkCardElevated,
+          darkCardElevated,
         )}
       >
         <div className="mb-2 flex flex-wrap items-baseline justify-between gap-4">
@@ -152,7 +152,7 @@ export function NearbyMapSection({ companies }: NearbyMapSectionProps) {
             <p
               className={cn(
                 'rounded-2xl border border-dashed border-slate-200 py-16 text-center text-sm text-ink-muted dark:text-white/85',
-                homeDarkBorder,
+                darkBorder,
               )}
             >
               {t('nearbyNoResults')}

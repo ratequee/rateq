@@ -16,7 +16,7 @@ export default async function ContactPage(): Promise<JSX.Element> {
     <>
       <ContactHeroSection />
 
-      <section className="mt-20 pb-12 dark:bg-slate-950 sm:pb-16">
+      <section className="mt-20 pb-12 dark:bg-dm-bg sm:pb-16">
         <div className="mx-auto max-w-page px-4 sm:px-6 lg:px-8">
           <div className="grid gap-8 lg:grid-cols-[1fr_360px] lg:gap-10">
             <ContactForm />

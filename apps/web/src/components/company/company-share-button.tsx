@@ -54,7 +54,7 @@ export function CompanyShareButton({ slug, companyName }: CompanyShareButtonProp
           aria-modal="true"
           aria-label={t('shareTitle', { name: companyName })}
         >
-          <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl dark:bg-slate-900">
+          <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl dark:bg-dm-surface">
             <div className="mb-4 flex items-start justify-between gap-3">
               <div>
                 <h3 className="text-lg font-semibold text-primary">
@@ -65,7 +65,7 @@ export function CompanyShareButton({ slug, companyName }: CompanyShareButtonProp
               <button
                 type="button"
                 onClick={() => setOpen(false)}
-                className="rounded-lg p-1 text-ink-muted hover:bg-slate-100 dark:hover:bg-slate-800"
+                className="rounded-lg p-1 text-ink-muted hover:bg-slate-100 dark:hover:bg-dm-elevated"
                 aria-label={t('closeShare')}
               >
                 <X className="h-5 w-5" />
@@ -73,7 +73,7 @@ export function CompanyShareButton({ slug, companyName }: CompanyShareButtonProp
             </div>
 
             <div className="flex flex-col items-center gap-4">
-              <div className="rounded-xl border border-subtle bg-white p-4 dark:bg-slate-800">
+              <div className="rounded-xl border border-subtle bg-white p-4 dark:bg-dm-elevated">
                 <QRCodeSVG value={shareUrl || ' '} size={180} level="M" />
               </div>
 

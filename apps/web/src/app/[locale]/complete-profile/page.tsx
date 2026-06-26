@@ -590,9 +590,9 @@ export default function CompleteProfilePage() {
                   'rounded-xl border px-4 py-2 text-start transition-colors flex gap-2 items-center justify-center',
                   accountType === 'reviewer'
                     ? 'border-brand-500 bg-brand-50 text-brand-600 dark:bg-brand-950/40 dark:text-brand-300'
-                    : 'border-slate-200 bg-white text-ink-muted hover:border-brand-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:border-brand-700',
+                    : 'border-slate-200 bg-white text-ink-muted hover:border-brand-200 dark:border-dm-border dark:bg-dm-elevated dark:text-slate-200 dark:hover:border-brand-700',
                   reviewerRoleDisabled &&
-                    'cursor-not-allowed opacity-50 hover:border-slate-200 dark:hover:border-slate-700',
+                    'cursor-not-allowed opacity-50 hover:border-slate-200 dark:hover:border-dm-border',
                 )}
               >
                 <UserRound className="h-5 w-5" />
@@ -610,9 +610,9 @@ export default function CompleteProfilePage() {
                   'rounded-xl border px-4 py-2 text-start transition-colors flex gap-2 items-center justify-center',
                   accountType === 'company'
                     ? 'border-brand-500 bg-brand-50 text-brand-600 dark:bg-brand-950/40 dark:text-brand-300'
-                    : 'border-slate-200 bg-white text-ink-muted hover:border-brand-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:border-brand-700',
+                    : 'border-slate-200 bg-white text-ink-muted hover:border-brand-200 dark:border-dm-border dark:bg-dm-elevated dark:text-slate-200 dark:hover:border-brand-700',
                   companyRoleDisabled &&
-                    'cursor-not-allowed opacity-50 hover:border-slate-200 dark:hover:border-slate-700',
+                    'cursor-not-allowed opacity-50 hover:border-slate-200 dark:hover:border-dm-border',
                 )}
               >
                 <Building2 className="h-5 w-5" />

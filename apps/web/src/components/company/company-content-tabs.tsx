@@ -42,7 +42,7 @@ function ProjectsGrid({ projects }: { projects: CompanyProjectPublic[] }) {
           href={project.projectUrl}
           target="_blank"
           rel="noopener noreferrer"
-          className="flex flex-col overflow-hidden rounded-2xl bg-white shadow-sm transition-shadow hover:shadow-md dark:bg-slate-800"
+          className="flex flex-col overflow-hidden rounded-2xl bg-white shadow-sm transition-shadow hover:shadow-md dark:bg-dm-elevated"
         >
           <div className="relative h-40 overflow-hidden sm:h-44">
             <img src={project.imageUrl} alt="" className="h-full w-full object-cover" />
@@ -78,7 +78,7 @@ function CatalogPills({
         {labels.map((label, index) => (
           <span
             key={`${label}-${index}`}
-            className="rounded-full border border-default bg-slate-100 px-5 py-2.5 text-sm font-medium text-primary dark:bg-slate-800"
+            className="rounded-full border border-default bg-slate-100 px-5 py-2.5 text-sm font-medium text-primary dark:bg-dm-elevated"
           >
             {label}
           </span>
@@ -101,7 +101,7 @@ function ServiceRatingsList({ aggregates }: { aggregates: CompanyServiceRatingAg
         {rated.map((entry) => (
           <li
             key={entry.catalogItemId}
-            className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-default bg-slate-50 px-4 py-3 dark:bg-slate-800/60"
+            className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-default bg-slate-50 px-4 py-3 dark:bg-dm-elevated/60"
           >
             <span className="text-sm font-medium text-primary">{entry.label}</span>
             <div className="flex flex-wrap items-center gap-2">

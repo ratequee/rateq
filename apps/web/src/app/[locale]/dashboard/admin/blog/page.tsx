@@ -401,7 +401,7 @@ export default function AdminBlogPage() {
           ) : posts.length === 0 ? (
             <p className="p-10 text-center text-sm text-ink-muted">{t('empty')}</p>
           ) : (
-            <ul className="divide-y divide-slate-100 dark:divide-slate-800">
+            <ul className="divide-y divide-slate-100 dark:divide-dm-border">
               {posts.map((post) => {
                 const en = post.translations.find(
                   (item: BlogPostTranslationPublic) => item.locale === 'en',
@@ -413,7 +413,7 @@ export default function AdminBlogPage() {
                 return (
                   <li
                     key={post.id}
-                    className="flex items-start justify-between gap-4 px-5 py-4 transition-colors hover:bg-slate-50 dark:hover:bg-slate-800/60"
+                    className="flex items-start justify-between gap-4 px-5 py-4 transition-colors hover:bg-slate-50 dark:hover:bg-dm-elevated/60"
                   >
                     <div className="min-w-0">
                       <p className="font-medium text-ink">

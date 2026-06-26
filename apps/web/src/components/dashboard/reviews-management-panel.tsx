@@ -290,7 +290,7 @@ export function ReviewsManagementPanel({ mode, companyId }: ReviewsManagementPan
           ) : reviews.length === 0 ? (
             <p className="px-5 py-16 text-center text-sm text-secondary">{t('empty')}</p>
           ) : (
-            <div className="divide-y divide-slate-100 dark:divide-slate-800">
+            <div className="divide-y divide-slate-100 dark:divide-dm-border">
               {reviews.map((review) => (
                 <button
                   key={review.id}

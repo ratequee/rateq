@@ -32,7 +32,7 @@ export function ReviewerRecentlyRatedCompaniesList({
             <Link
               key={`${company.id}-${company.reviewedAt}`}
               href={`/companies/${company.slug}`}
-              className="flex items-center justify-between gap-4 rounded-xl surface-card border p-4 shadow-sm transition-colors hover:border-brand-100 hover:bg-brand-50/40 dark:hover:border-slate-600 dark:hover:bg-slate-800"
+              className="flex items-center justify-between gap-4 rounded-xl surface-card border p-4 shadow-sm transition-colors hover:border-brand-100 hover:bg-brand-50/40 dark:hover:border-dm-border dark:hover:bg-dm-elevated"
             >
               <div className="flex min-w-0 flex-1 items-center gap-3">
                 <AvatarImage

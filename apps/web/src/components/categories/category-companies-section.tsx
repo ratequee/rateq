@@ -20,7 +20,7 @@ export async function CategoryCompaniesSection({
   const rest = companies.slice(3);
 
   return (
-    <section className="py-12 dark:bg-slate-950 sm:py-16 lg:py-20">
+    <section className="py-12 dark:bg-dm-bg sm:py-16 lg:py-20">
       <div className="mx-auto max-w-page px-4 sm:px-6 lg:px-8">
         <div className="mb-8 flex flex-wrap items-end justify-between gap-4">
           <div>

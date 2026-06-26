@@ -10,10 +10,10 @@ const buttonVariants = cva(
         default: 'bg-brand-500 text-white hover:bg-brand-600',
         gold: 'bg-gold-300 text-brand-700 hover:bg-gold-400',
         outline:
-          'border border-slate-200 bg-white text-ink hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:hover:bg-slate-800',
+          'border border-slate-200 bg-white text-ink hover:bg-slate-50 dark:border-dm-border dark:bg-dm-surface dark:text-slate-100 dark:hover:bg-dm-elevated',
         'outline-brand':
           'border border-brand-500 bg-white text-brand-500 hover:bg-brand-50 dark:border-white/40 dark:bg-white/10 dark:text-white dark:hover:bg-white/20',
-        ghost: 'hover:bg-slate-100 dark:hover:bg-slate-800',
+        ghost: 'hover:bg-slate-100 dark:hover:bg-dm-elevated',
         destructive: 'bg-red-600 text-white hover:bg-red-700',
       },
       size: {

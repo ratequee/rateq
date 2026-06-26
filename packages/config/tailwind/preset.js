@@ -29,6 +29,13 @@ const preset = {
           muted: '#6b7280',
           light: '#9ca3af',
         },
+        dm: {
+          bg: '#323232',
+          surface: '#383838',
+          elevated: '#404040',
+          hover: '#454545',
+          border: '#4a4a4a',
+        },
       },
       fontFamily: {
         sans: ['var(--font-nunito)', 'system-ui', 'sans-serif'],

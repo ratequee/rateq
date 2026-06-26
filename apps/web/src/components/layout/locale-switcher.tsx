@@ -111,7 +111,7 @@ export function LocaleSwitcher({ className, variant = 'header' }: LocaleSwitcher
               'flex items-center justify-center gap-2 rounded-xl border px-3 py-2.5 text-sm font-medium transition-colors',
               locale === code
                 ? 'border-brand-500 bg-brand-50 text-brand-600 dark:border-brand-400 dark:bg-brand-950/50 dark:text-white'
-                : 'border-slate-200 text-ink-muted hover:border-slate-300 dark:border-slate-600 dark:text-white/85 dark:hover:border-slate-500',
+                : 'border-slate-200 text-ink-muted hover:border-slate-300 dark:border-dm-border dark:text-white/85 dark:hover:border-dm-border',
             )}
           >
             <Flag className="h-4 w-6 shrink-0 rounded-sm border border-black/10 object-cover" />
@@ -130,7 +130,7 @@ export function LocaleSwitcher({ className, variant = 'header' }: LocaleSwitcher
         aria-label={t('switchLanguage')}
         aria-expanded={open}
         aria-haspopup="listbox"
-        className="inline-flex items-center gap-2 rounded-md px-2 py-1.5 text-sm font-medium text-ink transition-colors hover:bg-slate-100 dark:text-white dark:hover:bg-slate-800"
+        className="inline-flex items-center gap-2 rounded-md px-2 py-1.5 text-sm font-medium text-ink transition-colors hover:bg-slate-100 dark:text-white dark:hover:bg-dm-elevated"
       >
         <current.Flag className="h-4 w-6 shrink-0 rounded-sm border border-black/10" />
         <span className="uppercase">{current.label}</span>
@@ -145,7 +145,7 @@ export function LocaleSwitcher({ className, variant = 'header' }: LocaleSwitcher
       {open && (
         <ul
           role="listbox"
-          className="absolute end-0 top-full z-50 mt-1 min-w-[120px] overflow-hidden rounded-lg border border-slate-200 bg-white py-1 shadow-lg dark:border-slate-700 dark:bg-slate-900"
+          className="absolute end-0 top-full z-50 mt-1 min-w-[120px] overflow-hidden rounded-lg border border-slate-200 bg-white py-1 shadow-lg dark:border-dm-border dark:bg-dm-surface"
         >
           {LOCALES.map(({ code, label, Flag }) => (
             <li key={code} role="option" aria-selected={locale === code}>
@@ -153,7 +153,7 @@ export function LocaleSwitcher({ className, variant = 'header' }: LocaleSwitcher
                 type="button"
                 onClick={() => switchTo(code)}
                 className={cn(
-                  'flex w-full items-center gap-2 px-3 py-2 text-sm transition-colors hover:bg-slate-50 dark:hover:bg-slate-800',
+                  'flex w-full items-center gap-2 px-3 py-2 text-sm transition-colors hover:bg-slate-50 dark:hover:bg-dm-elevated',
                   locale === code
                     ? 'font-semibold text-brand-600 dark:text-white'
                     : 'text-ink dark:text-white/90',

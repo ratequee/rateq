@@ -23,11 +23,11 @@ export async function CategoryFilters({
   const ts = await getTranslations('search');
 
   return (
-    <section className="border-b border-slate-100 bg-white py-6 dark:border-slate-800 dark:bg-slate-950">
+    <section className="border-b border-slate-100 bg-white py-6 dark:border-dm-border dark:bg-dm-bg">
       <div className="mx-auto max-w-page px-4 sm:px-6 lg:px-8">
         <form
           action={`/${locale}/categories/${category.slug}`}
-          className="grid gap-3 rounded-2xl border border-slate-100 bg-slate-50/50 p-4 dark:border-slate-700 dark:bg-slate-900/60 sm:grid-cols-2 lg:grid-cols-4 lg:items-end"
+          className="grid gap-3 rounded-2xl border border-slate-100 bg-slate-50/50 p-4 dark:border-dm-border dark:bg-dm-elevated/60 sm:grid-cols-2 lg:grid-cols-4 lg:items-end"
         >
           <div className="lg:col-span-2">
             <label

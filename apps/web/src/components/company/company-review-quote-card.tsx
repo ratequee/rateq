@@ -27,7 +27,7 @@ export function CompanyReviewQuoteCard({ review, authorName }: CompanyReviewQuot
   return (
     <article
       className={cn(
-        'rounded-2xl border bg-white p-6 shadow-sm dark:bg-slate-900 sm:p-8',
+        'rounded-2xl border bg-white p-6 shadow-sm dark:bg-dm-surface sm:p-8',
         showStatus
           ? 'border-amber-200 ring-1 ring-amber-100 dark:border-amber-900 dark:ring-amber-950'
           : 'border-default',

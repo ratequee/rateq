@@ -152,7 +152,7 @@ export function DashboardNav({ role, onNavigate, showClose, onClose }: Dashboard
           <button
             type="button"
             onClick={onClose}
-            className="flex h-10 w-10 items-center justify-center rounded-xl text-ink-muted hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-white lg:hidden"
+            className="flex h-10 w-10 items-center justify-center rounded-xl text-ink-muted hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-dm-elevated dark:hover:text-white lg:hidden"
             aria-label={tNav('closeMenu')}
           >
             <X className="h-5 w-5" />
@@ -195,7 +195,7 @@ export function DashboardLogoutButton({ onLogout }: DashboardLogoutButtonProps) 
       <button
         type="button"
         onClick={onLogout}
-        className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-ink-muted transition-colors hover:bg-red-50 hover:text-red-600 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-red-400"
+        className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-ink-muted transition-colors hover:bg-red-50 hover:text-red-600 dark:text-slate-400 dark:hover:bg-dm-elevated dark:hover:text-red-400"
       >
         <LogOut className="h-4 w-4 shrink-0" />
         {t('logout')}

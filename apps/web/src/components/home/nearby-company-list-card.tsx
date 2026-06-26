@@ -1,6 +1,6 @@
 'use client';
 
-import { homeDarkBorder, homeDarkCard } from '@/components/home/home-dark-surfaces';
+import { darkBorder, darkCard } from '@/lib/dark-surfaces';
 import { cn } from '@/lib/utils';
 
 import type { NearbyCompany } from '@/lib/nearby-locations';
@@ -23,9 +23,7 @@ export function NearbyCompanyListCard({ company }: NearbyCompanyListCardProps) {
   );
 
   return (
-    <article
-      className={cn('rounded-2xl border border-slate-200 bg-white p-4 shadow-sm', homeDarkCard)}
-    >
+    <article className={cn('rounded-2xl border border-slate-200 bg-white p-4 shadow-sm', darkCard)}>
       <div className="flex items-center gap-3">
         {company.logo ? (
           <img src={company.logo} alt="" className="h-12 w-12 shrink-0 rounded-full object-cover" />
@@ -51,7 +49,7 @@ export function NearbyCompanyListCard({ company }: NearbyCompanyListCardProps) {
       <div
         className={cn(
           'mt-3 flex items-center gap-3 border-t border-slate-100 pt-3 text-sm',
-          homeDarkBorder,
+          darkBorder,
         )}
       >
         <div className="flex items-center gap-1.5">
@@ -60,7 +58,7 @@ export function NearbyCompanyListCard({ company }: NearbyCompanyListCardProps) {
             {company.ratingAverage.toFixed(1)}
           </span>
         </div>
-        <span className="h-4 w-px bg-slate-200 dark:bg-[#525252]" aria-hidden />
+        <span className="h-4 w-px bg-slate-200 dark:bg-dm-border" aria-hidden />
         <span className="truncate text-ink-muted dark:text-white/85">{distance}</span>
       </div>
     </article>

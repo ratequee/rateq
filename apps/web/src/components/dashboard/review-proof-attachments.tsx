@@ -29,7 +29,7 @@ export function ReviewProofAttachments({ attachments }: ReviewProofAttachmentsPr
                 href={attachment.url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center gap-3 rounded-lg border border-subtle bg-white p-3 transition-colors hover:border-brand-300 dark:bg-slate-900"
+                className="flex items-center gap-3 rounded-lg border border-subtle bg-white p-3 transition-colors hover:border-brand-300 dark:bg-dm-surface"
               >
                 {isImage ? (
                   <img
@@ -38,7 +38,7 @@ export function ReviewProofAttachments({ attachments }: ReviewProofAttachmentsPr
                     className="h-14 w-14 shrink-0 rounded-md object-cover"
                   />
                 ) : (
-                  <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-md bg-slate-100 dark:bg-slate-800">
+                  <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-md bg-slate-100 dark:bg-dm-elevated">
                     <FileText className="h-6 w-6 text-brand-500" />
                   </div>
                 )}

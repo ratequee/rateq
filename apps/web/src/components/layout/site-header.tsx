@@ -66,17 +66,8 @@ export function SiteHeader() {
     };
   }, [mobileOpen]);
 
-  const isHomePage = pathname === '/';
-
   return (
-    <header
-      className={cn(
-        'sticky top-0 z-50 border-b border-slate-100 bg-gradient-to-b from-white via-white to-slate-50/80 backdrop-blur-md',
-        isHomePage
-          ? 'dark:border-[#4a4a4a] dark:from-[#323232] dark:via-[#323232] dark:to-[#323232]'
-          : 'dark:border-slate-800 dark:from-slate-950 dark:via-slate-950 dark:to-slate-900/80',
-      )}
-    >
+    <header className="sticky top-0 z-50 border-b border-slate-100 bg-gradient-to-b from-white via-white to-slate-50/80 backdrop-blur-md dark:border-dm-border dark:from-dm-bg dark:via-dm-bg dark:to-dm-bg/80">
       <div className="mx-auto flex h-16 max-w-page items-center justify-between md:gap-4 px-4 sm:h-[72px] sm:px-6 lg:px-8">
         <Button
           variant="ghost"
@@ -130,7 +121,7 @@ export function SiteHeader() {
 
           {isLoading ? (
             <div
-              className="h-10 w-10 animate-pulse rounded-full bg-slate-200 dark:bg-slate-700"
+              className="h-10 w-10 animate-pulse rounded-full bg-slate-200 dark:bg-dm-hover"
               aria-hidden
             />
           ) : user ? (
@@ -162,8 +153,7 @@ export function SiteHeader() {
       >
         <div
           className={cn(
-            isHomePage ? 'bg-[#323232]/92' : 'bg-[#171A22]/92',
-            'flex h-full flex-col px-6 pb-4 pt-7 transition-opacity duration-300',
+            'flex h-full flex-col bg-dm-bg/92 px-6 pb-4 pt-7 transition-opacity duration-300',
             mobileOpen ? 'opacity-100' : 'opacity-0',
           )}
         >
@@ -177,7 +167,7 @@ export function SiteHeader() {
           <div
             onClick={(event) => event.stopPropagation()}
             className={cn(
-              'flex min-h-0 w-[82%] max-w-[330px] flex-1 flex-col overflow-hidden rounded-r-[34px] bg-white shadow-2xl transition-transform duration-300 dark:bg-slate-900',
+              'flex min-h-0 w-[82%] max-w-[330px] flex-1 flex-col overflow-hidden rounded-r-[34px] bg-white shadow-2xl transition-transform duration-300 dark:bg-dm-surface',
               mobileOpen ? 'translate-x-0' : '-translate-x-full',
             )}
           >
@@ -189,7 +179,7 @@ export function SiteHeader() {
                     href={href}
                     onClick={() => setMobileOpen(false)}
                     className={cn(
-                      'block border-b border-slate-200 py-3 text-[18px] font-medium leading-[1.3] text-primary transition-colors hover:text-brand-500 dark:border-slate-700',
+                      'block border-b border-slate-200 py-3 text-[18px] font-medium leading-[1.3] text-primary transition-colors hover:text-brand-500 dark:border-dm-border',
                       isActive(href) && 'text-brand-500',
                     )}
                   >

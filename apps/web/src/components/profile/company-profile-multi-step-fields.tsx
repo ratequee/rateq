@@ -190,7 +190,7 @@ export function CompanyProfileMultiStepFields({
               key={index}
               className={cn(
                 'h-1.5 flex-1 rounded-full',
-                index <= step ? 'bg-brand-500' : 'bg-slate-200 dark:bg-slate-700',
+                index <= step ? 'bg-brand-500' : 'bg-slate-200 dark:bg-dm-hover',
               )}
             />
           ))}

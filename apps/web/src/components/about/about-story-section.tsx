@@ -18,7 +18,7 @@ export async function AboutStorySection({ stats }: AboutStorySectionProps): Prom
   ];
 
   return (
-    <section className="overflow-hidden py-12 dark:bg-slate-950 sm:py-16 lg:py-20">
+    <section className="overflow-hidden py-12 dark:bg-dm-bg sm:py-16 lg:py-20">
       <div className="mx-auto max-w-page px-4 sm:px-6 lg:px-8">
         <div className="mb-10 flex flex-col items-center justify-center">
           <h2 className="text-xl font-bold text-brand-500 dark:text-brand-300 sm:text-3xl lg:text-xl">
@@ -36,7 +36,7 @@ export async function AboutStorySection({ stats }: AboutStorySectionProps): Prom
           {statItems.map(({ value, label }) => (
             <div
               key={label}
-              className="rounded-2xl border border-slate-100 bg-white p-6 text-center shadow-sm dark:border-slate-700 dark:bg-slate-900"
+              className="rounded-2xl border border-slate-100 bg-white p-6 text-center shadow-sm dark:border-dm-border dark:bg-dm-surface"
             >
               <p className="text-3xl font-bold text-brand-500 dark:text-brand-300 sm:text-4xl">
                 {value}

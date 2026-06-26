@@ -28,7 +28,7 @@ export function CompanyReviewCard({ review, company, onReviewUpdated }: CompanyR
   const authorName = getReviewAuthorName(review.author, tp('anonymousReviewer'));
 
   return (
-    <article className="h-auto w-full self-start rounded-2xl border border-subtle bg-slate-100 p-5 shadow-sm dark:bg-slate-800/80 sm:p-6">
+    <article className="h-auto w-full self-start rounded-2xl border border-subtle bg-slate-100 p-5 shadow-sm dark:bg-dm-elevated/80 sm:p-6">
       <div className="flex items-start gap-4">
         {review.author?.avatarUrl ? (
           <img
@@ -75,7 +75,7 @@ export function CompanyReviewCard({ review, company, onReviewUpdated }: CompanyR
         </div>
 
         {review.serviceRatings && review.serviceRatings.length > 0 ? (
-          <ul className="mt-4 space-y-2 rounded-xl border border-subtle bg-white/60 p-3 dark:bg-slate-900/40">
+          <ul className="mt-4 space-y-2 rounded-xl border border-subtle bg-white/60 p-3 dark:bg-dm-elevated/40">
             {review.serviceRatings.map((entry) => (
               <li
                 key={entry.catalogItemId}

@@ -128,7 +128,7 @@ function CompanySettingsForm({ company }: { company: CompanyProfileDetail }) {
           value={companyPhone}
           readOnly
           disabled
-          className="bg-slate-50 dark:bg-slate-800"
+          className="bg-slate-50 dark:bg-dm-elevated"
         />
       </Field>
       <Field label={t('category')} error={errors.categoryId} required>

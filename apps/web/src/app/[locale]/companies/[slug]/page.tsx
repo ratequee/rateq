@@ -74,7 +74,7 @@ export default async function CompanyPage({ params }: CompanyPageProps): Promise
 
       <div className="mx-auto max-w-page px-4 pb-12 sm:px-6 sm:pb-16 lg:px-8">
         <div className="grid min-w-0 gap-8 lg:grid-cols-[minmax(0,1fr)_300px] lg:items-start lg:gap-10 xl:grid-cols-[minmax(0,1fr)_320px]">
-          <div className="mt-20 min-w-0 overflow-hidden rounded-2xl border border-subtle bg-[#F9F9F9] shadow-card dark:bg-slate-900">
+          <div className="mt-20 min-w-0 overflow-hidden rounded-2xl border border-subtle bg-[#F9F9F9] shadow-card dark:bg-dm-surface">
             <div className="relative h-40 overflow-hidden sm:h-48 lg:h-52">
               {company.coverUrl ? (
                 <>
@@ -95,23 +95,23 @@ export default async function CompanyPage({ params }: CompanyPageProps): Promise
                 <Badge className="rounded-sm border-0 bg-gold-500 px-4 py-2 text-white">
                   {t('verifiedBadge')}
                 </Badge>
-                <Badge className="rounded-sm border-0 bg-white px-4 py-2 text-brand-500 dark:bg-slate-800 dark:text-brand-300">
+                <Badge className="rounded-sm border-0 bg-white px-4 py-2 text-brand-500 dark:bg-dm-elevated dark:text-brand-300">
                   {t('claimedBadge')}
                 </Badge>
               </div>
             </div>
 
-            <div className="rounded-b-2xl bg-white px-5 pb-6 dark:bg-slate-900 sm:px-8 sm:pb-8">
+            <div className="rounded-b-2xl bg-white px-5 pb-6 dark:bg-dm-surface sm:px-8 sm:pb-8">
               <div className="flex flex-col gap-5 sm:flex-row sm:items-end sm:gap-6">
                 <div className="-mt-12 shrink-0 sm:-mt-14">
                   {company.logo ? (
                     <img
                       src={company.logo}
                       alt=""
-                      className="relative z-10 h-24 w-24 rounded-2xl border-4 border-white bg-white object-cover shadow-md dark:border-slate-900 dark:bg-slate-800 sm:h-28 sm:w-28"
+                      className="relative z-10 h-24 w-24 rounded-2xl border-4 border-white bg-white object-cover shadow-md dark:border-dm-surface dark:bg-dm-elevated sm:h-28 sm:w-28"
                     />
                   ) : (
-                    <div className="relative z-10 flex h-24 w-24 items-center justify-center rounded-2xl border-4 border-white bg-brand-100 text-3xl font-bold text-brand-500 shadow-md dark:border-slate-900 dark:bg-brand-950 sm:h-28 sm:w-28">
+                    <div className="relative z-10 flex h-24 w-24 items-center justify-center rounded-2xl border-4 border-white bg-brand-100 text-3xl font-bold text-brand-500 shadow-md dark:border-dm-surface dark:bg-brand-950 sm:h-28 sm:w-28">
                       {company.name.charAt(0)}
                     </div>
                   )}

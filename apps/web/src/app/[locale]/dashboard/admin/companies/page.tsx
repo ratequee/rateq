@@ -203,7 +203,7 @@ export default function AdminCompanyVerificationsPage() {
           ) : items.length === 0 ? (
             <p className="p-8 text-center text-sm text-ink-muted">{t('emptyList')}</p>
           ) : (
-            <ul className="divide-y divide-slate-100 dark:divide-slate-800">
+            <ul className="divide-y divide-slate-100 dark:divide-dm-border">
               {items.map((item) => (
                 <li key={item.id}>
                   <button
@@ -214,7 +214,7 @@ export default function AdminCompanyVerificationsPage() {
                       selectedId === item.id && 'dashboard-list-selected',
                     )}
                   >
-                    <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-slate-100 dark:bg-slate-800">
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-slate-100 dark:bg-dm-elevated">
                       {item.logo ? (
                         <img src={item.logo} alt="" className="h-full w-full object-cover" />
                       ) : (
@@ -364,7 +364,7 @@ function ProfileChangeDetailPanel({
         ) : (
           <div className="mt-4 overflow-x-auto rounded-xl border border-subtle">
             <table className="min-w-full text-sm">
-              <thead className="bg-slate-50 text-start dark:bg-slate-800/60">
+              <thead className="bg-slate-50 text-start dark:bg-dm-elevated/60">
                 <tr>
                   <th className="px-4 py-3 font-semibold text-primary">
                     {t('profileChangeField')}
@@ -377,7 +377,7 @@ function ProfileChangeDetailPanel({
                   </th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+              <tbody className="divide-y divide-slate-100 dark:divide-dm-border">
                 {fields.map((field: AdminProfileChangeField) => (
                   <tr key={field.field}>
                     <td className="px-4 py-3 font-medium text-primary">{field.label}</td>
@@ -479,7 +479,7 @@ function CompanyDetailPanel({
       )}
 
       {revisionOpen && (
-        <div className="rounded-xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-700 dark:bg-slate-800/60">
+        <div className="rounded-xl border border-slate-200 bg-slate-50 p-4 dark:border-dm-border dark:bg-dm-elevated/60">
           <label className="mb-2 block text-sm font-medium text-primary">
             {t('revisionModalLabel')}
           </label>
@@ -594,15 +594,15 @@ function DocumentCard({
 
   if (!url) {
     return (
-      <div className="rounded-xl border border-dashed border-slate-200 p-4 text-center text-sm text-secondary dark:border-slate-700">
+      <div className="rounded-xl border border-dashed border-slate-200 p-4 text-center text-sm text-secondary dark:border-dm-border">
         {label}: {t('notProvided')}
       </div>
     );
   }
 
   return (
-    <div className="overflow-hidden rounded-xl border border-slate-200 dark:border-slate-700">
-      <div className="border-b border-slate-100 bg-slate-50 px-3 py-2 text-xs font-medium text-primary dark:border-slate-800 dark:bg-slate-800/60">
+    <div className="overflow-hidden rounded-xl border border-slate-200 dark:border-dm-border">
+      <div className="border-b border-slate-100 bg-slate-50 px-3 py-2 text-xs font-medium text-primary dark:border-dm-border dark:bg-dm-elevated/60">
         {label}
       </div>
       {image ? (
@@ -614,7 +614,7 @@ function DocumentCard({
           href={url}
           target="_blank"
           rel="noopener noreferrer"
-          className="flex items-center justify-center gap-2 p-6 text-sm font-medium text-brand-600 hover:bg-brand-50 dark:text-brand-300 dark:hover:bg-slate-800"
+          className="flex items-center justify-center gap-2 p-6 text-sm font-medium text-brand-600 hover:bg-brand-50 dark:text-brand-300 dark:hover:bg-dm-elevated"
         >
           {icon}
           <span className="flex items-center gap-1">

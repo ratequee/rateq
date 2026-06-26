@@ -217,7 +217,7 @@ export function ContactForm() {
             placeholder={t('messagePlaceholder')}
             aria-invalid={Boolean(fieldErrors.message)}
             className={cn(
-              'w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 dark:border-slate-700 dark:bg-slate-900 dark:text-white dark:placeholder:text-slate-500 dark:focus-visible:ring-brand-400',
+              'w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 dark:border-dm-border dark:bg-dm-surface dark:text-white dark:placeholder:text-slate-500 dark:focus-visible:ring-brand-400',
               fieldClassName('message'),
             )}
           />

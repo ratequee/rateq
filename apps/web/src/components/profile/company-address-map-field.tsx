@@ -269,7 +269,7 @@ export function CompanyAddressMapField({
         ref={mapContainerRef}
         data-field="companyLocation"
         className={cn(
-          'h-64 w-full overflow-hidden rounded-xl border bg-slate-100 dark:bg-slate-800',
+          'h-64 w-full overflow-hidden rounded-xl border bg-slate-100 dark:bg-dm-elevated',
           displayError ? 'border-red-300 dark:border-red-800' : 'border-default',
         )}
       />

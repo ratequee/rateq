@@ -64,7 +64,7 @@ export function ReviewerReviewStatusCard({
           <p className="mt-1 text-sm leading-relaxed opacity-90">{t(config.messageKey)}</p>
 
           {!compact ? (
-            <div className="mt-4 rounded-xl border border-white/60 bg-white/70 p-4 dark:border-slate-700 dark:bg-slate-900/60">
+            <div className="mt-4 rounded-xl border border-white/60 bg-white/70 p-4 dark:border-dm-border dark:bg-dm-elevated/60">
               <div className="flex flex-wrap items-center gap-2">
                 <StarRating value={review.rating} size="sm" />
                 <span className="text-xs font-medium uppercase tracking-wide opacity-80">
@@ -85,7 +85,7 @@ export function ReviewerReviewStatusCard({
                   type="button"
                   size="sm"
                   variant="outline"
-                  className="bg-white/80 dark:bg-slate-900/80"
+                  className="bg-white/80 dark:bg-dm-elevated/80"
                 >
                   {t('myReviewManageResolution')}
                 </Button>

@@ -17,7 +17,7 @@ export function BlogCard({ post, locale, readMoreLabel, className }: BlogCardPro
   return (
     <article
       className={cn(
-        'group flex h-full flex-col overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-sm transition-shadow hover:shadow-md dark:border-slate-700 dark:bg-slate-800',
+        'group flex h-full flex-col overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-sm transition-shadow hover:shadow-md dark:border-dm-border dark:bg-dm-elevated',
         className,
       )}
     >

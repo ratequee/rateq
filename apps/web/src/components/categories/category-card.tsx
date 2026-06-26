@@ -30,7 +30,7 @@ export function CategoryCard({ category, variant = 'default', className }: Categ
       <Link
         href={href}
         className={cn(
-          'flex w-[140px] shrink-0 flex-col items-center rounded-2xl border border-subtle bg-white p-5 shadow-sm transition-shadow hover:border-gold-300 hover:shadow-card dark:border-slate-700 dark:bg-slate-800 dark:hover:border-brand-500 sm:w-[160px]',
+          'flex w-[140px] shrink-0 flex-col items-center rounded-2xl border border-subtle bg-white p-5 shadow-sm transition-shadow hover:border-gold-300 hover:shadow-card dark:border-dm-border dark:bg-dm-elevated dark:hover:border-brand-500 sm:w-[160px]',
           className,
         )}
       >
@@ -56,7 +56,7 @@ export function CategoryCard({ category, variant = 'default', className }: Categ
       <Link
         href={href}
         className={cn(
-          'group relative overflow-hidden rounded-2xl border border-subtle bg-white p-6 shadow-sm transition-all hover:border-brand-200 hover:shadow-card dark:bg-slate-900 dark:hover:border-brand-800',
+          'group relative overflow-hidden rounded-2xl border border-subtle bg-white p-6 shadow-sm transition-all hover:border-brand-200 hover:shadow-card dark:bg-dm-surface dark:hover:border-brand-800',
           className,
         )}
       >
@@ -78,11 +78,11 @@ export function CategoryCard({ category, variant = 'default', className }: Categ
         <p className="mt-2 line-clamp-2 text-sm leading-relaxed text-secondary dark:text-white/80">
           {t('categoryDescription', { name: descriptionName })}
         </p>
-        <div className="mt-5 flex items-center justify-between border-t border-subtle pt-4 dark:border-slate-700">
+        <div className="mt-5 flex items-center justify-between border-t border-subtle pt-4 dark:border-dm-border">
           <span className="text-sm text-secondary dark:text-white/80">
             {t('companyCount', { count })}
           </span>
-          <span className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-brand-50 text-brand-500 transition-colors group-hover:bg-brand-500 group-hover:text-white dark:bg-slate-700 dark:text-white dark:group-hover:bg-brand-500">
+          <span className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-brand-50 text-brand-500 transition-colors group-hover:bg-brand-500 group-hover:text-white dark:bg-dm-hover dark:text-white dark:group-hover:bg-brand-500">
             <ArrowRight className="h-4 w-4 rtl:rotate-180" />
           </span>
         </div>
@@ -94,7 +94,7 @@ export function CategoryCard({ category, variant = 'default', className }: Categ
     <Link
       href={href}
       className={cn(
-        'group relative mt-10 flex flex-col rounded-2xl border border-default bg-white px-6 pb-6 pt-14 shadow-sm transition-all hover:border-gold-400 hover:shadow-md dark:bg-slate-900',
+        'group relative mt-10 flex flex-col rounded-2xl border border-default bg-white px-6 pb-6 pt-14 shadow-sm transition-all hover:border-gold-400 hover:shadow-md dark:bg-dm-surface',
         className,
       )}
     >
@@ -111,7 +111,7 @@ export function CategoryCard({ category, variant = 'default', className }: Categ
       />
 
       {services.length > 0 ? (
-        <ul className="mt-4 divide-y divide-slate-200 dark:divide-slate-700">
+        <ul className="mt-4 divide-y divide-slate-200 dark:divide-dm-border">
           {services.map((service) => (
             <li key={service.id} className="py-3 text-sm text-secondary dark:text-white/80">
               {service.name}

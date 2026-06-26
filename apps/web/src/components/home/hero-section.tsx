@@ -3,11 +3,7 @@ import { Input } from '@/components/ui/input';
 import { StarRating } from '@/components/ui/star-rating';
 import { Badge } from '@/components/ui/badge';
 import { HeroForUsersButton } from '@/components/home/hero-for-users-button';
-import {
-  homeDarkBorder,
-  homeDarkCard,
-  homeDarkCardElevated,
-} from '@/components/home/home-dark-surfaces';
+import { darkBorder, darkCard, darkCardElevated } from '@/lib/dark-surfaces';
 import { AvatarImage } from '@/components/ui/avatar-image';
 import { Link } from '@/i18n/routing';
 import { getLocalizedCategoryName } from '@/lib/category-label';
@@ -53,7 +49,7 @@ export async function HeroSection({
 
   return (
     <section
-      className="relative overflow-hidden bg-gradient-to-b from-white via-white to-slate-50/80 pb-12 pt-6 dark:from-[#323232] dark:via-[#323232] dark:to-[#323232] sm:pb-30 sm:pt-8 lg:pb-50"
+      className="relative overflow-hidden bg-gradient-to-b from-white via-white to-slate-50/80 pb-12 pt-6 dark:from-dm-bg dark:via-dm-bg dark:to-dm-bg sm:pb-30 sm:pt-8 lg:pb-50"
       style={{
         backgroundImage: 'url(/images/herobg.svg)',
         backgroundSize: 'cover',
@@ -63,7 +59,7 @@ export async function HeroSection({
       }}
     >
       <div
-        className="pointer-events-none absolute inset-0 hidden bg-[#323232]/80 dark:block"
+        className="pointer-events-none absolute inset-0 hidden bg-dm-bg/80 dark:block"
         aria-hidden
       />
       <div className="relative mx-auto max-w-page px-4 sm:px-6 lg:px-8">
@@ -86,8 +82,8 @@ export async function HeroSection({
               <div
                 className={cn(
                   'relative flex items-center rounded-xl border border-slate-200 bg-white shadow-sm focus-within:border-brand-500 focus-within:ring-2 focus-within:ring-brand-500/20 dark:focus-within:border-brand-400',
-                  homeDarkCardElevated,
-                  'dark:bg-[#404040]/90',
+                  darkCardElevated,
+                  'dark:bg-dm-elevated/90',
                 )}
               >
                 <Input
@@ -123,8 +119,8 @@ export async function HeroSection({
                   key={label}
                   className={cn(
                     'flex items-center justify-center gap-2 rounded-lg border-0 bg-white p-4 text-sm font-medium text-ink shadow-lg dark:text-white',
-                    homeDarkCardElevated,
-                    'dark:bg-[#404040]/90',
+                    darkCardElevated,
+                    'dark:bg-dm-elevated/90',
                   )}
                 >
                   {IconComponent}
@@ -139,7 +135,7 @@ export async function HeroSection({
               <div
                 className={cn(
                   'absolute -start-[-10px] top-2 z-10 max-w-[350px] rounded-xl border border-slate-100 bg-white p-3 shadow-card dark:shadow-xl sm:block lg:-start-10 lg:-end-8 lg:top-8',
-                  homeDarkCard,
+                  darkCard,
                 )}
               >
                 <div className="flex items-start gap-3">
@@ -182,7 +178,7 @@ export async function HeroSection({
               <div
                 className={cn(
                   'overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-hero dark:shadow-xl',
-                  homeDarkCard,
+                  darkCard,
                 )}
               >
                 <div
@@ -207,7 +203,7 @@ export async function HeroSection({
                           height={120}
                           className={cn(
                             'mt-[-50px] h-[120px] w-[120px] rounded-full border-4 border-white object-cover',
-                            homeDarkBorder,
+                            darkBorder,
                           )}
                         />
                       ) : (
@@ -216,7 +212,7 @@ export async function HeroSection({
                           name={featuredCompany.name}
                           className={cn(
                             'mt-[-50px] h-[120px] w-[120px] border-4 border-white text-3xl',
-                            homeDarkBorder,
+                            darkBorder,
                           )}
                         />
                       )}
@@ -244,7 +240,7 @@ export async function HeroSection({
                   <div
                     className={cn(
                       'mt-5 flex flex-wrap items-end gap-3 border-t border-slate-100 pt-5',
-                      homeDarkBorder,
+                      darkBorder,
                     )}
                   >
                     <span className="text-5xl font-bold text-ink dark:text-white">
@@ -261,7 +257,7 @@ export async function HeroSection({
               <div
                 className={cn(
                   'overflow-hidden rounded-2xl border border-slate-100 bg-white p-8 text-center text-ink-muted shadow-hero dark:text-white/85 dark:shadow-xl',
-                  homeDarkCard,
+                  darkCard,
                 )}
               >
                 {t('exploreCompanies')}

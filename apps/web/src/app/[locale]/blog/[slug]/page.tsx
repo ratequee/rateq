@@ -52,8 +52,8 @@ export default async function BlogDetailPage({
   const { translation } = post;
 
   return (
-    <article className="bg-white dark:bg-slate-950">
-      <div className="border-b border-slate-100 bg-slate-50/60 py-8 dark:border-slate-800 dark:bg-slate-900 sm:py-10">
+    <article className="bg-white dark:bg-dm-bg">
+      <div className="border-b border-slate-100 bg-slate-50/60 py-8 dark:border-dm-border dark:bg-dm-surface sm:py-10">
         <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
           <Link
             href="/blog"

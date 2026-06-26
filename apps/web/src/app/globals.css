@@ -16,41 +16,41 @@
   }
 
   .dark {
-    --background: 222 47% 4%;
-    --foreground: 210 40% 96%;
-    --surface: 222 47% 7%;
-    --surface-muted: 217 33% 12%;
-    --border: 217 33% 17%;
+    --background: 0 0% 20%;
+    --foreground: 0 0% 96%;
+    --surface: 0 0% 22%;
+    --surface-muted: 0 0% 25%;
+    --border: 0 0% 29%;
   }
 
   body {
-    @apply bg-white font-sans text-ink antialiased dark:bg-slate-950 dark:text-slate-100;
+    @apply bg-white font-sans text-ink antialiased dark:bg-dm-bg dark:text-slate-100;
   }
 }
 
 @layer components {
   .surface-page {
-    @apply bg-[#F4F5F7] dark:bg-slate-950;
+    @apply bg-[#F4F5F7] dark:bg-dm-bg;
   }
 
   .surface-card {
-    @apply rounded-2xl border border-slate-100 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900;
+    @apply rounded-2xl border border-slate-100 bg-white shadow-sm dark:border-dm-border dark:bg-dm-surface;
   }
 
   .surface-panel {
-    @apply border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900;
+    @apply border border-slate-200 bg-white dark:border-dm-border dark:bg-dm-surface;
   }
 
   .surface-muted {
-    @apply bg-slate-50 dark:bg-slate-800/60;
+    @apply bg-slate-50 dark:bg-dm-elevated/60;
   }
 
   .border-subtle {
-    @apply border-slate-100 dark:border-slate-800;
+    @apply border-slate-100 dark:border-dm-border;
   }
 
   .border-default {
-    @apply border-slate-200 dark:border-slate-700;
+    @apply border-slate-200 dark:border-dm-border;
   }
 
   .text-primary {
@@ -62,15 +62,15 @@
   }
 
   .hover-surface {
-    @apply hover:bg-slate-50 dark:hover:bg-slate-800/80;
+    @apply hover:bg-slate-50 dark:hover:bg-dm-elevated/80;
   }
 
   .select-field {
-    @apply h-10 w-full rounded-md border border-slate-200 bg-white px-3 text-sm text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 dark:border-slate-700 dark:bg-slate-900 dark:text-white dark:focus-visible:ring-brand-400;
+    @apply h-10 w-full rounded-md border border-slate-200 bg-white px-3 text-sm text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 dark:border-dm-border dark:bg-dm-surface dark:text-white dark:focus-visible:ring-brand-400;
   }
 
   .textarea-field {
-    @apply w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 dark:border-slate-700 dark:bg-slate-900 dark:text-white dark:placeholder:text-slate-500 dark:focus-visible:ring-brand-400;
+    @apply w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 dark:border-dm-border dark:bg-dm-surface dark:text-white dark:placeholder:text-slate-500 dark:focus-visible:ring-brand-400;
   }
 
   .blog-content {
@@ -86,7 +86,7 @@
   }
 
   .dashboard-tab-inactive {
-    @apply border border-slate-200 bg-white text-secondary hover:bg-slate-50 hover:text-brand-600 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700 dark:hover:text-white;
+    @apply border border-slate-200 bg-white text-secondary hover:bg-slate-50 hover:text-brand-600 dark:border-dm-border dark:bg-dm-elevated dark:text-slate-300 dark:hover:bg-dm-hover dark:hover:text-white;
   }
 
   .dashboard-nav-link {
@@ -94,11 +94,11 @@
   }
 
   .dashboard-list-hover {
-    @apply transition-colors hover:bg-slate-50 dark:hover:bg-slate-800;
+    @apply transition-colors hover:bg-slate-50 dark:hover:bg-dm-elevated;
   }
 
   .dashboard-list-selected {
-    @apply bg-slate-100 dark:bg-slate-800;
+    @apply bg-slate-100 dark:bg-dm-elevated;
   }
 }
 

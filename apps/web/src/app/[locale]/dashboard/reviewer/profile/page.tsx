@@ -118,7 +118,7 @@ function ReviewerSettingsForm({ profile }: { profile: ReviewerProfile }) {
           value={phone}
           readOnly
           disabled
-          className="bg-slate-50 dark:bg-slate-800"
+          className="bg-slate-50 dark:bg-dm-elevated"
         />
       </Field>
       <div className="grid gap-4 sm:grid-cols-2">

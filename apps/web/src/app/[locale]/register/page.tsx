@@ -154,7 +154,7 @@ export default function RegisterPage() {
               onBlur={() => setName((prev) => prev.trim())}
               placeholder={tp('namePlaceholder')}
               required
-              className="h-11 dark:border-slate-700 dark:bg-slate-800"
+              className="h-11 dark:border-dm-border dark:bg-dm-elevated"
               aria-invalid={Boolean(fieldErrors.name)}
             />
             {fieldErrors.name && <p className="mt-1 text-sm text-red-600">{fieldErrors.name}</p>}
@@ -174,7 +174,7 @@ export default function RegisterPage() {
               onChange={(e) => setEmail(sanitizeEmail(e.target.value))}
               placeholder={tp('emailPlaceholder')}
               required
-              className="h-11 dark:border-slate-700 dark:bg-slate-800"
+              className="h-11 dark:border-dm-border dark:bg-dm-elevated"
               aria-invalid={Boolean(fieldErrors.email)}
             />
             {fieldErrors.email && <p className="mt-1 text-sm text-red-600">{fieldErrors.email}</p>}
@@ -195,7 +195,7 @@ export default function RegisterPage() {
                 onChange={(e) => setPassword(sanitizePassword(e.target.value))}
                 placeholder={tp('passwordPlaceholder')}
                 required
-                className="h-11 pe-10 dark:border-slate-700 dark:bg-slate-800"
+                className="h-11 pe-10 dark:border-dm-border dark:bg-dm-elevated"
                 aria-invalid={Boolean(fieldErrors.password)}
               />
               <button
@@ -234,10 +234,10 @@ export default function RegisterPage() {
         </p>
         <div className="relative my-8">
           <div className="absolute inset-0 flex items-center">
-            <div className="w-full border-t border-slate-200 dark:border-slate-700" />
+            <div className="w-full border-t border-slate-200 dark:border-dm-border" />
           </div>
           <div className="relative flex justify-center text-xs uppercase">
-            <span className="bg-white px-3 text-ink-muted dark:bg-slate-900 dark:text-white/75">
+            <span className="bg-white px-3 text-ink-muted dark:bg-dm-surface dark:text-white/75">
               {tp('orContinue')}
             </span>
           </div>

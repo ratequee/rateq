@@ -1,4 +1,4 @@
-import { homeDarkCardElevated } from '@/components/home/home-dark-surfaces';
+import { darkCardElevated } from '@/lib/dark-surfaces';
 import { cn } from '@/lib/utils';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 
@@ -24,8 +24,8 @@ export function CarouselControls({
         onClick={onPrev}
         aria-label={prevLabel}
         className={cn(
-          'flex h-10 w-10 items-center justify-center rounded-full border border-slate-200 bg-white text-brand-500 transition-colors hover:border-brand-500 hover:bg-brand-50 dark:text-white dark:hover:border-white/40 dark:hover:bg-[#454545]',
-          homeDarkCardElevated,
+          'flex h-10 w-10 items-center justify-center rounded-full border border-slate-200 bg-white text-brand-500 transition-colors hover:border-brand-500 hover:bg-brand-50 dark:text-white dark:hover:border-white/40 dark:hover:bg-dm-hover',
+          darkCardElevated,
         )}
       >
         <ChevronLeft className="h-5 w-5 rtl:rotate-180" />
@@ -35,8 +35,8 @@ export function CarouselControls({
         onClick={onNext}
         aria-label={nextLabel}
         className={cn(
-          'flex h-10 w-10 items-center justify-center rounded-full border border-slate-200 bg-white text-brand-500 transition-colors hover:border-brand-500 hover:bg-brand-50 dark:text-white dark:hover:border-white/40 dark:hover:bg-[#454545]',
-          homeDarkCardElevated,
+          'flex h-10 w-10 items-center justify-center rounded-full border border-slate-200 bg-white text-brand-500 transition-colors hover:border-brand-500 hover:bg-brand-50 dark:text-white dark:hover:border-white/40 dark:hover:bg-dm-hover',
+          darkCardElevated,
         )}
       >
         <ChevronRight className="h-5 w-5 rtl:rotate-180" />

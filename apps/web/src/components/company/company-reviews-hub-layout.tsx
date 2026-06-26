@@ -64,7 +64,7 @@ export function CompanyReviewsHubLayout({
                     'rounded-full border px-4 py-2 text-sm font-medium transition-colors',
                     activeMention === mention
                       ? 'border-brand-500 bg-brand-50 text-brand-600 dark:bg-brand-950/50 dark:text-brand-300'
-                      : 'border-transparent bg-slate-100 text-secondary hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700',
+                      : 'border-transparent bg-slate-100 text-secondary hover:bg-slate-200 dark:bg-dm-elevated dark:hover:bg-dm-hover',
                   )}
                 >
                   {mention}

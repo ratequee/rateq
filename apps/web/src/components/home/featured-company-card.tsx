@@ -1,6 +1,6 @@
 'use client';
 
-import { homeDarkBorder, homeDarkCard } from '@/components/home/home-dark-surfaces';
+import { darkBorder, darkCard } from '@/lib/dark-surfaces';
 
 import type { CompanyPublic } from '@rateq/types';
 import { Badge } from '@/components/ui/badge';
@@ -29,7 +29,7 @@ export function FeaturedCompanyCard({ company }: FeaturedCompanyCardProps) {
       href={`/companies/${company.slug}`}
       className={cn(
         'group flex h-full flex-col overflow-hidden rounded-2xl border border-subtle bg-white shadow-sm transition-shadow hover:shadow-card',
-        homeDarkCard,
+        darkCard,
       )}
       aria-label={t('viewCompany', { name: company.name })}
     >
@@ -86,7 +86,7 @@ export function FeaturedCompanyCard({ company }: FeaturedCompanyCardProps) {
             </p>
           </div>
         </div>
-        <div className={cn('mt-4 border-t-2 border-slate-100 pt-4', homeDarkBorder)}>
+        <div className={cn('mt-4 border-t-2 border-slate-100 pt-4', darkBorder)}>
           <div className="flex items-center justify-between gap-3">
             <div className="flex items-center gap-2">
               <span className="text-2xl font-bold text-ink dark:text-white">

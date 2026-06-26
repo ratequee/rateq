@@ -1,6 +1,6 @@
 'use client';
 
-import { homeDarkBorder, homeDarkCard } from '@/components/home/home-dark-surfaces';
+import { darkBorder, darkCard } from '@/lib/dark-surfaces';
 import { CarouselControls } from '@/components/home/carousel-controls';
 import { SectionHeader } from '@/components/home/section-header';
 import { AvatarImage } from '@/components/ui/avatar-image';
@@ -33,7 +33,7 @@ export function TestimonialsCarousel({ reviews }: TestimonialsCarouselProps) {
   };
 
   return (
-    <section className="py-12 dark:bg-[#323232] sm:py-16 lg:py-20">
+    <section className="py-12 dark:bg-dm-bg sm:py-16 lg:py-20">
       <div className="mx-auto max-w-page px-4 sm:px-6 lg:px-8">
         <SectionHeader
           title={t('testimonialsTitle')}
@@ -80,7 +80,7 @@ export function TestimonialsCarousel({ reviews }: TestimonialsCarouselProps) {
                 key={review.id}
                 className={cn(
                   'flex h-full flex-col rounded-2xl border border-slate-100 bg-white p-6 shadow-sm',
-                  homeDarkCard,
+                  darkCard,
                 )}
               >
                 <div className="mb-4 flex items-center gap-3">
@@ -100,7 +100,7 @@ export function TestimonialsCarousel({ reviews }: TestimonialsCarouselProps) {
                 <blockquote className="mt-4 flex-1 text-sm leading-relaxed text-ink-muted dark:text-white/90">
                   &ldquo;{review.content}&rdquo;
                 </blockquote>
-                <div className={cn('mt-6 border-t-2 border-slate-100 pt-4', homeDarkBorder)}>
+                <div className={cn('mt-6 border-t-2 border-slate-100 pt-4', darkBorder)}>
                   {review.company?.slug ? (
                     <Link
                       href={`/companies/${review.company.slug}`}

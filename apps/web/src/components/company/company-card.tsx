@@ -29,7 +29,7 @@ export function CompanyCard({ company }: CompanyCardProps) {
             {company.logo ? (
               <img src={company.logo} alt="" className="h-12 w-12 rounded-lg object-cover" />
             ) : (
-              <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-brand-50 font-bold text-brand-500 dark:bg-slate-800 dark:text-brand-300">
+              <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-brand-50 font-bold text-brand-500 dark:bg-dm-elevated dark:text-brand-300">
                 {company.name.charAt(0)}
               </div>
             )}

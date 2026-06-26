@@ -11,7 +11,7 @@ export async function CompanyHeroSection({
 }: CompanyHeroSectionProps): Promise<JSX.Element> {
   return (
     <section
-      className="bg-slate-50/60 py-10 sm:py-20 dark:bg-slate-900/80"
+      className="bg-slate-50/60 py-10 sm:py-20 dark:bg-dm-elevated/80"
       style={{
         backgroundImage: 'url(/images/herobg.svg)',
         backgroundSize: 'cover',

@@ -1,5 +1,5 @@
 import { BlogCard } from '@/components/blog/blog-card';
-import { homeDarkCard } from '@/components/home/home-dark-surfaces';
+import { darkCard } from '@/lib/dark-surfaces';
 import { SectionHeader } from '@/components/home/section-header';
 import type { BlogPostPublic } from '@rateq/types';
 import { getTranslations } from 'next-intl/server';
@@ -19,7 +19,7 @@ export async function LatestBlogSection({
   const t = await getTranslations('blog');
 
   return (
-    <section className="bg-white py-12 dark:bg-[#323232] sm:py-16 lg:py-20">
+    <section className="bg-white py-12 dark:bg-dm-bg sm:py-16 lg:py-20">
       <div className="mx-auto max-w-page px-4 sm:px-6 lg:px-8">
         <SectionHeader
           title={t('homeSectionTitle')}
@@ -33,7 +33,7 @@ export async function LatestBlogSection({
               post={post}
               locale={locale}
               readMoreLabel={t('readMore')}
-              className={homeDarkCard}
+              className={darkCard}
             />
           ))}
         </div>

@@ -141,7 +141,7 @@ function CompanyProjectsFormFields({ company }: { company: CompanyProfileDetail 
             {projects.map((project, index) => (
               <div
                 key={index}
-                className="rounded-xl border border-slate-200 p-4 dark:border-slate-700"
+                className="rounded-xl border border-slate-200 p-4 dark:border-dm-border"
               >
                 <div className="flex items-start justify-between gap-3">
                   <Field label={t('projectTitle')} required>

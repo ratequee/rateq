@@ -1,5 +1,5 @@
 import { getTranslations } from 'next-intl/server';
-import { homeDarkCard } from '@/components/home/home-dark-surfaces';
+import { darkCard } from '@/lib/dark-surfaces';
 import Image from 'next/image';
 import type { JSX } from 'react';
 import { cn } from '@/lib/utils';
@@ -50,7 +50,7 @@ export async function WhyChooseSection(): Promise<JSX.Element> {
   ];
 
   return (
-    <section className="overflow-hidden py-12 dark:bg-[#323232] sm:py-16 lg:py-20">
+    <section className="overflow-hidden py-12 dark:bg-dm-bg sm:py-16 lg:py-20">
       <div className="mx-auto max-w-page px-4 sm:px-6 lg:px-8">
         <div className="grid items-center gap-10 lg:grid-cols-2 lg:gap-16">
           <div className="w-full h-full">
@@ -77,7 +77,7 @@ export async function WhyChooseSection(): Promise<JSX.Element> {
                   key={titleKey}
                   className={cn(
                     'flex gap-4 rounded-2xl border-2 border-slate-100 bg-white p-5 shadow-sm',
-                    homeDarkCard,
+                    darkCard,
                   )}
                 >
                   <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl">

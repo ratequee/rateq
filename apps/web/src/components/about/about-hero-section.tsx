@@ -8,7 +8,7 @@ export async function AboutHeroSection(): Promise<JSX.Element> {
 
   return (
     <section
-      className="relative overflow-hidden bg-gradient-to-b from-white via-white to-slate-50/80 pb-12 pt-6 dark:from-slate-950 dark:via-slate-950 dark:to-slate-900 sm:pb-20 sm:pt-8 lg:pb-24"
+      className="relative overflow-hidden bg-gradient-to-b from-white via-white to-slate-50/80 pb-12 pt-6 dark:from-dm-bg dark:via-dm-bg dark:to-dm-bg sm:pb-20 sm:pt-8 lg:pb-24"
       style={{
         backgroundImage: 'url(/images/herobg.svg)',
         backgroundSize: 'cover',
@@ -16,7 +16,7 @@ export async function AboutHeroSection(): Promise<JSX.Element> {
       }}
     >
       <div
-        className="pointer-events-none absolute inset-0 hidden bg-slate-950/80 dark:block"
+        className="pointer-events-none absolute inset-0 hidden bg-dm-bg/80 dark:block"
         aria-hidden
       />
       <div className="relative mx-auto flex max-w-page flex-wrap items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">

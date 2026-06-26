@@ -52,7 +52,7 @@ export function CatalogMultiSelect({
                   'rounded-xl border px-3 py-2 text-start text-sm transition-colors',
                   selected
                     ? 'border-brand-500 bg-brand-500 text-white'
-                    : 'border-default bg-white text-primary hover:border-brand-300 dark:bg-slate-900',
+                    : 'border-default bg-white text-primary hover:border-brand-300 dark:bg-dm-surface',
                 )}
               >
                 <span className="block font-medium leading-snug">{item.nameEn}</span>

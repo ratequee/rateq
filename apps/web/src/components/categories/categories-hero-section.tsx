@@ -12,7 +12,7 @@ export async function CategoriesHeroSection(): Promise<JSX.Element> {
 
   return (
     <section
-      className="relative overflow-hidden bg-gradient-to-b from-white via-brand-50/30 to-white py-12 dark:from-slate-950 dark:via-slate-950 dark:to-slate-900 sm:py-16 lg:py-20"
+      className="relative overflow-hidden bg-gradient-to-b from-white via-brand-50/30 to-white py-12 dark:from-dm-bg dark:via-dm-bg dark:to-dm-bg sm:py-16 lg:py-20"
       style={{
         backgroundImage: 'url(/images/herobg.svg)',
         backgroundSize: 'cover',
@@ -21,7 +21,7 @@ export async function CategoriesHeroSection(): Promise<JSX.Element> {
       }}
     >
       <div
-        className="pointer-events-none absolute inset-0 hidden bg-slate-950/80 dark:block"
+        className="pointer-events-none absolute inset-0 hidden bg-dm-bg/80 dark:block"
         aria-hidden
       />
       <div className="relative mx-auto flex max-w-page flex-row flex-wrap items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
@@ -33,7 +33,7 @@ export async function CategoriesHeroSection(): Promise<JSX.Element> {
           </div>
 
           <form action={`/${locale}/categories`} className="mx-auto mt-8 max-w-xl md:mx-0">
-            <div className="relative flex items-center rounded-xl border border-slate-200 bg-white shadow-sm focus-within:border-brand-500 focus-within:ring-2 focus-within:ring-brand-500/20 dark:border-white/25 dark:bg-slate-950/90 dark:focus-within:border-white/40 dark:focus-within:ring-white/10">
+            <div className="relative flex items-center rounded-xl border border-slate-200 bg-white shadow-sm focus-within:border-brand-500 focus-within:ring-2 focus-within:ring-brand-500/20 dark:border-white/25 dark:bg-dm-bg/90 dark:focus-within:border-white/40 dark:focus-within:ring-white/10">
               <Input
                 name="q"
                 placeholder={t('searchPlaceholder')}
