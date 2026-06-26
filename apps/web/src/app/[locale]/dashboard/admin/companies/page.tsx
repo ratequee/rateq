@@ -196,12 +196,14 @@ export default function AdminCompanyVerificationsPage() {
       <div className="grid gap-6 lg:grid-cols-[minmax(0,340px)_1fr]">
         <div className="surface-card overflow-hidden rounded-2xl border">
           {listLoading ? (
-            <div className="flex items-center justify-center gap-2 p-8 text-sm text-ink-muted">
+            <div className="flex items-center justify-center gap-2 p-8 text-sm text-ink-muted dark:text-slate-400">
               <Loader2 className="h-4 w-4 animate-spin" />
               {t('loading')}
             </div>
           ) : items.length === 0 ? (
-            <p className="p-8 text-center text-sm text-ink-muted">{t('emptyList')}</p>
+            <p className="p-8 text-center text-sm text-ink-muted dark:text-slate-400">
+              {t('emptyList')}
+            </p>
           ) : (
             <ul className="divide-y divide-slate-100 dark:divide-dm-border">
               {items.map((item) => (
@@ -224,8 +226,10 @@ export default function AdminCompanyVerificationsPage() {
                     <div className="min-w-0 flex-1">
                       <div className="flex items-start justify-between gap-3">
                         <div className="min-w-0">
-                          <p className="truncate font-semibold text-ink">{item.name}</p>
-                          <p className="text-xs text-ink-muted">
+                          <p className="truncate font-semibold text-ink dark:text-white">
+                            {item.name}
+                          </p>
+                          <p className="text-xs text-ink-muted dark:text-slate-400">
                             {item.city}, {item.country}
                           </p>
                         </div>
@@ -253,12 +257,14 @@ export default function AdminCompanyVerificationsPage() {
 
         <div className="surface-card rounded-2xl border p-6">
           {detailLoading ? (
-            <div className="flex items-center justify-center gap-2 py-16 text-sm text-ink-muted">
+            <div className="flex items-center justify-center gap-2 py-16 text-sm text-ink-muted dark:text-slate-400">
               <Loader2 className="h-4 w-4 animate-spin" />
               {t('loading')}
             </div>
           ) : !detail ? (
-            <p className="py-16 text-center text-sm text-ink-muted">{t('selectCompany')}</p>
+            <p className="py-16 text-center text-sm text-ink-muted dark:text-slate-400">
+              {t('selectCompany')}
+            </p>
           ) : detail.profileChangeStatus === 'pending' ? (
             <ProfileChangeDetailPanel
               detail={detail}
@@ -381,7 +387,9 @@ function ProfileChangeDetailPanel({
                 {fields.map((field: AdminProfileChangeField) => (
                   <tr key={field.field}>
                     <td className="px-4 py-3 font-medium text-primary">{field.label}</td>
-                    <td className="px-4 py-3 text-secondary">{field.current}</td>
+                    <td className="px-4 py-3 text-secondary dark:text-slate-300">
+                      {field.current}
+                    </td>
                     <td className="px-4 py-3 font-medium text-ink dark:text-white">
                       {field.proposed}
                     </td>
@@ -393,7 +401,7 @@ function ProfileChangeDetailPanel({
         )}
       </section>
 
-      <dl className="grid gap-4 sm:grid-cols-2">
+      <dl className="grid gap-4 rounded-xl border border-subtle bg-slate-50/80 p-4 sm:grid-cols-2 dark:bg-dm-elevated/40">
         <DetailItem label={t('ownerEmail')} value={detail.owner?.email ?? t('unknownOwner')} />
         <DetailItem
           label={t('submittedAt')}
@@ -440,8 +448,8 @@ function CompanyDetailPanel({
     <div className="space-y-6">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
-          <h2 className="text-xl font-bold text-ink">{detail.name}</h2>
-          <p className="text-sm text-ink-muted">
+          <h2 className="text-xl font-bold text-ink dark:text-white">{detail.name}</h2>
+          <p className="text-sm text-ink-muted dark:text-slate-300">
             {detail.city}, {detail.country}
           </p>
           <StatusBadge
@@ -501,7 +509,7 @@ function CompanyDetailPanel({
         </div>
       )}
 
-      <dl className="grid gap-4 sm:grid-cols-2">
+      <dl className="grid gap-4 rounded-xl border border-subtle bg-slate-50/80 p-4 sm:grid-cols-2 dark:bg-dm-elevated/40">
         <DetailItem label={t('ownerEmail')} value={detail.owner?.email ?? t('unknownOwner')} />
         <DetailItem label={t('crNumber')} value={detail.crNumber ?? '—'} />
         <DetailItem label={t('address')} value={detail.address ?? '—'} className="sm:col-span-2" />
@@ -527,7 +535,7 @@ function CompanyDetailPanel({
       </dl>
 
       <section>
-        <h3 className="mb-3 text-sm font-semibold text-ink">{t('documents')}</h3>
+        <h3 className="mb-3 text-sm font-semibold text-ink dark:text-white">{t('documents')}</h3>
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           <DocumentCard
             label={t('establishmentCard')}
@@ -573,8 +581,10 @@ function DetailItem({
 }) {
   return (
     <div className={className}>
-      <dt className="text-xs font-medium uppercase tracking-wide text-ink-muted">{label}</dt>
-      <dd className="mt-1 text-sm text-ink">{value}</dd>
+      <dt className="text-xs font-medium uppercase tracking-wide text-ink-muted dark:text-slate-400">
+        {label}
+      </dt>
+      <dd className="mt-1 text-sm font-medium text-ink dark:text-slate-100">{value}</dd>
     </div>
   );
 }
@@ -594,7 +604,7 @@ function DocumentCard({
 
   if (!url) {
     return (
-      <div className="rounded-xl border border-dashed border-slate-200 p-4 text-center text-sm text-secondary dark:border-dm-border">
+      <div className="rounded-xl border border-dashed border-slate-200 p-4 text-center text-sm text-ink-muted dark:border-dm-border dark:text-slate-400">
         {label}: {t('notProvided')}
       </div>
     );
@@ -602,7 +612,7 @@ function DocumentCard({
 
   return (
     <div className="overflow-hidden rounded-xl border border-slate-200 dark:border-dm-border">
-      <div className="border-b border-slate-100 bg-slate-50 px-3 py-2 text-xs font-medium text-primary dark:border-dm-border dark:bg-dm-elevated/60">
+      <div className="border-b border-slate-100 bg-slate-50 px-3 py-2 text-xs font-medium text-ink dark:border-dm-border dark:bg-dm-elevated/60 dark:text-slate-200">
         {label}
       </div>
       {image ? (
