@@ -47,7 +47,7 @@ export default async function HomePage(): Promise<JSX.Element> {
     topCompany && topCompany.reviewCount > 0 ? await fetchLatestCompanyReview(topCompany.id) : null;
 
   return (
-    <>
+    <div className="dark:bg-[#323232]">
       <HeroSection topCompany={topCompany} latestReview={heroReview} />
       <NearbyMapSection companies={nearbyCompanies} />
       <CategoryCarousel categories={carouselCategories} />
@@ -58,6 +58,6 @@ export default async function HomePage(): Promise<JSX.Element> {
       <WhyChooseSection />
       {/* <PartnersSection /> */}
       {/* <MobileAppsCta /> */}
-    </>
+    </div>
   );
 }

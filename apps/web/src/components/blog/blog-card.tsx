@@ -1,5 +1,6 @@
 import { Link } from '@/i18n/routing';
 import { formatBlogDate } from '@/lib/format-blog-date';
+import { cn } from '@/lib/utils';
 import type { BlogPostPublic } from '@rateq/types';
 import Image from 'next/image';
 
@@ -7,13 +8,19 @@ interface BlogCardProps {
   post: BlogPostPublic;
   locale: string;
   readMoreLabel: string;
+  className?: string;
 }
 
-export function BlogCard({ post, locale, readMoreLabel }: BlogCardProps) {
+export function BlogCard({ post, locale, readMoreLabel, className }: BlogCardProps) {
   const { translation } = post;
 
   return (
-    <article className="group flex h-full flex-col overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-sm transition-shadow hover:shadow-md dark:border-slate-700 dark:bg-slate-800">
+    <article
+      className={cn(
+        'group flex h-full flex-col overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-sm transition-shadow hover:shadow-md dark:border-slate-700 dark:bg-slate-800',
+        className,
+      )}
+    >
       <Link href={`/blog/${translation.slug}`} className="block">
         <div className="relative aspect-[16/10] overflow-hidden bg-slate-100">
           {post.coverUrl ? (

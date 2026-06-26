@@ -24,7 +24,7 @@ export function FeaturedCompaniesSection({ companies }: FeaturedCompaniesSection
   };
 
   return (
-    <section className="bg-slate-50/60 py-12 dark:bg-slate-950 sm:py-16 lg:py-20">
+    <section className="bg-slate-50/60 py-12 dark:bg-[#323232] sm:py-16 lg:py-20">
       <div className="mx-auto max-w-page px-4 sm:px-6 lg:px-8">
         <SectionHeader
           title={t('featuredTitle')}

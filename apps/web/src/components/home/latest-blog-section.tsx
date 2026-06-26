@@ -1,4 +1,5 @@
 import { BlogCard } from '@/components/blog/blog-card';
+import { homeDarkCard } from '@/components/home/home-dark-surfaces';
 import { SectionHeader } from '@/components/home/section-header';
 import type { BlogPostPublic } from '@rateq/types';
 import { getTranslations } from 'next-intl/server';
@@ -18,7 +19,7 @@ export async function LatestBlogSection({
   const t = await getTranslations('blog');
 
   return (
-    <section className="bg-white py-12 dark:bg-slate-900 sm:py-16 lg:py-20">
+    <section className="bg-white py-12 dark:bg-[#323232] sm:py-16 lg:py-20">
       <div className="mx-auto max-w-page px-4 sm:px-6 lg:px-8">
         <SectionHeader
           title={t('homeSectionTitle')}
@@ -27,7 +28,13 @@ export async function LatestBlogSection({
         />
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {posts.slice(0, 3).map((post) => (
-            <BlogCard key={post.id} post={post} locale={locale} readMoreLabel={t('readMore')} />
+            <BlogCard
+              key={post.id}
+              post={post}
+              locale={locale}
+              readMoreLabel={t('readMore')}
+              className={homeDarkCard}
+            />
           ))}
         </div>
       </div>

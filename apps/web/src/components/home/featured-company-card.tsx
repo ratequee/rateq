@@ -1,5 +1,7 @@
 'use client';
 
+import { homeDarkBorder, homeDarkCard } from '@/components/home/home-dark-surfaces';
+
 import type { CompanyPublic } from '@rateq/types';
 import { Badge } from '@/components/ui/badge';
 import { StarRating } from '@/components/ui/star-rating';
@@ -25,7 +27,10 @@ export function FeaturedCompanyCard({ company }: FeaturedCompanyCardProps) {
   return (
     <Link
       href={`/companies/${company.slug}`}
-      className="group flex h-full flex-col overflow-hidden rounded-2xl border border-subtle bg-white shadow-sm transition-shadow hover:shadow-card dark:border-slate-700 dark:bg-slate-800"
+      className={cn(
+        'group flex h-full flex-col overflow-hidden rounded-2xl border border-subtle bg-white shadow-sm transition-shadow hover:shadow-card',
+        homeDarkCard,
+      )}
       aria-label={t('viewCompany', { name: company.name })}
     >
       <div className="relative h-44 shrink-0 overflow-hidden sm:h-48">
@@ -81,7 +86,7 @@ export function FeaturedCompanyCard({ company }: FeaturedCompanyCardProps) {
             </p>
           </div>
         </div>
-        <div className="mt-4 border-t-2 border-slate-100 pt-4 dark:border-slate-700">
+        <div className={cn('mt-4 border-t-2 border-slate-100 pt-4', homeDarkBorder)}>
           <div className="flex items-center justify-between gap-3">
             <div className="flex items-center gap-2">
               <span className="text-2xl font-bold text-ink dark:text-white">

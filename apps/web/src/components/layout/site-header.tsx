@@ -66,8 +66,17 @@ export function SiteHeader() {
     };
   }, [mobileOpen]);
 
+  const isHomePage = pathname === '/';
+
   return (
-    <header className="sticky top-0 z-50 border-b border-slate-100 bg-gradient-to-b from-white via-white to-slate-50/80 backdrop-blur-md dark:border-slate-800 dark:from-slate-950 dark:via-slate-950 dark:to-slate-900/80">
+    <header
+      className={cn(
+        'sticky top-0 z-50 border-b border-slate-100 bg-gradient-to-b from-white via-white to-slate-50/80 backdrop-blur-md',
+        isHomePage
+          ? 'dark:border-[#4a4a4a] dark:from-[#323232] dark:via-[#323232] dark:to-[#323232]'
+          : 'dark:border-slate-800 dark:from-slate-950 dark:via-slate-950 dark:to-slate-900/80',
+      )}
+    >
       <div className="mx-auto flex h-16 max-w-page items-center justify-between md:gap-4 px-4 sm:h-[72px] sm:px-6 lg:px-8">
         <Button
           variant="ghost"
@@ -153,7 +162,8 @@ export function SiteHeader() {
       >
         <div
           className={cn(
-            'flex h-full flex-col bg-[#171A22]/92 px-6 pb-4 pt-7 transition-opacity duration-300',
+            isHomePage ? 'bg-[#323232]/92' : 'bg-[#171A22]/92',
+            'flex h-full flex-col px-6 pb-4 pt-7 transition-opacity duration-300',
             mobileOpen ? 'opacity-100' : 'opacity-0',
           )}
         >

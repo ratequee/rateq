@@ -1,5 +1,6 @@
 'use client';
 
+import { homeDarkBorder, homeDarkCard } from '@/components/home/home-dark-surfaces';
 import { CarouselControls } from '@/components/home/carousel-controls';
 import { SectionHeader } from '@/components/home/section-header';
 import { AvatarImage } from '@/components/ui/avatar-image';
@@ -10,6 +11,7 @@ import type { ReviewPublic } from '@rateq/types';
 import { useLocale, useTranslations } from 'next-intl';
 import { formatReviewTimeAgo } from '@/lib/format-relative-time';
 import { useRef } from 'react';
+import { cn } from '@/lib/utils';
 
 interface TestimonialsCarouselProps {
   reviews: ReviewPublic[];
@@ -31,7 +33,7 @@ export function TestimonialsCarousel({ reviews }: TestimonialsCarouselProps) {
   };
 
   return (
-    <section className="py-12 dark:bg-slate-900 sm:py-16 lg:py-20">
+    <section className="py-12 dark:bg-[#323232] sm:py-16 lg:py-20">
       <div className="mx-auto max-w-page px-4 sm:px-6 lg:px-8">
         <SectionHeader
           title={t('testimonialsTitle')}
@@ -76,7 +78,10 @@ export function TestimonialsCarousel({ reviews }: TestimonialsCarouselProps) {
             return (
               <article
                 key={review.id}
-                className="flex h-full flex-col rounded-2xl border border-slate-100 bg-white p-6 shadow-sm dark:border-slate-700 dark:bg-slate-800"
+                className={cn(
+                  'flex h-full flex-col rounded-2xl border border-slate-100 bg-white p-6 shadow-sm',
+                  homeDarkCard,
+                )}
               >
                 <div className="mb-4 flex items-center gap-3">
                   <AvatarImage
@@ -95,7 +100,7 @@ export function TestimonialsCarousel({ reviews }: TestimonialsCarouselProps) {
                 <blockquote className="mt-4 flex-1 text-sm leading-relaxed text-ink-muted dark:text-white/90">
                   &ldquo;{review.content}&rdquo;
                 </blockquote>
-                <div className="mt-6 border-t-2 border-slate-100 pt-4 dark:border-slate-700">
+                <div className={cn('mt-6 border-t-2 border-slate-100 pt-4', homeDarkBorder)}>
                   {review.company?.slug ? (
                     <Link
                       href={`/companies/${review.company.slug}`}

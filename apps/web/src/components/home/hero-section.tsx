@@ -3,6 +3,11 @@ import { Input } from '@/components/ui/input';
 import { StarRating } from '@/components/ui/star-rating';
 import { Badge } from '@/components/ui/badge';
 import { HeroForUsersButton } from '@/components/home/hero-for-users-button';
+import {
+  homeDarkBorder,
+  homeDarkCard,
+  homeDarkCardElevated,
+} from '@/components/home/home-dark-surfaces';
 import { AvatarImage } from '@/components/ui/avatar-image';
 import { Link } from '@/i18n/routing';
 import { getLocalizedCategoryName } from '@/lib/category-label';
@@ -11,6 +16,7 @@ import type { CompanyPublic, ReviewPublic } from '@rateq/types';
 import { getLocale, getTranslations } from 'next-intl/server';
 import type { JSX } from 'react';
 import Image from 'next/image';
+import { cn } from '@/lib/utils';
 
 interface HeroSectionProps {
   topCompany: CompanyPublic | null;
@@ -47,7 +53,7 @@ export async function HeroSection({
 
   return (
     <section
-      className="relative overflow-hidden bg-gradient-to-b from-white via-white to-slate-50/80 pb-12 pt-6 dark:from-slate-950 dark:via-slate-950 dark:to-slate-900 sm:pb-30 sm:pt-8 lg:pb-50"
+      className="relative overflow-hidden bg-gradient-to-b from-white via-white to-slate-50/80 pb-12 pt-6 dark:from-[#323232] dark:via-[#323232] dark:to-[#323232] sm:pb-30 sm:pt-8 lg:pb-50"
       style={{
         backgroundImage: 'url(/images/herobg.svg)',
         backgroundSize: 'cover',
@@ -57,7 +63,7 @@ export async function HeroSection({
       }}
     >
       <div
-        className="pointer-events-none absolute inset-0 hidden bg-slate-950/80 dark:block"
+        className="pointer-events-none absolute inset-0 hidden bg-[#323232]/80 dark:block"
         aria-hidden
       />
       <div className="relative mx-auto max-w-page px-4 sm:px-6 lg:px-8">
@@ -77,7 +83,13 @@ export async function HeroSection({
               </p>
             </div>
             <form action={`/${locale}/search`} className="mt-8">
-              <div className="relative flex items-center rounded-xl border border-slate-200 bg-white shadow-sm focus-within:border-brand-500 focus-within:ring-2 focus-within:ring-brand-500/20 dark:border-slate-600 dark:bg-slate-900/90 dark:focus-within:border-brand-400">
+              <div
+                className={cn(
+                  'relative flex items-center rounded-xl border border-slate-200 bg-white shadow-sm focus-within:border-brand-500 focus-within:ring-2 focus-within:ring-brand-500/20 dark:focus-within:border-brand-400',
+                  homeDarkCardElevated,
+                  'dark:bg-[#404040]/90',
+                )}
+              >
                 <Input
                   name="query"
                   placeholder={t('searchPlaceholder')}
@@ -109,7 +121,11 @@ export async function HeroSection({
               {trustBadges.map(({ icon: IconComponent, label }) => (
                 <li
                   key={label}
-                  className="flex items-center justify-center gap-2 rounded-lg border-0 bg-white p-4 text-sm font-medium text-ink shadow-lg dark:bg-slate-800/90 dark:text-white"
+                  className={cn(
+                    'flex items-center justify-center gap-2 rounded-lg border-0 bg-white p-4 text-sm font-medium text-ink shadow-lg dark:text-white',
+                    homeDarkCardElevated,
+                    'dark:bg-[#404040]/90',
+                  )}
                 >
                   {IconComponent}
                   {label}
@@ -120,7 +136,12 @@ export async function HeroSection({
 
           <div className="relative mx-auto w-full max-w-full md:mx-[10px] lg:mx-0 lg:max-w-none lg:justify-self-end">
             {miniReview ? (
-              <div className="absolute -start-[-10px] top-2 z-10 max-w-[350px] rounded-xl border border-slate-100 bg-white p-3 shadow-card dark:border-slate-700 dark:bg-slate-800 dark:shadow-xl sm:block lg:-start-10 lg:-end-8 lg:top-8">
+              <div
+                className={cn(
+                  'absolute -start-[-10px] top-2 z-10 max-w-[350px] rounded-xl border border-slate-100 bg-white p-3 shadow-card dark:shadow-xl sm:block lg:-start-10 lg:-end-8 lg:top-8',
+                  homeDarkCard,
+                )}
+              >
                 <div className="flex items-start gap-3">
                   {miniReview.author?.avatarUrl ? (
                     <img
@@ -158,7 +179,12 @@ export async function HeroSection({
             ) : null}
 
             {featuredCompany ? (
-              <div className="overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-hero dark:border-slate-700 dark:bg-slate-800 dark:shadow-xl">
+              <div
+                className={cn(
+                  'overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-hero dark:shadow-xl',
+                  homeDarkCard,
+                )}
+              >
                 <div
                   className="h-40 bg-gradient-to-br from-brand-500 to-brand-700 sm:h-48"
                   style={{
@@ -179,13 +205,19 @@ export async function HeroSection({
                           alt={featuredCompany.name}
                           width={120}
                           height={120}
-                          className="mt-[-50px] h-[120px] w-[120px] rounded-full border-4 border-white object-cover dark:border-slate-700"
+                          className={cn(
+                            'mt-[-50px] h-[120px] w-[120px] rounded-full border-4 border-white object-cover',
+                            homeDarkBorder,
+                          )}
                         />
                       ) : (
                         <AvatarImage
                           src={null}
                           name={featuredCompany.name}
-                          className="mt-[-50px] h-[120px] w-[120px] border-4 border-white text-3xl dark:border-slate-700"
+                          className={cn(
+                            'mt-[-50px] h-[120px] w-[120px] border-4 border-white text-3xl',
+                            homeDarkBorder,
+                          )}
                         />
                       )}
                       <div className="flex flex-col items-start">
@@ -209,7 +241,12 @@ export async function HeroSection({
                       {featuredCompany.description}
                     </p>
                   ) : null}
-                  <div className="mt-5 flex flex-wrap items-end gap-3 border-t border-slate-100 pt-5 dark:border-slate-700">
+                  <div
+                    className={cn(
+                      'mt-5 flex flex-wrap items-end gap-3 border-t border-slate-100 pt-5',
+                      homeDarkBorder,
+                    )}
+                  >
                     <span className="text-5xl font-bold text-ink dark:text-white">
                       {featuredCompany.ratingAverage.toFixed(1)}
                     </span>
@@ -221,7 +258,12 @@ export async function HeroSection({
                 </div>
               </div>
             ) : (
-              <div className="overflow-hidden rounded-2xl border border-slate-100 bg-white p-8 text-center text-ink-muted shadow-hero dark:border-slate-700 dark:bg-slate-800 dark:text-white/85 dark:shadow-xl">
+              <div
+                className={cn(
+                  'overflow-hidden rounded-2xl border border-slate-100 bg-white p-8 text-center text-ink-muted shadow-hero dark:text-white/85 dark:shadow-xl',
+                  homeDarkCard,
+                )}
+              >
                 {t('exploreCompanies')}
               </div>
             )}

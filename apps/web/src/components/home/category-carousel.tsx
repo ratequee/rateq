@@ -2,6 +2,7 @@
 
 import { CategoryCard } from '@/components/categories/category-card';
 import { CarouselControls } from '@/components/home/carousel-controls';
+import { homeDarkCard } from '@/components/home/home-dark-surfaces';
 import { SectionHeader } from '@/components/home/section-header';
 import type { CategoryPublic } from '@rateq/types';
 import { useTranslations } from 'next-intl';
@@ -23,7 +24,7 @@ export function CategoryCarousel({ categories }: CategoryCarouselProps) {
   };
 
   return (
-    <section className="mt-[50px] py-12 dark:bg-slate-900 sm:py-16 lg:py-20">
+    <section className="mt-[50px] py-12 dark:bg-[#323232] sm:py-16 lg:py-20">
       <div className="mx-auto max-w-page px-4 sm:px-6 lg:px-8">
         <SectionHeader
           title={t('categoriesTitle')}
@@ -50,7 +51,12 @@ export function CategoryCarousel({ categories }: CategoryCarouselProps) {
             className="scrollbar-hide -mx-4 flex gap-4 overflow-x-auto px-4 pb-2 sm:mx-0 sm:px-0"
           >
             {categories.map((category) => (
-              <CategoryCard key={category.id} category={category} variant="compact" />
+              <CategoryCard
+                key={category.id}
+                category={category}
+                variant="compact"
+                className={homeDarkCard}
+              />
             ))}
           </div>
         )}

@@ -30,7 +30,7 @@ export async function StatsBar({ stats }: StatsBarProps): Promise<JSX.Element> {
   ];
 
   return (
-    <section className="py-12 dark:bg-slate-950 sm:py-16 lg:py-20" aria-label={t('statsAria')}>
+    <section className="py-12 dark:bg-[#323232] sm:py-16 lg:py-20" aria-label={t('statsAria')}>
       <div
         className="mx-auto max-w-page rounded-3xl bg-brand-500 p-20 px-4 sm:px-6 lg:px-8 dark:bg-gradient-to-br dark:from-brand-900 dark:via-brand-700 dark:to-brand-600"
         style={{
