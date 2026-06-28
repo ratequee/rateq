@@ -1,6 +1,8 @@
 import type { PaginatedResponse } from './pagination';
 import type { ReviewPublic } from './review';
 
+import type { CompanyProjectStatus } from './enums';
+
 export interface CompanyProjectPublic {
   id: string;
   slug: string;
@@ -13,6 +15,8 @@ export interface CompanyProjectPublic {
   location: string | null;
   projectDate: string | null;
   serviceIds: string[];
+  customServices: string[];
+  status: CompanyProjectStatus;
   sortOrder: number;
 }
 
@@ -143,6 +147,7 @@ export interface UpdateCompanyProjectInput {
   location?: string;
   projectDate?: string;
   serviceIds?: string[];
+  customServices?: string[];
 }
 
 export interface UpdateCompanyInput {
@@ -213,3 +218,24 @@ export interface CompanyDashboard {
   topReviewers: CompanyTopReviewer[];
   latestReviews: ReviewPublic[];
 }
+
+export interface AdminCompanyProjectListItem {
+  id: string;
+  slug: string;
+  title: string;
+  description: string | null;
+  imageUrl: string;
+  demoImages: string[];
+  customServices: string[];
+  status: CompanyProjectStatus;
+  company: {
+    id: string;
+    name: string;
+    slug: string;
+    logo: string | null;
+    categoryName: string | null;
+  };
+  createdAt: string;
+}
+
+export type PaginatedAdminProjectsResponse = PaginatedResponse<AdminCompanyProjectListItem>;

@@ -173,8 +173,11 @@ export class CompaniesRepository {
       location?: string;
       projectDate?: string;
       serviceIds?: string[];
+      customServices?: string[];
     }[],
+    options?: { defaultStatus?: 'PENDING' | 'APPROVED' },
   ): Promise<void> {
+    const defaultStatus = options?.defaultStatus ?? 'PENDING';
     const slugify = (title: string, index: number) => {
       const base =
         title
@@ -202,9 +205,71 @@ export class CompaniesRepository {
           location: project.location ?? null,
           projectDate: project.projectDate ? new Date(project.projectDate) : null,
           serviceIds: project.serviceIds ?? [],
+          customServices: project.customServices ?? [],
+          status: defaultStatus,
           sortOrder: index,
         })),
       });
+    });
+  }
+
+  findProjectById(projectId: string) {
+    return this.prisma.companyProject.findUnique({
+      where: { id: projectId },
+      include: {
+        company: {
+          select: {
+            id: true,
+            name: true,
+            slug: true,
+            logo: true,
+            owner: { select: { id: true, email: true } },
+            email: true,
+          },
+        },
+      },
+    });
+  }
+
+  updateProjectStatus(projectId: string, status: 'PENDING' | 'APPROVED' | 'REJECTED') {
+    return this.prisma.companyProject.update({
+      where: { id: projectId },
+      data: { status },
+    });
+  }
+
+  deleteProjectById(projectId: string) {
+    return this.prisma.companyProject.delete({ where: { id: projectId } });
+  }
+
+  findProjectsForModeration(filters: {
+    status?: 'PENDING' | 'APPROVED' | 'REJECTED';
+    page: number;
+    limit: number;
+  }) {
+    const where = filters.status ? { status: filters.status } : {};
+    return this.prisma.companyProject.findMany({
+      where,
+      orderBy: { createdAt: 'desc' },
+      skip: (filters.page - 1) * filters.limit,
+      take: filters.limit,
+      include: {
+        company: {
+          select: {
+            id: true,
+            name: true,
+            slug: true,
+            logo: true,
+            category: { select: { nameEn: true, nameAr: true } },
+          },
+        },
+      },
+    });
+  }
+
+  countProjectsForModeration(status?: 'PENDING' | 'APPROVED' | 'REJECTED') {
+    return this.prisma.companyProject.count({
+      where: status ? { status } : {},
     });
   }
 

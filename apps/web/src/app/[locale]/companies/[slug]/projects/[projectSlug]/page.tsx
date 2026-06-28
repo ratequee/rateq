@@ -47,11 +47,13 @@ export default async function CompanyProjectPage({
   }
 
   const serviceLabels =
-    project.serviceIds.length > 0
-      ? company.serviceItems
-          .filter((item) => project.serviceIds.includes(item.id))
-          .map((item) => item.label)
-      : [];
+    project.customServices.length > 0
+      ? project.customServices
+      : project.serviceIds.length > 0
+        ? company.serviceItems
+            .filter((item) => project.serviceIds.includes(item.id))
+            .map((item) => item.label)
+        : [];
 
   const projectDateLabel = project.projectDate
     ? new Date(project.projectDate).toLocaleDateString(undefined, {

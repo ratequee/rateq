@@ -271,6 +271,17 @@ export const reviewsApi = {
       method: 'PATCH',
       token,
     }),
+  listAdminProjects: (token: string, params?: URLSearchParams) =>
+    apiClient<import('@rateq/types').PaginatedAdminProjectsResponse>(
+      `/moderation/projects${params ? `?${params}` : ''}`,
+      { token },
+    ),
+  approveProject: (token: string, id: string) =>
+    apiClient<MessageResponse>(`/moderation/projects/${id}/approve`, { method: 'PATCH', token }),
+  rejectProject: (token: string, id: string) =>
+    apiClient<MessageResponse>(`/moderation/projects/${id}/reject`, { method: 'PATCH', token }),
+  deleteProject: (token: string, id: string) =>
+    apiClient<MessageResponse>(`/moderation/projects/${id}`, { method: 'DELETE', token }),
   setResolutionWindow: (token: string, reviewId: string, days: 7 | 10) =>
     apiClient<ReviewPublic>(`/reviews/${reviewId}/resolution/window`, {
       method: 'PATCH',

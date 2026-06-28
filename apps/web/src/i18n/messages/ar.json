@@ -618,6 +618,9 @@
     "categoriesMultiHint": "اختر فئة نشاط واحدة أو أكثر.",
     "socialLinksTitle": "روابط التواصل",
     "socialLinksHint": "اختياري. تظهر على صفحة شركتك العامة.",
+    "socialLinksCardSubtitle": "تُحفظ التحديثات فورًا — دون الحاجة لموافقة الإدارة.",
+    "saveSocialLinks": "حفظ روابط التواصل",
+    "socialLinksUpdated": "تم تحديث روابط التواصل بنجاح.",
     "whatsappNumber": "واتساب",
     "instagramUrl": "إنستغرام",
     "youtubeUrl": "يوتيوب",
@@ -634,8 +637,21 @@
     "projectsPageSubtitle": "اعرض أعمال شركتك بعناوين وصور على ملفك العام.",
     "saveProjects": "حفظ المشاريع",
     "projectsUpdated": "تم تحديث المشاريع بنجاح.",
+    "projectsSubmittedForApproval": "تم إرسال المشاريع لموافقة الإدارة.",
+    "projectsPendingApproval": "بعض المشاريع بانتظار موافقة الإدارة ولن تظهر على ملفكم العام بعد.",
+    "projectServicesCustomHint": "أضف حتى 5 خدمات مخصصة لهذا المشروع (ليست من قائمة الإدارة).",
+    "projectServicesMax": "يمكن تضمين 5 خدمات كحد أقصى لكل مشروع.",
+    "removeProjectImage": "إزالة الصورة",
+    "projectRejectedHint": "لم تتم الموافقة على هذا المشروع. حدّثوه واحفظوا لإعادة الإرسال.",
+    "projectStatus": {
+      "PENDING": "قيد المراجعة",
+      "APPROVED": "معتمد",
+      "REJECTED": "مرفوض"
+    },
     "publicProfileTitle": "ملف الشركة العام",
     "publicProfileSubtitle": "إدارة ما يراه العملاء على صفحة شركتك.",
+    "companyDetailsTitle": "بيانات الشركة",
+    "companyDetailsSubtitle": "الاسم والموقع والتصنيفات. التغييرات تتطلب موافقة الإدارة بعد التحقق.",
     "companyAbout": "نبذة عن شركتك",
     "companyAboutHint": "صف نشاطك التجاري وقيمك وما يميزك.",
     "companyAboutPlaceholder": "أخبر العملاء عن شركتك…",
@@ -1044,17 +1060,29 @@
   },
   "adminProjects": {
     "title": "المشاريع",
-    "subtitle": "نظرة عامة على مشاريع محفظة الشركات عبر المنصة.",
-    "statsChangeUp": "{value} مقارنة بالشهر الماضي",
-    "statsNeedsAction": "يتطلب مراجعة",
-    "stats": {
-      "totalProjects": "إجمالي المشاريع",
-      "featuredProjects": "المشاريع المميزة",
-      "pendingReview": "قيد المراجعة",
-      "companiesWithProjects": "شركات لديها مشاريع"
+    "subtitle": "مراجعة واعتماد مشاريع محفظة الشركات.",
+    "loadError": "تعذّر تحميل المشاريع.",
+    "actionError": "تعذّر إكمال هذا الإجراء.",
+    "approveSuccess": "تمت الموافقة على المشروع.",
+    "rejectSuccess": "تم رفض المشروع.",
+    "deleteSuccess": "تم حذف المشروع.",
+    "deleteConfirm": "حذف هذا المشروع نهائياً؟",
+    "selectProject": "اختر مشروعاً لمراجعة التفاصيل واتخاذ إجراء.",
+    "services": "الخدمات",
+    "approve": "موافقة",
+    "reject": "رفض",
+    "delete": "حذف",
+    "empty": "لا توجد مشاريع مطابقة لهذا الفلتر.",
+    "filters": {
+      "all": "الكل"
     },
-    "tableTitle": "أحدث المشاريع",
-    "tableSubtitle": "عينات من المشاريع المقدمة من شركات موثقة.",
+    "pagination": {
+      "previous": "السابق",
+      "next": "التالي",
+      "pageOf": "صفحة {page} من {total}"
+    },
+    "tableTitle": "مشاريع الشركات",
+    "tableSubtitle": "مشاريع مقدمة من شركات موثقة.",
     "table": {
       "project": "المشروع",
       "company": "الشركة",
@@ -1063,41 +1091,9 @@
       "submitted": "تاريخ الإرسال"
     },
     "status": {
-      "featured": "مميز",
-      "published": "منشور",
-      "pending": "قيد المراجعة"
-    },
-    "rows": {
-      "proj-1": {
-        "title": "ترقية البنية التحتية — أشghal",
-        "company": "ATS DUMS",
-        "category": "السيارات"
-      },
-      "proj-2": {
-        "title": "تجهيز مكاتب West Bay",
-        "company": "Qatar Business Solutions",
-        "category": "الأعمال"
-      },
-      "proj-3": {
-        "title": "مركز Premium Auto للتفصيل",
-        "company": "Al Rayyan Motors",
-        "category": "السيارات"
-      },
-      "proj-4": {
-        "title": "تنسيق حدائق Pearl Residence",
-        "company": "Ezdan Real Estate",
-        "category": "العقارات"
-      },
-      "proj-5": {
-        "title": "برنامج العافية للشركات",
-        "company": "Qatar Health Clinic",
-        "category": "الصحة"
-      },
-      "proj-6": {
-        "title": "عقد تنظيف مارينا لوسيل",
-        "company": "Gulf Facility Services",
-        "category": "الأعمال"
-      }
+      "PENDING": "قيد المراجعة",
+      "APPROVED": "معتمد",
+      "REJECTED": "مرفوض"
     }
   },
   "adminPayments": {

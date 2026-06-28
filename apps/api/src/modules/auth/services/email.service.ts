@@ -52,9 +52,14 @@ import {
   buildReviewReplyApprovedEmailText,
   buildReviewReplyRejectedEmailHtml,
   buildReviewReplyRejectedEmailText,
+  buildCompanyProjectApprovedEmailHtml,
+  buildCompanyProjectApprovedEmailText,
+  buildCompanyProjectRejectedEmailHtml,
+  buildCompanyProjectRejectedEmailText,
   type ReviewDecisionEmailContent,
   type ReviewOutcomeEmailContent,
   type ReviewReplyDecisionEmailContent,
+  type CompanyProjectDecisionEmailContent,
   type ReviewResolutionCompanyEmailContent,
   type ReviewResolutionReviewerEmailContent,
 } from '../email/email-review-templates';
@@ -229,6 +234,42 @@ export class EmailService {
       ),
       text: buildReviewReplyRejectedEmailText(content),
       html: buildReviewReplyRejectedEmailHtml({ ...rest, appUrl, reviewsUrl }),
+    });
+  }
+
+  async sendCompanyProjectApprovedEmail(
+    content: CompanyProjectDecisionEmailContent,
+  ): Promise<void> {
+    const appUrl = this.configService.get('APP_URL', { infer: true });
+    const projectsUrl = `${appUrl}/dashboard/company/projects`;
+    const { companyEmail, ...rest } = content;
+
+    await this.send({
+      to: companyEmail,
+      subject: bilingualSubject(
+        `Your project for ${content.companyName} has been approved`,
+        `تمت الموافقة على مشروعكم لـ ${content.companyName}`,
+      ),
+      text: buildCompanyProjectApprovedEmailText(content),
+      html: buildCompanyProjectApprovedEmailHtml({ ...rest, appUrl, projectsUrl }),
+    });
+  }
+
+  async sendCompanyProjectRejectedEmail(
+    content: CompanyProjectDecisionEmailContent,
+  ): Promise<void> {
+    const appUrl = this.configService.get('APP_URL', { infer: true });
+    const projectsUrl = `${appUrl}/dashboard/company/projects`;
+    const { companyEmail, ...rest } = content;
+
+    await this.send({
+      to: companyEmail,
+      subject: bilingualSubject(
+        `Your project for ${content.companyName} was not approved`,
+        `لم تتم الموافقة على مشروعكم لـ ${content.companyName}`,
+      ),
+      text: buildCompanyProjectRejectedEmailText(content),
+      html: buildCompanyProjectRejectedEmailHtml({ ...rest, appUrl, projectsUrl }),
     });
   }
 

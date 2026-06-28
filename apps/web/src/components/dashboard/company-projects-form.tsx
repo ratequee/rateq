@@ -1,23 +1,20 @@
 'use client';
 
-import { CatalogMultiSelect } from '@/components/profile/catalog-multi-select';
 import { DashboardProfileLoading } from '@/components/dashboard/dashboard-profile-loading';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useProfile } from '@/components/providers/profile-provider';
-import { fetchCompanyCatalogClient } from '@/lib/company-catalog-api';
 import { uploadUserFile } from '@/lib/firebase/storage';
+import { waitForFirebaseUser } from '@/lib/firebase/wait-for-user';
 import { onboardingApi } from '@/lib/onboarding-api';
 import { ApiError } from '@/lib/api';
 import { ensureValidAccessToken } from '@/lib/auth-session';
-import type {
-  CompanyCatalogItemPublic,
-  CompanyProfileDetail,
-  UpdateCompanyProjectInput,
-} from '@rateq/types';
-import { Plus, Trash2 } from 'lucide-react';
+import { cn } from '@/lib/utils';
+import type { CompanyProfileDetail, UpdateCompanyProjectInput } from '@rateq/types';
+import { CompanyProjectStatus } from '@rateq/types';
+import { Plus, Trash2, X } from 'lucide-react';
 import { useTranslations } from 'next-intl';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 
 interface ProjectDraft {
@@ -31,8 +28,9 @@ interface ProjectDraft {
   clientName: string;
   location: string;
   projectDate: string;
-  serviceIds: string[];
+  customServices: string[];
   imageFile: File | null;
+  status?: CompanyProjectStatus;
 }
 
 function createEmptyProject(): ProjectDraft {
@@ -46,7 +44,7 @@ function createEmptyProject(): ProjectDraft {
     clientName: '',
     location: '',
     projectDate: '',
-    serviceIds: [],
+    customServices: [],
     imageFile: null,
   };
 }
@@ -64,8 +62,9 @@ function buildProjectDrafts(company: CompanyProfileDetail): ProjectDraft[] {
     clientName: project.clientName ?? '',
     location: project.location ?? '',
     projectDate: project.projectDate?.slice(0, 10) ?? '',
-    serviceIds: project.serviceIds ?? [],
+    customServices: project.customServices ?? [],
     imageFile: null,
+    status: project.status,
   }));
 }
 
@@ -78,16 +77,169 @@ function isValidUrl(value: string): boolean {
   }
 }
 
+const projectStatusStyles: Record<CompanyProjectStatus, string> = {
+  PENDING: 'bg-amber-50 text-amber-700 dark:bg-amber-950/50 dark:text-amber-300',
+  APPROVED: 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-300',
+  REJECTED: 'bg-red-50 text-red-700 dark:bg-red-950/50 dark:text-red-400',
+};
+
+function ImagePreview({
+  src,
+  alt,
+  onRemove,
+  removeLabel,
+  className,
+}: {
+  src: string;
+  alt: string;
+  onRemove: () => void;
+  removeLabel: string;
+  className?: string;
+}) {
+  return (
+    <div className={cn('group relative overflow-hidden rounded-lg', className)}>
+      <img src={src} alt={alt} className="h-full w-full object-cover" />
+      <button
+        type="button"
+        onClick={onRemove}
+        aria-label={removeLabel}
+        className="absolute end-1.5 top-1.5 inline-flex h-7 w-7 items-center justify-center rounded-full bg-black/60 text-white transition hover:bg-black/80"
+      >
+        <X className="h-4 w-4" />
+      </button>
+    </div>
+  );
+}
+
+function CustomServicesInput({
+  label,
+  hint,
+  services,
+  onChange,
+  addLabel,
+  removeLabel,
+  placeholder,
+  maxServices,
+  maxReachedMessage,
+}: {
+  label: string;
+  hint: string;
+  services: string[];
+  onChange: (services: string[]) => void;
+  addLabel: string;
+  removeLabel: string;
+  placeholder: string;
+  maxServices: number;
+  maxReachedMessage: string;
+}) {
+  const [draft, setDraft] = useState('');
+
+  const addService = () => {
+    const value = draft.trim();
+    if (!value) return;
+    if (services.length >= maxServices) {
+      toast.error(maxReachedMessage);
+      return;
+    }
+    if (services.some((item) => item.toLowerCase() === value.toLowerCase())) {
+      setDraft('');
+      return;
+    }
+    onChange([...services, value]);
+    setDraft('');
+  };
+
+  return (
+    <div>
+      <label className="mb-1.5 block text-sm font-medium text-primary">{label}</label>
+      <p className="mb-2 text-xs text-secondary">{hint}</p>
+      {services.length > 0 ? (
+        <div className="mb-2 flex flex-wrap gap-2">
+          {services.map((service, index) => (
+            <span
+              key={`${service}-${index}`}
+              className="inline-flex items-center gap-1 rounded-full border border-default bg-slate-100 px-3 py-1 text-sm text-primary dark:bg-dm-elevated"
+            >
+              {service}
+              <button
+                type="button"
+                onClick={() => onChange(services.filter((_, i) => i !== index))}
+                aria-label={removeLabel}
+                className="inline-flex h-5 w-5 items-center justify-center rounded-full text-secondary hover:bg-slate-200 dark:hover:bg-dm-surface"
+              >
+                <X className="h-3 w-3" />
+              </button>
+            </span>
+          ))}
+        </div>
+      ) : null}
+      <div className="flex gap-2">
+        <Input
+          value={draft}
+          onChange={(e) => setDraft(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') {
+              e.preventDefault();
+              addService();
+            }
+          }}
+          placeholder={placeholder}
+          className="h-10"
+          maxLength={100}
+          disabled={services.length >= maxServices}
+        />
+        <Button
+          type="button"
+          variant="outline"
+          className="h-10 shrink-0"
+          onClick={addService}
+          disabled={services.length >= maxServices}
+        >
+          {addLabel}
+        </Button>
+      </div>
+    </div>
+  );
+}
+
 function CompanyProjectsFormFields({ company }: { company: CompanyProfileDetail }) {
   const t = useTranslations('profilePage');
   const { refreshOnboarding } = useProfile();
   const [projects, setProjects] = useState<ProjectDraft[]>(() => buildProjectDrafts(company));
-  const [catalogServices, setCatalogServices] = useState<CompanyCatalogItemPublic[]>([]);
   const [submitting, setSubmitting] = useState(false);
+  const isVerified = company.verificationStatus === 'approved';
+
+  const coverPreviews = useMemo(
+    () =>
+      projects.map((project) =>
+        project.imageFile ? URL.createObjectURL(project.imageFile) : project.imageUrl || null,
+      ),
+    [projects],
+  );
+
+  const demoPreviews = useMemo(
+    () =>
+      projects.map((project) => [
+        ...project.demoImages,
+        ...project.demoImageFiles.map((file) => URL.createObjectURL(file)),
+      ]),
+    [projects],
+  );
 
   useEffect(() => {
-    void fetchCompanyCatalogClient('service').then(setCatalogServices);
-  }, []);
+    return () => {
+      coverPreviews.forEach((url) => {
+        if (url?.startsWith('blob:')) URL.revokeObjectURL(url);
+      });
+      demoPreviews.flat().forEach((url) => {
+        if (url.startsWith('blob:')) URL.revokeObjectURL(url);
+      });
+    };
+  }, [coverPreviews, demoPreviews]);
+
+  const hasPendingProjects = projects.some(
+    (project) => project.status === CompanyProjectStatus.PENDING,
+  );
 
   const updateProject = (index: number, patch: Partial<ProjectDraft>) => {
     setProjects((current) =>
@@ -112,6 +264,8 @@ function CompanyProjectsFormFields({ company }: { company: CompanyProfileDetail 
       const token = await ensureValidAccessToken();
       if (!token) throw new Error(t('sessionExpired'));
 
+      await waitForFirebaseUser();
+
       const projectPayload: UpdateCompanyProjectInput[] = [];
 
       for (const project of projects) {
@@ -123,12 +277,18 @@ function CompanyProjectsFormFields({ company }: { company: CompanyProfileDetail 
           project.imageUrl ||
           project.imageFile ||
           project.demoImages.length > 0 ||
-          project.demoImageFiles.length > 0;
+          project.demoImageFiles.length > 0 ||
+          project.customServices.length > 0;
 
         if (!hasAnyValue) continue;
 
         if (!title) {
           toast.error(t('projectTitleRequired'));
+          return;
+        }
+
+        if (project.customServices.length > 5) {
+          toast.error(t('projectServicesMax'));
           return;
         }
 
@@ -151,7 +311,8 @@ function CompanyProjectsFormFields({ company }: { company: CompanyProfileDetail 
         const demoImages = [...project.demoImages];
         for (const file of project.demoImageFiles) {
           if (demoImages.length >= 8) break;
-          demoImages.push(await uploadUserFile(company.id, 'company/projects/demo', file));
+          const demoFile = new File([file], `demo-${file.name}`, { type: file.type });
+          demoImages.push(await uploadUserFile(company.id, 'company/projects', demoFile));
         }
 
         projectPayload.push({
@@ -164,14 +325,14 @@ function CompanyProjectsFormFields({ company }: { company: CompanyProfileDetail 
           clientName: project.clientName.trim() || undefined,
           location: project.location.trim() || undefined,
           projectDate: project.projectDate || undefined,
-          serviceIds: project.serviceIds,
+          customServices: project.customServices,
         });
       }
 
       await onboardingApi.updateCompany({ projects: projectPayload });
 
       await refreshOnboarding();
-      toast.success(t('projectsUpdated'));
+      toast.success(isVerified ? t('projectsSubmittedForApproval') : t('projectsUpdated'));
     } catch (err) {
       const message = err instanceof ApiError ? err.message : t('saveError');
       toast.error(message);
@@ -188,6 +349,11 @@ function CompanyProjectsFormFields({ company }: { company: CompanyProfileDetail 
       <div>
         <h2 className="text-lg font-semibold text-primary">{t('companyProjects')}</h2>
         <p className="mt-1 text-sm text-secondary">{t('companyProjectsHint')}</p>
+        {isVerified && hasPendingProjects ? (
+          <p className="mt-3 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900 dark:border-amber-900/60 dark:bg-amber-950/40 dark:text-amber-100">
+            {t('projectsPendingApproval')}
+          </p>
+        ) : null}
       </div>
 
       <div>
@@ -215,16 +381,34 @@ function CompanyProjectsFormFields({ company }: { company: CompanyProfileDetail 
                       maxLength={200}
                     />
                   </Field>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    className="mt-6 h-10 w-10 shrink-0 px-0"
-                    onClick={() => removeProject(index)}
-                    aria-label={t('removeProject')}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
+                  <div className="mt-6 flex shrink-0 items-center gap-2">
+                    {isVerified && project.status ? (
+                      <span
+                        className={cn(
+                          'inline-flex rounded-full px-3 py-1 text-xs font-medium',
+                          projectStatusStyles[project.status],
+                        )}
+                      >
+                        {t(`projectStatus.${project.status}`)}
+                      </span>
+                    ) : null}
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      className="h-10 w-10 px-0"
+                      onClick={() => removeProject(index)}
+                      aria-label={t('removeProject')}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
                 </div>
+
+                {isVerified && project.status === CompanyProjectStatus.REJECTED ? (
+                  <p className="mt-2 text-sm text-red-700 dark:text-red-300">
+                    {t('projectRejectedHint')}
+                  </p>
+                ) : null}
 
                 <Field label={t('projectDescription')} className="mt-3">
                   <textarea
@@ -237,11 +421,13 @@ function CompanyProjectsFormFields({ company }: { company: CompanyProfileDetail 
                 </Field>
 
                 <Field label={t('projectCoverImage')} className="mt-3" required>
-                  {project.imageUrl && !project.imageFile ? (
-                    <img
-                      src={project.imageUrl}
+                  {coverPreviews[index] ? (
+                    <ImagePreview
+                      src={coverPreviews[index]!}
                       alt=""
-                      className="mb-2 h-24 w-full rounded-lg object-cover"
+                      onRemove={() => updateProject(index, { imageUrl: '', imageFile: null })}
+                      removeLabel={t('removeProjectImage')}
+                      className="mb-2 h-24 w-full"
                     />
                   ) : null}
                   <Input
@@ -259,28 +445,54 @@ function CompanyProjectsFormFields({ company }: { company: CompanyProfileDetail 
                 </Field>
 
                 <Field label={t('projectDemoImages')} className="mt-3">
-                  {project.demoImages.length > 0 ? (
+                  {(demoPreviews[index]?.length ?? 0) > 0 ? (
                     <div className="mb-2 grid grid-cols-4 gap-2">
-                      {project.demoImages.map((url, imageIndex) => (
-                        <img
-                          key={`${url}-${imageIndex}`}
-                          src={url}
-                          alt=""
-                          className="h-16 w-full rounded-lg object-cover"
-                        />
-                      ))}
+                      {(demoPreviews[index] ?? []).map((url, imageIndex) => {
+                        const existingCount = project.demoImages.length;
+                        const isExisting = imageIndex < existingCount;
+
+                        return (
+                          <ImagePreview
+                            key={`${url}-${imageIndex}`}
+                            src={url}
+                            alt=""
+                            className="h-16 w-full"
+                            removeLabel={t('removeProjectImage')}
+                            onRemove={() => {
+                              if (isExisting) {
+                                updateProject(index, {
+                                  demoImages: project.demoImages.filter((_, i) => i !== imageIndex),
+                                });
+                                return;
+                              }
+
+                              const fileIndex = imageIndex - existingCount;
+                              updateProject(index, {
+                                demoImageFiles: project.demoImageFiles.filter(
+                                  (_, i) => i !== fileIndex,
+                                ),
+                              });
+                            }}
+                          />
+                        );
+                      })}
                     </div>
                   ) : null}
                   <Input
                     type="file"
                     accept="image/*"
                     multiple
+                    disabled={project.demoImages.length + project.demoImageFiles.length >= 8}
                     onChange={(e) => {
-                      const files = Array.from(e.target.files ?? []).slice(
+                      const remaining = Math.max(
                         0,
-                        Math.max(0, 8 - project.demoImages.length),
+                        8 - project.demoImages.length - project.demoImageFiles.length,
                       );
-                      updateProject(index, { demoImageFiles: files });
+                      const files = Array.from(e.target.files ?? []).slice(0, remaining);
+                      updateProject(index, {
+                        demoImageFiles: [...project.demoImageFiles, ...files],
+                      });
+                      e.target.value = '';
                     }}
                     className="h-10"
                   />
@@ -327,13 +539,16 @@ function CompanyProjectsFormFields({ company }: { company: CompanyProfileDetail 
                 </div>
 
                 <div className="mt-3">
-                  <CatalogMultiSelect
+                  <CustomServicesInput
                     label={t('projectServices')}
-                    hint={t('projectServicesHint')}
-                    items={catalogServices}
-                    selectedIds={project.serviceIds}
-                    onChange={(serviceIds) => updateProject(index, { serviceIds })}
-                    maxItems={10}
+                    hint={t('projectServicesCustomHint')}
+                    services={project.customServices}
+                    onChange={(customServices) => updateProject(index, { customServices })}
+                    addLabel={t('addService')}
+                    removeLabel={t('removeService')}
+                    placeholder={t('servicePlaceholder')}
+                    maxServices={5}
+                    maxReachedMessage={t('projectServicesMax')}
                   />
                 </div>
               </div>

@@ -344,16 +344,40 @@ export class CompaniesService {
         );
       }
 
-      if (input.serviceIds?.length) {
-        await this.catalogService.assertIdsExist(input.serviceIds, 'service');
+      const projectUpdates = input.projects;
+      const inputWithoutProjects =
+        projectUpdates !== undefined ? { ...input, projects: undefined } : input;
+      const { social, profile } = this.splitSocialLinksFromInput(inputWithoutProjects);
+
+      if (projectUpdates !== undefined) {
+        this.validateProjectInputs(projectUpdates);
+        await this.companiesRepository.replaceProjects(company.id, projectUpdates, {
+          defaultStatus: 'PENDING',
+        });
       }
-      if (input.activityIds?.length) {
-        await this.catalogService.assertIdsExist(input.activityIds, 'activity');
+
+      if (profile.serviceIds?.length) {
+        await this.catalogService.assertIdsExist(profile.serviceIds, 'service');
+      }
+      if (profile.activityIds?.length) {
+        await this.catalogService.assertIdsExist(profile.activityIds, 'activity');
+      }
+
+      if (this.hasDefinedUpdateFields(social)) {
+        await this.applyUpdate(company.id, company.slug, social);
+      }
+
+      if (!this.hasDefinedUpdateFields(profile)) {
+        const refreshed = await this.companiesRepository.findByOwnerId(userId);
+        const ratingDistribution = await this.companiesRepository.getApprovedRatingDistribution(
+          company.id,
+        );
+        return this.mapCompanyDetail(refreshed!, { ratingDistribution });
       }
 
       const pendingChanges = this.mergePendingChanges(
         company.pendingProfileChanges as Record<string, unknown> | null,
-        input,
+        profile,
       );
 
       await this.companiesRepository.update(company.id, {
@@ -463,6 +487,44 @@ export class CompaniesService {
   ): UpdateCompanyInput {
     const base = (existing ?? {}) as UpdateCompanyInput;
     return { ...base, ...input };
+  }
+
+  private static readonly SOCIAL_LINK_KEYS = [
+    'whatsappNumber',
+    'instagramUrl',
+    'youtubeUrl',
+    'facebookUrl',
+    'linkedinUrl',
+    'twitterUrl',
+  ] as const satisfies readonly (keyof UpdateCompanyInput)[];
+
+  private splitSocialLinksFromInput(input: UpdateCompanyInput): {
+    social: UpdateCompanyInput;
+    profile: UpdateCompanyInput;
+  } {
+    const social: UpdateCompanyInput = {};
+    const profile: UpdateCompanyInput = { ...input };
+
+    for (const key of CompaniesService.SOCIAL_LINK_KEYS) {
+      if (input[key] !== undefined) {
+        (social as Record<string, unknown>)[key] = input[key];
+        delete (profile as Record<string, unknown>)[key];
+      }
+    }
+
+    return { social, profile };
+  }
+
+  private hasDefinedUpdateFields(input: UpdateCompanyInput): boolean {
+    return Object.values(input).some((value) => value !== undefined);
+  }
+
+  private validateProjectInputs(projects: NonNullable<UpdateCompanyInput['projects']>): void {
+    for (const project of projects) {
+      if (project.customServices && project.customServices.length > 5) {
+        throw new BadRequestException('Each project can include at most 5 services');
+      }
+    }
   }
 
   async adminUpdate(companyId: string, input: UpdateCompanyInput): Promise<CompanyDetail> {
@@ -744,7 +806,10 @@ export class CompaniesService {
     });
 
     if (input.projects !== undefined) {
-      await this.companiesRepository.replaceProjects(companyId, input.projects);
+      this.validateProjectInputs(input.projects);
+      await this.companiesRepository.replaceProjects(companyId, input.projects, {
+        defaultStatus: 'APPROVED',
+      });
     }
 
     const refreshed = await this.companiesRepository.findById(companyId);

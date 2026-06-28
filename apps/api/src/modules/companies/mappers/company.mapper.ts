@@ -1,5 +1,6 @@
 import type { Category, Company, CompanyProject, User } from '@prisma/client';
 import type {
+  AdminCompanyProjectListItem,
   CompanyCatalogLabel,
   CompanyCategoryLabel,
   CompanyDetail,
@@ -9,6 +10,7 @@ import type {
   CompanySocialLinks,
   ReviewRatingDistribution,
 } from '@rateq/types';
+import { CompanyProjectStatus } from '@rateq/types';
 
 type CompanyWithPublicRelations = Company & {
   owner?: Pick<User, 'email'> | null;
@@ -60,6 +62,15 @@ function toSocialLinks(company: Company): CompanySocialLinks {
   };
 }
 
+function parseCustomServices(value: unknown): string[] {
+  if (!Array.isArray(value)) return [];
+  return value
+    .filter((item): item is string => typeof item === 'string')
+    .map((item) => item.trim())
+    .filter(Boolean)
+    .slice(0, 5);
+}
+
 function toCompanyProjectPublic(project: CompanyProject): CompanyProjectPublic {
   return {
     id: project.id,
@@ -73,6 +84,8 @@ function toCompanyProjectPublic(project: CompanyProject): CompanyProjectPublic {
     location: project.location ?? null,
     projectDate: project.projectDate?.toISOString() ?? null,
     serviceIds: parseIds(project.serviceIds),
+    customServices: parseCustomServices(project.customServices),
+    status: project.status as CompanyProjectStatus,
     sortOrder: project.sortOrder,
   };
 }
@@ -89,9 +102,13 @@ export function toCompanyPublic(
     activityItems?: CompanyCatalogLabel[];
     categoryItems?: CompanyCategoryLabel[];
     serviceRatingAggregates?: CompanyServiceRatingAggregate[];
+    includeUnpublishedProjects?: boolean;
   },
 ): CompanyPublic {
   const categoryIds = resolveCategoryIds(company);
+  const visibleProjects = (company.projects ?? []).filter((project) =>
+    extras?.includeUnpublishedProjects ? true : project.status === CompanyProjectStatus.APPROVED,
+  );
 
   return {
     id: company.id,
@@ -114,7 +131,7 @@ export function toCompanyPublic(
     yearsEstablished: company.yearsEstablished,
     publicProjectCount: company.publicProjectCount,
     privateProjectCount: company.privateProjectCount,
-    projects: (company.projects ?? []).map(toCompanyProjectPublic),
+    projects: visibleProjects.map(toCompanyProjectPublic),
     country: company.country,
     city: company.city,
     ratingAverage: Number(company.ratingAverage),
@@ -141,7 +158,7 @@ export function toCompanyDetail(
   },
 ): CompanyDetail {
   return {
-    ...toCompanyPublic(company, extras),
+    ...toCompanyPublic(company, { ...extras, includeUnpublishedProjects: true }),
     updatedAt: company.updatedAt.toISOString(),
     profileChangeStatus: company.profileChangeStatus === 'PENDING' ? 'pending' : 'none',
   };
@@ -155,4 +172,37 @@ export function normalizeCategoryIdsInput(categoryIds?: string[], categoryId?: s
   const ids = categoryIds?.filter(Boolean) ?? [];
   if (ids.length > 0) return [...new Set(ids)];
   return categoryId ? [categoryId] : [];
+}
+
+type CompanyProjectWithCompany = CompanyProject & {
+  company: {
+    id: string;
+    name: string;
+    slug: string;
+    logo: string | null;
+    category: Pick<Category, 'nameEn' | 'nameAr'> | null;
+  };
+};
+
+export function toAdminCompanyProjectListItem(
+  project: CompanyProjectWithCompany,
+): AdminCompanyProjectListItem {
+  return {
+    id: project.id,
+    slug: project.slug,
+    title: project.title,
+    description: project.description ?? null,
+    imageUrl: project.imageUrl,
+    demoImages: parseDemoImages(project.demoImages),
+    customServices: parseCustomServices(project.customServices),
+    status: project.status as CompanyProjectStatus,
+    company: {
+      id: project.company.id,
+      name: project.company.name,
+      slug: project.company.slug,
+      logo: project.company.logo,
+      categoryName: project.company.category?.nameEn ?? null,
+    },
+    createdAt: project.createdAt.toISOString(),
+  };
 }

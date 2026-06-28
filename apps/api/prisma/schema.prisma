@@ -33,6 +33,12 @@ enum ReviewReplyStatus {
   REJECTED
 }
 
+enum CompanyProjectStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
 enum ModerationAction {
   AUTO_APPROVED
   QUEUED
@@ -288,26 +294,29 @@ model Company {
 }
 
 model CompanyProject {
-  id          String    @id @default(cuid())
-  companyId   String    @map("company_id")
-  slug        String
-  title       String
-  description String?   @db.Text
-  imageUrl    String    @map("image_url")
-  projectUrl  String    @default("") @map("project_url")
-  demoImages  Json?     @map("demo_images")
-  clientName  String?   @map("client_name")
-  location    String?
-  projectDate DateTime? @map("project_date")
-  serviceIds  Json?     @map("service_ids")
-  sortOrder   Int       @default(0) @map("sort_order")
-  createdAt   DateTime  @default(now()) @map("created_at")
-  updatedAt   DateTime  @updatedAt @map("updated_at")
+  id             String               @id @default(cuid())
+  companyId      String               @map("company_id")
+  slug           String
+  title          String
+  description    String?              @db.Text
+  imageUrl       String               @map("image_url")
+  projectUrl     String               @default("") @map("project_url")
+  demoImages     Json?                @map("demo_images")
+  clientName     String?              @map("client_name")
+  location       String?
+  projectDate    DateTime?            @map("project_date")
+  serviceIds     Json?                @map("service_ids")
+  customServices Json?                @map("custom_services")
+  status         CompanyProjectStatus @default(PENDING)
+  sortOrder      Int                  @default(0) @map("sort_order")
+  createdAt      DateTime             @default(now()) @map("created_at")
+  updatedAt      DateTime             @updatedAt @map("updated_at")
 
   company Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
 
   @@unique([companyId, slug])
   @@index([companyId, sortOrder])
+  @@index([status])
   @@map("company_projects")
 }
 

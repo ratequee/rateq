@@ -509,3 +509,131 @@ export function buildReviewReplyRejectedEmailText(
 
   return appendBilingualText(english, arabic);
 }
+
+export interface CompanyProjectDecisionEmailContent {
+  companyEmail: string;
+  companyName: string;
+  projectTitle: string;
+}
+
+export function buildCompanyProjectApprovedEmailHtml(
+  content: Omit<CompanyProjectDecisionEmailContent, 'companyEmail'> & {
+    appUrl: string;
+    projectsUrl: string;
+  },
+): string {
+  const bodyHtml = `
+    ${emailParagraph(`Your project "${content.projectTitle}" for ${content.companyName} has been approved and is now visible on your public RateQ profile.`)}
+    ${emailButton(content.projectsUrl, 'View company projects')}
+    ${emailSecondaryLink(content.projectsUrl, 'Open projects dashboard')}
+    ${emailCallout(
+      'Project published',
+      '<p style="margin:0;">Thank you for showcasing your work. Approved projects help customers understand your expertise.</p>',
+      'success',
+    )}
+  `;
+
+  const bodyHtmlAr = `
+    ${emailParagraphRtl(`تمت الموافقة على مشروعكم "${content.projectTitle}" لـ ${content.companyName} وأصبح مرئيًا الآن على ملفكم العام في RateQ.`)}
+    ${emailButton(content.projectsUrl, 'عرض مشاريع الشركة')}
+    ${emailSecondaryLink(content.projectsUrl, 'فتح لوحة المشاريع')}
+    ${emailCallout(
+      'تم نشر المشروع',
+      '<p dir="rtl" style="margin:0;text-align:right;">شكرًا لعرض أعمالكم. تساعد المشاريع المعتمدة العملاء على فهم خبرتكم.</p>',
+      'success',
+    )}
+  `;
+
+  return renderBilingualEmailLayout({
+    appUrl: content.appUrl,
+    preheader: `Your project for ${content.companyName} is now live. | مشروعكم لـ ${content.companyName} متاح الآن.`,
+    eyebrow: 'Project approved | تمت الموافقة على المشروع',
+    title: 'Your project has been published',
+    titleAr: 'تم نشر مشروعكم',
+    bodyHtml,
+    bodyHtmlAr,
+  });
+}
+
+export function buildCompanyProjectApprovedEmailText(
+  content: CompanyProjectDecisionEmailContent,
+): string {
+  const english = [
+    'Your project has been approved',
+    '',
+    `Project: ${content.projectTitle}`,
+    `Company: ${content.companyName}`,
+  ].join('\n');
+
+  const arabic = [
+    'تمت الموافقة على مشروعكم',
+    '',
+    `المشروع: ${content.projectTitle}`,
+    `الشركة: ${content.companyName}`,
+  ].join('\n');
+
+  return appendBilingualText(english, arabic);
+}
+
+export function buildCompanyProjectRejectedEmailHtml(
+  content: Omit<CompanyProjectDecisionEmailContent, 'companyEmail'> & {
+    appUrl: string;
+    projectsUrl: string;
+  },
+): string {
+  const bodyHtml = `
+    ${emailParagraph(`Your project "${content.projectTitle}" for ${content.companyName} was not approved and will not be shown on your public RateQ profile.`)}
+    ${emailButton(content.projectsUrl, 'Update projects')}
+    ${emailSecondaryLink(content.projectsUrl, 'Open projects dashboard')}
+    ${emailCallout(
+      'You can try again',
+      '<p style="margin:0;">You can update your project details and resubmit from your company projects dashboard.</p>',
+      'warning',
+    )}
+  `;
+
+  const bodyHtmlAr = `
+    ${emailParagraphRtl(`لم تتم الموافقة على مشروعكم "${content.projectTitle}" لـ ${content.companyName} ولن يُعرض على ملفكم العام في RateQ.`)}
+    ${emailButton(content.projectsUrl, 'تحديث المشاريع')}
+    ${emailSecondaryLink(content.projectsUrl, 'فتح لوحة المشاريع')}
+    ${emailCallout(
+      'يمكنكم المحاولة مجددًا',
+      '<p dir="rtl" style="margin:0;text-align:right;">يمكنكم تحديث تفاصيل المشروع وإعادة الإرسال من لوحة مشاريع شركتكم.</p>',
+      'warning',
+    )}
+  `;
+
+  return renderBilingualEmailLayout({
+    appUrl: content.appUrl,
+    preheader: `Your project for ${content.companyName} was not approved. | لم تتم الموافقة على مشروعكم لـ ${content.companyName}.`,
+    eyebrow: 'Project update | تحديث المشروع',
+    title: 'Your project was not approved',
+    titleAr: 'لم تتم الموافقة على مشروعكم',
+    bodyHtml,
+    bodyHtmlAr,
+  });
+}
+
+export function buildCompanyProjectRejectedEmailText(
+  content: CompanyProjectDecisionEmailContent,
+): string {
+  const english = [
+    'Your project was not approved',
+    '',
+    `Project: ${content.projectTitle}`,
+    `Company: ${content.companyName}`,
+    '',
+    'You can update your project and resubmit from your company projects dashboard.',
+  ].join('\n');
+
+  const arabic = [
+    'لم تتم الموافقة على مشروعكم',
+    '',
+    `المشروع: ${content.projectTitle}`,
+    `الشركة: ${content.companyName}`,
+    '',
+    'يمكنكم تحديث المشروع وإعادة الإرسال من لوحة مشاريع شركتكم.',
+  ].join('\n');
+
+  return appendBilingualText(english, arabic);
+}

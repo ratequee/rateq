@@ -1,7 +1,10 @@
 'use client';
 
 import { CatalogMultiSelect } from '@/components/profile/catalog-multi-select';
-import { CompanySocialLinksFields } from '@/components/profile/company-social-links-fields';
+import {
+  ProfileChangesPendingBanner,
+  profileUpdateSuccessMessage,
+} from '@/components/dashboard/profile-changes-pending-banner';
 import { DashboardProfileLoading } from '@/components/dashboard/dashboard-profile-loading';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -9,11 +12,7 @@ import { useProfile } from '@/components/providers/profile-provider';
 import { fetchCompanyCatalogClient } from '@/lib/company-catalog-api';
 import { onboardingApi } from '@/lib/onboarding-api';
 import { ApiError } from '@/lib/api';
-import type {
-  CompanyCatalogItemPublic,
-  CompanyProfileDetail,
-  CompanySocialLinks,
-} from '@rateq/types';
+import type { CompanyCatalogItemPublic, CompanyProfileDetail } from '@rateq/types';
 import { useTranslations } from 'next-intl';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
@@ -29,17 +28,6 @@ function CompanyPublicProfileFormFields({ company }: { company: CompanyProfileDe
   );
   const [descriptionAr, setDescriptionAr] = useState(() => company.descriptionAr ?? '');
   const [websiteUrl, setWebsiteUrl] = useState(() => company.websiteUrl ?? '');
-  const [socialLinks, setSocialLinks] = useState<CompanySocialLinks>(
-    () =>
-      company.socialLinks ?? {
-        whatsappNumber: null,
-        instagramUrl: null,
-        youtubeUrl: null,
-        facebookUrl: null,
-        linkedinUrl: null,
-        twitterUrl: null,
-      },
-  );
   const [serviceIds, setServiceIds] = useState<string[]>(
     () => company.serviceItems?.map((item) => item.id) ?? [],
   );
@@ -82,12 +70,6 @@ function CompanyPublicProfileFormFields({ company }: { company: CompanyProfileDe
         descriptionEn: descriptionEn.trim() || undefined,
         descriptionAr: descriptionAr.trim() || undefined,
         websiteUrl: websiteUrl.trim() || null,
-        whatsappNumber: socialLinks.whatsappNumber,
-        instagramUrl: socialLinks.instagramUrl,
-        youtubeUrl: socialLinks.youtubeUrl,
-        facebookUrl: socialLinks.facebookUrl,
-        linkedinUrl: socialLinks.linkedinUrl,
-        twitterUrl: socialLinks.twitterUrl,
         serviceIds,
         activityIds,
         yearsEstablished: yearsEstablished ? Number(yearsEstablished) : undefined,
@@ -96,8 +78,13 @@ function CompanyPublicProfileFormFields({ company }: { company: CompanyProfileDe
       });
 
       await refreshOnboarding();
-      const needsApproval = company.verificationStatus === 'approved';
-      toast.success(needsApproval ? t('publicProfilePendingApproval') : t('publicProfileUpdated'));
+      toast.success(
+        profileUpdateSuccessMessage(
+          company.verificationStatus,
+          t('publicProfilePendingApproval'),
+          t('publicProfileUpdated'),
+        ),
+      );
     } catch (err) {
       const message = err instanceof ApiError ? err.message : t('saveError');
       toast.error(message);
@@ -114,11 +101,7 @@ function CompanyPublicProfileFormFields({ company }: { company: CompanyProfileDe
       <div>
         <h2 className="text-lg font-semibold text-primary">{t('publicProfileTitle')}</h2>
         <p className="mt-1 text-sm text-secondary">{t('publicProfileSubtitle')}</p>
-        {pendingApproval ? (
-          <p className="mt-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-800 dark:border-amber-900 dark:bg-amber-950/40 dark:text-amber-200">
-            {t('profileChangesPending')}
-          </p>
-        ) : null}
+        {pendingApproval ? <ProfileChangesPendingBanner /> : null}
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2">
@@ -166,12 +149,6 @@ function CompanyPublicProfileFormFields({ company }: { company: CompanyProfileDe
           className="h-11"
         />
       </Field>
-
-      <CompanySocialLinksFields
-        values={socialLinks}
-        onChange={(patch) => setSocialLinks((current) => ({ ...current, ...patch }))}
-        disabled={pendingApproval}
-      />
 
       <CatalogMultiSelect
         label={t('companyServices')}

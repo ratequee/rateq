@@ -1,16 +1,21 @@
 import { BadRequestException, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import type { ReviewStatus } from '@prisma/client';
 import { ModerationAction } from '@prisma/client';
+import type { PaginatedAdminProjectsResponse } from '@rateq/types';
 import { EmailService } from '../auth/services/email.service';
 import { AdminActivityService } from '../admin-activity/admin-activity.service';
 import { AdminActivityAction, AdminActivityEntityType } from '@rateq/types';
 import { ReviewsRepository } from '../reviews/repositories/reviews.repository';
 import { resolveCompanyOwnerEmail, resolveReviewerContact } from '../reviews/mappers/review.mapper';
+import { CompaniesRepository } from '../companies/repositories/companies.repository';
+import { toAdminCompanyProjectListItem } from '../companies/mappers/company.mapper';
+import { buildPaginationMeta } from '../../common/utils/pagination.util';
 import { ModerationRepository } from './repositories/moderation.repository';
 import {
   ModerationEngineService,
   type ModerationContext,
 } from './services/moderation-engine.service';
+import type { ListProjectsQueryDto } from './dto/list-projects-query.dto';
 
 export const NEGATIVE_REVIEW_MAX_RATING = 3;
 
@@ -20,6 +25,7 @@ export class ModerationService {
 
   constructor(
     private readonly reviewsRepository: ReviewsRepository,
+    private readonly companiesRepository: CompaniesRepository,
     private readonly moderationRepository: ModerationRepository,
     private readonly moderationEngine: ModerationEngineService,
     private readonly emailService: EmailService,
@@ -390,6 +396,123 @@ export class ModerationService {
     if (previousStatus === 'APPROVED' && status !== 'APPROVED') {
       await this.reviewsRepository.recalculateCompanyRating(review.companyId);
       await this.reviewsRepository.decrementUserReviewCount(review.userId);
+    }
+  }
+
+  async listProjects(query: ListProjectsQueryDto): Promise<PaginatedAdminProjectsResponse> {
+    const page = query.page ?? 1;
+    const limit = query.limit ?? 20;
+
+    const [items, total] = await Promise.all([
+      this.companiesRepository.findProjectsForModeration({
+        status: query.status,
+        page,
+        limit,
+      }),
+      this.companiesRepository.countProjectsForModeration(query.status),
+    ]);
+
+    return {
+      data: items.map(toAdminCompanyProjectListItem),
+      meta: buildPaginationMeta(total, page, limit),
+    };
+  }
+
+  async manualApproveProject(projectId: string, adminId: string): Promise<void> {
+    const project = await this.companiesRepository.findProjectById(projectId);
+
+    if (!project) {
+      throw new NotFoundException('Project not found');
+    }
+
+    if (project.status !== 'PENDING') {
+      throw new BadRequestException('This project can no longer be moderated');
+    }
+
+    await this.companiesRepository.updateProjectStatus(projectId, 'APPROVED');
+
+    await this.adminActivity.log({
+      adminId,
+      entityType: AdminActivityEntityType.COMPANY_PROFILE_CHANGE,
+      entityId: projectId,
+      entityLabel: project.title,
+      action: AdminActivityAction.APPROVED,
+    });
+
+    await this.notifyCompanyProjectDecision(projectId, 'approved');
+  }
+
+  async manualRejectProject(projectId: string, adminId: string): Promise<void> {
+    const project = await this.companiesRepository.findProjectById(projectId);
+
+    if (!project) {
+      throw new NotFoundException('Project not found');
+    }
+
+    if (project.status !== 'PENDING') {
+      throw new BadRequestException('This project can no longer be moderated');
+    }
+
+    await this.companiesRepository.updateProjectStatus(projectId, 'REJECTED');
+
+    await this.adminActivity.log({
+      adminId,
+      entityType: AdminActivityEntityType.COMPANY_PROFILE_CHANGE,
+      entityId: projectId,
+      entityLabel: project.title,
+      action: AdminActivityAction.REJECTED,
+    });
+
+    await this.notifyCompanyProjectDecision(projectId, 'rejected');
+  }
+
+  async manualDeleteProject(projectId: string, adminId: string): Promise<void> {
+    const project = await this.companiesRepository.findProjectById(projectId);
+
+    if (!project) {
+      throw new NotFoundException('Project not found');
+    }
+
+    await this.companiesRepository.deleteProjectById(projectId);
+
+    await this.adminActivity.log({
+      adminId,
+      entityType: AdminActivityEntityType.COMPANY_PROFILE_CHANGE,
+      entityId: projectId,
+      entityLabel: project.title,
+      action: AdminActivityAction.DELETED,
+    });
+  }
+
+  private async notifyCompanyProjectDecision(
+    projectId: string,
+    decision: 'approved' | 'rejected',
+  ): Promise<void> {
+    const project = await this.companiesRepository.findProjectById(projectId);
+    if (!project) return;
+
+    const companyEmail = project.company.owner?.email ?? project.company.email ?? null;
+    if (!companyEmail) return;
+
+    const payload = {
+      companyEmail,
+      companyName: project.company.name,
+      projectTitle: project.title,
+    };
+
+    try {
+      if (decision === 'approved') {
+        await this.emailService.sendCompanyProjectApprovedEmail(payload);
+        return;
+      }
+
+      await this.emailService.sendCompanyProjectRejectedEmail(payload);
+    } catch (error) {
+      this.logger.warn(
+        `Failed to send project ${decision} email to ${companyEmail}: ${
+          error instanceof Error ? error.message : 'unknown error'
+        }`,
+      );
     }
   }
 }

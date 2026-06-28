@@ -17,6 +17,12 @@ export enum ReviewReplyStatus {
   REJECTED = 'REJECTED',
 }
 
+export enum CompanyProjectStatus {
+  PENDING = 'PENDING',
+  APPROVED = 'APPROVED',
+  REJECTED = 'REJECTED',
+}
+
 export enum ModerationAction {
   AUTO_APPROVED = 'AUTO_APPROVED',
   QUEUED = 'QUEUED',

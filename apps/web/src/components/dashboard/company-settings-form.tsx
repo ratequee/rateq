@@ -2,6 +2,10 @@
 
 import { CategoryMultiSelect } from '@/components/profile/category-multi-select';
 import { CompanyAddressMapField } from '@/components/profile/company-address-map-field';
+import {
+  ProfileChangesPendingBanner,
+  profileUpdateSuccessMessage,
+} from '@/components/dashboard/profile-changes-pending-banner';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { QatarPhoneInput } from '@/components/ui/qatar-phone-input';
@@ -51,6 +55,8 @@ function CompanySettingsForm({ company }: { company: CompanyProfileDetail }) {
   const [companyCity, setCompanyCity] = useState(() => company.city);
   const [companyCountry, setCompanyCountry] = useState(() => company.country);
 
+  const pendingApproval = company.profileChangeStatus === 'pending';
+
   useEffect(() => {
     void fetchCategoriesClient().then(setCategories);
   }, []);
@@ -96,7 +102,13 @@ function CompanySettingsForm({ company }: { company: CompanyProfileDetail }) {
       });
 
       await refreshOnboarding();
-      toast.success(t('profileUpdated'));
+      toast.success(
+        profileUpdateSuccessMessage(
+          company.verificationStatus,
+          t('publicProfilePendingApproval'),
+          t('profileUpdated'),
+        ),
+      );
     } catch (err) {
       const message = err instanceof ApiError ? err.message : t('saveError');
       toast.error(message);
@@ -110,6 +122,12 @@ function CompanySettingsForm({ company }: { company: CompanyProfileDetail }) {
       onSubmit={handleSubmit}
       className="mb-6 space-y-4 rounded-2xl surface-card border p-6 shadow-sm"
     >
+      <div>
+        <h2 className="text-lg font-semibold text-primary">{t('companyDetailsTitle')}</h2>
+        <p className="mt-1 text-sm text-secondary">{t('companyDetailsSubtitle')}</p>
+        {pendingApproval ? <ProfileChangesPendingBanner /> : null}
+      </div>
+
       <Field label={t('companyName')} error={errors.companyName} required>
         <Input
           value={companyName}

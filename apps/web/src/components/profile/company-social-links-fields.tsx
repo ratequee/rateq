@@ -28,11 +28,6 @@ export function CompanySocialLinksFields({
 
   return (
     <div className="space-y-4">
-      <div>
-        <h3 className="text-sm font-semibold text-primary">{t('socialLinksTitle')}</h3>
-        <p className="mt-1 text-xs text-secondary">{t('socialLinksHint')}</p>
-      </div>
-
       <Field label={t('whatsappNumber')}>
         <div className="flex">
           <span className="inline-flex h-10 items-center rounded-s-lg border border-e-0 border-default bg-slate-50 px-3 text-sm text-secondary dark:bg-dm-elevated">

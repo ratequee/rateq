@@ -618,6 +618,9 @@
     "categoriesMultiHint": "Select one or more business categories.",
     "socialLinksTitle": "Social links",
     "socialLinksHint": "Optional. Shown on your public company page.",
+    "socialLinksCardSubtitle": "Updates save immediately — no admin approval needed.",
+    "saveSocialLinks": "Save social links",
+    "socialLinksUpdated": "Social links updated successfully.",
     "whatsappNumber": "WhatsApp",
     "instagramUrl": "Instagram",
     "youtubeUrl": "YouTube",
@@ -634,8 +637,21 @@
     "projectsPageSubtitle": "Showcase your company work with titles and images on your public profile.",
     "saveProjects": "Save projects",
     "projectsUpdated": "Projects updated successfully.",
+    "projectsSubmittedForApproval": "Projects submitted for admin approval.",
+    "projectsPendingApproval": "Some projects are pending admin approval and are not visible on your public profile yet.",
+    "projectServicesCustomHint": "Add up to 5 custom services for this project (not from the admin catalog).",
+    "projectServicesMax": "Each project can include at most 5 services.",
+    "removeProjectImage": "Remove image",
+    "projectRejectedHint": "This project was not approved. Update it and save to resubmit.",
+    "projectStatus": {
+      "PENDING": "Pending review",
+      "APPROVED": "Approved",
+      "REJECTED": "Rejected"
+    },
     "publicProfileTitle": "Public company profile",
     "publicProfileSubtitle": "Manage what customers see on your company page.",
+    "companyDetailsTitle": "Company details",
+    "companyDetailsSubtitle": "Name, location, and categories. Changes require admin approval once verified.",
     "companyAbout": "About your company",
     "companyAboutHint": "Describe your business, values, and what makes you stand out.",
     "companyAboutPlaceholder": "Tell customers about your company…",
@@ -1044,17 +1060,29 @@
   },
   "adminProjects": {
     "title": "Projects",
-    "subtitle": "Overview of company portfolio projects across the platform.",
-    "statsChangeUp": "{value} vs last month",
-    "statsNeedsAction": "Needs moderation",
-    "stats": {
-      "totalProjects": "Total projects",
-      "featuredProjects": "Featured projects",
-      "pendingReview": "Pending review",
-      "companiesWithProjects": "Companies with projects"
+    "subtitle": "Review and moderate company portfolio projects.",
+    "loadError": "Could not load projects.",
+    "actionError": "Could not complete that action.",
+    "approveSuccess": "Project approved.",
+    "rejectSuccess": "Project rejected.",
+    "deleteSuccess": "Project deleted.",
+    "deleteConfirm": "Delete this project permanently?",
+    "selectProject": "Select a project to review details and take action.",
+    "services": "Services",
+    "approve": "Approve",
+    "reject": "Reject",
+    "delete": "Delete",
+    "empty": "No projects match this filter.",
+    "filters": {
+      "all": "All"
     },
-    "tableTitle": "Recent projects",
-    "tableSubtitle": "Sample portfolio entries submitted by verified companies.",
+    "pagination": {
+      "previous": "Previous",
+      "next": "Next",
+      "pageOf": "Page {page} of {total}"
+    },
+    "tableTitle": "Company projects",
+    "tableSubtitle": "Portfolio entries submitted by verified companies.",
     "table": {
       "project": "Project",
       "company": "Company",
@@ -1063,41 +1091,9 @@
       "submitted": "Submitted"
     },
     "status": {
-      "featured": "Featured",
-      "published": "Published",
-      "pending": "Pending review"
-    },
-    "rows": {
-      "proj-1": {
-        "title": "Ashghal Infrastructure Upgrade",
-        "company": "ATS DUMS",
-        "category": "Automotive"
-      },
-      "proj-2": {
-        "title": "West Bay Office Fit-out",
-        "company": "Qatar Business Solutions",
-        "category": "Business"
-      },
-      "proj-3": {
-        "title": "Premium Auto Detailing Hub",
-        "company": "Al Rayyan Motors",
-        "category": "Automotive"
-      },
-      "proj-4": {
-        "title": "Pearl Residence Landscaping",
-        "company": "Ezdan Real Estate",
-        "category": "Real estate"
-      },
-      "proj-5": {
-        "title": "Corporate Wellness Program",
-        "company": "Qatar Health Clinic",
-        "category": "Health"
-      },
-      "proj-6": {
-        "title": "Lusail Marina Cleaning Contract",
-        "company": "Gulf Facility Services",
-        "category": "Business"
-      }
+      "PENDING": "Pending review",
+      "APPROVED": "Approved",
+      "REJECTED": "Rejected"
     }
   },
   "adminPayments": {

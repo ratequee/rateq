@@ -4,6 +4,7 @@ import { DashboardShell } from '@/components/dashboard/dashboard-shell';
 import { DashboardPageHeader } from '@/components/dashboard/dashboard-page-header';
 import { DashboardProfileLoading } from '@/components/dashboard/dashboard-profile-loading';
 import { CompanyPublicProfileForm } from '@/components/dashboard/company-public-profile-form';
+import { CompanySocialLinksForm } from '@/components/dashboard/company-social-links-form';
 import { CompanySettingsForm } from '@/components/dashboard/company-settings-form';
 import { CompanyInviteReviewersPanel } from '@/components/dashboard/company-invite-reviewers-panel';
 import { useProfile } from '@/components/providers/profile-provider';
@@ -108,6 +109,7 @@ export default function CompanyProfileSettingsPage() {
             <CompanySettingsForm key={company.updatedAt} company={company} />
 
             <div className="space-y-6">
+              <CompanySocialLinksForm />
               <CompanyPublicProfileForm />
               <CompanyInviteReviewersPanel />
             </div>

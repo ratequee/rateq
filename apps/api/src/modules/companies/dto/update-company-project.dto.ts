@@ -70,6 +70,14 @@ export class UpdateCompanyProjectDto {
   @ApiPropertyOptional({ type: [String] })
   @IsOptional()
   @IsArray()
+  @ArrayMaxSize(5)
+  @IsString({ each: true })
+  @MaxLength(120, { each: true })
+  customServices?: string[];
+
+  @ApiPropertyOptional({ type: [String] })
+  @IsOptional()
+  @IsArray()
   @ArrayMaxSize(30)
   @IsString({ each: true })
   serviceIds?: string[];
