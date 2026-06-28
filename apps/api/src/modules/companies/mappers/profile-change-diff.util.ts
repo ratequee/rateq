@@ -3,6 +3,9 @@ import type { AdminProfileChangeField, UpdateCompanyInput } from '@rateq/types';
 import { parseCompanyIdList } from './company.mapper';
 
 type LabelResolver = (ids: string[]) => Promise<Map<string, string>>;
+type CategoryLabelResolver = (
+  ids: string[],
+) => Promise<Map<string, { en: string; ar: string | null }>>;
 
 function formatValue(value: unknown): string {
   if (value === null || value === undefined || value === '') return '—';
@@ -17,6 +20,29 @@ function formatValue(value: unknown): string {
     return JSON.stringify(value);
   }
   return String(value);
+}
+
+function resolveCurrentCategoryIds(company: Company): string[] {
+  const fromJson = parseCompanyIdList(company.categoryIds);
+  if (fromJson.length > 0) return fromJson;
+  return company.categoryId ? [company.categoryId] : [];
+}
+
+function formatCategoryDisplay(
+  ids: string[],
+  labelMap: Map<string, { en: string; ar: string | null }>,
+): string {
+  if (ids.length === 0) return '—';
+  return ids
+    .map((id) => {
+      const names = labelMap.get(id);
+      if (!names) return id;
+      if (names.ar && names.ar !== names.en) {
+        return `${names.en} (${names.ar})`;
+      }
+      return names.en;
+    })
+    .join(', ');
 }
 
 function currentFieldValue(company: Company, key: keyof UpdateCompanyInput): unknown {
@@ -43,6 +69,8 @@ function currentFieldValue(company: Company, key: keyof UpdateCompanyInput): unk
       return company.city;
     case 'categoryId':
       return company.categoryId;
+    case 'categoryIds':
+      return resolveCurrentCategoryIds(company);
     case 'crNumber':
       return company.crNumber;
     case 'validationDate':
@@ -80,6 +108,7 @@ const FIELD_LABELS: Record<string, string> = {
   country: 'Country',
   city: 'City',
   categoryId: 'Category',
+  categoryIds: 'Categories',
   crNumber: 'CR number',
   validationDate: 'Validation date',
   yearsEstablished: 'Years established',
@@ -96,7 +125,8 @@ const FIELD_LABELS: Record<string, string> = {
 export async function buildProfileChangeFields(
   company: Company,
   pending: UpdateCompanyInput,
-  resolveLabels: LabelResolver,
+  resolveCatalogLabels: LabelResolver,
+  resolveCategoryLabels: CategoryLabelResolver,
 ): Promise<AdminProfileChangeField[]> {
   const fields: AdminProfileChangeField[] = [];
 
@@ -112,11 +142,34 @@ export async function buildProfileChangeFields(
       const currentIds = Array.isArray(current) ? (current as string[]) : [];
       const proposedIds = Array.isArray(proposed) ? proposed : [];
       const allIds = [...new Set([...currentIds, ...proposedIds])];
-      const labelMap = await resolveLabels(allIds);
+      const labelMap = await resolveCatalogLabels(allIds);
       currentDisplay =
         currentIds.length === 0 ? '—' : currentIds.map((id) => labelMap.get(id) ?? id).join(', ');
       proposedDisplay =
         proposedIds.length === 0 ? '—' : proposedIds.map((id) => labelMap.get(id) ?? id).join(', ');
+    }
+
+    if (key === 'categoryIds' || key === 'categoryId') {
+      const currentIds =
+        key === 'categoryIds'
+          ? Array.isArray(current)
+            ? (current as string[])
+            : resolveCurrentCategoryIds(company)
+          : current
+            ? [String(current)]
+            : resolveCurrentCategoryIds(company);
+      const proposedIds =
+        key === 'categoryIds'
+          ? Array.isArray(proposed)
+            ? proposed
+            : []
+          : proposed
+            ? [String(proposed)]
+            : [];
+      const allIds = [...new Set([...currentIds, ...proposedIds])];
+      const labelMap = await resolveCategoryLabels(allIds);
+      currentDisplay = formatCategoryDisplay(currentIds, labelMap);
+      proposedDisplay = formatCategoryDisplay(proposedIds, labelMap);
     }
 
     if (currentDisplay === proposedDisplay) continue;

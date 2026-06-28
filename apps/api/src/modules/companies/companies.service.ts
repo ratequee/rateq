@@ -578,10 +578,18 @@ export class CompaniesService {
     }
 
     const pending = company.pendingProfileChanges as UpdateCompanyInput;
-    const profileChangeFields = await buildProfileChangeFields(company, pending, async (ids) => {
-      const labels = await this.catalogService.resolveLabels(ids, 'en');
-      return new Map(labels.map((entry) => [entry.id, entry.label]));
-    });
+    const profileChangeFields = await buildProfileChangeFields(
+      company,
+      pending,
+      async (ids) => {
+        const labels = await this.catalogService.resolveLabels(ids, 'en');
+        return new Map(labels.map((entry) => [entry.id, entry.label]));
+      },
+      async (ids) => {
+        const labels = await this.categoriesService.resolveLabels(ids, 'en');
+        return new Map(labels.map((entry) => [entry.id, { en: entry.label, ar: entry.labelAr }]));
+      },
+    );
 
     return {
       ...base,
