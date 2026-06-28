@@ -5,6 +5,10 @@ ALTER TABLE "review_replies" ADD COLUMN "status" "ReviewReplyStatus" NOT NULL DE
 
 UPDATE "review_replies" SET "status" = 'APPROVED';
 
+ALTER TABLE "review_replies" ADD COLUMN "updated_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP;
+
+UPDATE "review_replies" SET "updated_at" = "created_at";
+
 -- Company social links & multi-category
 ALTER TABLE "companies" ADD COLUMN "whatsapp_number" TEXT;
 ALTER TABLE "companies" ADD COLUMN "instagram_url" TEXT;
