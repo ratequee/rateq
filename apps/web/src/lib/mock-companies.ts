@@ -4,7 +4,7 @@ import type {
   PaginatedReviewsResponse,
   ReviewPublic,
 } from '@rateq/types';
-import { ReviewStatus } from '@rateq/types';
+import { ReviewReplyStatus, ReviewStatus } from '@rateq/types';
 import { CATEGORY_IDS, type CategoryId } from '@/lib/categories';
 
 interface MockCompany extends Omit<
@@ -521,7 +521,7 @@ const MOCK_REVIEWS: Record<string, ReviewPublic[]> = {
         id: 'reply-ooredoo-1',
         content: 'Thank you Sara! We are glad our team could help quickly.',
         createdAt: '2025-05-20T09:00:00.000Z',
-        status: 'approved',
+        status: ReviewReplyStatus.APPROVED,
       },
     },
     {
@@ -581,7 +581,7 @@ const MOCK_REVIEWS: Record<string, ReviewPublic[]> = {
         id: 'reply-qa-1',
         content: 'We appreciate your feedback and look forward to welcoming you onboard again.',
         createdAt: '2025-05-24T09:00:00.000Z',
-        status: 'approved',
+        status: ReviewReplyStatus.APPROVED,
       },
     },
     {
@@ -651,7 +651,7 @@ const MOCK_REVIEWS: Record<string, ReviewPublic[]> = {
         id: 'reply-almeera-1',
         content: 'Thanks for shopping with Al Meera! We work hard to keep shelves stocked daily.',
         createdAt: '2025-05-17T09:00:00.000Z',
-        status: 'approved',
+        status: ReviewReplyStatus.APPROVED,
       },
     },
     {
@@ -856,6 +856,15 @@ const MOCK_REVIEWS: Record<string, ReviewPublic[]> = {
   ],
 };
 
+const EMPTY_SOCIAL_LINKS: CompanyPublic['socialLinks'] = {
+  whatsappNumber: null,
+  instagramUrl: null,
+  youtubeUrl: null,
+  facebookUrl: null,
+  linkedinUrl: null,
+  twitterUrl: null,
+};
+
 function toPublicCompany(company: MockCompany): CompanyPublic {
   const { keywords: _keywords, ...publicCompany } = company;
   return {
@@ -867,6 +876,9 @@ function toPublicCompany(company: MockCompany): CompanyPublic {
     descriptionEn: publicCompany.descriptionEn ?? publicCompany.description ?? null,
     descriptionAr: publicCompany.descriptionAr ?? null,
     websiteUrl: publicCompany.websiteUrl ?? null,
+    socialLinks: publicCompany.socialLinks ?? EMPTY_SOCIAL_LINKS,
+    categoryIds: publicCompany.categoryIds ?? [publicCompany.categoryId],
+    categoryItems: publicCompany.categoryItems ?? [],
     services: publicCompany.services ?? [],
     serviceItems: publicCompany.serviceItems ?? [],
     activityItems: publicCompany.activityItems ?? [],
@@ -1036,7 +1048,7 @@ function buildFallbackReviews(companyId: string, companyName: string): ReviewPub
         id: `reply-${companyId}-1`,
         content: `Thank you for your kind words! The ${companyName} team appreciates your support.`,
         createdAt: daysAgoIso(3),
-        status: 'approved',
+        status: ReviewReplyStatus.APPROVED,
       },
     },
     {
@@ -1077,7 +1089,7 @@ function buildFallbackReviews(companyId: string, companyName: string): ReviewPub
         id: `reply-${companyId}-2`,
         content: 'We are glad RateQ helped you discover us. See you again soon!',
         createdAt: daysAgoIso(47),
-        status: 'approved',
+        status: ReviewReplyStatus.APPROVED,
       },
     },
     {
