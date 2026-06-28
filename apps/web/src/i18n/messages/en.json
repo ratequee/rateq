@@ -1292,6 +1292,11 @@
     "promoteNotFound": "No user found with that email.",
     "promoted": "User promoted to admin.",
     "promoteError": "Could not promote user.",
+    "demoteAction": "Remove admin access",
+    "demoteConfirm": "Remove admin access for {email}? They will become a regular user again.",
+    "demoted": "Admin access removed.",
+    "demoteError": "Could not remove admin access.",
+    "demoteSelf": "You cannot remove your own admin access.",
     "permissions": {
       "stats": "Dashboard overview",
       "companies": "Company verifications",

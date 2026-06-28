@@ -265,14 +265,39 @@ export class UsersService {
       user.role === PrismaUserRole.ADMIN && dto.role !== undefined && dto.role !== UserRole.ADMIN;
 
     if (isDemotingAdmin) {
+      if (targetId === actor.id) {
+        throw new BadRequestException('You cannot demote your own account');
+      }
+
       const adminCount = await this.usersRepository.countAdmins();
       if (adminCount <= 1) {
         throw new BadRequestException('Cannot demote the only admin account');
       }
+
+      const hadTeam = hasAdminPermission(
+        this.adminPermissions.toPermissions(user),
+        AdminPermission.TEAM,
+      );
+      if (hadTeam) {
+        const teamManagers = await this.usersRepository.countTeamManagers();
+        if (teamManagers <= 1) {
+          throw new BadRequestException('Cannot demote the last team manager');
+        }
+      }
+    }
+
+    let demotedRole: PrismaUserRole | undefined;
+    if (isDemotingAdmin) {
+      const company = await this.companiesRepository.findByOwnerId(targetId);
+      demotedRole = company ? PrismaUserRole.COMPANY : PrismaUserRole.USER;
     }
 
     const updated = await this.usersRepository.updateById(targetId, {
-      ...(dto.role !== undefined && { role: dto.role as PrismaUserRole }),
+      ...(isDemotingAdmin && demotedRole
+        ? { role: demotedRole }
+        : dto.role !== undefined
+          ? { role: dto.role as PrismaUserRole }
+          : {}),
       ...(dto.adminPermissions !== undefined && {
         adminPermissions: this.adminPermissions.toPrismaPermissions(dto.adminPermissions),
       }),
@@ -281,7 +306,7 @@ export class UsersService {
       ...(isDemotingAdmin ? { adminPermissions: [] } : {}),
     });
 
-    if (dto.isActive === false) {
+    if (dto.isActive === false || isDemotingAdmin) {
       await this.usersRepository.revokeAllSessions(targetId);
     }
 
