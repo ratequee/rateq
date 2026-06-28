@@ -22,7 +22,7 @@ export function BlogCard({ post, locale, readMoreLabel, className }: BlogCardPro
       )}
     >
       <Link href={`/blog/${translation.slug}`} className="block">
-        <div className="relative aspect-[16/10] overflow-hidden bg-slate-100">
+        <div className="relative aspect-[16/10] overflow-hidden bg-slate-100 dark:bg-dm-elevated">
           {post.coverUrl ? (
             <img
               src={post.coverUrl}

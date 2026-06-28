@@ -88,17 +88,19 @@ export default async function BlogDetailPage({
           {...scrollRevealProps('fade-up')}
           className="mx-auto max-w-4xl px-4 pt-8 sm:px-6 lg:px-8"
         >
-          <img
-            src={post.coverUrl}
-            alt={translation.title}
-            className="aspect-[16/9] w-full rounded-2xl object-cover"
-          />
+          <div className="overflow-hidden rounded-2xl border border-slate-100 bg-slate-50 dark:border-dm-border dark:bg-dm-surface">
+            <img
+              src={post.coverUrl}
+              alt={translation.title}
+              className="aspect-[16/9] w-full object-cover"
+            />
+          </div>
         </div>
       ) : null}
 
       <div
         {...scrollRevealProps('fade-up', 100)}
-        className="mx-auto max-w-3xl px-4 py-10 sm:px-6 sm:py-12 lg:px-8"
+        className="mx-auto max-w-3xl px-4 py-10 sm:px-6 sm:py-12 lg:px-8 dark:text-slate-300"
       >
         <BlogContent content={translation.content} />
       </div>

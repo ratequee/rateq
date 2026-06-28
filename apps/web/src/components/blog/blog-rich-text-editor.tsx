@@ -65,8 +65,8 @@ function ToolbarButton({
       onClick={onClick}
       className={`inline-flex h-9 w-9 items-center justify-center rounded-lg border text-sm transition ${
         active
-          ? 'border-brand-500 bg-brand-50 text-brand-600'
-          : 'border-transparent text-ink-muted hover:border-slate-200 hover:bg-slate-50 hover:text-ink'
+          ? 'border-brand-500 bg-brand-50 text-brand-600 dark:bg-brand-950/40 dark:text-brand-300'
+          : 'border-transparent text-ink-muted hover:border-slate-200 hover:bg-slate-50 hover:text-ink dark:text-slate-400 dark:hover:border-dm-border dark:hover:bg-dm-elevated dark:hover:text-white'
       } disabled:opacity-50`}
     >
       {children}
@@ -104,7 +104,8 @@ export function BlogRichTextEditor({
     editorProps: {
       attributes: {
         dir,
-        class: 'tiptap min-h-[280px] px-4 py-3 text-sm leading-relaxed text-ink focus:outline-none',
+        class:
+          'tiptap min-h-[280px] px-4 py-3 text-sm leading-relaxed text-ink focus:outline-none dark:text-slate-200',
       },
     },
     onUpdate: ({ editor: currentEditor }) => {
@@ -139,15 +140,15 @@ export function BlogRichTextEditor({
 
   if (!editor) {
     return (
-      <div className="flex min-h-[320px] items-center justify-center rounded-xl border border-slate-200 bg-white">
+      <div className="flex min-h-[320px] items-center justify-center rounded-xl border border-slate-200 bg-white dark:border-dm-border dark:bg-dm-surface">
         <Loader2 className="h-5 w-5 animate-spin text-ink-muted" />
       </div>
     );
   }
 
   return (
-    <div className="overflow-hidden rounded-xl border border-slate-200 bg-white">
-      <div className="flex flex-wrap gap-1 border-b border-slate-200 bg-slate-50 p-2">
+    <div className="overflow-hidden rounded-xl border border-slate-200 bg-white dark:border-dm-border dark:bg-dm-surface">
+      <div className="flex flex-wrap gap-1 border-b border-slate-200 bg-slate-50 p-2 dark:border-dm-border dark:bg-dm-elevated">
         <ToolbarButton
           label={labels.bold}
           active={editor.isActive('bold')}

@@ -65,7 +65,7 @@ export function BlogContent({ content }: BlogContentProps) {
   if (sanitized) {
     return (
       <div
-        className="blog-content prose prose-slate max-w-none text-ink-muted prose-headings:text-ink prose-a:text-brand-500"
+        className="blog-content prose prose-slate max-w-none text-ink-muted prose-headings:text-ink prose-a:text-brand-500 dark:prose-invert dark:text-slate-300 dark:prose-headings:text-white dark:prose-a:text-brand-300"
         dangerouslySetInnerHTML={{ __html: sanitized }}
       />
     );

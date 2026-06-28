@@ -41,12 +41,12 @@ export function BlogCoverUpload({ value, onChange, labels }: BlogCoverUploadProp
   return (
     <div className="space-y-3">
       {value ? (
-        <div className="relative overflow-hidden rounded-xl border border-slate-200">
+        <div className="relative overflow-hidden rounded-xl border border-slate-200 dark:border-dm-border">
           <img src={value} alt="" className="aspect-[16/9] w-full object-cover" />
           <button
             type="button"
             onClick={() => onChange('')}
-            className="absolute end-3 top-3 inline-flex h-9 w-9 items-center justify-center rounded-full bg-white/95 text-ink shadow-sm transition hover:bg-white"
+            className="absolute end-3 top-3 inline-flex h-9 w-9 items-center justify-center rounded-full bg-white/95 text-ink shadow-sm transition hover:bg-white dark:bg-dm-elevated/95 dark:text-white dark:hover:bg-dm-elevated"
             aria-label={labels.remove}
           >
             <X className="h-4 w-4" />
@@ -57,7 +57,7 @@ export function BlogCoverUpload({ value, onChange, labels }: BlogCoverUploadProp
           type="button"
           onClick={() => inputRef.current?.click()}
           disabled={uploading}
-          className="flex aspect-[16/9] w-full flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-slate-300 bg-slate-50 text-sm text-ink-muted transition hover:border-brand-500 hover:bg-brand-50/40 hover:text-brand-600"
+          className="flex aspect-[16/9] w-full flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-slate-300 bg-slate-50 text-sm text-ink-muted transition hover:border-brand-500 hover:bg-brand-50/40 hover:text-brand-600 dark:border-dm-border dark:bg-dm-elevated dark:text-slate-400 dark:hover:border-brand-400 dark:hover:bg-brand-950/30 dark:hover:text-brand-300"
         >
           {uploading ? (
             <Loader2 className="h-6 w-6 animate-spin" />

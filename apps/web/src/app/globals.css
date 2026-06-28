@@ -171,6 +171,10 @@
   pointer-events: none;
 }
 
+.dark .tiptap p.is-editor-empty:first-child::before {
+  color: #64748b;
+}
+
 .tiptap h2 {
   @apply mb-3 mt-6 text-2xl font-bold text-ink dark:text-slate-100;
 }

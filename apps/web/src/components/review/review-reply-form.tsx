@@ -11,6 +11,22 @@ import { useTranslations } from 'next-intl';
 import { useState } from 'react';
 import { toast } from 'sonner';
 
+function mapReplySubmitError(
+  err: ApiError,
+  t: ReturnType<typeof useTranslations<'review'>>,
+): string {
+  if (err.statusCode === 409) {
+    if (err.message.includes('already exists')) {
+      return t('replyAlreadyApproved');
+    }
+    if (err.message.includes('pending admin review')) {
+      return t('replyAlreadyPending');
+    }
+  }
+
+  return err.message || t('replySubmitError');
+}
+
 interface ReviewReplyFormProps {
   review: ReviewPublic;
   companyId: string;
@@ -55,7 +71,7 @@ export function ReviewReplyForm({
       setContent('');
       onReplied?.(updated);
     } catch (err) {
-      const message = err instanceof ApiError ? err.message : t('replySubmit');
+      const message = err instanceof ApiError ? mapReplySubmitError(err, t) : t('replySubmitError');
       toast.error(message);
     } finally {
       setLoading(false);
