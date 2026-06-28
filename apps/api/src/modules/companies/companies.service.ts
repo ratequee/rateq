@@ -960,6 +960,6 @@ export class CompaniesService {
       },
     });
 
-    return reviews.map((review) => toReviewPublic(review));
+    return reviews.map((review) => toReviewPublic(review, { includeUnpublishedReply: true }));
   }
 }

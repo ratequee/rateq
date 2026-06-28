@@ -147,7 +147,7 @@ export class AdminService {
 
     return {
       ...toUserProfile(user),
-      reviews: reviews.map((review) => toReviewPublic(review)),
+      reviews: reviews.map((review) => toReviewPublic(review, { includeUnpublishedReply: true })),
     };
   }
 
@@ -174,7 +174,7 @@ export class AdminService {
       ownerId: company.ownerId ?? null,
       ownerIsActive: company.owner?.isActive ?? null,
       pageVisitCount,
-      reviews: reviews.map((review) => toReviewPublic(review)),
+      reviews: reviews.map((review) => toReviewPublic(review, { includeUnpublishedReply: true })),
     };
   }
 

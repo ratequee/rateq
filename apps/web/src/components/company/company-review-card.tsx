@@ -6,8 +6,10 @@ import { Badge } from '@/components/ui/badge';
 import { AvatarImage } from '@/components/ui/avatar-image';
 import { StarRating } from '@/components/ui/star-rating';
 import { ReviewReplyForm } from '@/components/review/review-reply-form';
+import { ReviewReplyStatusBadge } from '@/components/review/review-reply-status-badge';
 import { getReviewAuthorInitial, getReviewAuthorName } from '@/lib/review-author';
 import { cn } from '@/lib/utils';
+import { ReviewReplyStatus } from '@rateq/types';
 import { useTranslations } from 'next-intl';
 
 interface CompanyReviewCardProps {
@@ -107,9 +109,19 @@ export function CompanyReviewCard({ review, company, onReviewUpdated }: CompanyR
 
         {review.reply && (
           <div className="mt-4 rounded-xl border border-brand-100 bg-brand-50/50 p-4 dark:border-brand-900/60 dark:bg-brand-950/30">
-            <p className="text-xs font-semibold uppercase tracking-wide text-brand-600 dark:text-brand-300">
-              {tp('companyReply')}
-            </p>
+            <div className="flex flex-wrap items-center gap-2">
+              <p className="text-xs font-semibold uppercase tracking-wide text-brand-600 dark:text-brand-300">
+                {tp('companyReply')}
+              </p>
+              {review.reply.status !== ReviewReplyStatus.APPROVED ? (
+                <ReviewReplyStatusBadge status={review.reply.status} />
+              ) : null}
+            </div>
+            {review.reply.status === ReviewReplyStatus.PENDING ? (
+              <p className="mt-2 text-xs text-amber-800 dark:text-amber-200">
+                {t('replySubmittedPending')}
+              </p>
+            ) : null}
             <p className="mt-2 text-sm leading-relaxed text-ink dark:text-slate-200">
               {review.reply.content}
             </p>

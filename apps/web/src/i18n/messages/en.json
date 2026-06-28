@@ -858,6 +858,13 @@
     "rejectReply": "Reject reply",
     "replyApprovedSuccess": "Reply approved and published.",
     "replyRejectedSuccess": "Reply rejected.",
+    "replyStatus": {
+      "PENDING": "Under review",
+      "APPROVED": "Published",
+      "REJECTED": "Not approved"
+    },
+    "replyPendingHint": "This reply is awaiting admin approval before it appears on your public profile.",
+    "replyPendingInList": "Reply under review",
     "resolutionDeadline": "Resolution deadline",
     "unknownReviewer": "Reviewer",
     "unknownCompany": "Company",
@@ -923,6 +930,7 @@
     "replyPlaceholder": "Write your response to this review…",
     "replySubmit": "Post reply",
     "replySubmitted": "Reply posted successfully.",
+    "replySubmittedPending": "Your reply was submitted and is under admin review. It will appear publicly once approved.",
     "replyTooShort": "Reply must be at least 5 characters.",
     "submittedSuccess": "Thank you! Your review was submitted and is under review.",
     "submittedPendingNote": "It is pending moderation and will appear publicly once approved.",

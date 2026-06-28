@@ -15,6 +15,7 @@ import { Link, useRouter } from '@/i18n/routing';
 import { Loader2, MessageSquareText } from 'lucide-react';
 import { ReviewProofAttachments } from '@/components/dashboard/review-proof-attachments';
 import { ReviewReplyForm } from '@/components/review/review-reply-form';
+import { ReviewReplyStatusBadge } from '@/components/review/review-reply-status-badge';
 import { useLocale, useTranslations } from 'next-intl';
 import { useSearchParams } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useState } from 'react';
@@ -340,7 +341,7 @@ export function ReviewsManagementPanel({ mode, companyId }: ReviewsManagementPan
                       {t(`status.${review.status}`)}
                     </span>
                   </div>
-                  <div className="mt-3 flex items-center gap-3">
+                  <div className="mt-3 flex flex-wrap items-center gap-3">
                     <StarRating value={review.rating} size="sm" />
                     <span className="text-xs text-secondary">
                       {new Date(review.createdAt).toLocaleDateString(locale, {
@@ -349,6 +350,11 @@ export function ReviewsManagementPanel({ mode, companyId }: ReviewsManagementPan
                         year: 'numeric',
                       })}
                     </span>
+                    {review.reply?.status === ReviewReplyStatus.PENDING ? (
+                      <span className="inline-flex rounded-full bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-700 dark:bg-amber-950/50 dark:text-amber-300">
+                        {t('replyPendingInList')}
+                      </span>
+                    ) : null}
                   </div>
                 </button>
               ))}
@@ -434,10 +440,13 @@ export function ReviewsManagementPanel({ mode, companyId }: ReviewsManagementPan
 
             {selectedReview.reply ? (
               <div className="rounded-xl border border-brand-100 bg-brand-50/50 p-4 dark:border-brand-900/60 dark:bg-brand-950/30">
-                <div className="mb-2 flex items-center justify-between gap-2">
-                  <div className="flex items-center gap-2 text-sm font-semibold text-brand-700 dark:text-brand-300">
-                    <MessageSquareText className="h-4 w-4" />
-                    {t('companyReply')}
+                <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <div className="flex items-center gap-2 text-sm font-semibold text-brand-700 dark:text-brand-300">
+                      <MessageSquareText className="h-4 w-4" />
+                      {t('companyReply')}
+                    </div>
+                    <ReviewReplyStatusBadge status={selectedReview.reply.status} />
                   </div>
                   {mode === 'admin' ? (
                     <div className="flex flex-wrap gap-2">
@@ -474,6 +483,11 @@ export function ReviewsManagementPanel({ mode, companyId }: ReviewsManagementPan
                     </div>
                   ) : null}
                 </div>
+                {mode === 'company' && selectedReview.reply.status === ReviewReplyStatus.PENDING ? (
+                  <p className="mb-2 text-sm text-amber-800 dark:text-amber-200">
+                    {t('replyPendingHint')}
+                  </p>
+                ) : null}
                 <p className="whitespace-pre-wrap text-sm leading-7 text-ink dark:text-slate-200">
                   {selectedReview.reply.content}
                 </p>

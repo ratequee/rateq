@@ -858,6 +858,13 @@
     "rejectReply": "رفض الرد",
     "replyApprovedSuccess": "تم قبول الرد ونشره.",
     "replyRejectedSuccess": "تم رفض الرد.",
+    "replyStatus": {
+      "PENDING": "قيد المراجعة",
+      "APPROVED": "منشور",
+      "REJECTED": "غير مقبول"
+    },
+    "replyPendingHint": "هذا الرد بانتظار موافقة الإدارة قبل أن يظهر على صفحتك العامة.",
+    "replyPendingInList": "رد قيد المراجعة",
     "resolutionDeadline": "موعد انتهاء الحل",
     "unknownReviewer": "المراجع",
     "unknownCompany": "الشركة",
@@ -923,6 +930,7 @@
     "replyPlaceholder": "اكتب ردك على هذه المراجعة…",
     "replySubmit": "نشر الرد",
     "replySubmitted": "تم نشر الرد بنجاح.",
+    "replySubmittedPending": "تم إرسال ردك وهو قيد مراجعة الإدارة. سيظهر للعامة بعد الموافقة عليه.",
     "replyTooShort": "يجب أن يكون الرد 5 أحرف على الأقل.",
     "submittedSuccess": "شكراً لك! تم إرسال مراجعتك وهي قيد المراجعة.",
     "submittedPendingNote": "مراجعتك قيد المراجعة وستظهر للعامة بعد الموافقة عليها.",

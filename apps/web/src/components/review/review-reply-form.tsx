@@ -52,7 +52,7 @@ export function ReviewReplyForm({
       if (!token) throw new Error('Not authenticated');
 
       const updated = await reviewsApi.reply(token, review.id, content.trim());
-      toast.success(t('replySubmitted'));
+      toast.success(t('replySubmittedPending'));
       setContent('');
       onReplied?.(updated);
     } catch (err) {
