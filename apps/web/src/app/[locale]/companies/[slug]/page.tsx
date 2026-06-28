@@ -129,11 +129,11 @@ export default async function CompanyPage({ params }: CompanyPageProps): Promise
                         {company.name}
                       </h1>
                       <Image
-                        src="/images/verified_badge.svg"
+                        src="/images/approved-stamp.png"
                         alt={t('verifiedBadge')}
-                        width={48}
-                        height={48}
-                        className="h-10 w-10 shrink-0 sm:h-12 sm:w-12"
+                        width={64}
+                        height={64}
+                        className="h-12 w-12 shrink-0 object-contain sm:h-14 sm:w-14"
                       />
                     </div>
                     <p className="mt-2 flex items-center gap-1.5 text-sm text-secondary sm:text-base">

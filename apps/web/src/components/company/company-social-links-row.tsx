@@ -71,11 +71,11 @@ export function CompanySocialLinksRow({ socialLinks, className }: CompanySocialL
       : null,
     socialLinks.twitterUrl
       ? {
-          key: 'twitter',
+          key: 'x',
           href: socialLinks.twitterUrl,
           label: 'X',
           icon: XIcon,
-          className: 'text-primary hover:text-secondary',
+          className: 'text-ink hover:text-ink-muted dark:text-white dark:hover:text-white/80',
         }
       : null,
   ].filter((item): item is NonNullable<typeof item> => item !== null);
