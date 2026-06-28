@@ -331,7 +331,7 @@ export class CompaniesRepository {
       andConditions.push({
         OR: [
           { categoryId: filters.categoryId },
-          { categoryIds: { string_contains: `"${filters.categoryId}"` } },
+          { categoryIds: { array_contains: [filters.categoryId] } },
         ],
       });
     }

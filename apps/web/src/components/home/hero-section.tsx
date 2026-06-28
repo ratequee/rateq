@@ -70,10 +70,14 @@ export async function HeroSection({
             <div className="flex flex-col justify-center md:justify-start items-center md:items-start">
               <h1 className="text-center text-3xl font-bold leading-tight tracking-tight text-ink dark:text-white md:text-left sm:text-4xl md:text-5xl md:leading-[1.1]">
                 {t('heroTitlePrefix')}{' '}
-                <span className="uppercase text-gold-300 dark:text-gold-400">
+                <span
+                  className={cn(
+                    'text-gold-500 dark:text-gold-400',
+                    locale === 'en' && 'uppercase text-gold-300',
+                  )}
+                >
                   {t('heroTitleHighlight')}
                 </span>{' '}
-                <hr className="w-full border-0" />
                 {t('heroTitleSuffix')}
               </h1>
               <p className="mt-4 text-center text-ink-muted dark:text-white/90 sm:text-lg lg:text-base">

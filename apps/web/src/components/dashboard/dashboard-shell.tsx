@@ -1,6 +1,7 @@
 'use client';
 
 import { DashboardLogoutButton, DashboardNav } from '@/components/dashboard/dashboard-nav';
+import { LocaleSwitcher } from '@/components/layout/locale-switcher';
 import { ThemeToggle } from '@/components/layout/theme-toggle';
 import { UserAccountMenu } from '@/components/layout/user-account-menu';
 import { useAuth } from '@/components/providers/auth-provider';
@@ -79,6 +80,10 @@ export function DashboardShell({ children, role }: DashboardShellProps) {
           onClose={() => setMobileNavOpen(false)}
           onNavigate={() => setMobileNavOpen(false)}
         />
+        <div className="flex items-center justify-center gap-3 border-t border-default px-4 py-3 lg:hidden">
+          <LocaleSwitcher />
+          <ThemeToggle />
+        </div>
         <DashboardLogoutButton onLogout={() => void handleLogout()} />
       </aside>
 
@@ -114,7 +119,8 @@ export function DashboardShell({ children, role }: DashboardShellProps) {
               </form>
             </div>
 
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2 sm:gap-3">
+              <LocaleSwitcher />
               <ThemeToggle />
               <UserAccountMenu />
             </div>
