@@ -153,8 +153,8 @@ export function AdminProjectsPanel() {
                   type="button"
                   onClick={() => setSelectedId(project.id)}
                   className={cn(
-                    'flex w-full items-start gap-4 px-5 py-4 text-start transition hover:bg-slate-50 dark:hover:bg-dm-elevated',
-                    selectedId === project.id && 'bg-brand-50/70 dark:bg-brand-950/20',
+                    'flex w-full items-start gap-4 px-5 py-4 text-start dashboard-list-hover',
+                    selectedId === project.id && 'dashboard-list-selected',
                   )}
                 >
                   <img
