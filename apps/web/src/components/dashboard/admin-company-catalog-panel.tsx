@@ -6,7 +6,7 @@ import { adminApi } from '@/lib/admin-api';
 import { ApiError } from '@/lib/api';
 import { cn } from '@/lib/utils';
 import type { CompanyCatalogItemPublic, CompanyCatalogType } from '@rateq/types';
-import { Loader2, Plus, Trash2 } from 'lucide-react';
+import { Loader2, Pencil, Plus, Trash2, X } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { useCallback, useEffect, useState } from 'react';
 import { toast } from 'sonner';
@@ -29,6 +29,10 @@ export function AdminCompanyCatalogPanel({
   const [nameEn, setNameEn] = useState('');
   const [nameAr, setNameAr] = useState('');
   const [saving, setSaving] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editNameEn, setEditNameEn] = useState('');
+  const [editNameAr, setEditNameAr] = useState('');
+  const [editSaving, setEditSaving] = useState(false);
 
   useEffect(() => {
     if (fixedType) setType(fixedType);
@@ -77,9 +81,45 @@ export function AdminCompanyCatalogPanel({
     }
   };
 
+  const startEdit = (item: CompanyCatalogItemPublic) => {
+    setEditingId(item.id);
+    setEditNameEn(item.nameEn);
+    setEditNameAr(item.nameAr);
+  };
+
+  const cancelEdit = () => {
+    setEditingId(null);
+    setEditNameEn('');
+    setEditNameAr('');
+  };
+
+  const handleUpdate = async (id: string) => {
+    if (!editNameEn.trim() || !editNameAr.trim()) {
+      toast.error(t('namesRequired'));
+      return;
+    }
+
+    setEditSaving(true);
+    try {
+      await adminApi.updateCompanyCatalogItem(id, {
+        nameEn: editNameEn.trim(),
+        nameAr: editNameAr.trim(),
+      });
+      cancelEdit();
+      await load();
+      toast.success(t('updated'));
+    } catch (err) {
+      const message = err instanceof ApiError ? err.message : t('saveError');
+      toast.error(message);
+    } finally {
+      setEditSaving(false);
+    }
+  };
+
   const handleDelete = async (id: string) => {
     try {
       await adminApi.deleteCompanyCatalogItem(id);
+      if (editingId === id) cancelEdit();
       await load();
       toast.success(t('deleted'));
     } catch (err) {
@@ -144,22 +184,63 @@ export function AdminCompanyCatalogPanel({
       ) : (
         <ul className="divide-y divide-subtle rounded-xl border border-subtle">
           {items.map((item) => (
-            <li key={item.id} className="flex items-center justify-between gap-3 px-4 py-3">
-              <div className="min-w-0">
-                <p className="text-sm font-medium text-primary">{item.nameEn}</p>
-                <p className="text-sm text-secondary" dir="rtl">
-                  {item.nameAr}
-                </p>
-              </div>
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                onClick={() => void handleDelete(item.id)}
-                className="text-red-600 hover:text-red-700"
-              >
-                <Trash2 className="h-4 w-4" />
-              </Button>
+            <li key={item.id} className="px-4 py-3">
+              {editingId === item.id ? (
+                <div className="grid gap-3 sm:grid-cols-[1fr_1fr_auto_auto]">
+                  <Input
+                    value={editNameEn}
+                    onChange={(e) => setEditNameEn(e.target.value)}
+                    className="h-10"
+                  />
+                  <Input
+                    value={editNameAr}
+                    onChange={(e) => setEditNameAr(e.target.value)}
+                    className="h-10"
+                    dir="rtl"
+                  />
+                  <Button
+                    type="button"
+                    size="sm"
+                    disabled={editSaving}
+                    onClick={() => void handleUpdate(item.id)}
+                  >
+                    {editSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : t('saveEdit')}
+                  </Button>
+                  <Button type="button" variant="ghost" size="sm" onClick={cancelEdit}>
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
+              ) : (
+                <div className="flex items-center justify-between gap-3">
+                  <div className="min-w-0">
+                    <p className="text-sm font-medium text-primary">{item.nameEn}</p>
+                    <p className="text-sm text-secondary" dir="rtl">
+                      {item.nameAr}
+                    </p>
+                  </div>
+                  <div className="flex shrink-0 gap-1">
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => startEdit(item)}
+                      aria-label={t('edit')}
+                    >
+                      <Pencil className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => void handleDelete(item.id)}
+                      className="text-red-600 hover:text-red-700"
+                      aria-label={t('delete')}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              )}
             </li>
           ))}
         </ul>

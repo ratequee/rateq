@@ -31,6 +31,7 @@ import { ReviewRateLimitService } from './services/review-rate-limit.service';
 import {
   resolveCompanyOwnerEmail,
   resolveReviewerContact,
+  mapReviewsPublic,
   toReviewPublic,
 } from './mappers/review.mapper';
 import type { ListReviewsQueryDto } from './dto/list-reviews-query.dto';
@@ -193,7 +194,7 @@ export class ReviewsService {
     ]);
 
     return {
-      data: reviews.map(toReviewPublic),
+      data: reviews.map((review) => toReviewPublic(review)),
       meta: buildPaginationMeta(1, limit, total),
     };
   }
@@ -213,13 +214,14 @@ export class ReviewsService {
       throw new ForbiddenException('Not authorized to manage reviews for this company');
     }
 
-    return this.listCompanyReviews(companyId, query, query.status);
+    return this.listCompanyReviews(companyId, query, query.status, true);
   }
 
   private async listCompanyReviews(
     companyId: string,
     query: ListReviewsQueryDto,
     status?: ReviewStatus,
+    includeUnpublishedReply = false,
   ): Promise<PaginatedReviewsResponse> {
     const company = await this.companiesRepository.findById(companyId);
 
@@ -242,7 +244,10 @@ export class ReviewsService {
     ]);
 
     return {
-      data: reviews.map(toReviewPublic),
+      data: mapReviewsPublic(
+        reviews,
+        includeUnpublishedReply ? { includeUnpublishedReply: true } : undefined,
+      ),
       meta: buildPaginationMeta(query.page, query.limit, total),
     };
   }
@@ -267,7 +272,7 @@ export class ReviewsService {
     ]);
 
     return {
-      data: reviews.map(toReviewPublic),
+      data: reviews.map((review) => toReviewPublic(review)),
       meta: buildPaginationMeta(query.page, query.limit, total),
     };
   }
@@ -289,7 +294,7 @@ export class ReviewsService {
     ]);
 
     return {
-      data: reviews.map(toReviewPublic),
+      data: mapReviewsPublic(reviews, { includeUnpublishedReply: true }),
       meta: buildPaginationMeta(query.page, query.limit, total),
     };
   }
@@ -461,7 +466,7 @@ export class ReviewsService {
 
     const updated = await this.reviewsRepository.findById(reviewId);
 
-    return toReviewPublic(updated!);
+    return toReviewPublic(updated!, { includeUnpublishedReply: true });
   }
 
   async getReviewerDashboard(userId: string): Promise<ReviewerDashboard> {
@@ -491,7 +496,7 @@ export class ReviewsService {
       },
       dailyActivity,
       recentlyRatedCompanies,
-      latestReviews: latestReviews.map(toReviewPublic),
+      latestReviews: latestReviews.map((review) => toReviewPublic(review)),
     };
   }
 

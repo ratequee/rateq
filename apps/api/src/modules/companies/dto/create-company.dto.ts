@@ -117,11 +117,19 @@ export class CreateCompanyDto {
   @Matches(PHONE_PATTERN, { message: 'Phone number format is invalid' })
   phone!: string;
 
-  @ApiProperty({ example: 'clxxxxxxxxxxxxxxxx' })
+  @ApiPropertyOptional({ example: 'clxxxxxxxxxxxxxxxx' })
+  @IsOptional()
   @IsString()
   @MinLength(1)
   @MaxLength(100)
-  categoryId!: string;
+  categoryId?: string;
+
+  @ApiPropertyOptional({ type: [String] })
+  @IsOptional()
+  @IsArray()
+  @ArrayMaxSize(10)
+  @IsString({ each: true })
+  categoryIds?: string[];
 
   @ApiProperty({ example: 'CR-123456' })
   @IsString()

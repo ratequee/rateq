@@ -1,6 +1,7 @@
 import { BlogContent } from '@/components/blog/blog-content';
 import { Link } from '@/i18n/routing';
 import { fetchBlogPostBySlug } from '@/lib/blog-data';
+import { scrollRevealProps } from '@/lib/scroll-reveal';
 import { formatBlogDate } from '@/lib/format-blog-date';
 import type { BlogLocale } from '@rateq/types';
 import { ArrowLeft } from 'lucide-react';
@@ -53,7 +54,10 @@ export default async function BlogDetailPage({
 
   return (
     <article className="bg-white dark:bg-dm-bg">
-      <div className="border-b border-slate-100 bg-slate-50/60 py-8 dark:border-dm-border dark:bg-dm-surface sm:py-10">
+      <div
+        {...scrollRevealProps('fade-in')}
+        className="border-b border-slate-100 bg-slate-50/60 py-8 dark:border-dm-border dark:bg-dm-surface sm:py-10"
+      >
         <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
           <Link
             href="/blog"
@@ -80,7 +84,10 @@ export default async function BlogDetailPage({
       </div>
 
       {post.coverUrl ? (
-        <div className="mx-auto max-w-4xl px-4 pt-8 sm:px-6 lg:px-8">
+        <div
+          {...scrollRevealProps('fade-up')}
+          className="mx-auto max-w-4xl px-4 pt-8 sm:px-6 lg:px-8"
+        >
           <img
             src={post.coverUrl}
             alt={translation.title}
@@ -89,7 +96,10 @@ export default async function BlogDetailPage({
         </div>
       ) : null}
 
-      <div className="mx-auto max-w-3xl px-4 py-10 sm:px-6 sm:py-12 lg:px-8">
+      <div
+        {...scrollRevealProps('fade-up', 100)}
+        className="mx-auto max-w-3xl px-4 py-10 sm:px-6 sm:py-12 lg:px-8"
+      >
         <BlogContent content={translation.content} />
       </div>
     </article>

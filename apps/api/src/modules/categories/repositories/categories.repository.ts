@@ -25,6 +25,11 @@ export class CategoriesRepository {
     return this.prisma.category.findUnique({ where: { id } });
   }
 
+  findByIds(ids: string[]): Promise<Category[]> {
+    if (ids.length === 0) return Promise.resolve([]);
+    return this.prisma.category.findMany({ where: { id: { in: ids } } });
+  }
+
   findBySlug(slug: string) {
     return this.prisma.category.findUnique({
       where: { slug },
@@ -48,6 +53,10 @@ export class CategoriesRepository {
 
   create(data: Prisma.CategoryCreateInput): Promise<Category> {
     return this.prisma.category.create({ data });
+  }
+
+  update(id: string, data: Prisma.CategoryUpdateInput): Promise<Category> {
+    return this.prisma.category.update({ where: { id }, data });
   }
 
   delete(id: string): Promise<Category> {

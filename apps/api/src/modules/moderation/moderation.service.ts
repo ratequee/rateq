@@ -58,7 +58,7 @@ export class ModerationService {
       reasons.unshift('negative_rating');
     }
 
-    const shouldHold = isNegativeReview || this.moderationEngine.shouldQueue(breakdown);
+    const shouldHold = true;
 
     if (shouldHold) {
       await this.reviewsRepository.updateModerationResult(reviewId, {
@@ -86,33 +86,46 @@ export class ModerationService {
       );
       return;
     }
+  }
 
-    await this.reviewsRepository.updateModerationResult(reviewId, {
-      status: 'APPROVED',
-      moderationScore: breakdown.total,
-      similarityScore: maxSimilarity > 0 ? maxSimilarity : undefined,
-    });
-
-    await this.moderationRepository.createLog({
-      reviewId,
-      reason: reasons.join(', '),
-      score: breakdown.total,
-      action: ModerationAction.AUTO_APPROVED,
-    });
-
-    await this.reviewsRepository.recalculateCompanyRating(review.companyId);
-    await this.reviewsRepository.incrementUserReviewCount(review.userId);
-
-    if (review.user?.email) {
-      const companyName = review.company?.name ?? 'the company';
-      await this.emailService.sendReviewApprovedEmail({
-        reviewerEmail: review.user.email,
-        reviewTitle: review.title,
-        companyName,
-      });
+  async manualApproveReply(reviewId: string, adminId: string): Promise<void> {
+    const reply = await this.reviewsRepository.findReplyByReviewId(reviewId);
+    if (!reply) {
+      throw new NotFoundException('Reply not found');
+    }
+    if (reply.status !== 'PENDING') {
+      throw new BadRequestException('Only pending replies can be approved');
     }
 
-    this.logger.log(`Review ${reviewId} auto-approved (score=${breakdown.total})`);
+    await this.reviewsRepository.updateReplyStatus(reviewId, 'APPROVED');
+
+    await this.adminActivity.log({
+      adminId,
+      entityType: AdminActivityEntityType.REVIEW,
+      entityId: reviewId,
+      entityLabel: 'Company reply approved',
+      action: AdminActivityAction.APPROVED,
+    });
+  }
+
+  async manualRejectReply(reviewId: string, adminId: string): Promise<void> {
+    const reply = await this.reviewsRepository.findReplyByReviewId(reviewId);
+    if (!reply) {
+      throw new NotFoundException('Reply not found');
+    }
+    if (reply.status !== 'PENDING') {
+      throw new BadRequestException('Only pending replies can be rejected');
+    }
+
+    await this.reviewsRepository.updateReplyStatus(reviewId, 'REJECTED');
+
+    await this.adminActivity.log({
+      adminId,
+      entityType: AdminActivityEntityType.REVIEW,
+      entityId: reviewId,
+      entityLabel: 'Company reply rejected',
+      action: AdminActivityAction.REJECTED,
+    });
   }
 
   async manualApprove(reviewId: string, adminId: string): Promise<void> {

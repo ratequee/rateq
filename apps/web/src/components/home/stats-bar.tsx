@@ -1,4 +1,5 @@
 import { getTranslations } from 'next-intl/server';
+import { scrollRevealProps, scrollStaggerDelay } from '@/lib/scroll-reveal';
 import { formatStatNumber } from '@/lib/platform-data';
 import type { PlatformStats } from '@rateq/types';
 import Image from 'next/image';
@@ -30,7 +31,11 @@ export async function StatsBar({ stats }: StatsBarProps): Promise<JSX.Element> {
   ];
 
   return (
-    <section className="py-12 dark:bg-dm-bg sm:py-16 lg:py-20" aria-label={t('statsAria')}>
+    <section
+      {...scrollRevealProps('scale-up')}
+      className="py-12 dark:bg-dm-bg sm:py-16 lg:py-20"
+      aria-label={t('statsAria')}
+    >
       <div
         className="mx-auto max-w-page rounded-3xl bg-brand-500 p-20 px-4 sm:px-6 lg:px-8 dark:bg-gradient-to-br dark:from-brand-900 dark:via-brand-700 dark:to-brand-600"
         style={{
@@ -43,6 +48,7 @@ export async function StatsBar({ stats }: StatsBarProps): Promise<JSX.Element> {
           {items.map(({ icon, value, label }, index) => (
             <div
               key={label}
+              {...scrollRevealProps('fade-up', scrollStaggerDelay(index))}
               style={{ borderRight: index < items.length - 1 ? '1px solid #ffffff' : 'none' }}
               className="flex justify-center items-center gap-3 text-center sm:flex-row sm:items-center sm:gap-5 sm:text-start sm:even:border-x sm:even:border-white/20 sm:even:px-6"
             >

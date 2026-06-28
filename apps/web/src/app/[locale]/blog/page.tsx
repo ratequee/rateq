@@ -1,5 +1,6 @@
 import { BlogCard } from '@/components/blog/blog-card';
 import { fetchBlogPosts } from '@/lib/blog-data';
+import { scrollRevealProps, scrollStaggerDelay } from '@/lib/scroll-reveal';
 import type { BlogLocale } from '@rateq/types';
 import { getLocale, getTranslations } from 'next-intl/server';
 import type { Metadata } from 'next';
@@ -23,7 +24,10 @@ export default async function BlogPage(): Promise<JSX.Element> {
 
   return (
     <div className="bg-slate-50/60 dark:bg-dm-bg">
-      <section className="border-b border-slate-100 bg-white py-12 dark:border-dm-border dark:bg-dm-surface sm:py-16">
+      <section
+        {...scrollRevealProps('fade-in')}
+        className="border-b border-slate-100 bg-white py-12 dark:border-dm-border dark:bg-dm-surface sm:py-16"
+      >
         <div className="mx-auto max-w-page px-4 sm:px-6 lg:px-8">
           <h1 className="text-3xl font-bold text-ink dark:text-white sm:text-4xl">
             {t('pageTitle')}
@@ -32,14 +36,16 @@ export default async function BlogPage(): Promise<JSX.Element> {
         </div>
       </section>
 
-      <section className="py-12 dark:bg-dm-bg sm:py-16">
+      <section {...scrollRevealProps('fade-up')} className="py-12 dark:bg-dm-bg sm:py-16">
         <div className="mx-auto max-w-page px-4 sm:px-6 lg:px-8">
           {posts.length === 0 ? (
             <p className="py-16 text-center text-ink-muted dark:text-white/85">{tc('noResults')}</p>
           ) : (
             <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-              {posts.map((post) => (
-                <BlogCard key={post.id} post={post} locale={locale} readMoreLabel={t('readMore')} />
+              {posts.map((post, index) => (
+                <div key={post.id} {...scrollRevealProps('fade-up', scrollStaggerDelay(index))}>
+                  <BlogCard post={post} locale={locale} readMoreLabel={t('readMore')} />
+                </div>
               ))}
             </div>
           )}

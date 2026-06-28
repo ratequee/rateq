@@ -11,6 +11,7 @@ import type { ReviewPublic } from '@rateq/types';
 import { useLocale, useTranslations } from 'next-intl';
 import { formatReviewTimeAgo } from '@/lib/format-relative-time';
 import { useRef } from 'react';
+import { scrollRevealProps } from '@/lib/scroll-reveal';
 import { cn } from '@/lib/utils';
 
 interface TestimonialsCarouselProps {
@@ -33,7 +34,7 @@ export function TestimonialsCarousel({ reviews }: TestimonialsCarouselProps) {
   };
 
   return (
-    <section className="py-12 dark:bg-dm-bg sm:py-16 lg:py-20">
+    <section {...scrollRevealProps('fade-up')} className="py-12 dark:bg-dm-bg sm:py-16 lg:py-20">
       <div className="mx-auto max-w-page px-4 sm:px-6 lg:px-8">
         <SectionHeader
           title={t('testimonialsTitle')}

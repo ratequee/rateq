@@ -8,9 +8,11 @@ import type {
   CategoriesListResponse,
   CategoryPublic,
   CategoryServicePublic,
+  CompanyCategoryLabel,
   CreateCategoryInput,
   CreateCategoryServiceInput,
   MessageResponse,
+  UpdateCategoryInput,
 } from '@rateq/types';
 import { slugify, withSlugSuffix } from '@rateq/utils';
 import { CategoriesRepository } from './repositories/categories.repository';
@@ -51,6 +53,55 @@ export class CategoriesService {
     const slug = await this.generateUniqueSlug(nameEn);
     const category = await this.categoriesRepository.create({ nameEn, nameAr, slug });
     return toCategoryPublic(category);
+  }
+
+  async update(id: string, input: UpdateCategoryInput): Promise<CategoryPublic> {
+    const category = await this.categoriesRepository.findById(id);
+
+    if (!category) {
+      throw new NotFoundException('Category not found');
+    }
+
+    const nameEn = input.nameEn?.trim();
+    const nameAr = input.nameAr?.trim();
+
+    if (nameEn !== undefined && !nameEn) {
+      throw new BadRequestException('English category name cannot be empty');
+    }
+    if (nameAr !== undefined && !nameAr) {
+      throw new BadRequestException('Arabic category name cannot be empty');
+    }
+
+    const slug =
+      nameEn && nameEn !== category.nameEn ? await this.generateUniqueSlug(nameEn, id) : undefined;
+
+    const updated = await this.categoriesRepository.update(id, {
+      ...(nameEn !== undefined && { nameEn, ...(slug ? { slug } : {}) }),
+      ...(nameAr !== undefined && { nameAr }),
+    });
+
+    return toCategoryPublic(updated);
+  }
+
+  async resolveLabels(
+    categoryIds: string[],
+    locale: 'en' | 'ar' = 'en',
+  ): Promise<CompanyCategoryLabel[]> {
+    if (categoryIds.length === 0) return [];
+
+    const categories = await this.categoriesRepository.findByIds(categoryIds);
+    const byId = new Map(categories.map((category) => [category.id, category]));
+
+    return categoryIds
+      .filter((id) => byId.has(id))
+      .map((id) => {
+        const category = byId.get(id)!;
+        return {
+          id,
+          label: locale === 'ar' ? category.nameAr : category.nameEn,
+          labelAr: category.nameAr,
+        };
+      });
   }
 
   async remove(id: string): Promise<MessageResponse> {
@@ -137,7 +188,7 @@ export class CategoriesService {
     return candidate;
   }
 
-  private async generateUniqueSlug(name: string): Promise<string> {
+  private async generateUniqueSlug(name: string, excludeId?: string): Promise<string> {
     const base = slugify(name);
 
     if (!base) {
@@ -147,7 +198,7 @@ export class CategoriesService {
     let attempt = 0;
     let candidate = base;
 
-    while (await this.categoriesRepository.slugExists(candidate)) {
+    while (await this.categoriesRepository.slugExists(candidate, excludeId)) {
       attempt += 1;
       candidate = withSlugSuffix(base, attempt);
 

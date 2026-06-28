@@ -1,3 +1,4 @@
+import { scrollRevealProps } from '@/lib/scroll-reveal';
 import { CategoryBreadcrumb } from '@/components/categories/category-breadcrumb';
 import { CategoryBilingualName } from '@/components/categories/category-bilingual-name';
 import type { CategoryPublic } from '@rateq/types';
@@ -17,6 +18,7 @@ export async function CategoryDetailHero({
 
   return (
     <section
+      {...scrollRevealProps('fade-in')}
       className="relative overflow-hidden bg-gradient-to-br from-brand-500 via-brand-600 to-brand-800 py-12 text-white sm:py-16 lg:py-20"
       style={{
         backgroundImage: 'url(/images/herobg.svg)',

@@ -1,4 +1,4 @@
-import type { ReviewStatus } from './enums';
+import type { ReviewReplyStatus, ReviewStatus } from './enums';
 import type { PaginatedResponse } from './pagination';
 
 export interface ReviewAuthor {
@@ -51,6 +51,7 @@ export interface ReviewPublic {
 export interface ReviewReplyPublic {
   id: string;
   content: string;
+  status: ReviewReplyStatus;
   createdAt: string;
 }
 

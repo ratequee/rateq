@@ -1,4 +1,5 @@
 import { BlogCard } from '@/components/blog/blog-card';
+import { scrollRevealProps, scrollStaggerDelay } from '@/lib/scroll-reveal';
 import { darkCard } from '@/lib/dark-surfaces';
 import { SectionHeader } from '@/components/home/section-header';
 import type { BlogPostPublic } from '@rateq/types';
@@ -19,7 +20,10 @@ export async function LatestBlogSection({
   const t = await getTranslations('blog');
 
   return (
-    <section className="bg-white py-12 dark:bg-dm-bg sm:py-16 lg:py-20">
+    <section
+      {...scrollRevealProps('fade-up')}
+      className="bg-white py-12 dark:bg-dm-bg sm:py-16 lg:py-20"
+    >
       <div className="mx-auto max-w-page px-4 sm:px-6 lg:px-8">
         <SectionHeader
           title={t('homeSectionTitle')}
@@ -27,14 +31,15 @@ export async function LatestBlogSection({
           actionHref="/blog"
         />
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {posts.slice(0, 3).map((post) => (
-            <BlogCard
-              key={post.id}
-              post={post}
-              locale={locale}
-              readMoreLabel={t('readMore')}
-              className={darkCard}
-            />
+          {posts.slice(0, 3).map((post, index) => (
+            <div key={post.id} {...scrollRevealProps('fade-up', scrollStaggerDelay(index))}>
+              <BlogCard
+                post={post}
+                locale={locale}
+                readMoreLabel={t('readMore')}
+                className={darkCard}
+              />
+            </div>
           ))}
         </div>
       </div>

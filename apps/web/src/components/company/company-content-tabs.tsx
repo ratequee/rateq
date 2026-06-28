@@ -2,8 +2,10 @@
 
 import { CompanyReviewsSectionClient } from '@/components/company/company-reviews-section-client';
 import { CompanyReviewsHubLayout } from '@/components/company/company-reviews-hub-layout';
+import { scrollRevealProps } from '@/lib/scroll-reveal';
 import { cn } from '@/lib/utils';
 import { StarRating } from '@/components/ui/star-rating';
+import { Link } from '@/i18n/routing';
 import type {
   CompanyCatalogLabel,
   CompanyProjectPublic,
@@ -26,9 +28,15 @@ interface CompanyContentTabsProps {
   services: string[];
 }
 
-function ProjectsGrid({ projects }: { projects: CompanyProjectPublic[] }) {
+function ProjectsGrid({
+  companySlug,
+  projects,
+}: {
+  companySlug: string;
+  projects: CompanyProjectPublic[];
+}) {
   const t = useTranslations('companyPage');
-  const visibleProjects = projects.filter((project) => project.projectUrl.trim());
+  const visibleProjects = projects.filter((project) => project.title.trim() && project.imageUrl);
 
   if (visibleProjects.length === 0) {
     return <p className="py-12 text-center text-sm text-ink-muted">{t('noProjects')}</p>;
@@ -37,22 +45,23 @@ function ProjectsGrid({ projects }: { projects: CompanyProjectPublic[] }) {
   return (
     <div className="grid gap-4 sm:grid-cols-2">
       {visibleProjects.map((project) => (
-        <a
+        <Link
           key={project.id}
-          href={project.projectUrl}
-          target="_blank"
-          rel="noopener noreferrer"
+          href={`/companies/${companySlug}/projects/${project.slug}`}
           className="flex flex-col overflow-hidden rounded-2xl bg-white shadow-sm transition-shadow hover:shadow-md dark:bg-dm-elevated"
         >
           <div className="relative h-40 overflow-hidden sm:h-44">
             <img src={project.imageUrl} alt="" className="h-full w-full object-cover" />
           </div>
-          <div className="flex min-h-[72px] items-center bg-brand-500 px-4 py-3">
+          <div className="flex min-h-[72px] flex-col justify-center bg-brand-500 px-4 py-3">
             <h3 className="line-clamp-2 text-sm font-semibold leading-snug text-white">
               {project.title}
             </h3>
+            {project.description ? (
+              <p className="mt-1 line-clamp-2 text-xs text-white/85">{project.description}</p>
+            ) : null}
           </div>
-        </a>
+        </Link>
       ))}
     </div>
   );
@@ -172,7 +181,10 @@ export function CompanyContentTabs({
   ];
 
   return (
-    <section className="surface-card min-w-0 overflow-hidden shadow-card">
+    <section
+      {...scrollRevealProps('fade-up')}
+      className="surface-card min-w-0 overflow-hidden shadow-card"
+    >
       <div className="bg-brand-500 px-4 py-3 sm:px-6">
         <div className="flex gap-6 overflow-x-auto">
           {tabs.map((tab) => (
@@ -208,7 +220,9 @@ export function CompanyContentTabs({
           </div>
         ) : null}
 
-        {activeTab === 'projects' ? <ProjectsGrid projects={projects} /> : null}
+        {activeTab === 'projects' ? (
+          <ProjectsGrid companySlug={company.slug} projects={projects} />
+        ) : null}
         {activeTab === 'services' ? (
           <ServicesTabContent
             serviceItems={serviceItems}

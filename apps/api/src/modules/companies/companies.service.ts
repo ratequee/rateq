@@ -30,7 +30,12 @@ import { PhoneOtpService } from '../phone-verification/phone-otp.service';
 import { EmailService } from '../auth/services/email.service';
 import { AdminActivityService } from '../admin-activity/admin-activity.service';
 import { CompanyCatalogService } from './company-catalog.service';
-import { toCompanyDetail, toCompanyPublic, parseCompanyIdList } from './mappers/company.mapper';
+import {
+  toCompanyDetail,
+  toCompanyPublic,
+  parseCompanyIdList,
+  normalizeCategoryIdsInput,
+} from './mappers/company.mapper';
 import {
   toAdminCompanyVerificationDetail,
   toAdminCompanyVerificationSummary,
@@ -135,16 +140,24 @@ export class CompaniesService {
   ) {
     const serviceIds = parseCompanyIdList(company.serviceIds);
     const activityIds = parseCompanyIdList(company.activityIds);
-    const [serviceItems, activityItems, serviceRatingAggregates] = await Promise.all([
-      this.catalogService.resolveLabels(serviceIds, 'en'),
-      this.catalogService.resolveLabels(activityIds, 'en'),
-      this.getServiceRatingAggregates(company.id, serviceIds),
-    ]);
+    const categoryIds = normalizeCategoryIdsInput(
+      parseCompanyIdList(company.categoryIds),
+      company.categoryId ?? undefined,
+    );
+    const [serviceItems, activityItems, categoryItems, serviceRatingAggregates] = await Promise.all(
+      [
+        this.catalogService.resolveLabels(serviceIds, 'en'),
+        this.catalogService.resolveLabels(activityIds, 'en'),
+        this.categoriesService.resolveLabels(categoryIds, 'en'),
+        this.getServiceRatingAggregates(company.id, serviceIds),
+      ],
+    );
 
     return toCompanyPublic(company, {
       ...extras,
       serviceItems,
       activityItems,
+      categoryItems,
       serviceRatingAggregates,
     });
   }
@@ -155,12 +168,17 @@ export class CompaniesService {
   ) {
     const serviceIds = parseCompanyIdList(company.serviceIds);
     const activityIds = parseCompanyIdList(company.activityIds);
-    const [serviceItems, activityItems] = await Promise.all([
+    const categoryIds = normalizeCategoryIdsInput(
+      parseCompanyIdList(company.categoryIds),
+      company.categoryId ?? undefined,
+    );
+    const [serviceItems, activityItems, categoryItems] = await Promise.all([
       this.catalogService.resolveLabels(serviceIds, 'en'),
       this.catalogService.resolveLabels(activityIds, 'en'),
+      this.categoriesService.resolveLabels(categoryIds, 'en'),
     ]);
 
-    return toCompanyDetail(company, { ...extras, serviceItems, activityItems });
+    return toCompanyDetail(company, { ...extras, serviceItems, activityItems, categoryItems });
   }
 
   async register(user: AuthenticatedUser, input: CreateCompanyInput): Promise<CompanyDetail> {
@@ -189,7 +207,13 @@ export class CompaniesService {
     }
 
     const slug = await this.generateUniqueSlug(input.name);
-    await this.categoriesService.assertExists(input.categoryId);
+    const categoryIds = normalizeCategoryIdsInput(input.categoryIds, input.categoryId);
+    if (categoryIds.length === 0) {
+      throw new BadRequestException('At least one category is required');
+    }
+    for (const categoryId of categoryIds) {
+      await this.categoriesService.assertExists(categoryId);
+    }
     await this.phoneOtpService.assertPhoneVerified(user.id, input.phone, 'company');
 
     if (input.serviceIds?.length) {
@@ -226,7 +250,8 @@ export class CompaniesService {
       yearsEstablished: input.yearsEstablished ?? null,
       publicProjectCount: input.publicProjectCount ?? null,
       privateProjectCount: input.privateProjectCount ?? null,
-      category: { connect: { id: input.categoryId } },
+      categoryIds,
+      category: { connect: { id: categoryIds[0] } },
       owner: { connect: { id: user.id } },
     });
 
@@ -626,6 +651,20 @@ export class CompaniesService {
       await this.categoriesService.assertExists(input.categoryId);
     }
 
+    const categoryIds =
+      input.categoryIds !== undefined || input.categoryId !== undefined
+        ? normalizeCategoryIdsInput(input.categoryIds, input.categoryId)
+        : undefined;
+
+    if (categoryIds !== undefined) {
+      if (categoryIds.length === 0) {
+        throw new BadRequestException('At least one category is required');
+      }
+      for (const categoryId of categoryIds) {
+        await this.categoriesService.assertExists(categoryId);
+      }
+    }
+
     await this.companiesRepository.update(companyId, {
       ...(input.name !== undefined && { name: input.name.trim(), slug }),
       ...(input.nameAr !== undefined && { nameAr: input.nameAr?.trim() ?? null }),
@@ -641,6 +680,24 @@ export class CompaniesService {
       }),
       ...(input.websiteUrl !== undefined && {
         websiteUrl: input.websiteUrl?.trim() ?? null,
+      }),
+      ...(input.whatsappNumber !== undefined && {
+        whatsappNumber: input.whatsappNumber?.trim() ?? null,
+      }),
+      ...(input.instagramUrl !== undefined && {
+        instagramUrl: input.instagramUrl?.trim() ?? null,
+      }),
+      ...(input.youtubeUrl !== undefined && {
+        youtubeUrl: input.youtubeUrl?.trim() ?? null,
+      }),
+      ...(input.facebookUrl !== undefined && {
+        facebookUrl: input.facebookUrl?.trim() ?? null,
+      }),
+      ...(input.linkedinUrl !== undefined && {
+        linkedinUrl: input.linkedinUrl?.trim() ?? null,
+      }),
+      ...(input.twitterUrl !== undefined && {
+        twitterUrl: input.twitterUrl?.trim() ?? null,
       }),
       ...(input.services !== undefined && {
         services: input.services
@@ -665,8 +722,9 @@ export class CompaniesService {
       ...(input.latitude !== undefined && { latitude: input.latitude }),
       ...(input.longitude !== undefined && { longitude: input.longitude }),
       ...(input.phone !== undefined && { phone: input.phone.trim() }),
-      ...(input.categoryId !== undefined && {
-        category: { connect: { id: input.categoryId } },
+      ...(categoryIds !== undefined && {
+        categoryIds,
+        category: { connect: { id: categoryIds[0] } },
       }),
       ...(input.crNumber !== undefined && { crNumber: input.crNumber.trim() }),
       ...(input.validationDate !== undefined && {
@@ -902,6 +960,6 @@ export class CompaniesService {
       },
     });
 
-    return reviews.map(toReviewPublic);
+    return reviews.map((review) => toReviewPublic(review));
   }
 }

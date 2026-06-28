@@ -9,8 +9,8 @@ import type { CompanyMapLocation } from '@/lib/company-location';
 import type { CategoryPublic, CompanyCatalogItemPublic } from '@rateq/types';
 import type { CompanyExistingAssets } from '@/lib/profile-company-assets';
 import { cn } from '@/lib/utils';
-import { getCategoryLabel } from '@/lib/category-label';
-import { useLocale, useTranslations } from 'next-intl';
+import { CategoryMultiSelect } from '@/components/profile/category-multi-select';
+import { useTranslations } from 'next-intl';
 import type { Dispatch, SetStateAction } from 'react';
 
 interface CompanyProfileMultiStepFieldsProps {
@@ -50,8 +50,8 @@ interface CompanyProfileMultiStepFieldsProps {
   setCompanyPhone: (value: string) => void;
   companyPhoneVerified: boolean;
   setCompanyPhoneVerified: (value: boolean) => void;
-  categoryId: string;
-  setCategoryId: (value: string) => void;
+  categoryIds: string[];
+  setCategoryIds: (value: string[]) => void;
   categories: CategoryPublic[];
   crNumber: string;
   setCrNumber: (value: string) => void;
@@ -138,8 +138,8 @@ export function CompanyProfileMultiStepFields({
   setCompanyPhone,
   companyPhoneVerified,
   setCompanyPhoneVerified,
-  categoryId,
-  setCategoryId,
+  categoryIds,
+  setCategoryIds,
   categories,
   crNumber,
   setCrNumber,
@@ -163,7 +163,6 @@ export function CompanyProfileMultiStepFields({
   Field,
 }: CompanyProfileMultiStepFieldsProps) {
   const t = useTranslations('profilePage');
-  const locale = useLocale();
 
   const stepLabel =
     step === 1
@@ -289,20 +288,14 @@ export function CompanyProfileMultiStepFields({
             label={t('phone')}
             fieldKey="companyPhone"
           />
-          <Field label={t('category')} error={errors.categoryId} fieldKey="categoryId" required>
-            <select
-              value={categoryId}
-              onChange={(e) => setCategoryId(e.target.value)}
-              className="select-field h-11 w-full"
-            >
-              <option value="">{t('selectCategory')}</option>
-              {categories.map((category) => (
-                <option key={category.id} value={category.id}>
-                  {getCategoryLabel(category, locale)}
-                </option>
-              ))}
-            </select>
-          </Field>
+          <CategoryMultiSelect
+            label={t('category')}
+            hint={t('categoriesMultiHint')}
+            categories={categories}
+            selectedIds={categoryIds}
+            onChange={setCategoryIds}
+            error={errors.categoryId}
+          />
         </>
       ) : null}
 

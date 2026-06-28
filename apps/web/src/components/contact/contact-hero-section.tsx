@@ -1,3 +1,4 @@
+import { scrollRevealProps } from '@/lib/scroll-reveal';
 import { getTranslations } from 'next-intl/server';
 import type { JSX } from 'react';
 import { type BreadcrumbItem, Breadcrumbs } from '../ui/breadcrumbs';
@@ -8,6 +9,7 @@ export async function ContactHeroSection(): Promise<JSX.Element> {
 
   return (
     <section
+      {...scrollRevealProps('fade-in')}
       className="relative overflow-hidden bg-gradient-to-b from-white via-brand-50/30 to-white py-14 dark:from-dm-bg dark:via-dm-bg dark:to-dm-bg sm:py-10 lg:py-14"
       style={{
         backgroundImage: 'url(/images/herobg.svg)',

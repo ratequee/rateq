@@ -4,6 +4,7 @@ import { Input } from '@/components/ui/input';
 import { getCategoryLabel } from '@/lib/category-label';
 import { fetchCategories } from '@/lib/categories-data';
 import { fetchCompanies } from '@/lib/companies-data';
+import { scrollRevealProps, scrollStaggerDelay } from '@/lib/scroll-reveal';
 import { getTranslations, getLocale } from 'next-intl/server';
 import type { Metadata } from 'next';
 import type { JSX } from 'react';
@@ -38,10 +39,15 @@ export default async function SearchPage({ searchParams }: SearchPageProps): Pro
   return (
     <div className="surface-page min-h-[calc(100vh-4rem)] py-8 sm:py-12">
       <div className="mx-auto max-w-page px-4 sm:px-6 lg:px-8">
-        <h1 className="text-3xl font-bold text-primary sm:text-4xl">{t('title')}</h1>
-        <p className="mt-2 text-sm text-secondary sm:text-base">{tc('searchPlaceholder')}</p>
+        <div {...scrollRevealProps('fade-in')}>
+          <h1 className="text-3xl font-bold text-primary sm:text-4xl">{t('title')}</h1>
+          <p className="mt-2 text-sm text-secondary sm:text-base">{tc('searchPlaceholder')}</p>
+        </div>
 
-        <form className="mt-6 grid gap-4 rounded-2xl border border-subtle surface-card p-4 sm:grid-cols-2 lg:grid-cols-4 lg:items-end">
+        <form
+          {...scrollRevealProps('fade-up', 80)}
+          className="mt-6 grid gap-4 rounded-2xl border border-subtle surface-card p-4 sm:grid-cols-2 lg:grid-cols-4 lg:items-end"
+        >
           <div className="lg:col-span-2">
             <label
               htmlFor="search-query"
@@ -101,7 +107,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps): Pro
           </div>
         </form>
 
-        <div className="mt-8">
+        <div {...scrollRevealProps('fade-up', 120)} className="mt-8">
           {result.data.length === 0 ? (
             <p className="py-12 text-center text-secondary">{tc('noResults')}</p>
           ) : (
@@ -110,8 +116,13 @@ export default async function SearchPage({ searchParams }: SearchPageProps): Pro
                 {t('resultsCount', { count: result.meta.total })}
               </p>
               <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                {result.data.map((company) => (
-                  <CompanyCard key={company.id} company={company} />
+                {result.data.map((company, index) => (
+                  <div
+                    key={company.id}
+                    {...scrollRevealProps('fade-up', scrollStaggerDelay(index))}
+                  >
+                    <CompanyCard company={company} />
+                  </div>
                 ))}
               </div>
             </>

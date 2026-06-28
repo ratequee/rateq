@@ -1,5 +1,6 @@
 'use client';
 
+import { scrollRevealProps } from '@/lib/scroll-reveal';
 import type { CompanyPublic } from '@rateq/types';
 import { CarouselControls } from '@/components/home/carousel-controls';
 import { FeaturedCompanyCard } from '@/components/home/featured-company-card';
@@ -24,7 +25,10 @@ export function FeaturedCompaniesSection({ companies }: FeaturedCompaniesSection
   };
 
   return (
-    <section className="bg-slate-50/60 py-12 dark:bg-dm-bg sm:py-16 lg:py-20">
+    <section
+      {...scrollRevealProps('fade-up')}
+      className="bg-slate-50/60 py-12 dark:bg-dm-bg sm:py-16 lg:py-20"
+    >
       <div className="mx-auto max-w-page px-4 sm:px-6 lg:px-8">
         <SectionHeader
           title={t('featuredTitle')}

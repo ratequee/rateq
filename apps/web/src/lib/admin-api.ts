@@ -8,6 +8,7 @@ import type {
   InvitationPublic,
   PaginatedAdminCompanyVerifications,
   SendInvitationInput,
+  UpdateCategoryInput,
   UpdateCompanyCatalogItemInput,
   UpdateCompanyVerificationInput,
 } from '@rateq/types';
@@ -63,6 +64,13 @@ export const adminApi = {
   removeCategory: async (id: string) =>
     apiClient<{ message: string }>(`/admin/categories/${id}`, {
       method: 'DELETE',
+      token: await token(),
+    }),
+
+  updateCategory: async (id: string, data: UpdateCategoryInput) =>
+    apiClient<CategoryPublic>(`/admin/categories/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify(data),
       token: await token(),
     }),
 

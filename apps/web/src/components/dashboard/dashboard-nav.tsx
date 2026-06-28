@@ -101,7 +101,7 @@ export const DASHBOARD_NAV_ITEMS: {
     href: '/search',
     key: 'visitCompanies',
     icon: Building2,
-    roles: ['admin', 'company', 'reviewer'],
+    roles: ['reviewer'],
   },
   {
     href: '/',

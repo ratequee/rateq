@@ -2,6 +2,7 @@
 
 import { CategoryCard } from '@/components/categories/category-card';
 import { CarouselControls } from '@/components/home/carousel-controls';
+import { scrollRevealProps } from '@/lib/scroll-reveal';
 import { darkCard } from '@/lib/dark-surfaces';
 import { SectionHeader } from '@/components/home/section-header';
 import type { CategoryPublic } from '@rateq/types';
@@ -24,7 +25,10 @@ export function CategoryCarousel({ categories }: CategoryCarouselProps) {
   };
 
   return (
-    <section className="mt-[50px] py-12 dark:bg-dm-bg sm:py-16 lg:py-20">
+    <section
+      {...scrollRevealProps('fade-up')}
+      className="mt-[50px] py-12 dark:bg-dm-bg sm:py-16 lg:py-20"
+    >
       <div className="mx-auto max-w-page px-4 sm:px-6 lg:px-8">
         <SectionHeader
           title={t('categoriesTitle')}

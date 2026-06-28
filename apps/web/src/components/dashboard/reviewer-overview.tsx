@@ -6,7 +6,7 @@ import { DashboardStatCard } from '@/components/dashboard/dashboard-stat-card';
 import { ReviewerRecentlyRatedCompaniesList } from '@/components/dashboard/reviewer-recently-rated-companies-list';
 import { mapReviewToDashboardRow } from '@/lib/dashboard-review-rows';
 import type { ReviewerDashboard } from '@rateq/types';
-import { ClipboardList, ShoppingCart, Star, Users } from 'lucide-react';
+import { ClipboardList, Clock3, ThumbsDown, ThumbsUp } from 'lucide-react';
 import { useLocale, useTranslations } from 'next-intl';
 import { useMemo } from 'react';
 
@@ -15,7 +15,7 @@ interface ReviewerOverviewProps {
   dashboard: ReviewerDashboard | null;
 }
 
-const statIcons = [ClipboardList, ShoppingCart, Users, Star] as const;
+const statIcons = [ClipboardList, Clock3, ThumbsUp, ThumbsDown] as const;
 
 export function ReviewerOverview({ title, dashboard }: ReviewerOverviewProps) {
   const t = useTranslations('dashboardShell');
@@ -90,7 +90,7 @@ export function ReviewerOverview({ title, dashboard }: ReviewerOverviewProps) {
             value={stat.value}
             change={stat.change}
             positive={stat.positive}
-            icon={statIcons[index] ?? Star}
+            icon={statIcons[index] ?? ClipboardList}
           />
         ))}
       </div>

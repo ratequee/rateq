@@ -91,7 +91,7 @@ export default function CompleteProfilePage() {
   const [catalogServices, setCatalogServices] = useState<CompanyCatalogItemPublic[]>([]);
   const [catalogActivities, setCatalogActivities] = useState<CompanyCatalogItemPublic[]>([]);
   const [companyPhone, setCompanyPhone] = useState('');
-  const [categoryId, setCategoryId] = useState('');
+  const [categoryIds, setCategoryIds] = useState<string[]>([]);
   const [categories, setCategories] = useState<CategoryPublic[]>([]);
   const [companyAddress, setCompanyAddress] = useState('');
   const [companyLocation, setCompanyLocation] = useState<CompanyMapLocation | null>(null);
@@ -175,7 +175,13 @@ export default function CompleteProfilePage() {
           : '',
       );
       setCompanyPhone(extractQatarPhoneDigits(onboarding.company.phone ?? ''));
-      setCategoryId(onboarding.company.categoryId ?? '');
+      setCategoryIds(
+        onboarding.company.categoryIds?.length
+          ? onboarding.company.categoryIds
+          : onboarding.company.categoryId
+            ? [onboarding.company.categoryId]
+            : [],
+      );
       setCompanyAddress(onboarding.company.address ?? '');
       if (onboarding.company.latitude != null && onboarding.company.longitude != null) {
         setCompanyLocation({
@@ -309,7 +315,7 @@ export default function CompleteProfilePage() {
         companyAddress,
         companyLocation,
         companyPhone,
-        categoryId,
+        categoryIds,
         crNumber,
         validationDate,
         city: companyCity,
@@ -366,7 +372,7 @@ export default function CompleteProfilePage() {
         companyAddress,
         companyLocation,
         companyPhone,
-        categoryId,
+        categoryIds,
         crNumber,
         validationDate,
         city: companyCity,
@@ -525,7 +531,7 @@ export default function CompleteProfilePage() {
         latitude: companyLocation.latitude,
         longitude: companyLocation.longitude,
         phone: formatQatarPhoneForSubmit(companyPhone),
-        categoryId,
+        categoryIds,
         crNumber: crNumber.trim(),
         validationDate,
         registrationDocUrl,
@@ -739,8 +745,8 @@ export default function CompleteProfilePage() {
                   setCompanyPhone={setCompanyPhone}
                   companyPhoneVerified={companyPhoneVerified}
                   setCompanyPhoneVerified={setCompanyPhoneVerified}
-                  categoryId={categoryId}
-                  setCategoryId={setCategoryId}
+                  categoryIds={categoryIds}
+                  setCategoryIds={setCategoryIds}
                   categories={categories}
                   crNumber={crNumber}
                   setCrNumber={setCrNumber}

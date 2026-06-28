@@ -1,3 +1,4 @@
+import { scrollRevealProps } from '@/lib/scroll-reveal';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { getLocale, getTranslations } from 'next-intl/server';
@@ -12,6 +13,7 @@ export async function CategoriesHeroSection(): Promise<JSX.Element> {
 
   return (
     <section
+      {...scrollRevealProps('fade-in')}
       className="relative overflow-hidden bg-gradient-to-b from-white via-brand-50/30 to-white py-12 dark:from-dm-bg dark:via-dm-bg dark:to-dm-bg sm:py-16 lg:py-20"
       style={{
         backgroundImage: 'url(/images/herobg.svg)',

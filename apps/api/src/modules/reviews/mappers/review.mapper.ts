@@ -13,9 +13,10 @@ import type {
   ReviewCompanySummary,
   ReviewPublic,
   ReviewReplyPublic,
+  ReviewReplyStatus,
   ReviewServiceRatingPublic,
 } from '@rateq/types';
-import { ReviewStatus } from '@rateq/types';
+import { ReviewReplyStatus as ReviewReplyStatusEnum, ReviewStatus } from '@rateq/types';
 
 type ReviewWithRelations = Review & {
   user?: Pick<User, 'id' | 'email' | 'displayName' | 'phone' | 'phoneVerified'> & {
@@ -36,6 +37,7 @@ export function toReviewReplyPublic(reply: ReviewReply): ReviewReplyPublic {
   return {
     id: reply.id,
     content: reply.content,
+    status: reply.status as ReviewReplyStatus,
     createdAt: reply.createdAt.toISOString(),
   };
 }
@@ -65,8 +67,15 @@ function toReviewCompanySummary(
   };
 }
 
-export function toReviewPublic(review: ReviewWithRelations): ReviewPublic {
+export function toReviewPublic(
+  review: ReviewWithRelations,
+  options?: { includeUnpublishedReply?: boolean },
+): ReviewPublic {
   const reply = review.replies?.[0];
+  const visibleReply =
+    reply && (reply.status === ReviewReplyStatusEnum.APPROVED || options?.includeUnpublishedReply)
+      ? reply
+      : null;
 
   const serviceRatings: ReviewServiceRatingPublic[] | undefined = review.serviceRatings?.length
     ? review.serviceRatings.map((entry) => ({
@@ -106,8 +115,15 @@ export function toReviewPublic(review: ReviewWithRelations): ReviewPublic {
       },
     }),
     ...(review.company && { company: toReviewCompanySummary(review.company) }),
-    reply: reply ? toReviewReplyPublic(reply) : null,
+    reply: visibleReply ? toReviewReplyPublic(visibleReply) : null,
   };
+}
+
+export function mapReviewsPublic(
+  reviews: ReviewWithRelations[],
+  options?: { includeUnpublishedReply?: boolean },
+): ReviewPublic[] {
+  return reviews.map((review) => toReviewPublic(review, options));
 }
 
 export function resolveReviewerContact(review: ReviewWithRelations): {

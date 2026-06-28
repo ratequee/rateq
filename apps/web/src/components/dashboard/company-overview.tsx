@@ -6,7 +6,7 @@ import { DashboardReviewsTable } from '@/components/dashboard/dashboard-reviews-
 import { DashboardStatCard } from '@/components/dashboard/dashboard-stat-card';
 import { mapReviewToDashboardRow } from '@/lib/dashboard-review-rows';
 import type { CompanyDashboard } from '@rateq/types';
-import { ClipboardList, Eye, ShoppingCart, Star, Users } from 'lucide-react';
+import { ClipboardList, Clock3, Eye, Star, ThumbsDown, ThumbsUp } from 'lucide-react';
 import { useLocale, useTranslations } from 'next-intl';
 import { useMemo } from 'react';
 
@@ -15,7 +15,7 @@ interface CompanyOverviewProps {
   dashboard: CompanyDashboard | null;
 }
 
-const statIcons = [ClipboardList, ShoppingCart, Users, Star, Eye] as const;
+const statIcons = [ClipboardList, Clock3, ThumbsUp, ThumbsDown, Star, Eye] as const;
 
 export function CompanyOverview({ title, dashboard }: CompanyOverviewProps) {
   const t = useTranslations('dashboardShell');

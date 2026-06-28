@@ -120,6 +120,17 @@ export async function SiteFooter(): Promise<JSX.Element> {
             <p>
               © {year} {tc('appName')}. {t('rights')}
             </p>
+            <p className="text-white/70">
+              {t('broughtToLifeBy')}{' '}
+              <a
+                href="https://qwebdigital.com/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="font-medium text-white underline-offset-2 hover:underline"
+              >
+                Qweb Digital
+              </a>
+            </p>
           </div>
         </div>
       </div>

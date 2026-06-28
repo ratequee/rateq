@@ -1,5 +1,6 @@
 import type { CompanyPublic } from '@rateq/types';
 import { CompanyBreadcrumb } from '@/components/company/company-breadcrumb';
+import { scrollRevealProps } from '@/lib/scroll-reveal';
 import type { JSX } from 'react';
 
 interface CompanyHeroSectionProps {
@@ -11,6 +12,7 @@ export async function CompanyHeroSection({
 }: CompanyHeroSectionProps): Promise<JSX.Element> {
   return (
     <section
+      {...scrollRevealProps('fade-in')}
       className="bg-slate-50/60 py-10 sm:py-20 dark:bg-dm-elevated/80"
       style={{
         backgroundImage: 'url(/images/herobg.svg)',

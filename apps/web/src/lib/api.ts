@@ -260,6 +260,16 @@ export const reviewsApi = {
       method: 'DELETE',
       token,
     }),
+  approveReviewReply: (token: string, reviewId: string) =>
+    apiClient<MessageResponse>(`/moderation/reviews/${reviewId}/reply/approve`, {
+      method: 'PATCH',
+      token,
+    }),
+  rejectReviewReply: (token: string, reviewId: string) =>
+    apiClient<MessageResponse>(`/moderation/reviews/${reviewId}/reply/reject`, {
+      method: 'PATCH',
+      token,
+    }),
   setResolutionWindow: (token: string, reviewId: string, days: 7 | 10) =>
     apiClient<ReviewPublic>(`/reviews/${reviewId}/resolution/window`, {
       method: 'PATCH',

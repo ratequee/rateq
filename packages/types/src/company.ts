@@ -3,10 +3,32 @@ import type { ReviewPublic } from './review';
 
 export interface CompanyProjectPublic {
   id: string;
+  slug: string;
   title: string;
+  description: string | null;
   imageUrl: string;
   projectUrl: string;
+  demoImages: string[];
+  clientName: string | null;
+  location: string | null;
+  projectDate: string | null;
+  serviceIds: string[];
   sortOrder: number;
+}
+
+export interface CompanySocialLinks {
+  whatsappNumber: string | null;
+  instagramUrl: string | null;
+  youtubeUrl: string | null;
+  facebookUrl: string | null;
+  linkedinUrl: string | null;
+  twitterUrl: string | null;
+}
+
+export interface CompanyCategoryLabel {
+  id: string;
+  label: string;
+  labelAr: string | null;
 }
 
 export interface ReviewRatingDistribution {
@@ -42,6 +64,7 @@ export interface CompanyPublic {
   email: string | null;
   phone: string | null;
   websiteUrl: string | null;
+  socialLinks: CompanySocialLinks;
   services: string[];
   serviceItems: CompanyCatalogLabel[];
   activityItems: CompanyCatalogLabel[];
@@ -57,6 +80,8 @@ export interface CompanyPublic {
   ratingDistribution: ReviewRatingDistribution;
   createdAt: string;
   categoryId?: string | null;
+  categoryIds: string[];
+  categoryItems: CompanyCategoryLabel[];
   categoryName?: string | null;
   categoryNameAr?: string | null;
   latitude?: number | null;
@@ -91,7 +116,8 @@ export interface CreateCompanyInput {
   latitude: number;
   longitude: number;
   phone: string;
-  categoryId: string;
+  categoryId?: string;
+  categoryIds?: string[];
   crNumber: string;
   validationDate: string;
   registrationDocUrl: string;
@@ -107,9 +133,16 @@ export interface CreateCompanyInput {
 }
 
 export interface UpdateCompanyProjectInput {
+  slug?: string;
   title: string;
+  description?: string;
   imageUrl: string;
-  projectUrl: string;
+  projectUrl?: string;
+  demoImages?: string[];
+  clientName?: string;
+  location?: string;
+  projectDate?: string;
+  serviceIds?: string[];
 }
 
 export interface UpdateCompanyInput {
@@ -119,6 +152,12 @@ export interface UpdateCompanyInput {
   descriptionEn?: string;
   descriptionAr?: string;
   websiteUrl?: string | null;
+  whatsappNumber?: string | null;
+  instagramUrl?: string | null;
+  youtubeUrl?: string | null;
+  facebookUrl?: string | null;
+  linkedinUrl?: string | null;
+  twitterUrl?: string | null;
   services?: string[];
   serviceIds?: string[];
   activityIds?: string[];
@@ -133,6 +172,7 @@ export interface UpdateCompanyInput {
   longitude?: number;
   phone?: string;
   categoryId?: string;
+  categoryIds?: string[];
   crNumber?: string;
   validationDate?: string;
   registrationDocUrl?: string;

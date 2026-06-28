@@ -1,5 +1,6 @@
 'use client';
 
+import { scrollRevealProps, scrollStaggerDelay } from '@/lib/scroll-reveal';
 import { CategoryCard } from '@/components/categories/category-card';
 import { categoryMatchesQuery } from '@/lib/category-label';
 import type { CategoryPublic } from '@rateq/types';
@@ -31,7 +32,7 @@ export function CategoriesGrid({
   });
 
   return (
-    <section className="py-12 dark:bg-dm-bg sm:py-16 lg:py-20">
+    <section {...scrollRevealProps('fade-up')} className="py-12 dark:bg-dm-bg sm:py-16 lg:py-20">
       <div className="mx-auto max-w-page px-4 sm:px-6 lg:px-8">
         <div className="mb-8 flex flex-wrap items-end justify-between gap-4">
           <div>
@@ -48,8 +49,13 @@ export function CategoriesGrid({
           <p className="py-16 text-center text-ink-muted dark:text-white/85">{t('noResults')}</p>
         ) : (
           <div className="grid grid-cols-2 gap-x-4 gap-y-12 sm:grid-cols-3 lg:grid-cols-4 lg:gap-x-6">
-            {filtered.map((category) => (
-              <CategoryCard key={category.id} category={category} />
+            {filtered.map((category, index) => (
+              <div
+                key={category.id}
+                {...scrollRevealProps('fade-up', scrollStaggerDelay(index % 8))}
+              >
+                <CategoryCard category={category} />
+              </div>
             ))}
           </div>
         )}

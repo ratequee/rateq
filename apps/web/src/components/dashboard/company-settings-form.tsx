@@ -1,5 +1,6 @@
 'use client';
 
+import { CategoryMultiSelect } from '@/components/profile/category-multi-select';
 import { CompanyAddressMapField } from '@/components/profile/company-address-map-field';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -36,7 +37,13 @@ function CompanySettingsForm({ company }: { company: CompanyProfileDetail }) {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [companyName, setCompanyName] = useState(() => company.name);
   const [companyPhone] = useState(() => extractQatarPhoneDigits(company.phone ?? ''));
-  const [categoryId, setCategoryId] = useState(() => company.categoryId ?? '');
+  const [categoryIds, setCategoryIds] = useState<string[]>(() =>
+    company.categoryIds?.length
+      ? company.categoryIds
+      : company.categoryId
+        ? [company.categoryId]
+        : [],
+  );
   const [companyAddress, setCompanyAddress] = useState(() => company.address ?? '');
   const [companyLocation, setCompanyLocation] = useState<CompanyMapLocation | null>(() =>
     buildCompanyLocation(company),
@@ -56,7 +63,7 @@ function CompanySettingsForm({ company }: { company: CompanyProfileDetail }) {
         companyName,
         companyAddress,
         companyLocation,
-        categoryId,
+        categoryIds,
         city: companyCity,
         country: companyCountry,
       },
@@ -83,7 +90,7 @@ function CompanySettingsForm({ company }: { company: CompanyProfileDetail }) {
         address: companyAddress.trim(),
         latitude: companyLocation?.latitude,
         longitude: companyLocation?.longitude,
-        categoryId,
+        categoryIds,
         country: companyCountry.trim(),
         city: companyCity.trim(),
       });
@@ -131,20 +138,14 @@ function CompanySettingsForm({ company }: { company: CompanyProfileDetail }) {
           className="bg-slate-50 dark:bg-dm-elevated"
         />
       </Field>
-      <Field label={t('category')} error={errors.categoryId} required>
-        <select
-          value={categoryId}
-          onChange={(e) => setCategoryId(e.target.value)}
-          className="select-field h-11"
-        >
-          <option value="">{t('selectCategory')}</option>
-          {categories.map((category) => (
-            <option key={category.id} value={category.id}>
-              {category.nameEn} / {category.nameAr}
-            </option>
-          ))}
-        </select>
-      </Field>
+      <CategoryMultiSelect
+        label={t('category')}
+        hint={t('categoriesMultiHint')}
+        categories={categories}
+        selectedIds={categoryIds}
+        onChange={setCategoryIds}
+        error={errors.categoryId}
+      />
       <Button type="submit" disabled={submitting} className="w-full">
         {submitting ? t('saving') : t('saveChanges')}
       </Button>

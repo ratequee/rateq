@@ -13,6 +13,7 @@ import { getLocale, getTranslations } from 'next-intl/server';
 import type { JSX } from 'react';
 import Image from 'next/image';
 import { cn } from '@/lib/utils';
+import { scrollRevealProps } from '@/lib/scroll-reveal';
 
 interface HeroSectionProps {
   topCompany: CompanyPublic | null;
@@ -49,6 +50,7 @@ export async function HeroSection({
 
   return (
     <section
+      {...scrollRevealProps('fade-in')}
       className="relative overflow-hidden bg-gradient-to-b from-white via-white to-slate-50/80 pb-12 pt-6 dark:from-dm-bg dark:via-dm-bg dark:to-dm-bg sm:pb-30 sm:pt-8 lg:pb-50"
       style={{
         backgroundImage: 'url(/images/herobg.svg)',

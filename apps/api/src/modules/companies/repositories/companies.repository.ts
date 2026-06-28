@@ -162,8 +162,28 @@ export class CompaniesRepository {
 
   replaceProjects(
     companyId: string,
-    projects: { title: string; imageUrl: string; projectUrl: string }[],
+    projects: {
+      title: string;
+      imageUrl: string;
+      projectUrl?: string;
+      slug?: string;
+      description?: string;
+      demoImages?: string[];
+      clientName?: string;
+      location?: string;
+      projectDate?: string;
+      serviceIds?: string[];
+    }[],
   ): Promise<void> {
+    const slugify = (title: string, index: number) => {
+      const base =
+        title
+          .toLowerCase()
+          .replace(/[^a-z0-9]+/g, '-')
+          .replace(/^-|-$/g, '') || 'project';
+      return `${base}-${index + 1}`.slice(0, 80);
+    };
+
     return this.prisma.$transaction(async (tx) => {
       await tx.companyProject.deleteMany({ where: { companyId } });
 
@@ -172,9 +192,16 @@ export class CompaniesRepository {
       await tx.companyProject.createMany({
         data: projects.map((project, index) => ({
           companyId,
+          slug: project.slug ?? slugify(project.title, index),
           title: project.title,
+          description: project.description ?? null,
           imageUrl: project.imageUrl,
-          projectUrl: project.projectUrl,
+          projectUrl: project.projectUrl ?? '',
+          demoImages: project.demoImages ?? [],
+          clientName: project.clientName ?? null,
+          location: project.location ?? null,
+          projectDate: project.projectDate ? new Date(project.projectDate) : null,
+          serviceIds: project.serviceIds ?? [],
           sortOrder: index,
         })),
       });
@@ -236,7 +263,12 @@ export class CompaniesRepository {
     }
 
     if (filters.categoryId) {
-      andConditions.push({ categoryId: filters.categoryId });
+      andConditions.push({
+        OR: [
+          { categoryId: filters.categoryId },
+          { categoryIds: { string_contains: `"${filters.categoryId}"` } },
+        ],
+      });
     }
 
     if (filters.query) {

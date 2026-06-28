@@ -2,8 +2,10 @@ import { CompanyContentTabs } from '@/components/company/company-content-tabs';
 import { CompanyPageViewTracker } from '@/components/company/company-page-view-tracker';
 import { CompanyHeroSection } from '@/components/company/company-hero-section';
 import { CompanyRatingBreakdown } from '@/components/company/company-rating-breakdown';
+import { CompanySocialLinksRow } from '@/components/company/company-social-links-row';
 import { RelatedCompaniesSection } from '@/components/company/related-companies-section';
 import { fetchCompanyBySlug } from '@/lib/companies-data';
+import { scrollRevealProps } from '@/lib/scroll-reveal';
 import { reviewsApi } from '@/lib/api';
 import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
@@ -11,7 +13,7 @@ import type { JSX } from 'react';
 import { CompanyWriteReviewButton } from '@/components/company/company-write-review-button';
 import { CompanyShareButton } from '@/components/company/company-share-button';
 import { Badge } from '@/components/ui/badge';
-import { Mail, MapPin, Phone, Star } from 'lucide-react';
+import { Mail, MapPin, Phone, Star, Building2, FolderOpen, Lock } from 'lucide-react';
 import { getTranslations } from 'next-intl/server';
 // import { MobileAppsCta } from '@/components/home/mobile-apps-cta';
 import Image from 'next/image';
@@ -74,7 +76,10 @@ export default async function CompanyPage({ params }: CompanyPageProps): Promise
 
       <div className="mx-auto max-w-page px-4 pb-12 sm:px-6 sm:pb-16 lg:px-8">
         <div className="grid min-w-0 gap-8 lg:grid-cols-[minmax(0,1fr)_300px] lg:items-start lg:gap-10 xl:grid-cols-[minmax(0,1fr)_320px]">
-          <div className="mt-20 min-w-0 overflow-hidden rounded-2xl border border-subtle bg-[#F9F9F9] shadow-card dark:bg-dm-surface">
+          <div
+            {...scrollRevealProps('fade-up')}
+            className="mt-20 min-w-0 overflow-hidden rounded-2xl border border-subtle bg-[#F9F9F9] shadow-card dark:bg-dm-surface"
+          >
             <div className="relative h-40 overflow-hidden sm:h-48 lg:h-52">
               {company.coverUrl ? (
                 <>
@@ -167,24 +172,51 @@ export default async function CompanyPage({ params }: CompanyPageProps): Promise
               <hr className="mb-6 mt-6 border-default" />
 
               <div className="flex items-center justify-between gap-2">
-                <div className="flex flex-wrap items-center gap-3">
-                  {company.phone && (
-                    <div className="flex items-center gap-2">
-                      <Phone className="h-5 w-5" />
-                      <a
-                        href={`tel:${company.phone.replace(/\s/g, '')}`}
-                        className="hover:text-brand-500"
-                      >
-                        {company.phone}
-                      </a>
-                    </div>
-                  )}
-                  {company.email && (
-                    <div className="flex items-center gap-2">
-                      <Mail className="h-5 w-5" />
-                      <a href={`mailto:${company.email}`} className="hover:text-brand-500">
-                        {company.email}
-                      </a>
+                <div className="flex flex-col gap-3">
+                  <div className="flex flex-wrap items-center gap-3">
+                    {company.phone && (
+                      <div className="flex items-center gap-2">
+                        <Phone className="h-5 w-5" />
+                        <a
+                          href={`tel:${company.phone.replace(/\s/g, '')}`}
+                          className="hover:text-brand-500"
+                        >
+                          {company.phone}
+                        </a>
+                      </div>
+                    )}
+                    {company.email && (
+                      <div className="flex items-center gap-2">
+                        <Mail className="h-5 w-5" />
+                        <a href={`mailto:${company.email}`} className="hover:text-brand-500">
+                          {company.email}
+                        </a>
+                      </div>
+                    )}
+                  </div>
+                  <CompanySocialLinksRow socialLinks={company.socialLinks} />
+                  {(company.yearsEstablished != null ||
+                    company.publicProjectCount != null ||
+                    company.privateProjectCount != null) && (
+                    <div className="flex flex-wrap items-center gap-4 text-sm text-secondary">
+                      {company.yearsEstablished != null && (
+                        <span className="inline-flex items-center gap-1.5">
+                          <Building2 className="h-4 w-4 shrink-0" aria-hidden />
+                          {t('yearsEstablishedStat', { count: company.yearsEstablished })}
+                        </span>
+                      )}
+                      {company.publicProjectCount != null && (
+                        <span className="inline-flex items-center gap-1.5">
+                          <FolderOpen className="h-4 w-4 shrink-0" aria-hidden />
+                          {t('publicProjectsStat', { count: company.publicProjectCount })}
+                        </span>
+                      )}
+                      {company.privateProjectCount != null && (
+                        <span className="inline-flex items-center gap-1.5">
+                          <Lock className="h-4 w-4 shrink-0" aria-hidden />
+                          {t('privateProjectsStat', { count: company.privateProjectCount })}
+                        </span>
+                      )}
                     </div>
                   )}
                 </div>
@@ -210,7 +242,7 @@ export default async function CompanyPage({ params }: CompanyPageProps): Promise
             ) : null}
           </div>
 
-          <div className="mt-20 lg:self-start">
+          <div {...scrollRevealProps('fade-left', 120)} className="mt-20 lg:self-start">
             <CompanyRatingBreakdown
               average={company.ratingAverage}
               reviewCount={company.reviewCount}

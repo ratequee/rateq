@@ -1,6 +1,7 @@
 'use client';
 
 import { CatalogMultiSelect } from '@/components/profile/catalog-multi-select';
+import { CompanySocialLinksFields } from '@/components/profile/company-social-links-fields';
 import { DashboardProfileLoading } from '@/components/dashboard/dashboard-profile-loading';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -8,7 +9,11 @@ import { useProfile } from '@/components/providers/profile-provider';
 import { fetchCompanyCatalogClient } from '@/lib/company-catalog-api';
 import { onboardingApi } from '@/lib/onboarding-api';
 import { ApiError } from '@/lib/api';
-import type { CompanyCatalogItemPublic, CompanyProfileDetail } from '@rateq/types';
+import type {
+  CompanyCatalogItemPublic,
+  CompanyProfileDetail,
+  CompanySocialLinks,
+} from '@rateq/types';
 import { useTranslations } from 'next-intl';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
@@ -24,6 +29,17 @@ function CompanyPublicProfileFormFields({ company }: { company: CompanyProfileDe
   );
   const [descriptionAr, setDescriptionAr] = useState(() => company.descriptionAr ?? '');
   const [websiteUrl, setWebsiteUrl] = useState(() => company.websiteUrl ?? '');
+  const [socialLinks, setSocialLinks] = useState<CompanySocialLinks>(
+    () =>
+      company.socialLinks ?? {
+        whatsappNumber: null,
+        instagramUrl: null,
+        youtubeUrl: null,
+        facebookUrl: null,
+        linkedinUrl: null,
+        twitterUrl: null,
+      },
+  );
   const [serviceIds, setServiceIds] = useState<string[]>(
     () => company.serviceItems?.map((item) => item.id) ?? [],
   );
@@ -66,6 +82,12 @@ function CompanyPublicProfileFormFields({ company }: { company: CompanyProfileDe
         descriptionEn: descriptionEn.trim() || undefined,
         descriptionAr: descriptionAr.trim() || undefined,
         websiteUrl: websiteUrl.trim() || null,
+        whatsappNumber: socialLinks.whatsappNumber,
+        instagramUrl: socialLinks.instagramUrl,
+        youtubeUrl: socialLinks.youtubeUrl,
+        facebookUrl: socialLinks.facebookUrl,
+        linkedinUrl: socialLinks.linkedinUrl,
+        twitterUrl: socialLinks.twitterUrl,
         serviceIds,
         activityIds,
         yearsEstablished: yearsEstablished ? Number(yearsEstablished) : undefined,
@@ -144,6 +166,12 @@ function CompanyPublicProfileFormFields({ company }: { company: CompanyProfileDe
           className="h-11"
         />
       </Field>
+
+      <CompanySocialLinksFields
+        values={socialLinks}
+        onChange={(patch) => setSocialLinks((current) => ({ ...current, ...patch }))}
+        disabled={pendingApproval}
+      />
 
       <CatalogMultiSelect
         label={t('companyServices')}

@@ -49,6 +49,9 @@ function getPhoneVerificationErrorMessage(
     return t('phoneInvalidAppCredential');
   }
   if (err instanceof ApiError) {
+    if (err.message.toLowerCase().includes('already linked to another account')) {
+      return t('phoneAlreadyLinked');
+    }
     return err.message;
   }
   if (err instanceof Error && err.message) {

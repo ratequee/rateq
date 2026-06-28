@@ -192,7 +192,14 @@ export class ReviewsRepository {
 
   createReply(reviewId: string, companyId: string, content: string) {
     return this.prisma.reviewReply.create({
-      data: { reviewId, companyId, content },
+      data: { reviewId, companyId, content, status: 'PENDING' },
+    });
+  }
+
+  updateReplyStatus(reviewId: string, status: 'PENDING' | 'APPROVED' | 'REJECTED') {
+    return this.prisma.reviewReply.update({
+      where: { reviewId },
+      data: { status },
     });
   }
 

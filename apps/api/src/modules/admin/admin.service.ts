@@ -88,7 +88,7 @@ export class AdminService {
         reviewCount: user.reviewCount,
         avatarUrl: user.profile?.avatarUrl ?? null,
       })),
-      latestReviews: latestReviews.map(toReviewPublic),
+      latestReviews: latestReviews.map((review) => toReviewPublic(review)),
     };
   }
 
@@ -147,7 +147,7 @@ export class AdminService {
 
     return {
       ...toUserProfile(user),
-      reviews: reviews.map(toReviewPublic),
+      reviews: reviews.map((review) => toReviewPublic(review)),
     };
   }
 
@@ -174,7 +174,7 @@ export class AdminService {
       ownerId: company.ownerId ?? null,
       ownerIsActive: company.owner?.isActive ?? null,
       pageVisitCount,
-      reviews: reviews.map(toReviewPublic),
+      reviews: reviews.map((review) => toReviewPublic(review)),
     };
   }
 

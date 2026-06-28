@@ -61,6 +61,48 @@ export class UpdateCompanyDto {
   @MaxLength(2048)
   websiteUrl?: string | null;
 
+  @ApiPropertyOptional({ nullable: true, example: '+97455551234' })
+  @IsOptional()
+  @ValidateIf((_, value) => value !== null)
+  @IsString()
+  @MaxLength(20)
+  whatsappNumber?: string | null;
+
+  @ApiPropertyOptional({ nullable: true })
+  @IsOptional()
+  @ValidateIf((_, value) => value !== null)
+  @IsUrl()
+  @MaxLength(2048)
+  instagramUrl?: string | null;
+
+  @ApiPropertyOptional({ nullable: true })
+  @IsOptional()
+  @ValidateIf((_, value) => value !== null)
+  @IsUrl()
+  @MaxLength(2048)
+  youtubeUrl?: string | null;
+
+  @ApiPropertyOptional({ nullable: true })
+  @IsOptional()
+  @ValidateIf((_, value) => value !== null)
+  @IsUrl()
+  @MaxLength(2048)
+  facebookUrl?: string | null;
+
+  @ApiPropertyOptional({ nullable: true })
+  @IsOptional()
+  @ValidateIf((_, value) => value !== null)
+  @IsUrl()
+  @MaxLength(2048)
+  linkedinUrl?: string | null;
+
+  @ApiPropertyOptional({ nullable: true })
+  @IsOptional()
+  @ValidateIf((_, value) => value !== null)
+  @IsUrl()
+  @MaxLength(2048)
+  twitterUrl?: string | null;
+
   @ApiPropertyOptional({ type: [String] })
   @IsOptional()
   @IsArray()
@@ -157,6 +199,13 @@ export class UpdateCompanyDto {
   @IsString()
   @MaxLength(100)
   categoryId?: string;
+
+  @ApiPropertyOptional({ type: [String] })
+  @IsOptional()
+  @IsArray()
+  @ArrayMaxSize(10)
+  @IsString({ each: true })
+  categoryIds?: string[];
 
   @ApiPropertyOptional()
   @IsOptional()

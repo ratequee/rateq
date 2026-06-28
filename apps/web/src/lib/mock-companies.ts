@@ -24,6 +24,9 @@ interface MockCompany extends Omit<
   | 'yearsEstablished'
   | 'publicProjectCount'
   | 'privateProjectCount'
+  | 'categoryIds'
+  | 'socialLinks'
+  | 'categoryItems'
 > {
   email?: string | null;
   phone?: string | null;
@@ -40,6 +43,9 @@ interface MockCompany extends Omit<
   yearsEstablished?: number | null;
   publicProjectCount?: number | null;
   privateProjectCount?: number | null;
+  categoryIds?: string[];
+  socialLinks?: CompanyPublic['socialLinks'];
+  categoryItems?: CompanyPublic['categoryItems'];
   categoryId: CategoryId;
   keywords: string[];
 }
@@ -515,6 +521,7 @@ const MOCK_REVIEWS: Record<string, ReviewPublic[]> = {
         id: 'reply-ooredoo-1',
         content: 'Thank you Sara! We are glad our team could help quickly.',
         createdAt: '2025-05-20T09:00:00.000Z',
+        status: 'approved',
       },
     },
     {
@@ -574,6 +581,7 @@ const MOCK_REVIEWS: Record<string, ReviewPublic[]> = {
         id: 'reply-qa-1',
         content: 'We appreciate your feedback and look forward to welcoming you onboard again.',
         createdAt: '2025-05-24T09:00:00.000Z',
+        status: 'approved',
       },
     },
     {
@@ -643,6 +651,7 @@ const MOCK_REVIEWS: Record<string, ReviewPublic[]> = {
         id: 'reply-almeera-1',
         content: 'Thanks for shopping with Al Meera! We work hard to keep shelves stocked daily.',
         createdAt: '2025-05-17T09:00:00.000Z',
+        status: 'approved',
       },
     },
     {
@@ -1027,6 +1036,7 @@ function buildFallbackReviews(companyId: string, companyName: string): ReviewPub
         id: `reply-${companyId}-1`,
         content: `Thank you for your kind words! The ${companyName} team appreciates your support.`,
         createdAt: daysAgoIso(3),
+        status: 'approved',
       },
     },
     {
@@ -1067,6 +1077,7 @@ function buildFallbackReviews(companyId: string, companyName: string): ReviewPub
         id: `reply-${companyId}-2`,
         content: 'We are glad RateQ helped you discover us. See you again soon!',
         createdAt: daysAgoIso(47),
+        status: 'approved',
       },
     },
     {

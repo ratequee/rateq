@@ -27,6 +27,12 @@ enum ReviewStatus {
   RESOLUTION_PENDING
 }
 
+enum ReviewReplyStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
 enum ModerationAction {
   AUTO_APPROVED
   QUEUED
@@ -223,6 +229,7 @@ model Company {
   id                 String                    @id @default(cuid())
   ownerId            String?                   @unique @map("owner_id")
   categoryId         String?                   @map("category_id")
+  categoryIds        Json?                     @map("category_ids")
   name               String
   nameAr             String?                   @map("name_ar")
   slug               String                    @unique
@@ -248,6 +255,12 @@ model Company {
   country            String
   city               String
   websiteUrl         String?                   @map("website_url")
+  whatsappNumber     String?                   @map("whatsapp_number")
+  instagramUrl       String?                   @map("instagram_url")
+  youtubeUrl         String?                   @map("youtube_url")
+  facebookUrl        String?                   @map("facebook_url")
+  linkedinUrl        String?                   @map("linkedin_url")
+  twitterUrl         String?                   @map("twitter_url")
   services           Json?
   serviceIds         Json?                     @map("service_ids")
   activityIds        Json?                     @map("activity_ids")
@@ -275,17 +288,25 @@ model Company {
 }
 
 model CompanyProject {
-  id         String   @id @default(cuid())
-  companyId  String   @map("company_id")
-  title      String
-  imageUrl   String   @map("image_url")
-  projectUrl String   @default("") @map("project_url")
-  sortOrder  Int      @default(0) @map("sort_order")
-  createdAt  DateTime @default(now()) @map("created_at")
-  updatedAt  DateTime @updatedAt @map("updated_at")
+  id          String    @id @default(cuid())
+  companyId   String    @map("company_id")
+  slug        String
+  title       String
+  description String?   @db.Text
+  imageUrl    String    @map("image_url")
+  projectUrl  String    @default("") @map("project_url")
+  demoImages  Json?     @map("demo_images")
+  clientName  String?   @map("client_name")
+  location    String?
+  projectDate DateTime? @map("project_date")
+  serviceIds  Json?     @map("service_ids")
+  sortOrder   Int       @default(0) @map("sort_order")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
 
   company Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
 
+  @@unique([companyId, slug])
   @@index([companyId, sortOrder])
   @@map("company_projects")
 }
@@ -405,17 +426,20 @@ model ReviewServiceRating {
 }
 
 model ReviewReply {
-  id        String   @id @default(cuid())
-  reviewId  String   @map("review_id")
-  companyId String   @map("company_id")
-  content   String   @db.Text
-  createdAt DateTime @default(now()) @map("created_at")
+  id        String            @id @default(cuid())
+  reviewId  String            @map("review_id")
+  companyId String            @map("company_id")
+  content   String            @db.Text
+  status    ReviewReplyStatus @default(PENDING)
+  createdAt DateTime          @default(now()) @map("created_at")
+  updatedAt DateTime          @updatedAt @map("updated_at")
 
   review  Review  @relation(fields: [reviewId], references: [id], onDelete: Cascade)
   company Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
 
   @@unique([reviewId])
   @@index([companyId])
+  @@index([status])
   @@map("review_replies")
 }
 

@@ -11,6 +11,12 @@ export enum ReviewStatus {
   RESOLUTION_PENDING = 'RESOLUTION_PENDING',
 }
 
+export enum ReviewReplyStatus {
+  PENDING = 'PENDING',
+  APPROVED = 'APPROVED',
+  REJECTED = 'REJECTED',
+}
+
 export enum ModerationAction {
   AUTO_APPROVED = 'AUTO_APPROVED',
   QUEUED = 'QUEUED',

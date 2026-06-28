@@ -1,3 +1,4 @@
+import { scrollRevealProps } from '@/lib/scroll-reveal';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import type { CategoryPublic } from '@rateq/types';
@@ -23,7 +24,10 @@ export async function CategoryFilters({
   const ts = await getTranslations('search');
 
   return (
-    <section className="border-b border-slate-100 bg-white py-6 dark:border-dm-border dark:bg-dm-bg">
+    <section
+      {...scrollRevealProps('fade-up')}
+      className="border-b border-slate-100 bg-white py-6 dark:border-dm-border dark:bg-dm-bg"
+    >
       <div className="mx-auto max-w-page px-4 sm:px-6 lg:px-8">
         <form
           action={`/${locale}/categories/${category.slug}`}

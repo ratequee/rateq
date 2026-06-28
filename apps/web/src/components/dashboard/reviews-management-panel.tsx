@@ -10,7 +10,7 @@ import { reviewsApi } from '@/lib/api';
 import { ApiError } from '@/lib/api';
 import { cn } from '@/lib/utils';
 import type { CategoryPublic, PaginatedReviewsResponse, ReviewPublic } from '@rateq/types';
-import { ReviewStatus } from '@rateq/types';
+import { ReviewReplyStatus, ReviewStatus } from '@rateq/types';
 import { Link, useRouter } from '@/i18n/routing';
 import { Loader2, MessageSquareText } from 'lucide-react';
 import { ReviewProofAttachments } from '@/components/dashboard/review-proof-attachments';
@@ -188,6 +188,21 @@ export function ReviewsManagementPanel({ mode, companyId }: ReviewsManagementPan
     const token = await ensureValidAccessToken();
     if (!token) return;
     await runAction(() => reviewsApi.deleteReviewReply(token, reviewId), t('deleteReplySuccess'));
+  };
+
+  const handleAdminApproveReply = async (reviewId: string) => {
+    const token = await ensureValidAccessToken();
+    if (!token) return;
+    await runAction(
+      () => reviewsApi.approveReviewReply(token, reviewId),
+      t('replyApprovedSuccess'),
+    );
+  };
+
+  const handleAdminRejectReply = async (reviewId: string) => {
+    const token = await ensureValidAccessToken();
+    if (!token) return;
+    await runAction(() => reviewsApi.rejectReviewReply(token, reviewId), t('replyRejectedSuccess'));
   };
 
   const handleProceed = async (reviewId: string) => {
@@ -388,7 +403,7 @@ export function ReviewsManagementPanel({ mode, companyId }: ReviewsManagementPan
                   {t(`status.${selectedReview.status}`)}
                 </span>
               </div>
-              <div className="mt-4 flex items-center gap-3">
+              <div className="mt-4 flex flex-wrap items-center gap-3">
                 <StarRating value={selectedReview.rating} />
                 <span className="text-sm text-secondary">
                   {new Date(selectedReview.createdAt).toLocaleString(locale, {
@@ -396,6 +411,15 @@ export function ReviewsManagementPanel({ mode, companyId }: ReviewsManagementPan
                     timeStyle: 'short',
                   })}
                 </span>
+                {selectedReview.resolutionDeadlineAt ? (
+                  <span className="text-sm text-secondary">
+                    {t('resolutionDeadline')}:{' '}
+                    {new Date(selectedReview.resolutionDeadlineAt).toLocaleString(locale, {
+                      dateStyle: 'medium',
+                      timeStyle: 'short',
+                    })}
+                  </span>
+                ) : null}
               </div>
             </div>
 
@@ -416,15 +440,38 @@ export function ReviewsManagementPanel({ mode, companyId }: ReviewsManagementPan
                     {t('companyReply')}
                   </div>
                   {mode === 'admin' ? (
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      disabled={acting}
-                      onClick={() => void handleAdminDeleteReply(selectedReview.id)}
-                    >
-                      {t('deleteReply')}
-                    </Button>
+                    <div className="flex flex-wrap gap-2">
+                      {selectedReview.reply.status === ReviewReplyStatus.PENDING ? (
+                        <>
+                          <Button
+                            type="button"
+                            size="sm"
+                            disabled={acting}
+                            onClick={() => void handleAdminApproveReply(selectedReview.id)}
+                          >
+                            {t('acceptReply')}
+                          </Button>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            disabled={acting}
+                            onClick={() => void handleAdminRejectReply(selectedReview.id)}
+                          >
+                            {t('rejectReply')}
+                          </Button>
+                        </>
+                      ) : null}
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        disabled={acting}
+                        onClick={() => void handleAdminDeleteReply(selectedReview.id)}
+                      >
+                        {t('deleteReply')}
+                      </Button>
+                    </div>
                   ) : null}
                 </div>
                 <p className="whitespace-pre-wrap text-sm leading-7 text-ink dark:text-slate-200">

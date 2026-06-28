@@ -83,6 +83,24 @@ export class ModerationController {
     return { message: 'Review deleted' };
   }
 
+  @Patch('reviews/:id/reply/approve')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Approve a pending company reply' })
+  @ApiResponse({ status: 200, type: MessageResponseDto })
+  async approveReply(@Param('id') id: string, @CurrentUser() admin: AuthenticatedUser) {
+    await this.moderationService.manualApproveReply(id, admin.id);
+    return { message: 'Reply approved' };
+  }
+
+  @Patch('reviews/:id/reply/reject')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Reject a pending company reply' })
+  @ApiResponse({ status: 200, type: MessageResponseDto })
+  async rejectReply(@Param('id') id: string, @CurrentUser() admin: AuthenticatedUser) {
+    await this.moderationService.manualRejectReply(id, admin.id);
+    return { message: 'Reply rejected' };
+  }
+
   @Delete('reviews/:id/reply')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Delete a company reply on a review' })

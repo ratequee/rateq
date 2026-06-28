@@ -11,7 +11,7 @@ import { ApiError } from '@/lib/api';
 import { AdminPermission } from '@rateq/types';
 import type { CategoryPublic } from '@rateq/types';
 import { cn } from '@/lib/utils';
-import { Loader2, Plus, Trash2 } from 'lucide-react';
+import { Loader2, Pencil, Plus, Trash2, X } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { useCallback, useEffect, useState } from 'react';
 import { toast } from 'sonner';
@@ -28,6 +28,10 @@ export default function AdminCategoriesPage() {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editNameEn, setEditNameEn] = useState('');
+  const [editNameAr, setEditNameAr] = useState('');
+  const [editSaving, setEditSaving] = useState(false);
 
   useRequireAdmin(AdminPermission.CONTENT);
 
@@ -82,6 +86,7 @@ export default function AdminCategoriesPage() {
     setDeletingId(id);
     try {
       await adminApi.removeCategory(id);
+      if (editingId === id) setEditingId(null);
       await loadCategories();
       toast.success(t('deleted'));
     } catch (err) {
@@ -89,6 +94,41 @@ export default function AdminCategoriesPage() {
       toast.error(message);
     } finally {
       setDeletingId(null);
+    }
+  };
+
+  const startEdit = (category: CategoryPublic) => {
+    setEditingId(category.id);
+    setEditNameEn(category.nameEn);
+    setEditNameAr(category.nameAr);
+  };
+
+  const cancelEdit = () => {
+    setEditingId(null);
+    setEditNameEn('');
+    setEditNameAr('');
+  };
+
+  const handleUpdate = async (id: string) => {
+    if (!editNameEn.trim() || !editNameAr.trim()) {
+      toast.error(t('namesRequired'));
+      return;
+    }
+
+    setEditSaving(true);
+    try {
+      await adminApi.updateCategory(id, {
+        nameEn: editNameEn.trim(),
+        nameAr: editNameAr.trim(),
+      });
+      cancelEdit();
+      await loadCategories();
+      toast.success(t('updated'));
+    } catch (err) {
+      const message = err instanceof ApiError ? err.message : t('createError');
+      toast.error(message);
+    } finally {
+      setEditSaving(false);
     }
   };
 
@@ -151,33 +191,75 @@ export default function AdminCategoriesPage() {
             ) : (
               <ul className="divide-y divide-subtle rounded-xl border border-subtle">
                 {categories.map((category) => (
-                  <li
-                    key={category.id}
-                    className="flex items-center justify-between gap-3 px-4 py-3"
-                  >
-                    <div className="min-w-0">
-                      <p className="text-sm font-medium text-primary">{category.nameEn}</p>
-                      <p className="text-sm text-secondary" dir="rtl">
-                        {category.nameAr}
-                      </p>
-                      <p className="text-xs text-secondary">
-                        {t('companyCount', { count: category.companyCount ?? 0 })}
-                      </p>
-                    </div>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      disabled={deletingId === category.id}
-                      onClick={() => void handleDelete(category.id)}
-                      className="text-red-600 hover:text-red-700"
-                    >
-                      {deletingId === category.id ? (
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                      ) : (
-                        <Trash2 className="h-4 w-4" />
-                      )}
-                    </Button>
+                  <li key={category.id} className="px-4 py-3">
+                    {editingId === category.id ? (
+                      <div className="grid gap-3 sm:grid-cols-[1fr_1fr_auto_auto]">
+                        <Input
+                          value={editNameEn}
+                          onChange={(e) => setEditNameEn(e.target.value)}
+                          className="h-10"
+                        />
+                        <Input
+                          value={editNameAr}
+                          onChange={(e) => setEditNameAr(e.target.value)}
+                          className="h-10"
+                          dir="rtl"
+                        />
+                        <Button
+                          type="button"
+                          size="sm"
+                          disabled={editSaving}
+                          onClick={() => void handleUpdate(category.id)}
+                        >
+                          {editSaving ? (
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                          ) : (
+                            t('saveEdit')
+                          )}
+                        </Button>
+                        <Button type="button" variant="ghost" size="sm" onClick={cancelEdit}>
+                          <X className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    ) : (
+                      <div className="flex items-center justify-between gap-3">
+                        <div className="min-w-0">
+                          <p className="text-sm font-medium text-primary">{category.nameEn}</p>
+                          <p className="text-sm text-secondary" dir="rtl">
+                            {category.nameAr}
+                          </p>
+                          <p className="text-xs text-secondary">
+                            {t('companyCount', { count: category.companyCount ?? 0 })}
+                          </p>
+                        </div>
+                        <div className="flex shrink-0 gap-1">
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => startEdit(category)}
+                            aria-label={t('edit')}
+                          >
+                            <Pencil className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            disabled={deletingId === category.id}
+                            onClick={() => void handleDelete(category.id)}
+                            className="text-red-600 hover:text-red-700"
+                            aria-label={t('remove')}
+                          >
+                            {deletingId === category.id ? (
+                              <Loader2 className="h-4 w-4 animate-spin" />
+                            ) : (
+                              <Trash2 className="h-4 w-4" />
+                            )}
+                          </Button>
+                        </div>
+                      </div>
+                    )}
                   </li>
                 ))}
               </ul>

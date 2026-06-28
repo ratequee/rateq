@@ -1,5 +1,6 @@
 'use client';
 
+import { ScrollRevealRoot } from '@/components/motion/scroll-reveal-root';
 import { SiteHeader } from '@/components/layout/site-header';
 import { usePathname } from '@/i18n/routing';
 import type { ReactNode } from 'react';
@@ -22,10 +23,12 @@ export function AppShell({ children, footer }: AppShellProps) {
   }
 
   return (
-    <div className="flex min-h-screen flex-col">
-      <SiteHeader />
-      <main className="flex-1">{children}</main>
-      {footer}
-    </div>
+    <ScrollRevealRoot>
+      <div className="flex min-h-screen flex-col">
+        <SiteHeader />
+        <main className="flex-1">{children}</main>
+        {footer}
+      </div>
+    </ScrollRevealRoot>
   );
 }

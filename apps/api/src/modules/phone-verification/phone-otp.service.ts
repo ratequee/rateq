@@ -1,4 +1,9 @@
-import { BadRequestException, Injectable, ServiceUnavailableException } from '@nestjs/common';
+import {
+  BadRequestException,
+  ConflictException,
+  Injectable,
+  ServiceUnavailableException,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import type { MessageResponse } from '@rateq/types';
 import { PrismaService } from '../../infrastructure/database/prisma.service';
@@ -52,6 +57,8 @@ export class PhoneOtpService {
     if (!normalizedPhone || normalizedPhone.length < 8) {
       throw new BadRequestException('Phone number is required');
     }
+
+    await this.assertPhoneNotLinkedToOtherAccount(userId, normalizedPhone);
 
     const user = await this.prisma.user.findUnique({ where: { id: userId } });
     if (!user?.firebaseUid) {
@@ -137,5 +144,34 @@ export class PhoneOtpService {
 
   async clearSession(userId: string, context: PhoneVerificationContext): Promise<void> {
     await this.redis.getClient().del(this.sessionKey(userId, context));
+  }
+
+  async assertPhoneNotLinkedToOtherAccount(userId: string, phone: string): Promise<void> {
+    const normalizedPhone = normalizePhone(phone);
+
+    const otherUser = await this.prisma.user.findFirst({
+      where: {
+        phone: normalizedPhone,
+        phoneVerified: true,
+        NOT: { id: userId },
+      },
+      select: { id: true },
+    });
+
+    if (otherUser) {
+      throw new ConflictException('Phone number is already linked to another account, use another');
+    }
+
+    const otherCompany = await this.prisma.company.findFirst({
+      where: {
+        phone: normalizedPhone,
+        NOT: { ownerId: userId },
+      },
+      select: { id: true },
+    });
+
+    if (otherCompany) {
+      throw new ConflictException('Phone number is already linked to another account, use another');
+    }
   }
 }

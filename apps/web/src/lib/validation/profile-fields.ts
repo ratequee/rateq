@@ -40,6 +40,7 @@ export type CompanyProfileErrors = {
   companyPhone?: string;
   companyPhoneVerification?: string;
   categoryId?: string;
+  categoryIds?: string;
   crNumber?: string;
   validationDate?: string;
   city?: string;
@@ -146,7 +147,7 @@ export function validateCompanyProfileFields(
     companyAddress: string;
     companyLocation: CompanyMapLocation | null;
     companyPhone: string;
-    categoryId: string;
+    categoryIds: string[];
     crNumber: string;
     validationDate: string;
     city: string;
@@ -197,7 +198,7 @@ export function validateCompanyProfileFields(
     errors.companyPhoneVerification = messages.phoneVerification.required;
   }
 
-  if (!fields.categoryId.trim()) errors.categoryId = messages.required;
+  if (fields.categoryIds.length === 0) errors.categoryId = messages.required;
 
   if (!fields.crNumber.trim()) {
     errors.crNumber = messages.required;
@@ -255,7 +256,7 @@ export function validateCompanySettingsFields(
     companyName: string;
     companyAddress: string;
     companyLocation: CompanyMapLocation | null;
-    categoryId: string;
+    categoryIds: string[];
     city: string;
     country: string;
   },
@@ -280,7 +281,7 @@ export function validateCompanySettingsFields(
   }
 
   if (!fields.companyAddress.trim()) errors.companyAddress = messages.required;
-  if (!fields.categoryId.trim()) errors.categoryId = messages.required;
+  if (fields.categoryIds.length === 0) errors.categoryId = messages.required;
 
   if (
     !isValidMapLocation(fields.companyLocation) ||

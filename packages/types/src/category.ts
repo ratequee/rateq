@@ -21,6 +21,11 @@ export interface CreateCategoryInput {
   nameAr: string;
 }
 
+export interface UpdateCategoryInput {
+  nameEn?: string;
+  nameAr?: string;
+}
+
 export interface CreateCategoryServiceInput {
   name: string;
 }
