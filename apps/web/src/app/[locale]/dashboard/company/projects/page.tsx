@@ -12,7 +12,7 @@ export default function CompanyProjectsPage() {
 
   return (
     <DashboardShell role="company">
-      <div className="mx-auto max-w-2xl">
+      <div className="mx-auto max-w-4xl">
         <DashboardPageHeader title={t('projectsPageTitle')} subtitle={t('projectsPageSubtitle')} />
         <CompanyProjectsForm />
       </div>

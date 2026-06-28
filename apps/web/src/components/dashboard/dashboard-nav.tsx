@@ -65,7 +65,13 @@ export const DASHBOARD_NAV_ITEMS: {
     icon: Star,
     roles: ['company'],
   },
-  { href: '/dashboard/admin/projects', key: 'projects', icon: FolderKanban, roles: ['admin'] },
+  {
+    href: '/dashboard/admin/projects',
+    key: 'projects',
+    icon: FolderKanban,
+    roles: ['admin'],
+    adminPermission: AdminPermission.MODERATION,
+  },
   {
     href: '/dashboard/company/projects',
     key: 'projects',
@@ -120,7 +126,6 @@ export function getDashboardNavItems(
 ) {
   return DASHBOARD_NAV_ITEMS.filter((item) => {
     if (HIDDEN_NAV_KEYS.has(item.key)) return false;
-    if (item.key === 'projects' && role !== 'company') return false;
     if (!item.roles.includes(role)) return false;
     if (role === 'admin' && item.adminPermission) {
       return hasAdminPermission(adminPermissions, item.adminPermission);

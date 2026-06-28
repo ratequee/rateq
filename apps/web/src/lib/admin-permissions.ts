@@ -4,6 +4,7 @@ export const ADMIN_ROUTE_PERMISSIONS: Record<string, AdminPermission> = {
   '/dashboard/admin': AdminPermission.STATS,
   '/dashboard/admin/companies': AdminPermission.COMPANIES,
   '/dashboard/admin/directory': AdminPermission.DIRECTORY,
+  '/dashboard/admin/projects': AdminPermission.MODERATION,
   '/dashboard/admin/categories': AdminPermission.CONTENT,
   '/dashboard/admin/blog': AdminPermission.CONTENT,
   '/dashboard/admin/team': AdminPermission.TEAM,

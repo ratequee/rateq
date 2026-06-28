@@ -12,7 +12,7 @@ import { ensureValidAccessToken } from '@/lib/auth-session';
 import { cn } from '@/lib/utils';
 import type { CompanyProfileDetail, UpdateCompanyProjectInput } from '@rateq/types';
 import { CompanyProjectStatus } from '@rateq/types';
-import { Plus, Trash2, X } from 'lucide-react';
+import { Pencil, Plus, Trash2, X } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
@@ -202,378 +202,6 @@ function CustomServicesInput({
   );
 }
 
-function CompanyProjectsFormFields({ company }: { company: CompanyProfileDetail }) {
-  const t = useTranslations('profilePage');
-  const { refreshOnboarding } = useProfile();
-  const [projects, setProjects] = useState<ProjectDraft[]>(() => buildProjectDrafts(company));
-  const [submitting, setSubmitting] = useState(false);
-  const isVerified = company.verificationStatus === 'approved';
-
-  const coverPreviews = useMemo(
-    () =>
-      projects.map((project) =>
-        project.imageFile ? URL.createObjectURL(project.imageFile) : project.imageUrl || null,
-      ),
-    [projects],
-  );
-
-  const demoPreviews = useMemo(
-    () =>
-      projects.map((project) => [
-        ...project.demoImages,
-        ...project.demoImageFiles.map((file) => URL.createObjectURL(file)),
-      ]),
-    [projects],
-  );
-
-  useEffect(() => {
-    return () => {
-      coverPreviews.forEach((url) => {
-        if (url?.startsWith('blob:')) URL.revokeObjectURL(url);
-      });
-      demoPreviews.flat().forEach((url) => {
-        if (url.startsWith('blob:')) URL.revokeObjectURL(url);
-      });
-    };
-  }, [coverPreviews, demoPreviews]);
-
-  const hasPendingProjects = projects.some(
-    (project) => project.status === CompanyProjectStatus.PENDING,
-  );
-
-  const updateProject = (index: number, patch: Partial<ProjectDraft>) => {
-    setProjects((current) =>
-      current.map((project, i) => (i === index ? { ...project, ...patch } : project)),
-    );
-  };
-
-  const addProject = () => {
-    if (projects.length >= 12) return;
-    setProjects((current) => [...current, createEmptyProject()]);
-  };
-
-  const removeProject = (index: number) => {
-    setProjects((current) => current.filter((_, i) => i !== index));
-  };
-
-  const handleSubmit = async (event: React.FormEvent) => {
-    event.preventDefault();
-
-    setSubmitting(true);
-    try {
-      const token = await ensureValidAccessToken();
-      if (!token) throw new Error(t('sessionExpired'));
-
-      await waitForFirebaseUser();
-
-      const projectPayload: UpdateCompanyProjectInput[] = [];
-
-      for (const project of projects) {
-        const title = project.title.trim();
-        const hasAnyValue =
-          title ||
-          project.description.trim() ||
-          project.projectUrl.trim() ||
-          project.imageUrl ||
-          project.imageFile ||
-          project.demoImages.length > 0 ||
-          project.demoImageFiles.length > 0 ||
-          project.customServices.length > 0;
-
-        if (!hasAnyValue) continue;
-
-        if (!title) {
-          toast.error(t('projectTitleRequired'));
-          return;
-        }
-
-        if (project.customServices.length > 5) {
-          toast.error(t('projectServicesMax'));
-          return;
-        }
-
-        const projectUrl = project.projectUrl.trim();
-        if (projectUrl && !isValidUrl(projectUrl)) {
-          toast.error(t('projectUrlInvalid'));
-          return;
-        }
-
-        let imageUrl = project.imageUrl.trim();
-        if (project.imageFile) {
-          imageUrl = await uploadUserFile(company.id, 'company/projects', project.imageFile);
-        }
-
-        if (!imageUrl) {
-          toast.error(t('projectImageRequired'));
-          return;
-        }
-
-        const demoImages = [...project.demoImages];
-        for (const file of project.demoImageFiles) {
-          if (demoImages.length >= 8) break;
-          const demoFile = new File([file], `demo-${file.name}`, { type: file.type });
-          demoImages.push(await uploadUserFile(company.id, 'company/projects', demoFile));
-        }
-
-        projectPayload.push({
-          slug: project.slug,
-          title,
-          description: project.description.trim() || undefined,
-          imageUrl,
-          projectUrl: projectUrl || undefined,
-          demoImages: demoImages.slice(0, 8),
-          clientName: project.clientName.trim() || undefined,
-          location: project.location.trim() || undefined,
-          projectDate: project.projectDate || undefined,
-          customServices: project.customServices,
-        });
-      }
-
-      await onboardingApi.updateCompany({ projects: projectPayload });
-
-      await refreshOnboarding();
-      toast.success(isVerified ? t('projectsSubmittedForApproval') : t('projectsUpdated'));
-    } catch (err) {
-      const message = err instanceof ApiError ? err.message : t('saveError');
-      toast.error(message);
-    } finally {
-      setSubmitting(false);
-    }
-  };
-
-  return (
-    <form
-      onSubmit={handleSubmit}
-      className="space-y-5 rounded-2xl surface-card border p-6 shadow-sm"
-    >
-      <div>
-        <h2 className="text-lg font-semibold text-primary">{t('companyProjects')}</h2>
-        <p className="mt-1 text-sm text-secondary">{t('companyProjectsHint')}</p>
-        {isVerified && hasPendingProjects ? (
-          <p className="mt-3 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900 dark:border-amber-900/60 dark:bg-amber-950/40 dark:text-amber-100">
-            {t('projectsPendingApproval')}
-          </p>
-        ) : null}
-      </div>
-
-      <div>
-        <div className="mb-3 flex items-center justify-end">
-          <Button type="button" variant="outline" size="sm" onClick={addProject}>
-            <Plus className="h-4 w-4" />
-            {t('addProject')}
-          </Button>
-        </div>
-        {projects.length === 0 ? (
-          <p className="text-sm text-secondary">{t('noProjectsYet')}</p>
-        ) : (
-          <div className="space-y-4">
-            {projects.map((project, index) => (
-              <div
-                key={index}
-                className="rounded-xl border border-slate-200 p-4 dark:border-dm-border"
-              >
-                <div className="flex items-start justify-between gap-3">
-                  <Field label={t('projectTitle')} required className="flex-1">
-                    <Input
-                      value={project.title}
-                      onChange={(e) => updateProject(index, { title: e.target.value })}
-                      className="h-10"
-                      maxLength={200}
-                    />
-                  </Field>
-                  <div className="mt-6 flex shrink-0 items-center gap-2">
-                    {isVerified && project.status ? (
-                      <span
-                        className={cn(
-                          'inline-flex rounded-full px-3 py-1 text-xs font-medium',
-                          projectStatusStyles[project.status],
-                        )}
-                      >
-                        {t(`projectStatus.${project.status}`)}
-                      </span>
-                    ) : null}
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      className="h-10 w-10 px-0"
-                      onClick={() => removeProject(index)}
-                      aria-label={t('removeProject')}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </div>
-
-                {isVerified && project.status === CompanyProjectStatus.REJECTED ? (
-                  <p className="mt-2 text-sm text-red-700 dark:text-red-300">
-                    {t('projectRejectedHint')}
-                  </p>
-                ) : null}
-
-                <Field label={t('projectDescription')} className="mt-3">
-                  <textarea
-                    value={project.description}
-                    onChange={(e) => updateProject(index, { description: e.target.value })}
-                    rows={3}
-                    maxLength={2000}
-                    className="textarea-field w-full"
-                  />
-                </Field>
-
-                <Field label={t('projectCoverImage')} className="mt-3" required>
-                  {coverPreviews[index] ? (
-                    <ImagePreview
-                      src={coverPreviews[index]!}
-                      alt=""
-                      onRemove={() => updateProject(index, { imageUrl: '', imageFile: null })}
-                      removeLabel={t('removeProjectImage')}
-                      className="mb-2 h-24 w-full"
-                    />
-                  ) : null}
-                  <Input
-                    type="file"
-                    accept="image/*"
-                    onChange={(e) => {
-                      const file = e.target.files?.[0] ?? null;
-                      updateProject(index, {
-                        imageFile: file,
-                        imageUrl: file ? '' : project.imageUrl,
-                      });
-                    }}
-                    className="h-10"
-                  />
-                </Field>
-
-                <Field label={t('projectDemoImages')} className="mt-3">
-                  {(demoPreviews[index]?.length ?? 0) > 0 ? (
-                    <div className="mb-2 grid grid-cols-4 gap-2">
-                      {(demoPreviews[index] ?? []).map((url, imageIndex) => {
-                        const existingCount = project.demoImages.length;
-                        const isExisting = imageIndex < existingCount;
-
-                        return (
-                          <ImagePreview
-                            key={`${url}-${imageIndex}`}
-                            src={url}
-                            alt=""
-                            className="h-16 w-full"
-                            removeLabel={t('removeProjectImage')}
-                            onRemove={() => {
-                              if (isExisting) {
-                                updateProject(index, {
-                                  demoImages: project.demoImages.filter((_, i) => i !== imageIndex),
-                                });
-                                return;
-                              }
-
-                              const fileIndex = imageIndex - existingCount;
-                              updateProject(index, {
-                                demoImageFiles: project.demoImageFiles.filter(
-                                  (_, i) => i !== fileIndex,
-                                ),
-                              });
-                            }}
-                          />
-                        );
-                      })}
-                    </div>
-                  ) : null}
-                  <Input
-                    type="file"
-                    accept="image/*"
-                    multiple
-                    disabled={project.demoImages.length + project.demoImageFiles.length >= 8}
-                    onChange={(e) => {
-                      const remaining = Math.max(
-                        0,
-                        8 - project.demoImages.length - project.demoImageFiles.length,
-                      );
-                      const files = Array.from(e.target.files ?? []).slice(0, remaining);
-                      updateProject(index, {
-                        demoImageFiles: [...project.demoImageFiles, ...files],
-                      });
-                      e.target.value = '';
-                    }}
-                    className="h-10"
-                  />
-                  <p className="mt-1 text-xs text-secondary">{t('projectDemoImagesHint')}</p>
-                </Field>
-
-                <div className="mt-3 grid gap-3 sm:grid-cols-2">
-                  <Field label={t('projectClientName')}>
-                    <Input
-                      value={project.clientName}
-                      onChange={(e) => updateProject(index, { clientName: e.target.value })}
-                      className="h-10"
-                      maxLength={200}
-                    />
-                  </Field>
-                  <Field label={t('projectLocation')}>
-                    <Input
-                      value={project.location}
-                      onChange={(e) => updateProject(index, { location: e.target.value })}
-                      className="h-10"
-                      maxLength={200}
-                    />
-                  </Field>
-                </div>
-
-                <div className="mt-3 grid gap-3 sm:grid-cols-2">
-                  <Field label={t('projectDate')}>
-                    <Input
-                      type="date"
-                      value={project.projectDate}
-                      onChange={(e) => updateProject(index, { projectDate: e.target.value })}
-                      className="h-10"
-                    />
-                  </Field>
-                  <Field label={t('projectUrl')}>
-                    <Input
-                      value={project.projectUrl}
-                      onChange={(e) => updateProject(index, { projectUrl: e.target.value })}
-                      placeholder="https://example.com/project"
-                      className="h-10"
-                      maxLength={2048}
-                    />
-                  </Field>
-                </div>
-
-                <div className="mt-3">
-                  <CustomServicesInput
-                    label={t('projectServices')}
-                    hint={t('projectServicesCustomHint')}
-                    services={project.customServices}
-                    onChange={(customServices) => updateProject(index, { customServices })}
-                    addLabel={t('addService')}
-                    removeLabel={t('removeService')}
-                    placeholder={t('servicePlaceholder')}
-                    maxServices={5}
-                    maxReachedMessage={t('projectServicesMax')}
-                  />
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-
-      <Button type="submit" disabled={submitting} className="w-full">
-        {submitting ? t('saving') : t('saveProjects')}
-      </Button>
-    </form>
-  );
-}
-
-export function CompanyProjectsForm() {
-  const { onboarding, isLoading: profileLoading } = useProfile();
-  const company = onboarding?.company;
-
-  if (profileLoading) return <DashboardProfileLoading />;
-  if (!company) return null;
-
-  return <CompanyProjectsFormFields key={company.updatedAt} company={company} />;
-}
-
 function Field({
   label,
   children,
@@ -594,4 +222,533 @@ function Field({
       {children}
     </div>
   );
+}
+
+function ProjectFormModal({
+  open,
+  title,
+  draft,
+  onChange,
+  onClose,
+  onSave,
+  saving,
+  isVerified,
+  t,
+}: {
+  open: boolean;
+  title: string;
+  draft: ProjectDraft;
+  onChange: (patch: Partial<ProjectDraft>) => void;
+  onClose: () => void;
+  onSave: () => void;
+  saving: boolean;
+  isVerified: boolean;
+  t: ReturnType<typeof useTranslations<'profilePage'>>;
+}) {
+  const coverPreview = useMemo(
+    () => (draft.imageFile ? URL.createObjectURL(draft.imageFile) : draft.imageUrl || null),
+    [draft.imageFile, draft.imageUrl],
+  );
+
+  const demoPreviewUrls = useMemo(
+    () => [...draft.demoImages, ...draft.demoImageFiles.map((file) => URL.createObjectURL(file))],
+    [draft.demoImages, draft.demoImageFiles],
+  );
+
+  useEffect(() => {
+    return () => {
+      if (coverPreview?.startsWith('blob:')) URL.revokeObjectURL(coverPreview);
+      demoPreviewUrls.forEach((url) => {
+        if (url.startsWith('blob:')) URL.revokeObjectURL(url);
+      });
+    };
+  }, [coverPreview, demoPreviewUrls]);
+
+  if (!open) return null;
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+      role="dialog"
+      aria-modal="true"
+      aria-label={title}
+    >
+      <div className="flex max-h-[90vh] w-full max-w-2xl flex-col rounded-2xl bg-white shadow-xl dark:bg-dm-surface">
+        <div className="flex shrink-0 items-start justify-between gap-3 border-b border-subtle px-6 py-4">
+          <div>
+            <h3 className="text-lg font-semibold text-primary">{title}</h3>
+            {isVerified ? (
+              <p className="mt-1 text-sm text-secondary">{t('projectModalModerationHint')}</p>
+            ) : null}
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            disabled={saving}
+            className="rounded-lg p-1 text-ink-muted hover:bg-slate-100 dark:hover:bg-dm-elevated"
+            aria-label={t('cancel')}
+          >
+            <X className="h-5 w-5" />
+          </button>
+        </div>
+
+        <div className="min-h-0 flex-1 space-y-4 overflow-y-auto px-6 py-4">
+          <Field label={t('projectTitle')} required>
+            <Input
+              value={draft.title}
+              onChange={(e) => onChange({ title: e.target.value })}
+              className="h-10"
+              maxLength={200}
+            />
+          </Field>
+
+          <Field label={t('projectDescription')}>
+            <textarea
+              value={draft.description}
+              onChange={(e) => onChange({ description: e.target.value })}
+              rows={3}
+              maxLength={2000}
+              className="textarea-field w-full"
+            />
+          </Field>
+
+          <Field label={t('projectCoverImage')} required>
+            {coverPreview ? (
+              <ImagePreview
+                src={coverPreview}
+                alt=""
+                onRemove={() => onChange({ imageUrl: '', imageFile: null })}
+                removeLabel={t('removeProjectImage')}
+                className="mb-2 h-32 w-full"
+              />
+            ) : null}
+            <Input
+              type="file"
+              accept="image/*"
+              onChange={(e) => {
+                const file = e.target.files?.[0] ?? null;
+                onChange({
+                  imageFile: file,
+                  imageUrl: file ? '' : draft.imageUrl,
+                });
+              }}
+              className="h-10"
+            />
+          </Field>
+
+          <Field label={t('projectDemoImages')}>
+            {demoPreviewUrls.length > 0 ? (
+              <div className="mb-2 grid grid-cols-4 gap-2">
+                {demoPreviewUrls.map((url, imageIndex) => {
+                  const existingCount = draft.demoImages.length;
+                  const isExisting = imageIndex < existingCount;
+
+                  return (
+                    <ImagePreview
+                      key={`${url}-${imageIndex}`}
+                      src={url}
+                      alt=""
+                      className="h-16 w-full"
+                      removeLabel={t('removeProjectImage')}
+                      onRemove={() => {
+                        if (isExisting) {
+                          onChange({
+                            demoImages: draft.demoImages.filter((_, i) => i !== imageIndex),
+                          });
+                          return;
+                        }
+
+                        const fileIndex = imageIndex - existingCount;
+                        onChange({
+                          demoImageFiles: draft.demoImageFiles.filter((_, i) => i !== fileIndex),
+                        });
+                      }}
+                    />
+                  );
+                })}
+              </div>
+            ) : null}
+            <Input
+              type="file"
+              accept="image/*"
+              multiple
+              disabled={draft.demoImages.length + draft.demoImageFiles.length >= 8}
+              onChange={(e) => {
+                const remaining = Math.max(
+                  0,
+                  8 - draft.demoImages.length - draft.demoImageFiles.length,
+                );
+                const files = Array.from(e.target.files ?? []).slice(0, remaining);
+                onChange({
+                  demoImageFiles: [...draft.demoImageFiles, ...files],
+                });
+                e.target.value = '';
+              }}
+              className="h-10"
+            />
+            <p className="mt-1 text-xs text-secondary">{t('projectDemoImagesHint')}</p>
+          </Field>
+
+          <div className="grid gap-3 sm:grid-cols-2">
+            <Field label={t('projectClientName')}>
+              <Input
+                value={draft.clientName}
+                onChange={(e) => onChange({ clientName: e.target.value })}
+                className="h-10"
+                maxLength={200}
+              />
+            </Field>
+            <Field label={t('projectLocation')}>
+              <Input
+                value={draft.location}
+                onChange={(e) => onChange({ location: e.target.value })}
+                className="h-10"
+                maxLength={200}
+              />
+            </Field>
+          </div>
+
+          <div className="grid gap-3 sm:grid-cols-2">
+            <Field label={t('projectDate')}>
+              <Input
+                type="date"
+                value={draft.projectDate}
+                onChange={(e) => onChange({ projectDate: e.target.value })}
+                className="h-10"
+              />
+            </Field>
+            <Field label={t('projectUrl')}>
+              <Input
+                value={draft.projectUrl}
+                onChange={(e) => onChange({ projectUrl: e.target.value })}
+                placeholder="https://example.com/project"
+                className="h-10"
+                maxLength={2048}
+              />
+            </Field>
+          </div>
+
+          <CustomServicesInput
+            label={t('projectServices')}
+            hint={t('projectServicesCustomHint')}
+            services={draft.customServices}
+            onChange={(customServices) => onChange({ customServices })}
+            addLabel={t('addService')}
+            removeLabel={t('removeService')}
+            placeholder={t('servicePlaceholder')}
+            maxServices={5}
+            maxReachedMessage={t('projectServicesMax')}
+          />
+        </div>
+
+        <div className="flex shrink-0 justify-end gap-2 border-t border-subtle px-6 py-4">
+          <Button type="button" variant="outline" disabled={saving} onClick={onClose}>
+            {t('cancel')}
+          </Button>
+          <Button type="button" disabled={saving} onClick={onSave}>
+            {saving ? t('saving') : t('saveProject')}
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+async function buildProjectPayload(
+  companyId: string,
+  projects: ProjectDraft[],
+  t: ReturnType<typeof useTranslations<'profilePage'>>,
+): Promise<UpdateCompanyProjectInput[] | null> {
+  const projectPayload: UpdateCompanyProjectInput[] = [];
+
+  for (const project of projects) {
+    const title = project.title.trim();
+    if (!title) continue;
+
+    if (project.customServices.length > 5) {
+      toast.error(t('projectServicesMax'));
+      return null;
+    }
+
+    const projectUrl = project.projectUrl.trim();
+    if (projectUrl && !isValidUrl(projectUrl)) {
+      toast.error(t('projectUrlInvalid'));
+      return null;
+    }
+
+    let imageUrl = project.imageUrl.trim();
+    if (project.imageFile) {
+      imageUrl = await uploadUserFile(companyId, 'company/projects', project.imageFile);
+    }
+
+    if (!imageUrl) {
+      toast.error(t('projectImageRequired'));
+      return null;
+    }
+
+    const demoImages = [...project.demoImages];
+    for (const file of project.demoImageFiles) {
+      if (demoImages.length >= 8) break;
+      const demoFile = new File([file], `demo-${file.name}`, { type: file.type });
+      demoImages.push(await uploadUserFile(companyId, 'company/projects', demoFile));
+    }
+
+    projectPayload.push({
+      slug: project.slug,
+      title,
+      description: project.description.trim() || undefined,
+      imageUrl,
+      projectUrl: projectUrl || undefined,
+      demoImages: demoImages.slice(0, 8),
+      clientName: project.clientName.trim() || undefined,
+      location: project.location.trim() || undefined,
+      projectDate: project.projectDate || undefined,
+      customServices: project.customServices,
+    });
+  }
+
+  return projectPayload;
+}
+
+function CompanyProjectsFormFields({ company }: { company: CompanyProfileDetail }) {
+  const t = useTranslations('profilePage');
+  const { refreshOnboarding } = useProfile();
+  const [projects, setProjects] = useState<ProjectDraft[]>(() => buildProjectDrafts(company));
+  const [saving, setSaving] = useState(false);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [editingIndex, setEditingIndex] = useState<number | null>(null);
+  const [modalDraft, setModalDraft] = useState<ProjectDraft>(createEmptyProject());
+  const isVerified = company.verificationStatus === 'approved';
+
+  const hasPendingProjects = projects.some(
+    (project) => project.status === CompanyProjectStatus.PENDING,
+  );
+
+  const persistProjects = async (
+    nextProjects: ProjectDraft[],
+    successMessage: 'saved' | 'deleted' = 'saved',
+  ) => {
+    setSaving(true);
+    try {
+      const token = await ensureValidAccessToken();
+      if (!token) throw new Error(t('sessionExpired'));
+
+      await waitForFirebaseUser();
+
+      const projectPayload = await buildProjectPayload(company.id, nextProjects, t);
+      if (!projectPayload) return;
+
+      await onboardingApi.updateCompany({ projects: projectPayload });
+      await refreshOnboarding();
+      setProjects(
+        nextProjects.map((project) => ({ ...project, demoImageFiles: [], imageFile: null })),
+      );
+      if (successMessage === 'deleted') {
+        toast.success(t('projectDeleted'));
+      } else {
+        toast.success(isVerified ? t('projectsSubmittedForApproval') : t('projectsUpdated'));
+      }
+    } catch (err) {
+      const message = err instanceof ApiError ? err.message : t('saveError');
+      toast.error(message);
+      throw err;
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const openAddModal = () => {
+    if (projects.length >= 12) {
+      toast.error(t('projectLimitReached'));
+      return;
+    }
+    setEditingIndex(null);
+    setModalDraft(createEmptyProject());
+    setModalOpen(true);
+  };
+
+  const openEditModal = (index: number) => {
+    const project = projects[index];
+    if (!project) return;
+    setEditingIndex(index);
+    setModalDraft({
+      ...project,
+      demoImageFiles: [],
+      imageFile: null,
+    });
+    setModalOpen(true);
+  };
+
+  const closeModal = () => {
+    if (saving) return;
+    setModalOpen(false);
+    setEditingIndex(null);
+    setModalDraft(createEmptyProject());
+  };
+
+  const handleModalSave = async () => {
+    const title = modalDraft.title.trim();
+    if (!title) {
+      toast.error(t('projectTitleRequired'));
+      return;
+    }
+
+    const hasImage = Boolean(modalDraft.imageUrl.trim() || modalDraft.imageFile);
+    if (!hasImage) {
+      toast.error(t('projectImageRequired'));
+      return;
+    }
+
+    const nextProjects =
+      editingIndex === null
+        ? [...projects, modalDraft]
+        : projects.map((project, index) => (index === editingIndex ? modalDraft : project));
+
+    try {
+      await persistProjects(nextProjects);
+      closeModal();
+    } catch {
+      // toast handled in persistProjects
+    }
+  };
+
+  const handleDelete = async (index: number) => {
+    if (!window.confirm(t('deleteProjectConfirm'))) return;
+
+    const nextProjects = projects.filter((_, i) => i !== index);
+    try {
+      await persistProjects(nextProjects, 'deleted');
+    } catch {
+      // toast handled in persistProjects
+    }
+  };
+
+  return (
+    <>
+      <div className="space-y-5 rounded-2xl surface-card border p-6 shadow-sm">
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <h2 className="text-lg font-semibold text-primary">{t('companyProjects')}</h2>
+            <p className="mt-1 text-sm text-secondary">{t('companyProjectsHint')}</p>
+            {isVerified && hasPendingProjects ? (
+              <p className="mt-3 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900 dark:border-amber-900/60 dark:bg-amber-950/40 dark:text-amber-100">
+                {t('projectsPendingApproval')}
+              </p>
+            ) : null}
+          </div>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={openAddModal}
+            disabled={saving}
+          >
+            <Plus className="h-4 w-4" />
+            {t('addProject')}
+          </Button>
+        </div>
+
+        {projects.length === 0 ? (
+          <p className="py-8 text-center text-sm text-secondary">{t('noProjectsYet')}</p>
+        ) : (
+          <div className="grid gap-4 sm:grid-cols-2">
+            {projects.map((project, index) => (
+              <article
+                key={project.slug ?? `project-${index}`}
+                className="overflow-hidden rounded-xl border border-slate-200 dark:border-dm-border"
+              >
+                <div className="relative h-36">
+                  <img src={project.imageUrl} alt="" className="h-full w-full object-cover" />
+                  {isVerified && project.status ? (
+                    <span
+                      className={cn(
+                        'absolute start-2 top-2 inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium',
+                        projectStatusStyles[project.status],
+                      )}
+                    >
+                      {t(`projectStatus.${project.status}`)}
+                    </span>
+                  ) : null}
+                </div>
+                <div className="p-4">
+                  <h3 className="font-semibold text-primary">{project.title}</h3>
+                  {project.description ? (
+                    <p className="mt-1 line-clamp-2 text-sm text-secondary">
+                      {project.description}
+                    </p>
+                  ) : null}
+                  {project.customServices.length > 0 ? (
+                    <div className="mt-2 flex flex-wrap gap-1">
+                      {project.customServices.slice(0, 3).map((service) => (
+                        <span
+                          key={service}
+                          className="rounded-full bg-slate-100 px-2 py-0.5 text-xs text-secondary dark:bg-dm-elevated"
+                        >
+                          {service}
+                        </span>
+                      ))}
+                      {project.customServices.length > 3 ? (
+                        <span className="text-xs text-secondary">
+                          +{project.customServices.length - 3}
+                        </span>
+                      ) : null}
+                    </div>
+                  ) : null}
+                  {isVerified && project.status === CompanyProjectStatus.REJECTED ? (
+                    <p className="mt-2 text-xs text-red-700 dark:text-red-300">
+                      {t('projectRejectedHint')}
+                    </p>
+                  ) : null}
+                  <div className="mt-3 flex gap-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      disabled={saving}
+                      onClick={() => openEditModal(index)}
+                    >
+                      <Pencil className="h-3.5 w-3.5" />
+                      {t('editProject')}
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      disabled={saving}
+                      onClick={() => void handleDelete(index)}
+                    >
+                      <Trash2 className="h-3.5 w-3.5" />
+                      {t('removeProject')}
+                    </Button>
+                  </div>
+                </div>
+              </article>
+            ))}
+          </div>
+        )}
+      </div>
+
+      <ProjectFormModal
+        open={modalOpen}
+        title={editingIndex === null ? t('addProject') : t('editProject')}
+        draft={modalDraft}
+        onChange={(patch) => setModalDraft((current) => ({ ...current, ...patch }))}
+        onClose={closeModal}
+        onSave={() => void handleModalSave()}
+        saving={saving}
+        isVerified={isVerified}
+        t={t}
+      />
+    </>
+  );
+}
+
+export function CompanyProjectsForm() {
+  const { onboarding, isLoading: profileLoading } = useProfile();
+  const company = onboarding?.company;
+
+  if (profileLoading) return <DashboardProfileLoading />;
+  if (!company) return null;
+
+  return <CompanyProjectsFormFields key={company.updatedAt} company={company} />;
 }

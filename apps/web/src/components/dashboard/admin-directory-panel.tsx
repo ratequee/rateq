@@ -1,6 +1,7 @@
 'use client';
 
 import { AdminCompanyMetrics } from '@/components/dashboard/admin-company-metrics';
+import { AdminProjectsPanel } from '@/components/dashboard/admin-projects-panel';
 import { ReviewsManagementPanel } from '@/components/dashboard/reviews-management-panel';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -18,12 +19,20 @@ import type {
   UserProfile,
 } from '@rateq/types';
 import { UserRole } from '@rateq/types';
-import { Building2, Loader2, MessageSquareText, Star, Trash2, Users } from 'lucide-react';
+import {
+  Building2,
+  FolderKanban,
+  Loader2,
+  MessageSquareText,
+  Star,
+  Trash2,
+  Users,
+} from 'lucide-react';
 import { useLocale, useTranslations } from 'next-intl';
 import { useCallback, useEffect, useState } from 'react';
 import { toast } from 'sonner';
 
-type DirectoryTab = 'reviewers' | 'companies' | 'reviews';
+type DirectoryTab = 'reviewers' | 'companies' | 'reviews' | 'projects';
 
 const reviewStatusStyles: Record<string, string> = {
   PENDING: 'bg-amber-50 text-amber-700 dark:bg-amber-950/50 dark:text-amber-300',
@@ -348,6 +357,7 @@ export function AdminDirectoryPanel() {
     { id: 'reviewers', label: t('tabs.reviewers'), icon: Users },
     { id: 'companies', label: t('tabs.companies'), icon: Building2 },
     { id: 'reviews', label: t('tabs.reviews'), icon: Star },
+    { id: 'projects', label: t('tabs.projects'), icon: FolderKanban },
   ];
 
   return (
@@ -370,6 +380,8 @@ export function AdminDirectoryPanel() {
       </div>
 
       {tab === 'reviews' ? <ReviewsManagementPanel mode="admin" /> : null}
+
+      {tab === 'projects' ? <AdminProjectsPanel /> : null}
 
       {tab === 'reviewers' ? (
         <div className="grid gap-6 xl:grid-cols-[360px_1fr]">

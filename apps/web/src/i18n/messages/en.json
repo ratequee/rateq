@@ -690,6 +690,13 @@
     "companyProjects": "Projects",
     "companyProjectsHint": "Add projects with a title, cover image, and optional details (up to 12).",
     "addProject": "Add project",
+    "editProject": "Edit project",
+    "saveProject": "Save project",
+    "deleteProjectConfirm": "Remove this project from your portfolio?",
+    "projectDeleted": "Project removed.",
+    "projectLimitReached": "You can add up to 12 projects.",
+    "projectModalModerationHint": "Saved projects are sent to admin for approval before appearing on your public profile.",
+    "cancel": "Cancel",
     "removeProject": "Remove project",
     "projectTitle": "Project title",
     "projectDescription": "Short description",
@@ -1024,11 +1031,12 @@
   },
   "adminDirectory": {
     "title": "Platform directory",
-    "subtitle": "Manage reviewers, companies, reviews, and replies.",
+    "subtitle": "Manage reviewers, companies, reviews, replies, and projects.",
     "tabs": {
       "reviewers": "Reviewers",
       "companies": "Companies",
-      "reviews": "Reviews"
+      "reviews": "Reviews",
+      "projects": "Projects"
     },
     "search": "Search",
     "searchReviewers": "Search reviewers by email",

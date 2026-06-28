@@ -690,6 +690,13 @@
     "companyProjects": "المشاريع",
     "companyProjectsHint": "أضف مشاريع بعنوان وصورة غلاف وتفاصيل اختيارية (حتى 12).",
     "addProject": "إضافة مشروع",
+    "editProject": "تعديل المشروع",
+    "saveProject": "حفظ المشروع",
+    "deleteProjectConfirm": "إزالة هذا المشروع من محفظتكم؟",
+    "projectDeleted": "تمت إزالة المشروع.",
+    "projectLimitReached": "يمكنكم إضافة حتى 12 مشروعًا.",
+    "projectModalModerationHint": "تُرسل المشاريع المحفوظة إلى الإدارة للموافقة قبل ظهورها على ملفكم العام.",
+    "cancel": "إلغاء",
     "removeProject": "إزالة المشروع",
     "projectTitle": "عنوان المشروع",
     "projectDescription": "وصف مختصر",
@@ -1024,11 +1031,12 @@
   },
   "adminDirectory": {
     "title": "دليل المنصة",
-    "subtitle": "إدارة المُراجعين والشركات والمراجعات والردود.",
+    "subtitle": "إدارة المُراجعين والشركات والمراجعات والردود والمشاريع.",
     "tabs": {
       "reviewers": "المُراجعون",
       "companies": "الشركات",
-      "reviews": "المراجعات"
+      "reviews": "المراجعات",
+      "projects": "المشاريع"
     },
     "search": "بحث",
     "searchReviewers": "البحث عن مُراجع بالبريد",
