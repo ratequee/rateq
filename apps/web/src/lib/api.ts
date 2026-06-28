@@ -13,7 +13,7 @@ import type {
   UserProfile,
 } from '@rateq/types';
 import type { MessageResponse } from '@rateq/types';
-import { refreshAccessToken } from '@/lib/auth-session';
+import { ensureValidAccessToken, refreshAccessToken } from '@/lib/auth-session';
 import { getRefreshToken } from '@/lib/auth-storage';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000/api/v1';
@@ -33,16 +33,17 @@ interface ApiEnvelope<T> {
   data: T;
 }
 
-function getStoredToken(): string | null {
-  if (typeof window === 'undefined') return null;
-  return localStorage.getItem('rateq_access_token');
+async function resolveAuthToken(tokenOption: string | null | undefined): Promise<string | null> {
+  if (tokenOption === null) return null;
+  return ensureValidAccessToken();
 }
 
 export async function apiClient<T>(
   path: string,
   options: RequestInit & { token?: string | null; unwrap?: boolean } = {},
 ): Promise<T> {
-  const { token = getStoredToken(), unwrap = true, ...init } = options;
+  const { token: tokenOption, unwrap = true, ...init } = options;
+  let token = await resolveAuthToken(tokenOption);
 
   const headers: HeadersInit = {
     'Content-Type': 'application/json',

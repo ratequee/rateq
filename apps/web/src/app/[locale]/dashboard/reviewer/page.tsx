@@ -6,29 +6,33 @@ import { useAuth } from '@/components/providers/auth-provider';
 import { useProfile } from '@/components/providers/profile-provider';
 import { useRequireCompleteProfile } from '@/hooks/use-require-verified-auth';
 import { reviewsApi } from '@/lib/api';
+import { ensureValidAccessToken } from '@/lib/auth-session';
 import type { ReviewerDashboard } from '@rateq/types';
 import { useTranslations } from 'next-intl';
 import { useEffect, useState } from 'react';
 
 export default function ReviewerDashboardPage() {
   const t = useTranslations('dashboardShell');
-  const { user } = useAuth();
+  const { user, isLoading: authLoading } = useAuth();
   const { onboarding } = useProfile();
   useRequireCompleteProfile();
 
   const [dashboard, setDashboard] = useState<ReviewerDashboard | null>(null);
 
   useEffect(() => {
-    if (!user) return;
+    if (authLoading || !user) return;
 
-    const token = localStorage.getItem('rateq_access_token');
-    if (!token) return;
+    void (async () => {
+      const token = await ensureValidAccessToken();
+      if (!token) return;
 
-    reviewsApi
-      .getDashboard(token)
-      .then(setDashboard)
-      .catch(() => setDashboard(null));
-  }, [user]);
+      try {
+        setDashboard(await reviewsApi.getDashboard(token));
+      } catch {
+        setDashboard(null);
+      }
+    })();
+  }, [authLoading, user]);
 
   const displayName = onboarding?.reviewerProfile?.fullName ?? t('reviewerFallback');
 

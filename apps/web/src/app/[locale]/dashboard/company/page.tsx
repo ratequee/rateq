@@ -10,6 +10,7 @@ import {
 } from '@/hooks/use-require-verified-auth';
 import { isCompanyPendingApproval, isCompanyRevisionRequested } from '@/lib/profile-routing';
 import { companiesApi } from '@/lib/api';
+import { ensureValidAccessToken } from '@/lib/auth-session';
 import type { CompanyDashboard } from '@rateq/types';
 import { useRouter } from '@/i18n/routing';
 import { useTranslations } from 'next-intl';
@@ -18,7 +19,7 @@ import { useEffect, useState } from 'react';
 export default function CompanyDashboardPage() {
   const t = useTranslations('dashboardShell');
   const tp = useTranslations('profilePage');
-  const { user } = useAuth();
+  const { user, isLoading: authLoading } = useAuth();
   const { onboarding, isLoading: profileLoading } = useProfile();
   const router = useRouter();
   useRequireVerifiedAuth();
@@ -34,16 +35,19 @@ export default function CompanyDashboardPage() {
   const [dashboard, setDashboard] = useState<CompanyDashboard | null>(null);
 
   useEffect(() => {
-    if (!user) return;
+    if (authLoading || !user) return;
 
-    const token = localStorage.getItem('rateq_access_token');
-    if (!token) return;
+    void (async () => {
+      const token = await ensureValidAccessToken();
+      if (!token) return;
 
-    companiesApi
-      .getDashboard(token)
-      .then(setDashboard)
-      .catch(() => setDashboard(null));
-  }, [user]);
+      try {
+        setDashboard(await companiesApi.getDashboard(token));
+      } catch {
+        setDashboard(null);
+      }
+    })();
+  }, [authLoading, user]);
 
   const status =
     onboarding?.company?.verificationStatus ?? (onboarding?.company ? 'pending' : undefined);

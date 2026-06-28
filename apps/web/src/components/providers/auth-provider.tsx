@@ -12,6 +12,7 @@ import {
 } from 'react';
 import { authApi } from '@/lib/api';
 import { clearAuth, getAccessToken, getStoredUser, saveAuth } from '@/lib/auth-storage';
+import { ensureValidAccessToken } from '@/lib/auth-session';
 import { EmailNotVerifiedError, EmailVerificationPendingError } from '@/lib/auth-flow-errors';
 import {
   firebaseSendEmailVerification,
@@ -72,7 +73,7 @@ async function exchangeFirebaseSession(): Promise<AuthenticatedUser> {
 }
 
 async function loadAdminAccess(): Promise<AdminAccess> {
-  const token = getAccessToken();
+  const token = await ensureValidAccessToken();
   if (!token) return { allowed: false, permissions: [] };
   try {
     return await authApi.adminAccess(token);
@@ -228,7 +229,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [refreshAdminAccess]);
 
   const refreshSession = useCallback(async () => {
-    const token = getAccessToken();
+    const token = await ensureValidAccessToken();
     if (!token) {
       setUser(null);
       return null;
@@ -245,7 +246,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setUser(null);
       return null;
     }
-  }, []);
+  }, [refreshAdminAccess]);
 
   const resetPassword = useCallback(
     async (email: string) => {
@@ -259,29 +260,39 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   );
 
   useEffect(() => {
-    const token = getAccessToken();
-    const stored = getStoredUser();
+    void (async () => {
+      const stored = getStoredUser();
 
-    if (!token || !stored) {
-      setIsLoading(false);
-      setAdminAccess(null);
-      return;
-    }
+      if (!stored) {
+        setIsLoading(false);
+        setAdminAccess(null);
+        return;
+      }
 
-    setUser(stored);
-    authApi
-      .me(token)
-      .then(async (me) => {
-        syncFirebaseDisplayNameToClient(me);
-        setUser(me);
-        await refreshAdminAccess();
-      })
-      .catch(() => {
+      setUser(stored);
+
+      const token = await ensureValidAccessToken();
+      if (!token) {
         clearAuth();
         setUser(null);
         setAdminAccess(null);
-      })
-      .finally(() => setIsLoading(false));
+        setIsLoading(false);
+        return;
+      }
+
+      try {
+        const me = await authApi.me(token);
+        syncFirebaseDisplayNameToClient(me);
+        setUser(me);
+        await refreshAdminAccess();
+      } catch {
+        clearAuth();
+        setUser(null);
+        setAdminAccess(null);
+      } finally {
+        setIsLoading(false);
+      }
+    })();
   }, [refreshAdminAccess]);
 
   const value = useMemo(

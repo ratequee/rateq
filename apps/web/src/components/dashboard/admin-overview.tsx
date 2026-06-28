@@ -13,6 +13,7 @@ import {
 import { adminApi } from '@/lib/admin-platform-api';
 import { mapReviewToDashboardRow } from '@/lib/dashboard-review-rows';
 import { ensureValidAccessToken } from '@/lib/auth-session';
+import { useAuth } from '@/components/providers/auth-provider';
 import type { AdminPlatformStats } from '@rateq/types';
 import { Building2, ClipboardList, Star, Users } from 'lucide-react';
 import { useLocale, useTranslations } from 'next-intl';
@@ -28,9 +29,12 @@ export function AdminOverview({ title }: AdminOverviewProps) {
   const t = useTranslations('dashboardShell');
   const ta = useTranslations('adminOverview');
   const locale = useLocale();
+  const { isLoading: authLoading } = useAuth();
   const [stats, setStats] = useState<AdminPlatformStats | null>(null);
 
   useEffect(() => {
+    if (authLoading) return;
+
     void (async () => {
       const token = await ensureValidAccessToken();
       if (!token) return;
@@ -40,7 +44,7 @@ export function AdminOverview({ title }: AdminOverviewProps) {
         setStats(null);
       }
     })();
-  }, []);
+  }, [authLoading]);
 
   const cards = stats
     ? [
