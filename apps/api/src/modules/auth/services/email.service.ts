@@ -48,8 +48,13 @@ import {
   buildReviewResolutionReviewerEmailText,
   buildReviewWithdrawnEmailHtml,
   buildReviewWithdrawnEmailText,
+  buildReviewReplyApprovedEmailHtml,
+  buildReviewReplyApprovedEmailText,
+  buildReviewReplyRejectedEmailHtml,
+  buildReviewReplyRejectedEmailText,
   type ReviewDecisionEmailContent,
   type ReviewOutcomeEmailContent,
+  type ReviewReplyDecisionEmailContent,
   type ReviewResolutionCompanyEmailContent,
   type ReviewResolutionReviewerEmailContent,
 } from '../email/email-review-templates';
@@ -192,6 +197,38 @@ export class EmailService {
       ),
       text: buildReviewRejectedEmailText(content),
       html: buildReviewRejectedEmailHtml({ ...content, appUrl }),
+    });
+  }
+
+  async sendReviewReplyApprovedEmail(content: ReviewReplyDecisionEmailContent): Promise<void> {
+    const appUrl = this.configService.get('APP_URL', { infer: true });
+    const reviewsUrl = `${appUrl}/dashboard/company/reviews`;
+    const { companyEmail, ...rest } = content;
+
+    await this.send({
+      to: companyEmail,
+      subject: bilingualSubject(
+        `Your reply for ${content.companyName} has been approved`,
+        `تمت الموافقة على ردكم لـ ${content.companyName}`,
+      ),
+      text: buildReviewReplyApprovedEmailText(content),
+      html: buildReviewReplyApprovedEmailHtml({ ...rest, appUrl, reviewsUrl }),
+    });
+  }
+
+  async sendReviewReplyRejectedEmail(content: ReviewReplyDecisionEmailContent): Promise<void> {
+    const appUrl = this.configService.get('APP_URL', { infer: true });
+    const reviewsUrl = `${appUrl}/dashboard/company/reviews`;
+    const { companyEmail, ...rest } = content;
+
+    await this.send({
+      to: companyEmail,
+      subject: bilingualSubject(
+        `Your reply for ${content.companyName} was not approved`,
+        `لم تتم الموافقة على ردكم لـ ${content.companyName}`,
+      ),
+      text: buildReviewReplyRejectedEmailText(content),
+      html: buildReviewReplyRejectedEmailHtml({ ...rest, appUrl, reviewsUrl }),
     });
   }
 

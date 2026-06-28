@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { StarRating } from '@/components/ui/star-rating';
 import { ensureValidAccessToken } from '@/lib/auth-session';
+import { canCompanyReplyToReview } from '@/lib/review-reply';
 import { fetchCategoriesClient } from '@/lib/categories-api';
 import { getCategoryLabel, getLocalizedCategoryName } from '@/lib/category-label';
 import { reviewsApi } from '@/lib/api';
@@ -488,11 +489,19 @@ export function ReviewsManagementPanel({ mode, companyId }: ReviewsManagementPan
                     {t('replyPendingHint')}
                   </p>
                 ) : null}
+                {mode === 'company' &&
+                selectedReview.reply.status === ReviewReplyStatus.REJECTED ? (
+                  <p className="mb-2 text-sm text-red-800 dark:text-red-200">
+                    {t('replyRejectedHint')}
+                  </p>
+                ) : null}
                 <p className="whitespace-pre-wrap text-sm leading-7 text-ink dark:text-slate-200">
                   {selectedReview.reply.content}
                 </p>
               </div>
-            ) : mode === 'company' && companyId ? (
+            ) : null}
+
+            {mode === 'company' && companyId && canCompanyReplyToReview(selectedReview) ? (
               <ReviewReplyForm
                 review={selectedReview}
                 companyId={companyId}

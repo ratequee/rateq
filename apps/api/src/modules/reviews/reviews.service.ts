@@ -459,10 +459,18 @@ export class ReviewsService {
     const existingReply = await this.reviewsRepository.findReplyByReviewId(reviewId);
 
     if (existingReply) {
-      throw new ConflictException('A reply already exists for this review');
-    }
+      if (existingReply.status === 'APPROVED') {
+        throw new ConflictException('A reply already exists for this review');
+      }
 
-    await this.reviewsRepository.createReply(reviewId, review.companyId, dto.content.trim());
+      if (existingReply.status === 'PENDING') {
+        throw new ConflictException('Your reply is already pending admin review');
+      }
+
+      await this.reviewsRepository.updateReplyContent(reviewId, dto.content.trim());
+    } else {
+      await this.reviewsRepository.createReply(reviewId, review.companyId, dto.content.trim());
+    }
 
     const updated = await this.reviewsRepository.findById(reviewId);
 

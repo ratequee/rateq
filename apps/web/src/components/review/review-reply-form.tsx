@@ -5,7 +5,7 @@ import { useProfile } from '@/components/providers/profile-provider';
 import { Button } from '@/components/ui/button';
 import { ApiError, reviewsApi } from '@/lib/api';
 import { ensureValidAccessToken } from '@/lib/auth-session';
-import { ReviewStatus } from '@rateq/types';
+import { canCompanyReplyToReview } from '@/lib/review-reply';
 import type { ReviewPublic } from '@rateq/types';
 import { useTranslations } from 'next-intl';
 import { useState } from 'react';
@@ -34,8 +34,7 @@ export function ReviewReplyForm({
   const canReply =
     user &&
     (trustedOwner || onboarding?.company?.id === companyId) &&
-    review.status === ReviewStatus.APPROVED &&
-    !review.reply;
+    canCompanyReplyToReview(review);
 
   if (!canReply) return null;
 

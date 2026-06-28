@@ -196,6 +196,13 @@ export class ReviewsRepository {
     });
   }
 
+  updateReplyContent(reviewId: string, content: string) {
+    return this.prisma.reviewReply.update({
+      where: { reviewId },
+      data: { content, status: 'PENDING' },
+    });
+  }
+
   updateReplyStatus(reviewId: string, status: 'PENDING' | 'APPROVED' | 'REJECTED') {
     return this.prisma.reviewReply.update({
       where: { reviewId },

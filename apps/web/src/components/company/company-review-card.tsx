@@ -122,6 +122,11 @@ export function CompanyReviewCard({ review, company, onReviewUpdated }: CompanyR
                 {t('replySubmittedPending')}
               </p>
             ) : null}
+            {review.reply.status === ReviewReplyStatus.REJECTED ? (
+              <p className="mt-2 text-xs text-red-800 dark:text-red-200">
+                {t('replyRejectedResubmit')}
+              </p>
+            ) : null}
             <p className="mt-2 text-sm leading-relaxed text-ink dark:text-slate-200">
               {review.reply.content}
             </p>

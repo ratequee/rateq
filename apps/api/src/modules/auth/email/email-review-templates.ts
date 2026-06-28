@@ -44,6 +44,12 @@ export interface ReviewOutcomeEmailContent {
   reviewTitle: string;
 }
 
+export interface ReviewReplyDecisionEmailContent {
+  companyEmail: string;
+  companyName: string;
+  reviewTitle: string;
+}
+
 export function buildReviewApprovedEmailHtml(
   content: Omit<ReviewDecisionEmailContent, 'reviewerEmail'> & { appUrl: string },
 ): string {
@@ -377,6 +383,128 @@ export function buildReviewWithdrawnEmailText(content: ReviewOutcomeEmailContent
     '',
     `التقييم: ${content.reviewTitle}`,
     `الشركة: ${content.companyName}`,
+  ].join('\n');
+
+  return appendBilingualText(english, arabic);
+}
+
+export function buildReviewReplyApprovedEmailHtml(
+  content: Omit<ReviewReplyDecisionEmailContent, 'companyEmail'> & {
+    appUrl: string;
+    reviewsUrl: string;
+  },
+): string {
+  const bodyHtml = `
+    ${emailParagraph(`Your reply to the review "${content.reviewTitle}" for ${content.companyName} has been approved and is now visible on your public RateQ profile.`)}
+    ${emailButton(content.reviewsUrl, 'View company reviews')}
+    ${emailSecondaryLink(content.reviewsUrl, 'Open reviews dashboard')}
+    ${emailCallout(
+      'Reply published',
+      '<p style="margin:0;">Thank you for responding professionally. Your reply helps customers understand your perspective.</p>',
+      'success',
+    )}
+  `;
+
+  const bodyHtmlAr = `
+    ${emailParagraphRtl(`تمت الموافقة على ردكم على التقييم "${content.reviewTitle}" لـ ${content.companyName} وأصبح مرئيًا الآن على ملفكم العام في RateQ.`)}
+    ${emailButton(content.reviewsUrl, 'عرض تقييمات الشركة')}
+    ${emailSecondaryLink(content.reviewsUrl, 'فتح لوحة التقييمات')}
+    ${emailCallout(
+      'تم نشر الرد',
+      '<p dir="rtl" style="margin:0;text-align:right;">شكرًا لردكم باحترافية. يساعد ردكم العملاء على فهم وجهة نظركم.</p>',
+      'success',
+    )}
+  `;
+
+  return renderBilingualEmailLayout({
+    appUrl: content.appUrl,
+    preheader: `Your reply for ${content.companyName} is now live. | ردكم لـ ${content.companyName} متاح الآن.`,
+    eyebrow: 'Reply approved | تمت الموافقة على الرد',
+    title: 'Your reply has been published',
+    titleAr: 'تم نشر ردكم',
+    bodyHtml,
+    bodyHtmlAr,
+  });
+}
+
+export function buildReviewReplyApprovedEmailText(
+  content: ReviewReplyDecisionEmailContent,
+): string {
+  const english = [
+    'Your reply has been approved',
+    '',
+    `Review: ${content.reviewTitle}`,
+    `Company: ${content.companyName}`,
+  ].join('\n');
+
+  const arabic = [
+    'تمت الموافقة على ردكم',
+    '',
+    `التقييم: ${content.reviewTitle}`,
+    `الشركة: ${content.companyName}`,
+  ].join('\n');
+
+  return appendBilingualText(english, arabic);
+}
+
+export function buildReviewReplyRejectedEmailHtml(
+  content: Omit<ReviewReplyDecisionEmailContent, 'companyEmail'> & {
+    appUrl: string;
+    reviewsUrl: string;
+  },
+): string {
+  const bodyHtml = `
+    ${emailParagraph(`Your reply to the review "${content.reviewTitle}" for ${content.companyName} was not approved and will not be shown on your public RateQ profile.`)}
+    ${emailButton(content.reviewsUrl, 'Submit a new reply')}
+    ${emailSecondaryLink(content.reviewsUrl, 'Open reviews dashboard')}
+    ${emailCallout(
+      'You can try again',
+      '<p style="margin:0;">You may submit a revised reply from your company reviews dashboard. Please ensure your response is professional and addresses the reviewer\'s feedback.</p>',
+      'warning',
+    )}
+  `;
+
+  const bodyHtmlAr = `
+    ${emailParagraphRtl(`لم تتم الموافقة على ردكم على التقييم "${content.reviewTitle}" لـ ${content.companyName} ولن يظهر على ملفكم العام في RateQ.`)}
+    ${emailButton(content.reviewsUrl, 'إرسال رد جديد')}
+    ${emailSecondaryLink(content.reviewsUrl, 'فتح لوحة التقييمات')}
+    ${emailCallout(
+      'يمكنكم المحاولة مجددًا',
+      '<p dir="rtl" style="margin:0;text-align:right;">يمكنكم إرسال رد معدّل من لوحة تقييمات شركتكم. يُرجى التأكد من أن ردكم احترافي ويعالج ملاحظات المقيّم.</p>',
+      'warning',
+    )}
+  `;
+
+  return renderBilingualEmailLayout({
+    appUrl: content.appUrl,
+    preheader: `Your reply for ${content.companyName} was not approved. | لم تتم الموافقة على ردكم لـ ${content.companyName}.`,
+    eyebrow: 'Reply update | تحديث الرد',
+    title: 'Your reply was not approved',
+    titleAr: 'لم تتم الموافقة على ردكم',
+    bodyHtml,
+    bodyHtmlAr,
+  });
+}
+
+export function buildReviewReplyRejectedEmailText(
+  content: ReviewReplyDecisionEmailContent,
+): string {
+  const english = [
+    'Your reply was not approved',
+    '',
+    `Review: ${content.reviewTitle}`,
+    `Company: ${content.companyName}`,
+    '',
+    'You can submit a revised reply from your company reviews dashboard.',
+  ].join('\n');
+
+  const arabic = [
+    'لم تتم الموافقة على ردكم',
+    '',
+    `التقييم: ${content.reviewTitle}`,
+    `الشركة: ${content.companyName}`,
+    '',
+    'يمكنكم إرسال رد معدّل من لوحة تقييمات شركتكم.',
   ].join('\n');
 
   return appendBilingualText(english, arabic);

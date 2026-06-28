@@ -106,6 +106,8 @@ export class ModerationService {
       entityLabel: 'Company reply approved',
       action: AdminActivityAction.APPROVED,
     });
+
+    await this.notifyCompanyReplyDecision(reviewId, 'approved');
   }
 
   async manualRejectReply(reviewId: string, adminId: string): Promise<void> {
@@ -126,6 +128,8 @@ export class ModerationService {
       entityLabel: 'Company reply rejected',
       action: AdminActivityAction.REJECTED,
     });
+
+    await this.notifyCompanyReplyDecision(reviewId, 'rejected');
   }
 
   async manualApprove(reviewId: string, adminId: string): Promise<void> {
@@ -296,6 +300,38 @@ export class ModerationService {
       reviewTitle: review.title,
       companyName,
     });
+  }
+
+  private async notifyCompanyReplyDecision(
+    reviewId: string,
+    decision: 'approved' | 'rejected',
+  ): Promise<void> {
+    const review = await this.reviewsRepository.findById(reviewId);
+    if (!review) return;
+
+    const companyEmail = resolveCompanyOwnerEmail(review);
+    if (!companyEmail) return;
+
+    const payload = {
+      companyEmail,
+      companyName: review.company?.name ?? 'your company',
+      reviewTitle: review.title,
+    };
+
+    try {
+      if (decision === 'approved') {
+        await this.emailService.sendReviewReplyApprovedEmail(payload);
+        return;
+      }
+
+      await this.emailService.sendReviewReplyRejectedEmail(payload);
+    } catch (error) {
+      this.logger.warn(
+        `Failed to send reply ${decision} email to ${companyEmail}: ${
+          error instanceof Error ? error.message : 'unknown error'
+        }`,
+      );
+    }
   }
 
   private async setManualStatus(

@@ -864,6 +864,7 @@
       "REJECTED": "Not approved"
     },
     "replyPendingHint": "This reply is awaiting admin approval before it appears on your public profile.",
+    "replyRejectedHint": "Your previous reply was not approved. You can submit a new reply below.",
     "replyPendingInList": "Reply under review",
     "resolutionDeadline": "Resolution deadline",
     "unknownReviewer": "Reviewer",
@@ -931,6 +932,7 @@
     "replySubmit": "Post reply",
     "replySubmitted": "Reply posted successfully.",
     "replySubmittedPending": "Your reply was submitted and is under admin review. It will appear publicly once approved.",
+    "replyRejectedResubmit": "Your previous reply was not approved. You can submit a new reply below.",
     "replyTooShort": "Reply must be at least 5 characters.",
     "submittedSuccess": "Thank you! Your review was submitted and is under review.",
     "submittedPendingNote": "It is pending moderation and will appear publicly once approved.",
