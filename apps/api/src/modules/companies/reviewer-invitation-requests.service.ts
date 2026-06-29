@@ -127,7 +127,7 @@ export class ReviewerInvitationRequestsService {
   }
 
   async reject(requestId: string, adminId: string): Promise<ReviewerInvitationRequestPublic> {
-    const request = await this.getPending(requestId);
+    await this.getPending(requestId);
 
     const updated = await this.prisma.reviewerInvitationRequest.update({
       where: { id: requestId },
@@ -156,7 +156,7 @@ export class ReviewerInvitationRequestsService {
   }
 
   async remove(requestId: string, adminId: string): Promise<ReviewerInvitationRequestPublic> {
-    const request = await this.getPending(requestId);
+    await this.getPending(requestId);
 
     const updated = await this.prisma.reviewerInvitationRequest.update({
       where: { id: requestId },
@@ -174,7 +174,7 @@ export class ReviewerInvitationRequestsService {
         await this.emailService.sendReviewerInvitationDeletedEmail({
           email: ownerEmail,
           companyName: updated.company.name,
-          reviewerName: request.reviewerName,
+          reviewerName: updated.reviewerName,
         });
       } catch {
         // non-blocking

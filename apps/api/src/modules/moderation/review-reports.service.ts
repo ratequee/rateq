@@ -75,9 +75,27 @@ export class ReviewReportsService {
         include: {
           review: {
             include: {
-              user: { include: { profile: { select: { fullName: true, avatarUrl: true } } } },
+              user: {
+                select: {
+                  id: true,
+                  email: true,
+                  displayName: true,
+                  phone: true,
+                  phoneVerified: true,
+                  createdAt: true,
+                  profile: { select: { fullName: true, avatarUrl: true, phone: true } },
+                },
+              },
               company: {
-                include: { category: { select: { id: true, nameEn: true, nameAr: true } } },
+                select: {
+                  id: true,
+                  name: true,
+                  slug: true,
+                  logo: true,
+                  categoryId: true,
+                  email: true,
+                  category: { select: { id: true, nameEn: true, nameAr: true } },
+                },
               },
               replies: true,
               attachments: true,

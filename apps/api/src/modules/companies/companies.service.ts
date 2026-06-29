@@ -137,7 +137,7 @@ export class CompaniesService {
       include: {
         company: {
           include: {
-            owner: { select: { email: true, isActive: true } },
+            owner: { select: { id: true, email: true, isActive: true } },
             category: { select: { id: true, nameEn: true, nameAr: true, slug: true } },
             projects: { orderBy: { sortOrder: 'asc' } },
           },
@@ -1098,6 +1098,7 @@ export class CompaniesService {
             displayName: true,
             phone: true,
             phoneVerified: true,
+            createdAt: true,
             profile: { select: { fullName: true, avatarUrl: true, phone: true } },
           },
         },
