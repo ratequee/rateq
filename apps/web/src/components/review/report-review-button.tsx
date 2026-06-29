@@ -46,9 +46,9 @@ export function ReportReviewButton({ reviewId }: ReportReviewButtonProps) {
       <button
         type="button"
         onClick={() => (user ? setOpen(true) : router.push('/login'))}
-        className="inline-flex items-center gap-1.5 text-xs font-medium text-secondary hover:text-brand-500"
+        className="inline-flex shrink-0 items-center gap-2 rounded-lg border border-default bg-white px-3 py-2 text-sm font-medium text-secondary transition-colors hover:border-red-200 hover:bg-red-50 hover:text-red-600 dark:bg-dm-elevated dark:hover:border-red-900 dark:hover:bg-red-950/30 dark:hover:text-red-400"
       >
-        <Flag className="h-3.5 w-3.5" />
+        <Flag className="h-4 w-4" />
         {t('reportReview')}
       </button>
     );

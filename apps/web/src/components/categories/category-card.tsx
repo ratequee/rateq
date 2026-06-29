@@ -40,7 +40,7 @@ export function CategoryCard({ category, variant = 'default', className }: Categ
   const descriptionName = label;
   const href = `/categories/${category.slug}`;
   const count = category.companyCount ?? 0;
-  const services = category.services ?? [];
+  const subcategories = category.subcategories ?? [];
 
   if (variant === 'compact') {
     return (
@@ -131,17 +131,22 @@ export function CategoryCard({ category, variant = 'default', className }: Categ
         secondaryClassName="text-sm font-medium text-secondary dark:text-white/80"
       />
 
-      {services.length > 0 ? (
+      {subcategories.length > 0 ? (
         <ul className="mt-4 divide-y divide-slate-200 dark:divide-dm-border">
-          {services.map((service) => (
-            <li key={service.id} className="py-3 text-sm text-secondary dark:text-white/80">
-              {service.name}
+          {subcategories.map((subcategory) => (
+            <li key={subcategory.id} className="py-3">
+              <p className="text-sm font-medium text-primary dark:text-white">
+                {subcategory.nameEn}
+              </p>
+              <p className="text-sm text-secondary dark:text-white/80" dir="rtl">
+                {subcategory.nameAr}
+              </p>
             </li>
           ))}
         </ul>
       ) : (
         <p className="mt-4 border-t border-default py-3 text-center text-sm text-secondary dark:text-white/80">
-          {t('noServices')}
+          {t('noSubcategories')}
         </p>
       )}
     </Link>

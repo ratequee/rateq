@@ -252,6 +252,7 @@
     "companyCount": "{count} companies",
     "servicesLabel": "Services",
     "noServices": "No services listed yet.",
+    "noSubcategories": "No subcategories listed yet.",
     "categoryDescription": "Discover trusted {name} businesses and read verified customer reviews.",
     "resultsCount": "{count} categories",
     "noResults": "No categories match your search.",
@@ -1201,7 +1202,10 @@
     "last7Days": "Last 7 days",
     "activityEmpty": "No reviews or company visits in the last 7 days.",
     "chartLegendVisits": "Company visits",
-    "chartLegendReviews": "Reviews"
+    "chartLegendReviews": "Reviews",
+    "favoriteCompaniesTitle": "Saved companies",
+    "favoriteCompaniesEmpty": "You have not saved any companies yet. Visit a company page and tap the heart to add it here.",
+    "favoriteReviewCount": "{count, plural, one {# review} other {# reviews}}"
   },
   "adminCompanies": {
     "title": "Company profile requests",

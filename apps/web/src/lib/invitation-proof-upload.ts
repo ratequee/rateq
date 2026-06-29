@@ -16,7 +16,7 @@ export async function uploadInvitationProofFiles(files: File[]): Promise<string[
     if (file.size > MAX_PROOF_FILE_BYTES) {
       throw new Error('Each proof file must be 10 MB or smaller');
     }
-    const url = await uploadUserFile('', 'companies/invitation-proof', file);
+    const url = await uploadUserFile('', 'company/invitation-proof', file);
     urls.push(url);
   }
 

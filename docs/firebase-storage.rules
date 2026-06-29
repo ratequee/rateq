@@ -11,6 +11,7 @@ rules_version = '2';
 //   users/{firebaseUid}/company/establishment-card/{file}
 //   users/{firebaseUid}/company/trade-license/{file}
 //   users/{firebaseUid}/company/projects/{file}
+//   users/{firebaseUid}/company/invitation-proof/{file}
 //   users/{firebaseUid}/reviews/proof/{file}
 //   users/{firebaseUid}/blog/cover/{file}
 //
@@ -83,6 +84,13 @@ service firebase.storage {
     match /users/{userId}/company/projects/{fileName} {
       allow read: if true;
       allow create, update: if isOwner(userId) && max10MB() && isImage();
+      allow delete: if isOwner(userId);
+    }
+
+    // Reviewer invitation proof attachments (company dashboard)
+    match /users/{userId}/company/invitation-proof/{fileName} {
+      allow read: if isSignedIn();
+      allow create, update: if isOwner(userId) && max10MB() && isRegistrationDoc();
       allow delete: if isOwner(userId);
     }
 

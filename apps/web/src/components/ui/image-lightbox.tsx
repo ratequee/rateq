@@ -3,6 +3,119 @@
 import { cn } from '@/lib/utils';
 import { ChevronLeft, ChevronRight, X, ZoomIn } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
+
+function useLightboxLock(
+  open: boolean,
+  onClose: () => void,
+  onPrev?: () => void,
+  onNext?: () => void,
+) {
+  useEffect(() => {
+    if (!open) return;
+
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') onClose();
+      if (event.key === 'ArrowLeft') onPrev?.();
+      if (event.key === 'ArrowRight') onNext?.();
+    };
+
+    document.body.style.overflow = 'hidden';
+    document.addEventListener('keydown', onKeyDown);
+    return () => {
+      document.body.style.overflow = '';
+      document.removeEventListener('keydown', onKeyDown);
+    };
+  }, [open, onClose, onPrev, onNext]);
+}
+
+interface LightboxOverlayProps {
+  open: boolean;
+  onClose: () => void;
+  src: string;
+  alt: string;
+  onPrev?: () => void;
+  onNext?: () => void;
+  hasPrev?: boolean;
+  hasNext?: boolean;
+}
+
+function LightboxOverlay({
+  open,
+  onClose,
+  src,
+  alt,
+  onPrev,
+  onNext,
+  hasPrev,
+  hasNext,
+}: LightboxOverlayProps) {
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  useLightboxLock(open, onClose, hasPrev ? onPrev : undefined, hasNext ? onNext : undefined);
+
+  if (!mounted || !open) return null;
+
+  return createPortal(
+    <div
+      className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/95"
+      role="dialog"
+      aria-modal="true"
+      onClick={onClose}
+    >
+      <button
+        type="button"
+        onClick={onClose}
+        className="absolute end-4 top-4 z-10 rounded-full bg-white/10 p-2.5 text-white hover:bg-white/20 sm:end-6 sm:top-6"
+        aria-label="Close"
+      >
+        <X className="h-6 w-6" />
+      </button>
+
+      {onPrev ? (
+        <button
+          type="button"
+          disabled={!hasPrev}
+          onClick={(event) => {
+            event.stopPropagation();
+            onPrev();
+          }}
+          className="absolute start-2 top-1/2 z-10 -translate-y-1/2 rounded-full bg-white/10 p-2.5 text-white hover:bg-white/20 disabled:opacity-30 sm:start-4"
+          aria-label="Previous image"
+        >
+          <ChevronLeft className="h-7 w-7" />
+        </button>
+      ) : null}
+
+      {onNext ? (
+        <button
+          type="button"
+          disabled={!hasNext}
+          onClick={(event) => {
+            event.stopPropagation();
+            onNext();
+          }}
+          className="absolute end-2 top-1/2 z-10 -translate-y-1/2 rounded-full bg-white/10 p-2.5 text-white hover:bg-white/20 disabled:opacity-30 sm:end-4"
+          aria-label="Next image"
+        >
+          <ChevronRight className="h-7 w-7" />
+        </button>
+      ) : null}
+
+      <img
+        src={src}
+        alt={alt}
+        className="h-[100dvh] w-[100dvw] object-contain p-4 sm:p-8"
+        onClick={(event) => event.stopPropagation()}
+      />
+    </div>,
+    document.body,
+  );
+}
 
 interface ImageLightboxProps {
   images: string[];
@@ -21,25 +134,6 @@ export function ImageLightbox({
   const [index, setIndex] = useState(0);
 
   const close = useCallback(() => setOpen(false), []);
-
-  useEffect(() => {
-    if (!open) return;
-
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') close();
-      if (event.key === 'ArrowLeft') setIndex((current) => (current > 0 ? current - 1 : current));
-      if (event.key === 'ArrowRight') {
-        setIndex((current) => (current < images.length - 1 ? current + 1 : current));
-      }
-    };
-
-    document.body.style.overflow = 'hidden';
-    document.addEventListener('keydown', onKeyDown);
-    return () => {
-      document.body.style.overflow = '';
-      document.removeEventListener('keydown', onKeyDown);
-    };
-  }, [close, images.length, open]);
 
   if (images.length === 0) return null;
 
@@ -69,59 +163,16 @@ export function ImageLightbox({
         ))}
       </div>
 
-      {open ? (
-        <div
-          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 p-4"
-          role="dialog"
-          aria-modal="true"
-          onClick={close}
-        >
-          <button
-            type="button"
-            onClick={close}
-            className="absolute end-4 top-4 rounded-full bg-white/10 p-2 text-white hover:bg-white/20"
-            aria-label="Close"
-          >
-            <X className="h-6 w-6" />
-          </button>
-
-          {images.length > 1 ? (
-            <>
-              <button
-                type="button"
-                disabled={index === 0}
-                onClick={(event) => {
-                  event.stopPropagation();
-                  setIndex((current) => Math.max(0, current - 1));
-                }}
-                className="absolute start-4 top-1/2 -translate-y-1/2 rounded-full bg-white/10 p-2 text-white hover:bg-white/20 disabled:opacity-30"
-                aria-label="Previous image"
-              >
-                <ChevronLeft className="h-6 w-6" />
-              </button>
-              <button
-                type="button"
-                disabled={index >= images.length - 1}
-                onClick={(event) => {
-                  event.stopPropagation();
-                  setIndex((current) => Math.min(images.length - 1, current + 1));
-                }}
-                className="absolute end-4 top-1/2 -translate-y-1/2 rounded-full bg-white/10 p-2 text-white hover:bg-white/20 disabled:opacity-30"
-                aria-label="Next image"
-              >
-                <ChevronRight className="h-6 w-6" />
-              </button>
-            </>
-          ) : null}
-
-          <img
-            src={images[index]}
-            alt={alt}
-            className="max-h-[90vh] max-w-[min(100%,1200px)] object-contain"
-            onClick={(event) => event.stopPropagation()}
-          />
-        </div>
-      ) : null}
+      <LightboxOverlay
+        open={open}
+        onClose={close}
+        src={images[index] ?? ''}
+        alt={alt}
+        onPrev={() => setIndex((current) => Math.max(0, current - 1))}
+        onNext={() => setIndex((current) => Math.min(images.length - 1, current + 1))}
+        hasPrev={index > 0}
+        hasNext={index < images.length - 1}
+      />
     </>
   );
 }
@@ -141,19 +192,6 @@ export function SingleImageLightbox({
 }: SingleImageLightboxProps) {
   const [open, setOpen] = useState(false);
 
-  useEffect(() => {
-    if (!open) return;
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') setOpen(false);
-    };
-    document.body.style.overflow = 'hidden';
-    document.addEventListener('keydown', onKeyDown);
-    return () => {
-      document.body.style.overflow = '';
-      document.removeEventListener('keydown', onKeyDown);
-    };
-  }, [open]);
-
   return (
     <>
       <button
@@ -170,29 +208,7 @@ export function SingleImageLightbox({
         </span>
       </button>
 
-      {open ? (
-        <div
-          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 p-4"
-          role="dialog"
-          aria-modal="true"
-          onClick={() => setOpen(false)}
-        >
-          <button
-            type="button"
-            onClick={() => setOpen(false)}
-            className="absolute end-4 top-4 rounded-full bg-white/10 p-2 text-white hover:bg-white/20"
-            aria-label="Close"
-          >
-            <X className="h-6 w-6" />
-          </button>
-          <img
-            src={src}
-            alt={alt}
-            className="max-h-[90vh] max-w-[min(100%,1200px)] object-contain"
-            onClick={(event) => event.stopPropagation()}
-          />
-        </div>
-      ) : null}
+      <LightboxOverlay open={open} onClose={() => setOpen(false)} src={src} alt={alt} />
     </>
   );
 }

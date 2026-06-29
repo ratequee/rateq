@@ -4,8 +4,8 @@ import { usePathname } from '@/i18n/routing';
 import { useEffect, useRef, type ReactNode } from 'react';
 
 const OBSERVER_OPTIONS: IntersectionObserverInit = {
-  threshold: 0.12,
-  rootMargin: '0px 0px -6% 0px',
+  threshold: 0.06,
+  rootMargin: '0px 0px -4% 0px',
 };
 
 function revealElement(element: Element) {

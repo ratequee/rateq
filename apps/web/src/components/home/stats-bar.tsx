@@ -48,7 +48,7 @@ export async function StatsBar({ stats }: StatsBarProps): Promise<JSX.Element> {
           {items.map(({ icon, value, label }, index) => (
             <div
               key={label}
-              {...scrollRevealProps('fade-up', scrollStaggerDelay(index))}
+              {...scrollRevealProps('pop-up', scrollStaggerDelay(index))}
               style={{ borderRight: index < items.length - 1 ? '1px solid #ffffff' : 'none' }}
               className="flex justify-center items-center gap-3 text-center sm:flex-row sm:items-center sm:gap-5 sm:text-start sm:even:border-x sm:even:border-white/20 sm:even:px-6"
             >

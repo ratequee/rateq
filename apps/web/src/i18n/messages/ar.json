@@ -252,6 +252,7 @@
     "companyCount": "{count} شركة",
     "servicesLabel": "الخدمات",
     "noServices": "لا توجد خدمات مدرجة بعد.",
+    "noSubcategories": "لا توجد فئات فرعية مدرجة بعد.",
     "categoryDescription": "اكتشف شركات {name} الموثوقة واقرأ مراجعات العملاء المعتمدة.",
     "resultsCount": "{count} تصنيف",
     "noResults": "لا توجد تصنيفات مطابقة لبحثك.",
@@ -1201,7 +1202,10 @@
     "last7Days": "آخر 7 أيام",
     "activityEmpty": "لا توجد مراجعات أو زيارات لشركات خلال آخر 7 أيام.",
     "chartLegendVisits": "زيارات الشركات",
-    "chartLegendReviews": "المراجعات"
+    "chartLegendReviews": "المراجعات",
+    "favoriteCompaniesTitle": "الشركات المحفوظة",
+    "favoriteCompaniesEmpty": "لم تحفظ أي شركة بعد. زُر صفحة شركة واضغط على القلب لإضافتها هنا.",
+    "favoriteReviewCount": "{count, plural, one {مراجعة واحدة} other {# مراجعات}}"
   },
   "adminCompanies": {
     "title": "طلبات ملفات الشركات",

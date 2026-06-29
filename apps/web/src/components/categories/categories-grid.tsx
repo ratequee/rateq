@@ -28,7 +28,14 @@ export function CategoriesGrid({
   const filtered = categories.filter((category) => {
     if (activeCategorySlug && category.slug !== activeCategorySlug) return false;
     if (categoryMatchesQuery(category, initialQuery)) return true;
-    return (category.services ?? []).some((service) => matchesQuery(service.name, initialQuery));
+    return (
+      (category.services ?? []).some((service) => matchesQuery(service.name, initialQuery)) ||
+      (category.subcategories ?? []).some(
+        (subcategory) =>
+          matchesQuery(subcategory.nameEn, initialQuery) ||
+          matchesQuery(subcategory.nameAr, initialQuery),
+      )
+    );
   });
 
   return (
@@ -52,7 +59,7 @@ export function CategoriesGrid({
             {filtered.map((category, index) => (
               <div
                 key={category.id}
-                {...scrollRevealProps('fade-up', scrollStaggerDelay(index % 8))}
+                {...scrollRevealProps('pop-up', scrollStaggerDelay(index % 8))}
               >
                 <CategoryCard category={category} />
               </div>

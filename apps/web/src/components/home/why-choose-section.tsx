@@ -79,7 +79,7 @@ export async function WhyChooseSection(): Promise<JSX.Element> {
               {values.map(({ icon: Icon, titleKey, descKey }, index) => (
                 <li
                   key={titleKey}
-                  {...scrollRevealProps('fade-up', scrollStaggerDelay(index))}
+                  {...scrollRevealProps('pop-up', scrollStaggerDelay(index))}
                   className={cn(
                     'flex gap-4 rounded-2xl border-2 border-slate-100 bg-white p-5 shadow-sm',
                     darkCard,
