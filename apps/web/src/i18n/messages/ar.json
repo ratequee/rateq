@@ -842,7 +842,8 @@
       "viewSite": "عرض الموقع العام",
       "visitCompanies": "زيارة الشركات",
       "companyCatalog": "كتالوج الشركات",
-      "reviewerInvitations": "دعوات المُراجعين"
+      "reviewerInvitations": "دعوات المُراجعين",
+      "favoriteCompanies": "الشركات المحفوظة"
     },
     "stats": {
       "sales": "إجمالي المبيعات",
@@ -1196,16 +1197,20 @@
     "chartLegendPageVisits": "زيارات الصفحة",
     "chartLegendReviews": "المراجعات"
   },
+  "reviewerFavorites": {
+    "pageTitle": "الشركات المحفوظة",
+    "pageSubtitle": "الشركات التي حفظتها للوصول السريع.",
+    "favoriteCompaniesTitle": "الشركات المحفوظة",
+    "favoriteCompaniesEmpty": "لم تحفظ أي شركة بعد. زُر صفحة شركة واضغط على القلب لإضافتها هنا.",
+    "favoriteReviewCount": "{count, plural, one {مراجعة واحدة} other {# مراجعات}}"
+  },
   "reviewerOverview": {
     "noData": "لم تُقيّم أي شركة بعد.",
     "activityTitle": "النشاط اليومي",
     "last7Days": "آخر 7 أيام",
     "activityEmpty": "لا توجد مراجعات أو زيارات لشركات خلال آخر 7 أيام.",
     "chartLegendVisits": "زيارات الشركات",
-    "chartLegendReviews": "المراجعات",
-    "favoriteCompaniesTitle": "الشركات المحفوظة",
-    "favoriteCompaniesEmpty": "لم تحفظ أي شركة بعد. زُر صفحة شركة واضغط على القلب لإضافتها هنا.",
-    "favoriteReviewCount": "{count, plural, one {مراجعة واحدة} other {# مراجعات}}"
+    "chartLegendReviews": "المراجعات"
   },
   "adminCompanies": {
     "title": "طلبات ملفات الشركات",
@@ -1430,7 +1435,18 @@
       "pending": "قيد المراجعة",
       "approved": "موافق عليه",
       "rejected": "مرفوض"
-    }
+    },
+    "edit": "تعديل",
+    "save": "حفظ التغييرات",
+    "cancel": "إلغاء",
+    "delete": "حذف",
+    "deleteConfirm": "حذف طلب الدعوة هذا؟ لا يمكن التراجع عن ذلك.",
+    "deleted": "تم حذف طلب الدعوة.",
+    "updated": "تم تحديث طلب الدعوة.",
+    "updateError": "تعذر تحديث طلب الدعوة.",
+    "deleteError": "تعذر حذف طلب الدعوة.",
+    "existingProof": "ملفات الإثبات الحالية",
+    "viewProof": "عرض الملف"
   },
   "adminReviewReports": {
     "empty": "لا توجد بلاغات مراجعات بعد.",

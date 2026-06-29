@@ -20,3 +20,5 @@ export interface CreateReviewerInvitationRequestInput {
   serviceProvided: string;
   proofUrls: string[];
 }
+
+export type UpdateReviewerInvitationRequestInput = CreateReviewerInvitationRequestInput;

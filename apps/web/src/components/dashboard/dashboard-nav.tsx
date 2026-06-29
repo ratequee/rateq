@@ -20,6 +20,7 @@ import {
   Users,
   Wallet,
   X,
+  Heart,
   type LucideIcon,
 } from 'lucide-react';
 import { useTranslations } from 'next-intl';
@@ -58,6 +59,12 @@ export const DASHBOARD_NAV_ITEMS: {
     href: '/dashboard/reviewer/reviews',
     key: 'reviews',
     icon: Star,
+    roles: ['reviewer'],
+  },
+  {
+    href: '/dashboard/reviewer/favorites',
+    key: 'favoriteCompanies',
+    icon: Heart,
     roles: ['reviewer'],
   },
   {
@@ -124,7 +131,14 @@ export const DASHBOARD_NAV_ITEMS: {
   },
 ];
 
-const REVIEWER_NAV_KEYS = new Set(['home', 'reviews', 'settings', 'visitCompanies', 'viewSite']);
+const REVIEWER_NAV_KEYS = new Set([
+  'home',
+  'reviews',
+  'favoriteCompanies',
+  'settings',
+  'visitCompanies',
+  'viewSite',
+]);
 const HIDDEN_NAV_KEYS = new Set(['payments']);
 
 export function getDashboardNavItems(

@@ -10,7 +10,7 @@ import { useTranslations } from 'next-intl';
 import { useEffect, useState } from 'react';
 
 export function ReviewerFavoriteCompaniesList() {
-  const t = useTranslations('reviewerOverview');
+  const t = useTranslations('reviewerFavorites');
   const [companies, setCompanies] = useState<CompanyPublic[]>([]);
   const [loading, setLoading] = useState(true);
 

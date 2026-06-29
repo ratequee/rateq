@@ -4,7 +4,6 @@ import { DashboardActivityChart } from '@/components/dashboard/dashboard-activit
 import { DashboardReviewsTable } from '@/components/dashboard/dashboard-reviews-table';
 import { DashboardStatCard } from '@/components/dashboard/dashboard-stat-card';
 import { ReviewerRecentlyRatedCompaniesList } from '@/components/dashboard/reviewer-recently-rated-companies-list';
-import { ReviewerFavoriteCompaniesList } from '@/components/dashboard/reviewer-favorite-companies-list';
 import { mapReviewToDashboardRow } from '@/lib/dashboard-review-rows';
 import type { ReviewerDashboard } from '@rateq/types';
 import { ClipboardList, Clock3, ThumbsDown, ThumbsUp } from 'lucide-react';
@@ -95,8 +94,6 @@ export function ReviewerOverview({ title, dashboard }: ReviewerOverviewProps) {
           />
         ))}
       </div>
-
-      <ReviewerFavoriteCompaniesList />
 
       <div className="grid gap-6 xl:grid-cols-[1.4fr_1fr]">
         <div className="rounded-2xl border border-subtle surface-card p-5 shadow-sm">

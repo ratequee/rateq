@@ -842,7 +842,8 @@
       "viewSite": "View public site",
       "visitCompanies": "Visit companies",
       "companyCatalog": "Company catalog",
-      "reviewerInvitations": "Reviewer invitations"
+      "reviewerInvitations": "Reviewer invitations",
+      "favoriteCompanies": "Saved companies"
     },
     "stats": {
       "sales": "Total sales",
@@ -1196,16 +1197,20 @@
     "chartLegendPageVisits": "Page visits",
     "chartLegendReviews": "Reviews"
   },
+  "reviewerFavorites": {
+    "pageTitle": "Saved companies",
+    "pageSubtitle": "Companies you saved for quick access.",
+    "favoriteCompaniesTitle": "Saved companies",
+    "favoriteCompaniesEmpty": "You have not saved any companies yet. Visit a company page and tap the heart to add it here.",
+    "favoriteReviewCount": "{count, plural, one {# review} other {# reviews}}"
+  },
   "reviewerOverview": {
     "noData": "No companies rated yet.",
     "activityTitle": "Daily activity",
     "last7Days": "Last 7 days",
     "activityEmpty": "No reviews or company visits in the last 7 days.",
     "chartLegendVisits": "Company visits",
-    "chartLegendReviews": "Reviews",
-    "favoriteCompaniesTitle": "Saved companies",
-    "favoriteCompaniesEmpty": "You have not saved any companies yet. Visit a company page and tap the heart to add it here.",
-    "favoriteReviewCount": "{count, plural, one {# review} other {# reviews}}"
+    "chartLegendReviews": "Reviews"
   },
   "adminCompanies": {
     "title": "Company profile requests",
@@ -1485,7 +1490,18 @@
       "pending": "Pending review",
       "approved": "Approved",
       "rejected": "Rejected"
-    }
+    },
+    "edit": "Edit",
+    "save": "Save changes",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "deleteConfirm": "Delete this invitation request? This cannot be undone.",
+    "deleted": "Invitation request deleted.",
+    "updated": "Invitation request updated.",
+    "updateError": "Could not update invitation request.",
+    "deleteError": "Could not delete invitation request.",
+    "existingProof": "Existing proof files",
+    "viewProof": "View file"
   },
   "adminReviewReports": {
     "empty": "No review reports yet.",

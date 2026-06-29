@@ -68,4 +68,19 @@ export const onboardingApi = {
       '/companies/me/reviewer-invitation-requests',
       { method: 'POST', body: JSON.stringify(data), token: await token() },
     ),
+
+  updateReviewerInvitationRequest: async (
+    id: string,
+    data: import('@rateq/types').UpdateReviewerInvitationRequestInput,
+  ) =>
+    apiClient<import('@rateq/types').ReviewerInvitationRequestPublic>(
+      `/companies/me/reviewer-invitation-requests/${id}`,
+      { method: 'PATCH', body: JSON.stringify(data), token: await token() },
+    ),
+
+  deleteReviewerInvitationRequest: async (id: string) =>
+    apiClient<{ deleted: true }>(`/companies/me/reviewer-invitation-requests/${id}`, {
+      method: 'DELETE',
+      token: await token(),
+    }),
 };

@@ -8,6 +8,7 @@ import type { ReviewerInvitationRequestStatus as PrismaStatus } from '@prisma/cl
 import type {
   CreateReviewerInvitationRequestInput,
   ReviewerInvitationRequestPublic,
+  UpdateReviewerInvitationRequestInput,
 } from '@rateq/types';
 import { PrismaService } from '../../infrastructure/database/prisma.service';
 import { EmailService } from '../auth/services/email.service';
@@ -35,18 +36,7 @@ export class ReviewerInvitationRequestsService {
       throw new NotFoundException('Company not found');
     }
 
-    const reviewerName = input.reviewerName.trim();
-    const email = input.email.trim().toLowerCase();
-    const serviceProvided = input.serviceProvided.trim();
-    const proofUrls = (input.proofUrls ?? []).filter(Boolean).slice(0, 8);
-
-    if (!reviewerName || !email || !serviceProvided) {
-      throw new BadRequestException('Name, email, and service provided are required');
-    }
-
-    if (proofUrls.length === 0) {
-      throw new BadRequestException('At least one proof file is required');
-    }
+    const { reviewerName, email, serviceProvided, proofUrls } = this.normalizeInput(input);
 
     const pending = await this.prisma.reviewerInvitationRequest.findFirst({
       where: { companyId, email, status: 'PENDING' },
@@ -87,6 +77,53 @@ export class ReviewerInvitationRequestsService {
     });
 
     return requests.map((item) => this.toPublic(item));
+  }
+
+  async updateByCompany(
+    ownerId: string,
+    companyId: string,
+    requestId: string,
+    input: UpdateReviewerInvitationRequestInput,
+  ): Promise<ReviewerInvitationRequestPublic> {
+    await this.getPendingForCompany(ownerId, companyId, requestId);
+
+    const { reviewerName, email, serviceProvided, proofUrls } = this.normalizeInput(input);
+
+    const conflict = await this.prisma.reviewerInvitationRequest.findFirst({
+      where: {
+        companyId,
+        email,
+        status: 'PENDING',
+        NOT: { id: requestId },
+      },
+    });
+
+    if (conflict) {
+      throw new ConflictException('A pending invitation request already exists for this email');
+    }
+
+    const updated = await this.prisma.reviewerInvitationRequest.update({
+      where: { id: requestId },
+      data: {
+        reviewerName,
+        email,
+        serviceProvided,
+        proofUrls,
+      },
+      include: { company: { select: { name: true } } },
+    });
+
+    return this.toPublic(updated);
+  }
+
+  async deleteByCompany(
+    ownerId: string,
+    companyId: string,
+    requestId: string,
+  ): Promise<{ deleted: true }> {
+    await this.getPendingForCompany(ownerId, companyId, requestId);
+    await this.prisma.reviewerInvitationRequest.delete({ where: { id: requestId } });
+    return { deleted: true };
   }
 
   async listPending(): Promise<ReviewerInvitationRequestPublic[]> {
@@ -185,6 +222,44 @@ export class ReviewerInvitationRequestsService {
     await this.prisma.reviewerInvitationRequest.delete({ where: { id: requestId } });
 
     return snapshot;
+  }
+
+  private normalizeInput(input: CreateReviewerInvitationRequestInput) {
+    const reviewerName = input.reviewerName.trim();
+    const email = input.email.trim().toLowerCase();
+    const serviceProvided = input.serviceProvided.trim();
+    const proofUrls = (input.proofUrls ?? []).filter(Boolean).slice(0, 8);
+
+    if (!reviewerName || !email || !serviceProvided) {
+      throw new BadRequestException('Name, email, and service provided are required');
+    }
+
+    if (proofUrls.length === 0) {
+      throw new BadRequestException('At least one proof file is required');
+    }
+
+    return { reviewerName, email, serviceProvided, proofUrls };
+  }
+
+  private async getPendingForCompany(ownerId: string, companyId: string, requestId: string) {
+    const company = await this.prisma.company.findUnique({ where: { id: companyId } });
+    if (!company || company.ownerId !== ownerId) {
+      throw new NotFoundException('Company not found');
+    }
+
+    const request = await this.prisma.reviewerInvitationRequest.findUnique({
+      where: { id: requestId },
+    });
+
+    if (!request || request.companyId !== companyId) {
+      throw new NotFoundException('Invitation request not found');
+    }
+
+    if (request.status !== 'PENDING') {
+      throw new BadRequestException('Only pending invitation requests can be modified');
+    }
+
+    return request;
   }
 
   private async getPending(requestId: string) {
