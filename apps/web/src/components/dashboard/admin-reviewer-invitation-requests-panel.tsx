@@ -142,23 +142,11 @@ export function AdminReviewerInvitationRequestsPanel() {
                 disabled={actingId === request.id}
                 onClick={() => void act(request.id, 'delete')}
               >
-                <Trash2 className="h-4 w-4" />
-              </Button>
-            </div>
-          ) : (
-            <div className="mt-4">
-              <Button
-                type="button"
-                size="sm"
-                variant="destructive"
-                disabled={actingId === request.id}
-                onClick={() => void act(request.id, 'delete')}
-              >
                 <Trash2 className="mr-2 h-4 w-4" />
                 {t('delete')}
               </Button>
             </div>
-          )}
+          ) : null}
         </article>
       ))}
     </div>

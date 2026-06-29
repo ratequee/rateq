@@ -1514,7 +1514,7 @@
     "actionError": "Could not complete that action.",
     "approved": "Invitation approved and email sent.",
     "rejected": "Invitation rejected and company notified.",
-    "deleted": "Request deleted.",
+    "deleted": "Request deleted permanently.",
     "approve": "Approve",
     "reject": "Reject",
     "delete": "Delete",

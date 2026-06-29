@@ -155,33 +155,36 @@ export class ReviewerInvitationRequestsService {
     return this.toPublic(updated);
   }
 
-  async remove(requestId: string, adminId: string): Promise<ReviewerInvitationRequestPublic> {
-    await this.getPending(requestId);
-
-    const updated = await this.prisma.reviewerInvitationRequest.update({
+  async remove(requestId: string, _adminId: string): Promise<ReviewerInvitationRequestPublic> {
+    const request = await this.prisma.reviewerInvitationRequest.findUnique({
       where: { id: requestId },
-      data: {
-        status: 'REJECTED',
-        resolvedAt: new Date(),
-        resolvedById: adminId,
+      include: {
+        company: { select: { name: true, owner: { select: { email: true } } } },
       },
-      include: { company: { select: { name: true, owner: { select: { email: true } } } } },
     });
 
-    const ownerEmail = updated.company.owner?.email;
+    if (!request) {
+      throw new NotFoundException('Invitation request not found');
+    }
+
+    const snapshot = this.toPublic(request);
+
+    const ownerEmail = request.company.owner?.email;
     if (ownerEmail) {
       try {
         await this.emailService.sendReviewerInvitationDeletedEmail({
           email: ownerEmail,
-          companyName: updated.company.name,
-          reviewerName: updated.reviewerName,
+          companyName: request.company.name,
+          reviewerName: request.reviewerName,
         });
       } catch {
         // non-blocking
       }
     }
 
-    return this.toPublic(updated);
+    await this.prisma.reviewerInvitationRequest.delete({ where: { id: requestId } });
+
+    return snapshot;
   }
 
   private async getPending(requestId: string) {
