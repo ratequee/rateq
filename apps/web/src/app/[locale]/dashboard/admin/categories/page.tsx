@@ -1,6 +1,7 @@
 'use client';
 
 import { AdminCompanyCatalogPanel } from '@/components/dashboard/admin-company-catalog-panel';
+import { CategoryIconUpload } from '@/components/categories/category-icon-upload';
 import { DashboardShell } from '@/components/dashboard/dashboard-shell';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -185,6 +186,13 @@ export default function AdminCategoriesPage() {
     }
   };
 
+  const iconUploadLabels = {
+    upload: t('iconUpload'),
+    remove: t('iconRemove'),
+    hint: t('iconHint'),
+    uploadError: t('iconUploadError'),
+  };
+
   return (
     <DashboardShell role="admin">
       <div className="mx-auto max-w-3xl">
@@ -227,22 +235,15 @@ export default function AdminCategoriesPage() {
                   dir="rtl"
                 />
               </div>
-              <div className="flex flex-wrap gap-3">
-                <Input
-                  value={iconUrl}
-                  onChange={(e) => setIconUrl(e.target.value)}
-                  placeholder={t('iconUrlPlaceholder')}
-                  className="h-11 min-w-[240px] flex-1"
-                />
-                <Button type="submit" disabled={submitting} className="h-11 gap-2">
-                  {submitting ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  ) : (
-                    <Plus className="h-4 w-4" />
-                  )}
-                  {t('add')}
-                </Button>
-              </div>
+              <CategoryIconUpload value={iconUrl} onChange={setIconUrl} labels={iconUploadLabels} />
+              <Button type="submit" disabled={submitting} className="h-11 gap-2">
+                {submitting ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Plus className="h-4 w-4" />
+                )}
+                {t('add')}
+              </Button>
             </form>
 
             {loading ? (
@@ -270,11 +271,10 @@ export default function AdminCategoriesPage() {
                             dir="rtl"
                           />
                         </div>
-                        <Input
+                        <CategoryIconUpload
                           value={editIconUrl}
-                          onChange={(e) => setEditIconUrl(e.target.value)}
-                          placeholder={t('iconUrlPlaceholder')}
-                          className="h-10"
+                          onChange={setEditIconUrl}
+                          labels={iconUploadLabels}
                         />
                         <div className="flex gap-2">
                           <Button

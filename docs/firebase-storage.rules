@@ -14,6 +14,7 @@ rules_version = '2';
 //   users/{firebaseUid}/company/invitation-proof/{file}
 //   users/{firebaseUid}/reviews/proof/{file}
 //   users/{firebaseUid}/blog/cover/{file}
+//   users/{firebaseUid}/admin/categories/icon/{file}
 //
 // Requires Firebase Authentication (email/Google) — uploads use request.auth.uid.
 
@@ -103,6 +104,13 @@ service firebase.storage {
 
     // Admin blog cover images
     match /users/{userId}/blog/cover/{fileName} {
+      allow read: if true;
+      allow create, update: if isOwner(userId) && max10MB() && isImage();
+      allow delete: if isOwner(userId);
+    }
+
+    // Admin category icons
+    match /users/{userId}/admin/categories/icon/{fileName} {
       allow read: if true;
       allow create, update: if isOwner(userId) && max10MB() && isImage();
       allow delete: if isOwner(userId);
