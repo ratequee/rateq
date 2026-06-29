@@ -15,12 +15,29 @@ interface CategoryCardProps {
   className?: string;
 }
 
+function CategoryIconDisplay({
+  category,
+  className,
+  iconClassName,
+}: {
+  category: CategoryPublic;
+  className?: string;
+  iconClassName?: string;
+}) {
+  const Icon = getCategoryIcon(category.slug);
+
+  if (category.iconUrl) {
+    return <img src={category.iconUrl} alt="" className={cn('object-contain', className)} />;
+  }
+
+  return <Icon className={iconClassName} aria-hidden />;
+}
+
 export function CategoryCard({ category, variant = 'default', className }: CategoryCardProps) {
   const t = useTranslations('categories');
   const locale = useLocale();
   const label = getCategoryLabel(category, locale);
   const descriptionName = label;
-  const Icon = getCategoryIcon(category.slug);
   const href = `/categories/${category.slug}`;
   const count = category.companyCount ?? 0;
   const services = category.services ?? [];
@@ -35,7 +52,7 @@ export function CategoryCard({ category, variant = 'default', className }: Categ
         )}
       >
         <div className="flex h-16 w-16 items-center justify-center rounded-xl bg-gold-300 text-white">
-          <Icon className="h-9 w-9" aria-hidden />
+          <CategoryIconDisplay category={category} className="h-9 w-9" iconClassName="h-9 w-9" />
         </div>
         <CategoryBilingualName
           nameEn={category.nameEn}
@@ -62,7 +79,11 @@ export function CategoryCard({ category, variant = 'default', className }: Categ
       >
         <div className="flex items-start justify-between gap-4">
           <div className="flex h-[80px] w-[80px] shrink-0 items-center justify-center rounded-2xl bg-brand-500 text-white">
-            <Icon className="h-10 w-10" aria-hidden />
+            <CategoryIconDisplay
+              category={category}
+              className="h-10 w-10"
+              iconClassName="h-10 w-10"
+            />
           </div>
           <span className="rounded-full bg-gold-50 px-3 py-1 text-xs font-medium text-brand-600 dark:bg-gold-500/20 dark:text-gold-300">
             {t('popularBadge')}
@@ -99,7 +120,7 @@ export function CategoryCard({ category, variant = 'default', className }: Categ
       )}
     >
       <div className="absolute start-1/2 top-0 flex h-20 w-20 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-xl bg-gold-300 text-white transition-colors group-hover:bg-gold-400 rtl:translate-x-1/2">
-        <Icon className="h-11 w-11" aria-hidden />
+        <CategoryIconDisplay category={category} className="h-11 w-11" iconClassName="h-11 w-11" />
       </div>
 
       <CategoryBilingualName

@@ -34,7 +34,7 @@ export function TestimonialsCarousel({ reviews }: TestimonialsCarouselProps) {
   };
 
   return (
-    <section {...scrollRevealProps('fade-up')} className="py-12 dark:bg-dm-bg sm:py-16 lg:py-20">
+    <section {...scrollRevealProps('pop-up')} className="py-12 dark:bg-dm-bg sm:py-16 lg:py-20">
       <div className="mx-auto max-w-page px-4 sm:px-6 lg:px-8">
         <SectionHeader
           title={t('testimonialsTitle')}

@@ -1,4 +1,10 @@
-export type ScrollRevealAnimation = 'fade-up' | 'fade-in' | 'fade-left' | 'fade-right' | 'scale-up';
+export type ScrollRevealAnimation =
+  | 'fade-up'
+  | 'fade-in'
+  | 'fade-left'
+  | 'fade-right'
+  | 'scale-up'
+  | 'pop-up';
 
 export function scrollStaggerDelay(index: number, stepMs = 80): number {
   return index * stepMs;

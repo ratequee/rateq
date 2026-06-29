@@ -26,7 +26,7 @@ export function FeaturedCompaniesSection({ companies }: FeaturedCompaniesSection
 
   return (
     <section
-      {...scrollRevealProps('fade-up')}
+      {...scrollRevealProps('pop-up')}
       className="bg-slate-50/60 py-12 dark:bg-dm-bg sm:py-16 lg:py-20"
     >
       <div className="mx-auto max-w-page px-4 sm:px-6 lg:px-8">

@@ -207,6 +207,13 @@ export class UpdateCompanyDto {
   @IsString({ each: true })
   categoryIds?: string[];
 
+  @ApiPropertyOptional({ type: [String] })
+  @IsOptional()
+  @IsArray()
+  @ArrayMaxSize(30)
+  @IsString({ each: true })
+  subcategoryIds?: string[];
+
   @ApiPropertyOptional()
   @IsOptional()
   @IsString()

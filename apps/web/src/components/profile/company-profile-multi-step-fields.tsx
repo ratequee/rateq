@@ -10,6 +10,7 @@ import type { CategoryPublic, CompanyCatalogItemPublic } from '@rateq/types';
 import type { CompanyExistingAssets } from '@/lib/profile-company-assets';
 import { cn } from '@/lib/utils';
 import { CategoryMultiSelect } from '@/components/profile/category-multi-select';
+import { SubcategoryMultiSelect } from '@/components/profile/subcategory-multi-select';
 import { useTranslations } from 'next-intl';
 import type { Dispatch, SetStateAction } from 'react';
 
@@ -52,6 +53,8 @@ interface CompanyProfileMultiStepFieldsProps {
   setCompanyPhoneVerified: (value: boolean) => void;
   categoryIds: string[];
   setCategoryIds: (value: string[]) => void;
+  subcategoryIds: string[];
+  setSubcategoryIds: (value: string[]) => void;
   categories: CategoryPublic[];
   crNumber: string;
   setCrNumber: (value: string) => void;
@@ -140,6 +143,8 @@ export function CompanyProfileMultiStepFields({
   setCompanyPhoneVerified,
   categoryIds,
   setCategoryIds,
+  subcategoryIds,
+  setSubcategoryIds,
   categories,
   crNumber,
   setCrNumber,
@@ -295,6 +300,15 @@ export function CompanyProfileMultiStepFields({
             selectedIds={categoryIds}
             onChange={setCategoryIds}
             error={errors.categoryId}
+          />
+          <SubcategoryMultiSelect
+            label={t('subcategories')}
+            hint={t('subcategoriesHint')}
+            categories={categories}
+            selectedCategoryIds={categoryIds}
+            selectedSubcategoryIds={subcategoryIds}
+            onChange={setSubcategoryIds}
+            error={errors.subcategoryIds}
           />
         </>
       ) : null}

@@ -16,12 +16,15 @@ import { RequireAdminPermission } from '../../common/decorators/require-admin-pe
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { Roles } from '../../common/decorators/roles.decorator';
 import { AdminPermissionGuard } from '../auth/guards/admin-permission.guard';
+import { PaginationDto } from '../../common/dto/pagination.dto';
 import { MessageResponseDto } from '../auth/dto/auth-response.dto';
 import { ListReviewsQueryDto } from '../reviews/dto/list-reviews-query.dto';
 import { ReviewsService } from '../reviews/reviews.service';
 import { ListProjectsQueryDto } from './dto/list-projects-query.dto';
 import { ModerationRepository } from './repositories/moderation.repository';
 import { ModerationService } from './moderation.service';
+
+import { ReviewReportsService } from './review-reports.service';
 
 @ApiTags('moderation')
 @ApiBearerAuth()
@@ -34,6 +37,7 @@ export class ModerationController {
     private readonly moderationService: ModerationService,
     private readonly moderationRepository: ModerationRepository,
     private readonly reviewsService: ReviewsService,
+    private readonly reviewReportsService: ReviewReportsService,
   ) {}
 
   @Get('reviews')
@@ -148,5 +152,25 @@ export class ModerationController {
   async deleteProject(@Param('id') id: string, @CurrentUser() admin: AuthenticatedUser) {
     await this.moderationService.manualDeleteProject(id, admin.id);
     return { message: 'Project deleted' };
+  }
+
+  @Get('reports')
+  @ApiOperation({ summary: 'List pending review reports' })
+  listReports(@Query() query: PaginationDto) {
+    return this.reviewReportsService.listPending(query.page, query.limit);
+  }
+
+  @Patch('reports/:id/approve')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Approve a review report and delete the review' })
+  approveReport(@Param('id') id: string, @CurrentUser() admin: AuthenticatedUser) {
+    return this.reviewReportsService.approve(id, admin.id);
+  }
+
+  @Patch('reports/:id/reject')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Reject a review report' })
+  rejectReport(@Param('id') id: string, @CurrentUser() admin: AuthenticatedUser) {
+    return this.reviewReportsService.reject(id, admin.id);
   }
 }

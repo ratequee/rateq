@@ -5,6 +5,7 @@ export interface ReviewAuthor {
   id: string;
   displayName: string;
   avatarUrl: string | null;
+  createdAt?: string;
 }
 
 export interface ReviewServiceRatingPublic {

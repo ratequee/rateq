@@ -131,6 +131,13 @@ export class CreateCompanyDto {
   @IsString({ each: true })
   categoryIds?: string[];
 
+  @ApiPropertyOptional({ type: [String] })
+  @IsOptional()
+  @IsArray()
+  @ArrayMaxSize(30)
+  @IsString({ each: true })
+  subcategoryIds?: string[];
+
   @ApiProperty({ example: 'CR-123456' })
   @IsString()
   @MinLength(3)

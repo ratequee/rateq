@@ -86,10 +86,14 @@ export interface CompanyPublic {
   categoryId?: string | null;
   categoryIds: string[];
   categoryItems: CompanyCategoryLabel[];
+  subcategoryIds?: string[];
+  subcategoryItems?: CompanyCategoryLabel[];
   categoryName?: string | null;
   categoryNameAr?: string | null;
   latitude?: number | null;
   longitude?: number | null;
+  showVerifiedStamp?: boolean;
+  isFavorited?: boolean;
 }
 
 export interface CompanyDetail extends CompanyPublic {
@@ -122,6 +126,7 @@ export interface CreateCompanyInput {
   phone: string;
   categoryId?: string;
   categoryIds?: string[];
+  subcategoryIds?: string[];
   crNumber: string;
   validationDate: string;
   registrationDocUrl: string;
@@ -178,6 +183,7 @@ export interface UpdateCompanyInput {
   phone?: string;
   categoryId?: string;
   categoryIds?: string[];
+  subcategoryIds?: string[];
   crNumber?: string;
   validationDate?: string;
   registrationDocUrl?: string;

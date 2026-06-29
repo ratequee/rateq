@@ -82,7 +82,7 @@ export class CompaniesService {
     };
   }
 
-  async getPublicProfile(slug: string): Promise<CompanyPublic> {
+  async getPublicProfile(slug: string, viewerId?: string): Promise<CompanyPublic> {
     const company = await this.companiesRepository.findBySlug(slug);
 
     if (!company || company.verificationStatus !== 'APPROVED') {
@@ -97,7 +97,59 @@ export class CompaniesService {
       company.id,
     );
 
-    return this.mapCompanyPublic(company, { ratingDistribution });
+    const publicProfile = await this.mapCompanyPublic(company, { ratingDistribution });
+
+    if (!viewerId) {
+      return publicProfile;
+    }
+
+    const favorite = await this.prisma.companyFavorite.findUnique({
+      where: { userId_companyId: { userId: viewerId, companyId: company.id } },
+    });
+
+    return { ...publicProfile, isFavorited: Boolean(favorite) };
+  }
+
+  async addFavorite(userId: string, companyId: string): Promise<{ isFavorited: true }> {
+    const company = await this.companiesRepository.findById(companyId);
+    if (!company || company.verificationStatus !== 'APPROVED') {
+      throw new NotFoundException('Company not found');
+    }
+
+    await this.prisma.companyFavorite.upsert({
+      where: { userId_companyId: { userId, companyId } },
+      create: { userId, companyId },
+      update: {},
+    });
+
+    return { isFavorited: true };
+  }
+
+  async removeFavorite(userId: string, companyId: string): Promise<{ isFavorited: false }> {
+    await this.prisma.companyFavorite.deleteMany({ where: { userId, companyId } });
+    return { isFavorited: false };
+  }
+
+  async listFavorites(userId: string): Promise<CompanyPublic[]> {
+    const favorites = await this.prisma.companyFavorite.findMany({
+      where: { userId },
+      orderBy: { createdAt: 'desc' },
+      include: {
+        company: {
+          include: {
+            owner: { select: { email: true, isActive: true } },
+            category: { select: { id: true, nameEn: true, nameAr: true, slug: true } },
+            projects: { orderBy: { sortOrder: 'asc' } },
+          },
+        },
+      },
+    });
+
+    return Promise.all(
+      favorites
+        .filter((item) => item.company.verificationStatus === 'APPROVED')
+        .map((item) => this.mapCompanyPublic(item.company)),
+    );
   }
 
   private async getServiceRatingAggregates(
@@ -144,20 +196,22 @@ export class CompaniesService {
       parseCompanyIdList(company.categoryIds),
       company.categoryId ?? undefined,
     );
-    const [serviceItems, activityItems, categoryItems, serviceRatingAggregates] = await Promise.all(
-      [
+    const subcategoryIds = parseCompanyIdList(company.subcategoryIds);
+    const [serviceItems, activityItems, categoryItems, subcategoryItems, serviceRatingAggregates] =
+      await Promise.all([
         this.catalogService.resolveLabels(serviceIds, 'en'),
         this.catalogService.resolveLabels(activityIds, 'en'),
         this.categoriesService.resolveLabels(categoryIds, 'en'),
+        this.categoriesService.resolveSubcategoryLabels(subcategoryIds, 'en'),
         this.getServiceRatingAggregates(company.id, serviceIds),
-      ],
-    );
+      ]);
 
     return toCompanyPublic(company, {
       ...extras,
       serviceItems,
       activityItems,
       categoryItems,
+      subcategoryItems,
       serviceRatingAggregates,
     });
   }
@@ -172,13 +226,21 @@ export class CompaniesService {
       parseCompanyIdList(company.categoryIds),
       company.categoryId ?? undefined,
     );
-    const [serviceItems, activityItems, categoryItems] = await Promise.all([
+    const subcategoryIds = parseCompanyIdList(company.subcategoryIds);
+    const [serviceItems, activityItems, categoryItems, subcategoryItems] = await Promise.all([
       this.catalogService.resolveLabels(serviceIds, 'en'),
       this.catalogService.resolveLabels(activityIds, 'en'),
       this.categoriesService.resolveLabels(categoryIds, 'en'),
+      this.categoriesService.resolveSubcategoryLabels(subcategoryIds, 'en'),
     ]);
 
-    return toCompanyDetail(company, { ...extras, serviceItems, activityItems, categoryItems });
+    return toCompanyDetail(company, {
+      ...extras,
+      serviceItems,
+      activityItems,
+      categoryItems,
+      subcategoryItems,
+    });
   }
 
   async register(user: AuthenticatedUser, input: CreateCompanyInput): Promise<CompanyDetail> {
@@ -214,6 +276,8 @@ export class CompaniesService {
     for (const categoryId of categoryIds) {
       await this.categoriesService.assertExists(categoryId);
     }
+    const subcategoryIds = input.subcategoryIds?.filter(Boolean) ?? [];
+    await this.categoriesService.assertSubcategoriesForCategories(categoryIds, subcategoryIds);
     await this.phoneOtpService.assertPhoneVerified(user.id, input.phone, 'company');
 
     if (input.serviceIds?.length) {
@@ -251,6 +315,7 @@ export class CompaniesService {
       publicProjectCount: input.publicProjectCount ?? null,
       privateProjectCount: input.privateProjectCount ?? null,
       categoryIds,
+      subcategoryIds,
       category: { connect: { id: categoryIds[0] } },
       owner: { connect: { id: user.id } },
     });
@@ -589,6 +654,10 @@ export class CompaniesService {
         const labels = await this.categoriesService.resolveLabels(ids, 'en');
         return new Map(labels.map((entry) => [entry.id, { en: entry.label, ar: entry.labelAr }]));
       },
+      async (ids) => {
+        const labels = await this.categoriesService.resolveSubcategoryLabels(ids, 'en');
+        return new Map(labels.map((entry) => [entry.id, { en: entry.label, ar: entry.labelAr }]));
+      },
     );
 
     return {
@@ -735,6 +804,24 @@ export class CompaniesService {
       }
     }
 
+    const subcategoryIds =
+      input.subcategoryIds !== undefined ? input.subcategoryIds.filter(Boolean) : undefined;
+
+    if (subcategoryIds !== undefined || categoryIds !== undefined) {
+      const company = await this.companiesRepository.findById(companyId);
+      const effectiveCategoryIds =
+        categoryIds ??
+        normalizeCategoryIdsInput(
+          parseCompanyIdList(company?.categoryIds),
+          company?.categoryId ?? undefined,
+        );
+      const effectiveSubcategoryIds = subcategoryIds ?? parseCompanyIdList(company?.subcategoryIds);
+      await this.categoriesService.assertSubcategoriesForCategories(
+        effectiveCategoryIds,
+        effectiveSubcategoryIds,
+      );
+    }
+
     await this.companiesRepository.update(companyId, {
       ...(input.name !== undefined && { name: input.name.trim(), slug }),
       ...(input.nameAr !== undefined && { nameAr: input.nameAr?.trim() ?? null }),
@@ -796,6 +883,7 @@ export class CompaniesService {
         categoryIds,
         category: { connect: { id: categoryIds[0] } },
       }),
+      ...(subcategoryIds !== undefined && { subcategoryIds }),
       ...(input.crNumber !== undefined && { crNumber: input.crNumber.trim() }),
       ...(input.validationDate !== undefined && {
         validationDate: new Date(input.validationDate),

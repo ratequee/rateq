@@ -77,6 +77,18 @@ enum BlogPostStatus {
   PUBLISHED
 }
 
+enum ReviewReportStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum ReviewerInvitationRequestStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
 enum AdminPermission {
   STATS
   COMPANIES
@@ -91,6 +103,8 @@ enum AdminActivityEntityType {
   COMPANY_VERIFICATION
   COMPANY_PROFILE_CHANGE
   REVIEW
+  REVIEW_REPORT
+  REVIEWER_INVITATION_REQUEST
 }
 
 enum AdminActivityAction {
@@ -130,6 +144,10 @@ model User {
   companyPageViews   CompanyPageView[]
   sentInvitations    UserInvitation[]   @relation("InvitationSender")
   adminActivityLogs  AdminActivityLog[] @relation("AdminActivityActor")
+  companyFavorites   CompanyFavorite[]
+  reviewReports      ReviewReport[]     @relation("ReviewReporter")
+  resolvedReports    ReviewReport[]     @relation("ReviewReportResolver")
+  resolvedInvitationRequests ReviewerInvitationRequest[] @relation("InvitationRequestResolver")
 
   @@index([role])
   @@index([createdAt])
@@ -202,13 +220,32 @@ model Category {
   nameEn    String   @unique @map("name_en")
   nameAr    String   @map("name_ar")
   slug      String   @unique
+  iconUrl   String?  @map("icon_url")
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
-  companies Company[]
-  services  CategoryService[]
+  companies     Company[]
+  services      CategoryService[]
+  subcategories CategorySubcategory[]
 
   @@map("categories")
+}
+
+model CategorySubcategory {
+  id         String   @id @default(cuid())
+  categoryId String   @map("category_id")
+  nameEn     String   @map("name_en")
+  nameAr     String   @map("name_ar")
+  slug       String
+  sortOrder  Int      @default(0) @map("sort_order")
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  category Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  @@unique([categoryId, slug])
+  @@index([categoryId, sortOrder])
+  @@map("category_subcategories")
 }
 
 model CategoryService {
@@ -236,6 +273,8 @@ model Company {
   ownerId            String?                   @unique @map("owner_id")
   categoryId         String?                   @map("category_id")
   categoryIds        Json?                     @map("category_ids")
+  subcategoryIds     Json?                     @map("subcategory_ids")
+  showVerifiedStamp  Boolean                   @default(false) @map("show_verified_stamp")
   name               String
   nameAr             String?                   @map("name_ar")
   slug               String                    @unique
@@ -285,6 +324,8 @@ model Company {
   projects      CompanyProject[]
   pageViews     CompanyPageView[]
   invitations   UserInvitation[]
+  favorites     CompanyFavorite[]
+  invitationRequests ReviewerInvitationRequest[]
 
   @@index([country, city])
   @@index([categoryId])
@@ -371,6 +412,40 @@ model UserInvitation {
   @@map("user_invitations")
 }
 
+model CompanyFavorite {
+  userId    String   @map("user_id")
+  companyId String   @map("company_id")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  company Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  @@id([userId, companyId])
+  @@index([companyId])
+  @@map("company_favorites")
+}
+
+model ReviewerInvitationRequest {
+  id              String                          @id @default(cuid())
+  companyId       String                          @map("company_id")
+  reviewerName    String                          @map("reviewer_name")
+  email           String
+  serviceProvided String                          @map("service_provided") @db.Text
+  proofUrls       Json                            @default("[]") @map("proof_urls")
+  status          ReviewerInvitationRequestStatus @default(PENDING)
+  createdAt       DateTime                        @default(now()) @map("created_at")
+  updatedAt       DateTime                        @updatedAt @map("updated_at")
+  resolvedAt      DateTime?                       @map("resolved_at")
+  resolvedById    String?                         @map("resolved_by_id")
+
+  company    Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  resolvedBy User?   @relation("InvitationRequestResolver", fields: [resolvedById], references: [id], onDelete: SetNull)
+
+  @@index([companyId, status])
+  @@index([status, createdAt])
+  @@map("reviewer_invitation_requests")
+}
+
 // ---------------------------------------------------------------------------
 // Reviews
 // ---------------------------------------------------------------------------
@@ -398,6 +473,7 @@ model Review {
   moderationLogs ModerationLog[]
   attachments    ReviewAttachment[]
   serviceRatings ReviewServiceRating[]
+  reports        ReviewReport[]
 
   @@index([companyId, status, createdAt])
   @@index([userId, createdAt])
@@ -418,6 +494,25 @@ model ReviewAttachment {
 
   @@index([reviewId])
   @@map("review_attachments")
+}
+
+model ReviewReport {
+  id           String             @id @default(cuid())
+  reviewId     String             @map("review_id")
+  reporterId   String             @map("reporter_id")
+  reason       String?            @db.Text
+  status       ReviewReportStatus @default(PENDING)
+  createdAt    DateTime           @default(now()) @map("created_at")
+  resolvedAt   DateTime?          @map("resolved_at")
+  resolvedById String?            @map("resolved_by_id")
+
+  review     Review @relation(fields: [reviewId], references: [id], onDelete: Cascade)
+  reporter   User   @relation("ReviewReporter", fields: [reporterId], references: [id], onDelete: Cascade)
+  resolvedBy User?  @relation("ReviewReportResolver", fields: [resolvedById], references: [id], onDelete: SetNull)
+
+  @@index([reviewId])
+  @@index([status, createdAt])
+  @@map("review_reports")
 }
 
 model ReviewServiceRating {

@@ -433,6 +433,56 @@ export class EmailService {
     });
   }
 
+  async sendReviewReportApprovedEmail(content: {
+    email: string;
+    companyName: string;
+  }): Promise<void> {
+    await this.send({
+      to: content.email,
+      subject: bilingualSubject('Your review report was approved', 'تمت الموافقة على بلاغكم'),
+      text: `Thank you for reporting a review for ${content.companyName}. After review, the reported content has been removed.\n\nشكراً للإبلاغ عن مراجعة ${content.companyName}. بعد المراجعة، تمت إزالة المحتوى المبلّغ عنه.`,
+      html: `<p>Thank you for reporting a review for <strong>${content.companyName}</strong>. After review, the reported content has been removed.</p><p dir="rtl">شكراً للإبلاغ عن مراجعة <strong>${content.companyName}</strong>. بعد المراجعة، تمت إزالة المحتوى المبلّغ عنه.</p>`,
+    });
+  }
+
+  async sendReviewReportRejectedEmail(content: {
+    email: string;
+    companyName: string;
+  }): Promise<void> {
+    await this.send({
+      to: content.email,
+      subject: bilingualSubject('Your review report was reviewed', 'تمت مراجعة بلاغكم'),
+      text: `We reviewed your report for a review on ${content.companyName}. No action was taken.\n\nراجعنا بلاغكم عن مراجعة لـ ${content.companyName}. لم يتم اتخاذ أي إجراء.`,
+      html: `<p>We reviewed your report for a review on <strong>${content.companyName}</strong>. No action was taken.</p><p dir="rtl">راجعنا بلاغكم عن مراجعة لـ <strong>${content.companyName}</strong>. لم يتم اتخاذ أي إجراء.</p>`,
+    });
+  }
+
+  async sendReviewerInvitationRejectedEmail(content: {
+    email: string;
+    companyName: string;
+    reviewerName: string;
+  }): Promise<void> {
+    await this.send({
+      to: content.email,
+      subject: bilingualSubject('Reviewer invitation request rejected', 'تم رفض طلب دعوة مُراجع'),
+      text: `Your invitation request for ${content.reviewerName} was rejected by RateQ moderation.\n\nتم رفض طلب دعوتكم للمُراجع ${content.reviewerName} من قبل إدارة RateQ.`,
+      html: `<p>Your invitation request for <strong>${content.reviewerName}</strong> at <strong>${content.companyName}</strong> was rejected.</p><p dir="rtl">تم رفض طلب دعوتكم للمُراجع <strong>${content.reviewerName}</strong> في <strong>${content.companyName}</strong>.</p>`,
+    });
+  }
+
+  async sendReviewerInvitationDeletedEmail(content: {
+    email: string;
+    companyName: string;
+    reviewerName: string;
+  }): Promise<void> {
+    await this.send({
+      to: content.email,
+      subject: bilingualSubject('Reviewer invitation request removed', 'تم حذف طلب دعوة مُراجع'),
+      text: `Your invitation request for ${content.reviewerName} was removed by RateQ moderation.\n\nتم حذف طلب دعوتكم للمُراجع ${content.reviewerName} من قبل إدارة RateQ.`,
+      html: `<p>Your invitation request for <strong>${content.reviewerName}</strong> at <strong>${content.companyName}</strong> was removed.</p><p dir="rtl">تم حذف طلب دعوتكم للمُراجع <strong>${content.reviewerName}</strong> في <strong>${content.companyName}</strong>.</p>`,
+    });
+  }
+
   async sendContactFormEmail(content: ContactFormEmailContent, recipient: string): Promise<void> {
     await this.send({
       to: recipient,

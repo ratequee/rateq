@@ -396,6 +396,13 @@
     "linkCopied": "Link copied to clipboard.",
     "copyFailed": "Could not copy link.",
     "closeShare": "Close",
+    "saveFavorite": "Save company",
+    "saved": "Saved",
+    "addFavorite": "Add to favorites",
+    "removeFavorite": "Remove from favorites",
+    "favoriteAdded": "Company saved to your favorites.",
+    "favoriteRemoved": "Company removed from favorites.",
+    "favoriteError": "Could not update favorites.",
     "tabs": {
       "reviews": "Reviews",
       "projects": "Projects",
@@ -616,6 +623,8 @@
     "category": "Business category",
     "selectCategory": "Select a category",
     "categoriesMultiHint": "Select one or more business categories.",
+    "subcategories": "Subcategories",
+    "subcategoriesHint": "Choose at least one subcategory for each selected category when available.",
     "socialLinksTitle": "Social links",
     "socialLinksHint": "Optional. Shown on your public company page.",
     "socialLinksCardSubtitle": "Updates save immediately — no admin approval needed.",
@@ -787,7 +796,8 @@
       "phoneNotVerified": "Verify your phone number via SMS before continuing.",
       "uploadPermissionDenied": "File upload was denied. In Firebase Console → Storage → Rules, publish the rules from docs/firebase-storage.rules in this repo.",
       "locationRequired": "Search your address or pin a location on the map to set city and country.",
-      "profileLoading": "Profile data is still loading. Please wait a moment and try again."
+      "profileLoading": "Profile data is still loading. Please wait a moment and try again.",
+      "subcategoryRequired": "Select at least one subcategory for each category that offers them."
     }
   },
   "dashboardShell": {
@@ -830,7 +840,8 @@
       "team": "Admin team",
       "viewSite": "View public site",
       "visitCompanies": "Visit companies",
-      "companyCatalog": "Company catalog"
+      "companyCatalog": "Company catalog",
+      "reviewerInvitations": "Reviewer invitations"
     },
     "stats": {
       "sales": "Total sales",
@@ -891,6 +902,7 @@
     "replyPendingInList": "Reply under review",
     "resolutionDeadline": "Resolution deadline",
     "unknownReviewer": "Reviewer",
+    "newAccountReview": "New account (< 7 days)",
     "unknownCompany": "Company",
     "accept": "Accept",
     "reject": "Reject",
@@ -992,7 +1004,15 @@
       "contentMax": "Review must be 2000 characters or fewer.",
       "contentInvalid": "Review contains invalid characters.",
       "proofRequired": "A proof file is required."
-    }
+    },
+    "reportReview": "Report review",
+    "reportReviewTitle": "Report this review",
+    "reportReviewPlaceholder": "Optional reason for your report…",
+    "reportSubmit": "Submit report",
+    "reportSubmitting": "Submitting…",
+    "reportCancel": "Cancel",
+    "reportSubmitted": "Report submitted. Our team will review it.",
+    "reportError": "Could not submit report."
   },
   "dashboard": {
     "companyTitle": "Company dashboard",
@@ -1036,7 +1056,9 @@
       "reviewers": "Reviewers",
       "companies": "Companies",
       "reviews": "Reviews",
-      "projects": "Projects"
+      "projects": "Projects",
+      "reports": "Review reports",
+      "invitations": "Invitation requests"
     },
     "search": "Search",
     "searchReviewers": "Search reviewers by email",
@@ -1064,7 +1086,13 @@
     "activateSuccess": "Account activated.",
     "deleteSuccess": "Deleted successfully.",
     "deleteReviewerConfirm": "Delete this reviewer account permanently? Their reviews will also be removed.",
-    "deleteCompanyConfirm": "Delete this company permanently? All reviews and data will be removed."
+    "deleteCompanyConfirm": "Delete this company permanently? All reviews and data will be removed.",
+    "deleteOwner": "Delete owner account",
+    "deleteOwnerConfirm": "Delete this company owner permanently?",
+    "enableStamp": "Show verified stamp",
+    "removeStamp": "Remove verified stamp",
+    "stampEnabled": "Verified stamp enabled on company profile.",
+    "stampRemoved": "Verified stamp removed from company profile."
   },
   "adminProjects": {
     "title": "Projects",
@@ -1272,7 +1300,19 @@
     "serviceDeleteError": "Could not remove service.",
     "serviceNameTooShort": "Service name must be at least 2 characters.",
     "expandCategory": "Manage services",
-    "collapseCategory": "Hide services"
+    "collapseCategory": "Hide services",
+    "iconUrlPlaceholder": "Icon image URL (optional)",
+    "subcategoriesTitle": "Subcategories",
+    "manageSubcategories": "Subcategories",
+    "collapseSubcategories": "Hide subcategories",
+    "noSubcategories": "No subcategories yet.",
+    "subNameEnPlaceholder": "Subcategory (English)",
+    "subNameArPlaceholder": "Subcategory (Arabic)",
+    "addSubcategory": "Add subcategory",
+    "subcategoryCreated": "Subcategory added.",
+    "subcategoryDeleted": "Subcategory removed.",
+    "subcategoryCreateError": "Could not add subcategory.",
+    "subcategoryDeleteError": "Could not remove subcategory."
   },
   "adminTeam": {
     "title": "Admin team",
@@ -1415,6 +1455,70 @@
     "inviteReviewerTitle": "Invite reviewers",
     "inviteReviewerSubtitle": "Invite people to join RateQ and review your company.",
     "recentInvites": "Recent invitations"
+  },
+  "reviewerInvitations": {
+    "pageTitle": "Reviewer invitations",
+    "pageSubtitle": "Request reviewer invitations for admin approval before emails are sent.",
+    "title": "Invite a reviewer",
+    "subtitle": "Submit reviewer details and proof of service. An admin will review each request.",
+    "reviewerNamePlaceholder": "Reviewer full name",
+    "emailPlaceholder": "Reviewer email",
+    "servicePlaceholder": "Describe the service this reviewer received from your company",
+    "addProof": "Add proof files",
+    "proofHint": "Upload up to 8 images or PDF files (10 MB each).",
+    "removeProof": "Remove file",
+    "proofRequired": "Add at least one proof file.",
+    "fieldsRequired": "Fill in all required fields.",
+    "submit": "Submit request",
+    "submitted": "Invitation request submitted for admin review.",
+    "submitError": "Could not submit invitation request.",
+    "recentRequests": "Your requests",
+    "empty": "No invitation requests yet.",
+    "status": {
+      "pending": "Pending review",
+      "approved": "Approved",
+      "rejected": "Rejected"
+    }
+  },
+  "adminReviewReports": {
+    "empty": "No review reports yet.",
+    "loadError": "Could not load review reports.",
+    "actionError": "Could not update report.",
+    "approved": "Report approved and review removed.",
+    "rejected": "Report rejected.",
+    "approve": "Approve & remove review",
+    "reject": "Reject report",
+    "reason": "Reason",
+    "reportedBy": "Reported by {email}",
+    "unknownCompany": "Unknown company",
+    "unknownReporter": "Unknown reporter",
+    "previous": "Previous",
+    "next": "Next",
+    "pageOf": "Page {page} of {total}",
+    "status": {
+      "pending": "Pending",
+      "approved": "Approved",
+      "rejected": "Rejected"
+    }
+  },
+  "adminReviewerInvitations": {
+    "empty": "No reviewer invitation requests.",
+    "loadError": "Could not load invitation requests.",
+    "actionError": "Could not complete that action.",
+    "approved": "Invitation approved and email sent.",
+    "rejected": "Invitation rejected and company notified.",
+    "deleted": "Request deleted.",
+    "approve": "Approve",
+    "reject": "Reject",
+    "delete": "Delete",
+    "deleteConfirm": "Delete this invitation request permanently?",
+    "companyLabel": "Company",
+    "proofFile": "Proof {index}",
+    "status": {
+      "pending": "Pending",
+      "approved": "Approved",
+      "rejected": "Rejected"
+    }
   },
   "adminCatalog": {
     "pageTitle": "Company services & activities",

@@ -50,7 +50,7 @@ export async function HeroSection({
 
   return (
     <section
-      {...scrollRevealProps('fade-in')}
+      {...scrollRevealProps('pop-up')}
       className="relative overflow-hidden bg-gradient-to-b from-white via-white to-slate-50/80 pb-12 pt-6 dark:from-dm-bg dark:via-dm-bg dark:to-dm-bg sm:pb-30 sm:pt-8 lg:pb-50"
       style={{
         backgroundImage: 'url(/images/herobg.svg)',
@@ -111,7 +111,7 @@ export async function HeroSection({
             </form>
 
             <div className="mt-6 flex justify-between md:justify-start items-center md:items-start flex-wrap gap-3">
-              <Link href="/search">
+              <Link href="/categories">
                 <Button size="lg" className="min-w-[160px] border-0 shadow-lg sm:min-w-[50%]">
                   {t('exploreCompanies')}
                 </Button>

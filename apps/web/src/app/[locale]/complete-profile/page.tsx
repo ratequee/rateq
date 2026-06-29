@@ -27,6 +27,7 @@ import {
 import { canEditCompanyProfile, getStoredProfile, type AccountType } from '@/lib/profile-storage';
 import { sanitizeDisplayName } from '@/lib/validation/auth-fields';
 import {
+  filterSubcategoryIdsForCategories,
   hasValidationErrors,
   MAX_PROFILE_FILE_BYTES,
   sanitizeCompanyName,
@@ -92,6 +93,7 @@ export default function CompleteProfilePage() {
   const [catalogActivities, setCatalogActivities] = useState<CompanyCatalogItemPublic[]>([]);
   const [companyPhone, setCompanyPhone] = useState('');
   const [categoryIds, setCategoryIds] = useState<string[]>([]);
+  const [subcategoryIds, setSubcategoryIds] = useState<string[]>([]);
   const [categories, setCategories] = useState<CategoryPublic[]>([]);
   const [companyAddress, setCompanyAddress] = useState('');
   const [companyLocation, setCompanyLocation] = useState<CompanyMapLocation | null>(null);
@@ -182,6 +184,7 @@ export default function CompleteProfilePage() {
             ? [onboarding.company.categoryId]
             : [],
       );
+      setSubcategoryIds(onboarding.company.subcategoryIds ?? []);
       setCompanyAddress(onboarding.company.address ?? '');
       if (onboarding.company.latitude != null && onboarding.company.longitude != null) {
         setCompanyLocation({
@@ -316,6 +319,8 @@ export default function CompleteProfilePage() {
         companyLocation,
         companyPhone,
         categoryIds,
+        subcategoryIds,
+        categories,
         crNumber,
         validationDate,
         city: companyCity,
@@ -345,6 +350,7 @@ export default function CompleteProfilePage() {
         phone: { required: t('errors.required'), invalid: t('errors.invalidPhone') },
         phoneVerification: { required: t('errors.phoneNotVerified') },
         locationRequired: t('errors.locationRequired'),
+        subcategoryRequired: t('errors.subcategoryRequired'),
       },
     );
 
@@ -363,6 +369,7 @@ export default function CompleteProfilePage() {
     'companyPhone',
     'phoneVerification',
     'categoryId',
+    'subcategoryIds',
   ]);
 
   const validateCompanyStep1 = () => {
@@ -373,6 +380,8 @@ export default function CompleteProfilePage() {
         companyLocation,
         companyPhone,
         categoryIds,
+        subcategoryIds,
+        categories,
         crNumber,
         validationDate,
         city: companyCity,
@@ -402,6 +411,7 @@ export default function CompleteProfilePage() {
         phone: { required: t('errors.required'), invalid: t('errors.invalidPhone') },
         phoneVerification: { required: t('errors.phoneNotVerified') },
         locationRequired: t('errors.locationRequired'),
+        subcategoryRequired: t('errors.subcategoryRequired'),
       },
     );
 
@@ -532,6 +542,7 @@ export default function CompleteProfilePage() {
         longitude: companyLocation.longitude,
         phone: formatQatarPhoneForSubmit(companyPhone),
         categoryIds,
+        subcategoryIds,
         crNumber: crNumber.trim(),
         validationDate,
         registrationDocUrl,
@@ -746,7 +757,14 @@ export default function CompleteProfilePage() {
                   companyPhoneVerified={companyPhoneVerified}
                   setCompanyPhoneVerified={setCompanyPhoneVerified}
                   categoryIds={categoryIds}
-                  setCategoryIds={setCategoryIds}
+                  setCategoryIds={(ids) => {
+                    setCategoryIds(ids);
+                    setSubcategoryIds((current) =>
+                      filterSubcategoryIdsForCategories(categories, ids, current),
+                    );
+                  }}
+                  subcategoryIds={subcategoryIds}
+                  setSubcategoryIds={setSubcategoryIds}
                   categories={categories}
                   crNumber={crNumber}
                   setCrNumber={setCrNumber}

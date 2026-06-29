@@ -101,8 +101,10 @@ export function toCompanyPublic(
     serviceItems?: CompanyCatalogLabel[];
     activityItems?: CompanyCatalogLabel[];
     categoryItems?: CompanyCategoryLabel[];
+    subcategoryItems?: CompanyCategoryLabel[];
     serviceRatingAggregates?: CompanyServiceRatingAggregate[];
     includeUnpublishedProjects?: boolean;
+    isFavorited?: boolean;
   },
 ): CompanyPublic {
   const categoryIds = resolveCategoryIds(company);
@@ -141,10 +143,14 @@ export function toCompanyPublic(
     categoryId: categoryIds[0] ?? company.categoryId ?? undefined,
     categoryIds,
     categoryItems: extras?.categoryItems ?? [],
+    subcategoryIds: parseIds(company.subcategoryIds),
+    subcategoryItems: extras?.subcategoryItems ?? [],
     categoryName: company.category?.nameEn ?? undefined,
     categoryNameAr: company.category?.nameAr ?? undefined,
     latitude: company.latitude ?? null,
     longitude: company.longitude ?? null,
+    showVerifiedStamp: company.showVerifiedStamp ?? false,
+    ...(extras?.isFavorited !== undefined && { isFavorited: extras.isFavorited }),
   };
 }
 
@@ -155,10 +161,13 @@ export function toCompanyDetail(
     serviceItems?: CompanyCatalogLabel[];
     activityItems?: CompanyCatalogLabel[];
     categoryItems?: CompanyCategoryLabel[];
+    subcategoryItems?: CompanyCategoryLabel[];
+    isFavorited?: boolean;
   },
 ): CompanyDetail {
   return {
     ...toCompanyPublic(company, { ...extras, includeUnpublishedProjects: true }),
+    ...(extras?.isFavorited !== undefined && { isFavorited: extras.isFavorited }),
     updatedAt: company.updatedAt.toISOString(),
     profileChangeStatus: company.profileChangeStatus === 'PENDING' ? 'pending' : 'none',
   };

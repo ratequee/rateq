@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { AvatarImage } from '@/components/ui/avatar-image';
 import { StarRating } from '@/components/ui/star-rating';
 import { ReviewReplyForm } from '@/components/review/review-reply-form';
+import { ReportReviewButton } from '@/components/review/report-review-button';
 import { ReviewReplyStatusBadge } from '@/components/review/review-reply-status-badge';
 import { getReviewAuthorInitial, getReviewAuthorName } from '@/lib/review-author';
 import { cn } from '@/lib/utils';
@@ -91,6 +92,9 @@ export function CompanyReviewCard({ review, company, onReviewUpdated }: CompanyR
         ) : null}
 
         <p className="mt-3 text-sm leading-relaxed text-ink">{review.content}</p>
+        <div className="mt-2">
+          <ReportReviewButton reviewId={review.id} />
+        </div>
         <hr className="my-4 border-t border-slate-400" />
         <div className="flex items-center gap-2">
           <AvatarImage

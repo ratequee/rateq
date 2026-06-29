@@ -44,6 +44,12 @@ const statusStyles: Record<ReviewStatus, string> = {
   REJECTED: 'bg-red-50 text-red-700 dark:bg-red-950/50 dark:text-red-400',
 };
 
+function isNewReviewerAccount(createdAt: string | undefined): boolean {
+  if (!createdAt) return false;
+  const ageMs = Date.now() - new Date(createdAt).getTime();
+  return ageMs >= 0 && ageMs < 7 * 24 * 60 * 60 * 1000;
+}
+
 function buildParams(input: {
   page: number;
   limit: number;
@@ -351,6 +357,11 @@ export function ReviewsManagementPanel({ mode, companyId }: ReviewsManagementPan
                         year: 'numeric',
                       })}
                     </span>
+                    {mode === 'admin' && isNewReviewerAccount(review.author?.createdAt) ? (
+                      <span className="inline-flex rounded-full bg-violet-50 px-2 py-0.5 text-xs font-medium text-violet-700 dark:bg-violet-950/50 dark:text-violet-300">
+                        {t('newAccountReview')}
+                      </span>
+                    ) : null}
                     {review.reply?.status === ReviewReplyStatus.PENDING ? (
                       <span className="inline-flex rounded-full bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-700 dark:bg-amber-950/50 dark:text-amber-300">
                         {t('replyPendingInList')}

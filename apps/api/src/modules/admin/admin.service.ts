@@ -130,6 +130,7 @@ export class AdminService {
         ownerEmail: company.owner?.email ?? company.email ?? null,
         ownerId: company.ownerId ?? null,
         ownerIsActive: company.owner?.isActive ?? null,
+        showVerifiedStamp: company.showVerifiedStamp ?? false,
         pageVisitCount: company._count.pageViews,
       })),
       meta: buildPaginationMeta(input.page, input.limit, total),
@@ -173,9 +174,24 @@ export class AdminService {
       ownerEmail: company.owner?.email ?? company.email ?? null,
       ownerId: company.ownerId ?? null,
       ownerIsActive: company.owner?.isActive ?? null,
+      showVerifiedStamp: company.showVerifiedStamp ?? false,
       pageVisitCount,
       reviews: reviews.map((review) => toReviewPublic(review, { includeUnpublishedReply: true })),
     };
+  }
+
+  async setCompanyVerifiedStamp(
+    companyId: string,
+    showVerifiedStamp: boolean,
+  ): Promise<AdminCompanyDetail> {
+    const company = await this.companiesRepository.findById(companyId);
+
+    if (!company) {
+      throw new NotFoundException('Company not found');
+    }
+
+    await this.companiesRepository.update(companyId, { showVerifiedStamp });
+    return this.getCompanyDetail(companyId);
   }
 
   private async getDailyActivityLast7Days() {

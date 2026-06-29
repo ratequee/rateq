@@ -189,6 +189,12 @@ export const companiesApi = {
       method: 'POST',
       body: JSON.stringify({ visitorId }),
     }),
+  getBySlugClient: (slug: string) => apiClient<CompanyPublic>(`/companies/${slug}`),
+  addFavorite: (companyId: string) =>
+    apiClient<{ isFavorited: true }>(`/companies/${companyId}/favorite`, { method: 'POST' }),
+  removeFavorite: (companyId: string) =>
+    apiClient<{ isFavorited: false }>(`/companies/${companyId}/favorite`, { method: 'DELETE' }),
+  listFavorites: () => apiClient<CompanyPublic[]>('/companies/me/favorites'),
 };
 
 export const contactApi = {
@@ -302,6 +308,30 @@ export const reviewsApi = {
     apiClient<ReviewPublic>(`/reviews/${reviewId}/reply`, {
       method: 'POST',
       body: JSON.stringify({ content }),
+      token,
+    }),
+  reportReview: async (reviewId: string, reason?: string) => {
+    const token = await ensureValidAccessToken();
+    if (!token) throw new ApiError('Session expired', 401);
+    return apiClient<import('@rateq/types').ReviewReportPublic>(`/reviews/${reviewId}/report`, {
+      method: 'POST',
+      body: JSON.stringify({ reason }),
+      token,
+    });
+  },
+  listReviewReports: (token: string, page = 1, limit = 20) =>
+    apiClient<import('@rateq/types').PaginatedReviewReportsResponse>(
+      `/moderation/reports?page=${page}&limit=${limit}`,
+      { token },
+    ),
+  approveReviewReport: (token: string, id: string) =>
+    apiClient<import('@rateq/types').ReviewReportPublic>(`/moderation/reports/${id}/approve`, {
+      method: 'PATCH',
+      token,
+    }),
+  rejectReviewReport: (token: string, id: string) =>
+    apiClient<import('@rateq/types').ReviewReportPublic>(`/moderation/reports/${id}/reject`, {
+      method: 'PATCH',
       token,
     }),
 };

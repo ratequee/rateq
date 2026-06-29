@@ -1,5 +1,5 @@
 import { BullModule } from '@nestjs/bullmq';
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { REVIEW_MODERATION_QUEUE } from '../../infrastructure/queue/queue.constants';
 import { AdminActivityModule } from '../admin-activity/admin-activity.module';
 import { CompaniesModule } from '../companies/companies.module';
@@ -11,10 +11,12 @@ import { ModerationRepository } from './repositories/moderation.repository';
 import { ModerationEngineService } from './services/moderation-engine.service';
 import { ReviewModerationProcessor } from './processors/review-moderation.processor';
 
+import { ReviewReportsService } from './review-reports.service';
+
 @Module({
   imports: [
-    ReviewsModule,
-    CompaniesModule,
+    forwardRef(() => ReviewsModule),
+    forwardRef(() => CompaniesModule),
     EmailModule,
     AdminActivityModule,
     BullModule.registerQueue({ name: REVIEW_MODERATION_QUEUE }),
@@ -25,7 +27,8 @@ import { ReviewModerationProcessor } from './processors/review-moderation.proces
     ModerationRepository,
     ModerationEngineService,
     ReviewModerationProcessor,
+    ReviewReportsService,
   ],
-  exports: [ModerationService],
+  exports: [ModerationService, ReviewReportsService],
 })
 export class ModerationModule {}

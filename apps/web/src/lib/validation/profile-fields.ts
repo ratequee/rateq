@@ -2,6 +2,7 @@ import type { CompanyMapLocation } from '@/lib/company-location';
 import { isValidMapLocation } from '@/lib/company-location';
 import { isValidQatarPhone } from '@/lib/qatar-phone';
 import { validateDisplayName } from '@/lib/validation/auth-fields';
+import type { CategoryPublic } from '@rateq/types';
 
 const COMPANY_NAME_PATTERN = /^[\p{L}\p{N}][\p{L}\p{N}\s&.\-'()]*[\p{L}\p{N})]?$/u;
 const CR_NUMBER_PATTERN = /^[\p{L}\p{N}][\p{L}\p{N}\-/]*[\p{L}\p{N}]?$/u;
@@ -41,6 +42,7 @@ export type CompanyProfileErrors = {
   companyPhoneVerification?: string;
   categoryId?: string;
   categoryIds?: string;
+  subcategoryIds?: string;
   crNumber?: string;
   validationDate?: string;
   city?: string;
@@ -51,6 +53,35 @@ export type CompanyProfileErrors = {
   logoFile?: string;
   coverFile?: string;
 };
+
+export function filterSubcategoryIdsForCategories(
+  categories: CategoryPublic[],
+  categoryIds: string[],
+  subcategoryIds: string[],
+): string[] {
+  const validIds = new Set(
+    categories
+      .filter((category) => categoryIds.includes(category.id))
+      .flatMap((category) => (category.subcategories ?? []).map((item) => item.id)),
+  );
+  return subcategoryIds.filter((id) => validIds.has(id));
+}
+
+export function validateSubcategorySelection(
+  categories: CategoryPublic[],
+  categoryIds: string[],
+  subcategoryIds: string[],
+  message: string,
+): string | undefined {
+  for (const categoryId of categoryIds) {
+    const category = categories.find((item) => item.id === categoryId);
+    const subcategories = category?.subcategories ?? [];
+    if (subcategories.length === 0) continue;
+    const hasSelection = subcategories.some((item) => subcategoryIds.includes(item.id));
+    if (!hasSelection) return message;
+  }
+  return undefined;
+}
 
 export function validateReviewerProfileFields(
   fields: {
@@ -148,6 +179,8 @@ export function validateCompanyProfileFields(
     companyLocation: CompanyMapLocation | null;
     companyPhone: string;
     categoryIds: string[];
+    subcategoryIds?: string[];
+    categories?: CategoryPublic[];
     crNumber: string;
     validationDate: string;
     city: string;
@@ -172,6 +205,7 @@ export function validateCompanyProfileFields(
     phone: { required: string; invalid: string };
     phoneVerification: { required: string };
     locationRequired: string;
+    subcategoryRequired?: string;
   },
 ): CompanyProfileErrors {
   const errors: CompanyProfileErrors = {};
@@ -199,6 +233,16 @@ export function validateCompanyProfileFields(
   }
 
   if (fields.categoryIds.length === 0) errors.categoryId = messages.required;
+
+  if (fields.categories?.length && messages.subcategoryRequired) {
+    const subcategoryError = validateSubcategorySelection(
+      fields.categories,
+      fields.categoryIds,
+      fields.subcategoryIds ?? [],
+      messages.subcategoryRequired,
+    );
+    if (subcategoryError) errors.subcategoryIds = subcategoryError;
+  }
 
   if (!fields.crNumber.trim()) {
     errors.crNumber = messages.required;
@@ -257,6 +301,8 @@ export function validateCompanySettingsFields(
     companyAddress: string;
     companyLocation: CompanyMapLocation | null;
     categoryIds: string[];
+    subcategoryIds?: string[];
+    categories?: CategoryPublic[];
     city: string;
     country: string;
   },
@@ -264,11 +310,15 @@ export function validateCompanySettingsFields(
     required: string;
     companyName: { min: string; max: string };
     locationRequired: string;
+    subcategoryRequired?: string;
   },
-): Pick<CompanyProfileErrors, 'companyName' | 'companyAddress' | 'companyLocation' | 'categoryId'> {
+): Pick<
+  CompanyProfileErrors,
+  'companyName' | 'companyAddress' | 'companyLocation' | 'categoryId' | 'subcategoryIds'
+> {
   const errors: Pick<
     CompanyProfileErrors,
-    'companyName' | 'companyAddress' | 'companyLocation' | 'categoryId'
+    'companyName' | 'companyAddress' | 'companyLocation' | 'categoryId' | 'subcategoryIds'
   > = {};
 
   const name = fields.companyName.trim();
@@ -282,6 +332,16 @@ export function validateCompanySettingsFields(
 
   if (!fields.companyAddress.trim()) errors.companyAddress = messages.required;
   if (fields.categoryIds.length === 0) errors.categoryId = messages.required;
+
+  if (fields.categories?.length && messages.subcategoryRequired) {
+    const subcategoryError = validateSubcategorySelection(
+      fields.categories,
+      fields.categoryIds,
+      fields.subcategoryIds ?? [],
+      messages.subcategoryRequired,
+    );
+    if (subcategoryError) errors.subcategoryIds = subcategoryError;
+  }
 
   if (
     !isValidMapLocation(fields.companyLocation) ||

@@ -1,6 +1,7 @@
 'use client';
 
 import { CategoryMultiSelect } from '@/components/profile/category-multi-select';
+import { SubcategoryMultiSelect } from '@/components/profile/subcategory-multi-select';
 import { CompanyAddressMapField } from '@/components/profile/company-address-map-field';
 import {
   ProfileChangesPendingBanner,
@@ -16,6 +17,7 @@ import { fetchCategoriesClient } from '@/lib/categories-api';
 import { ApiError } from '@/lib/api';
 import { ensureValidAccessToken } from '@/lib/auth-session';
 import {
+  filterSubcategoryIdsForCategories,
   hasValidationErrors,
   validateCompanySettingsFields,
 } from '@/lib/validation/profile-fields';
@@ -48,6 +50,9 @@ function CompanySettingsForm({ company }: { company: CompanyProfileDetail }) {
         ? [company.categoryId]
         : [],
   );
+  const [subcategoryIds, setSubcategoryIds] = useState<string[]>(
+    () => company.subcategoryIds ?? [],
+  );
   const [companyAddress, setCompanyAddress] = useState(() => company.address ?? '');
   const [companyLocation, setCompanyLocation] = useState<CompanyMapLocation | null>(() =>
     buildCompanyLocation(company),
@@ -70,6 +75,8 @@ function CompanySettingsForm({ company }: { company: CompanyProfileDetail }) {
         companyAddress,
         companyLocation,
         categoryIds,
+        subcategoryIds,
+        categories,
         city: companyCity,
         country: companyCountry,
       },
@@ -77,6 +84,7 @@ function CompanySettingsForm({ company }: { company: CompanyProfileDetail }) {
         required: t('errors.required'),
         companyName: { min: t('errors.companyNameMin'), max: t('errors.companyNameMax') },
         locationRequired: t('errors.locationRequired'),
+        subcategoryRequired: t('errors.subcategoryRequired'),
       },
     );
 
@@ -97,6 +105,7 @@ function CompanySettingsForm({ company }: { company: CompanyProfileDetail }) {
         latitude: companyLocation?.latitude,
         longitude: companyLocation?.longitude,
         categoryIds,
+        subcategoryIds,
         country: companyCountry.trim(),
         city: companyCity.trim(),
       });
@@ -161,8 +170,22 @@ function CompanySettingsForm({ company }: { company: CompanyProfileDetail }) {
         hint={t('categoriesMultiHint')}
         categories={categories}
         selectedIds={categoryIds}
-        onChange={setCategoryIds}
+        onChange={(ids) => {
+          setCategoryIds(ids);
+          setSubcategoryIds((current) =>
+            filterSubcategoryIdsForCategories(categories, ids, current),
+          );
+        }}
         error={errors.categoryId}
+      />
+      <SubcategoryMultiSelect
+        label={t('subcategories')}
+        hint={t('subcategoriesHint')}
+        categories={categories}
+        selectedCategoryIds={categoryIds}
+        selectedSubcategoryIds={subcategoryIds}
+        onChange={setSubcategoryIds}
+        error={errors.subcategoryIds}
       />
       <Button type="submit" disabled={submitting} className="w-full">
         {submitting ? t('saving') : t('saveChanges')}

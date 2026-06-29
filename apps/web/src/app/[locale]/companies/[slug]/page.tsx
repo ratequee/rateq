@@ -12,6 +12,7 @@ import type { Metadata } from 'next';
 import type { JSX } from 'react';
 import { CompanyWriteReviewButton } from '@/components/company/company-write-review-button';
 import { CompanyShareButton } from '@/components/company/company-share-button';
+import { CompanyFavoriteButton } from '@/components/company/company-favorite-button';
 import { Badge } from '@/components/ui/badge';
 import { Mail, MapPin, Phone, Star, Building2, FolderOpen, Lock } from 'lucide-react';
 import { getTranslations } from 'next-intl/server';
@@ -128,13 +129,15 @@ export default async function CompanyPage({ params }: CompanyPageProps): Promise
                       <h1 className="text-xl font-bold text-primary sm:text-3xl lg:text-2xl">
                         {company.name}
                       </h1>
-                      <Image
-                        src="/images/approved-stamp.png"
-                        alt={t('verifiedBadge')}
-                        width={64}
-                        height={64}
-                        className="h-12 w-12 shrink-0 object-contain sm:h-14 sm:w-14"
-                      />
+                      {company.showVerifiedStamp ? (
+                        <Image
+                          src="/images/approved-stamp.png"
+                          alt={t('verifiedBadge')}
+                          width={64}
+                          height={64}
+                          className="h-12 w-12 shrink-0 object-contain sm:h-14 sm:w-14"
+                        />
+                      ) : null}
                     </div>
                     <p className="mt-2 flex items-center gap-1.5 text-sm text-secondary sm:text-base">
                       <MapPin className="h-4 w-4 shrink-0" aria-hidden />
@@ -221,6 +224,7 @@ export default async function CompanyPage({ params }: CompanyPageProps): Promise
                   )}
                 </div>
                 <div className="flex flex-wrap items-center gap-3">
+                  <CompanyFavoriteButton companyId={company.id} slug={slug} />
                   <CompanyShareButton slug={slug} companyName={company.name} />
                   <CompanyWriteReviewButton label={t('writeReview')} />
                 </div>

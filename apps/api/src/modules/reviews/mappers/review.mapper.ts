@@ -19,7 +19,7 @@ import type {
 import { ReviewReplyStatus as ReviewReplyStatusEnum, ReviewStatus } from '@rateq/types';
 
 type ReviewWithRelations = Review & {
-  user?: Pick<User, 'id' | 'email' | 'displayName' | 'phone' | 'phoneVerified'> & {
+  user?: Pick<User, 'id' | 'email' | 'displayName' | 'phone' | 'phoneVerified' | 'createdAt'> & {
     profile?: Pick<UserProfile, 'fullName' | 'avatarUrl' | 'phone'> | null;
   };
   company?: Pick<Company, 'id' | 'name' | 'slug' | 'logo' | 'categoryId' | 'email'> & {
@@ -112,6 +112,7 @@ export function toReviewPublic(
         id: review.user.id,
         displayName: resolveAuthorDisplayName(review.user),
         avatarUrl: review.user.profile?.avatarUrl ?? null,
+        createdAt: review.user.createdAt.toISOString(),
       },
     }),
     ...(review.company && { company: toReviewCompanySummary(review.company) }),

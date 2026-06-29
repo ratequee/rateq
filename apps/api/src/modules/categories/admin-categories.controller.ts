@@ -14,6 +14,7 @@ import { AdminPermission } from '@rateq/types';
 import { RequireAdminPermission } from '../../common/decorators/require-admin-permission.decorator';
 import { AdminPermissionGuard } from '../auth/guards/admin-permission.guard';
 import { CreateCategoryDto } from './dto/create-category.dto';
+import { CreateCategorySubcategoryDto } from './dto/create-category-subcategory.dto';
 import { UpdateCategoryDto } from './dto/update-category.dto';
 import { CategoriesService } from './categories.service';
 
@@ -35,6 +36,19 @@ export class AdminCategoriesController {
   @ApiOperation({ summary: 'Update a business category (admin)' })
   update(@Param('id') id: string, @Body() dto: UpdateCategoryDto) {
     return this.categoriesService.update(id, dto);
+  }
+
+  @Post(':id/subcategories')
+  @ApiOperation({ summary: 'Add a subcategory to a business category (admin)' })
+  addSubcategory(@Param('id') id: string, @Body() dto: CreateCategorySubcategoryDto) {
+    return this.categoriesService.addSubcategory(id, dto);
+  }
+
+  @Delete(':id/subcategories/:subcategoryId')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Delete a subcategory (admin)' })
+  removeSubcategory(@Param('id') id: string, @Param('subcategoryId') subcategoryId: string) {
+    return this.categoriesService.removeSubcategory(id, subcategoryId);
   }
 
   @Delete(':id')

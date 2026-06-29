@@ -1,4 +1,5 @@
 import { CompanySocialLinksRow } from '@/components/company/company-social-links-row';
+import { ImageLightbox, SingleImageLightbox } from '@/components/ui/image-lightbox';
 import { fetchCompanyBySlug } from '@/lib/companies-data';
 import { scrollRevealProps, scrollStaggerDelay } from '@/lib/scroll-reveal';
 import { Link } from '@/i18n/routing';
@@ -63,9 +64,11 @@ export default async function CompanyProjectPage({
       })
     : null;
 
+  const galleryImages = [project.imageUrl, ...project.demoImages.filter(Boolean)];
+
   return (
     <div className="mx-auto max-w-page px-4 py-10 sm:px-6 sm:py-14 lg:px-8">
-      <div {...scrollRevealProps('fade-in')}>
+      <div {...scrollRevealProps('pop-up')}>
         <Link
           href={`/companies/${slug}`}
           className="mb-6 inline-flex items-center gap-2 text-sm font-medium text-brand-500 hover:underline"
@@ -76,11 +79,16 @@ export default async function CompanyProjectPage({
       </div>
 
       <div
-        {...scrollRevealProps('fade-up')}
+        {...scrollRevealProps('pop-up')}
         className="overflow-hidden rounded-2xl border border-subtle bg-white shadow-card dark:bg-dm-surface"
       >
         <div className="relative h-56 overflow-hidden sm:h-72 lg:h-96">
-          <img src={project.imageUrl} alt="" className="h-full w-full object-cover" />
+          <SingleImageLightbox
+            src={project.imageUrl}
+            alt={project.title}
+            className="h-full w-full"
+            imageClassName="h-56 sm:h-72 lg:h-96"
+          />
         </div>
 
         <div className="p-6 sm:p-8 lg:p-10">
@@ -130,19 +138,11 @@ export default async function CompanyProjectPage({
             </div>
           ) : null}
 
-          {project.demoImages.length > 0 ? (
+          {galleryImages.length > 0 ? (
             <div className="mt-8">
               <h2 className="text-sm font-semibold text-primary">{t('projectGallery')}</h2>
-              <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                {project.demoImages.map((imageUrl, index) => (
-                  <div
-                    key={`${imageUrl}-${index}`}
-                    {...scrollRevealProps('fade-up', scrollStaggerDelay(index))}
-                    className="overflow-hidden rounded-xl"
-                  >
-                    <img src={imageUrl} alt="" className="h-48 w-full object-cover sm:h-56" />
-                  </div>
-                ))}
+              <div className="mt-4" {...scrollRevealProps('pop-up', scrollStaggerDelay(1))}>
+                <ImageLightbox images={galleryImages} alt={project.title} />
               </div>
             </div>
           ) : null}
@@ -161,7 +161,7 @@ export default async function CompanyProjectPage({
       </div>
 
       <div
-        {...scrollRevealProps('fade-up', 120)}
+        {...scrollRevealProps('pop-up', 120)}
         className="mt-8 rounded-2xl border border-subtle bg-white p-6 dark:bg-dm-surface sm:p-8"
       >
         <div className="flex flex-wrap items-start justify-between gap-4">

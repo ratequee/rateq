@@ -6,7 +6,6 @@ import { DashboardProfileLoading } from '@/components/dashboard/dashboard-profil
 import { CompanyPublicProfileForm } from '@/components/dashboard/company-public-profile-form';
 import { CompanySocialLinksForm } from '@/components/dashboard/company-social-links-form';
 import { CompanySettingsForm } from '@/components/dashboard/company-settings-form';
-import { CompanyInviteReviewersPanel } from '@/components/dashboard/company-invite-reviewers-panel';
 import { useProfile } from '@/components/providers/profile-provider';
 import { useRequireCompleteProfile } from '@/hooks/use-require-verified-auth';
 import { isRemoteImage, isRemotePdf } from '@/lib/profile-company-assets';
@@ -111,7 +110,6 @@ export default function CompanyProfileSettingsPage() {
             <div className="space-y-6">
               <CompanySocialLinksForm />
               <CompanyPublicProfileForm />
-              <CompanyInviteReviewersPanel />
             </div>
           </>
         ) : null}

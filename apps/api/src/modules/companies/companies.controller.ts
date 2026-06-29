@@ -79,6 +79,29 @@ export class CompaniesController {
     return this.companiesService.updateMyCompany(user.id, dto);
   }
 
+  @Get('me/favorites')
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'List favorite companies for current user' })
+  listFavorites(@CurrentUser() user: AuthenticatedUser) {
+    return this.companiesService.listFavorites(user.id);
+  }
+
+  @Post(':id/favorite')
+  @HttpCode(HttpStatus.OK)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Add company to favorites' })
+  addFavorite(@CurrentUser() user: AuthenticatedUser, @Param('id') id: string) {
+    return this.companiesService.addFavorite(user.id, id);
+  }
+
+  @Delete(':id/favorite')
+  @HttpCode(HttpStatus.OK)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Remove company from favorites' })
+  removeFavorite(@CurrentUser() user: AuthenticatedUser, @Param('id') id: string) {
+    return this.companiesService.removeFavorite(user.id, id);
+  }
+
   @Patch(':id')
   @ApiBearerAuth()
   @Roles(UserRole.ADMIN)
@@ -113,9 +136,10 @@ export class CompaniesController {
 
   @Public()
   @Get(':slug')
+  @ApiBearerAuth()
   @ApiOperation({ summary: 'Get public company profile by slug (SEO-friendly)' })
   @ApiResponse({ status: 200, type: CompanyPublicDto })
-  getBySlug(@Param('slug') slug: string) {
-    return this.companiesService.getPublicProfile(slug);
+  getBySlug(@Param('slug') slug: string, @CurrentUser() user?: AuthenticatedUser) {
+    return this.companiesService.getPublicProfile(slug, user?.id);
   }
 }

@@ -15,4 +15,10 @@ export class UpdateCategoryDto {
   @MinLength(2)
   @MaxLength(100)
   nameAr?: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  @MaxLength(2048)
+  iconUrl?: string | null;
 }

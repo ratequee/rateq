@@ -54,4 +54,18 @@ export const onboardingApi = {
       body: JSON.stringify(data),
       token: await token(),
     }),
+
+  listReviewerInvitationRequests: async () =>
+    apiClient<import('@rateq/types').ReviewerInvitationRequestPublic[]>(
+      '/companies/me/reviewer-invitation-requests',
+      { token: await token() },
+    ),
+
+  createReviewerInvitationRequest: async (
+    data: import('@rateq/types').CreateReviewerInvitationRequestInput,
+  ) =>
+    apiClient<import('@rateq/types').ReviewerInvitationRequestPublic>(
+      '/companies/me/reviewer-invitation-requests',
+      { method: 'POST', body: JSON.stringify(data), token: await token() },
+    ),
 };

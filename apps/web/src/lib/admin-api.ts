@@ -74,6 +74,48 @@ export const adminApi = {
       token: await token(),
     }),
 
+  addSubcategory: async (
+    categoryId: string,
+    data: import('@rateq/types').CreateCategorySubcategoryInput,
+  ) =>
+    apiClient<import('@rateq/types').CategorySubcategoryPublic>(
+      `/admin/categories/${categoryId}/subcategories`,
+      { method: 'POST', body: JSON.stringify(data), token: await token() },
+    ),
+
+  removeSubcategory: async (categoryId: string, subcategoryId: string) =>
+    apiClient<{ message: string }>(
+      `/admin/categories/${categoryId}/subcategories/${subcategoryId}`,
+      {
+        method: 'DELETE',
+        token: await token(),
+      },
+    ),
+
+  listReviewerInvitationRequests: async () =>
+    apiClient<import('@rateq/types').ReviewerInvitationRequestPublic[]>(
+      '/admin/reviewer-invitation-requests',
+      { token: await token() },
+    ),
+
+  approveReviewerInvitationRequest: async (id: string) =>
+    apiClient<import('@rateq/types').ReviewerInvitationRequestPublic>(
+      `/admin/reviewer-invitation-requests/${id}/approve`,
+      { method: 'PATCH', token: await token() },
+    ),
+
+  rejectReviewerInvitationRequest: async (id: string) =>
+    apiClient<import('@rateq/types').ReviewerInvitationRequestPublic>(
+      `/admin/reviewer-invitation-requests/${id}/reject`,
+      { method: 'PATCH', token: await token() },
+    ),
+
+  deleteReviewerInvitationRequest: async (id: string) =>
+    apiClient<import('@rateq/types').ReviewerInvitationRequestPublic>(
+      `/admin/reviewer-invitation-requests/${id}`,
+      { method: 'DELETE', token: await token() },
+    ),
+
   listCompanyCatalog: async (type?: 'service' | 'activity') => {
     const search = type ? `?type=${type}` : '';
     return apiClient<CompanyCatalogItemPublic[]>(`/admin/company-catalog${search}`, {

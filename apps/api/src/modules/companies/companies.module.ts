@@ -12,6 +12,9 @@ import { CompanyCatalogService } from './company-catalog.service';
 import { InvitationsService } from './invitations.service';
 import { InvitationsController } from './invitations.controller';
 import { AdminInvitationsController } from './admin-invitations.controller';
+import { ReviewerInvitationRequestsService } from './reviewer-invitation-requests.service';
+import { ReviewerInvitationRequestsController } from './reviewer-invitation-requests.controller';
+import { AdminReviewerInvitationRequestsController } from './admin-reviewer-invitation-requests.controller';
 import { CompaniesController } from './companies.controller';
 import { CompaniesService } from './companies.service';
 import { CompaniesRepository } from './repositories/companies.repository';
@@ -32,8 +35,22 @@ import { CompaniesRepository } from './repositories/companies.repository';
     CompanyCatalogController,
     InvitationsController,
     AdminInvitationsController,
+    ReviewerInvitationRequestsController,
+    AdminReviewerInvitationRequestsController,
   ],
-  providers: [CompaniesService, CompaniesRepository, CompanyCatalogService, InvitationsService],
-  exports: [CompaniesService, CompaniesRepository, CompanyCatalogService, InvitationsService],
+  providers: [
+    CompaniesService,
+    CompaniesRepository,
+    CompanyCatalogService,
+    InvitationsService,
+    ReviewerInvitationRequestsService,
+  ],
+  exports: [
+    CompaniesService,
+    CompaniesRepository,
+    CompanyCatalogService,
+    InvitationsService,
+    ReviewerInvitationRequestsService,
+  ],
 })
 export class CompaniesModule {}

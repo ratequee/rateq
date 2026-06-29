@@ -1,6 +1,6 @@
-import { Controller, Get, Param, Query, UseGuards } from '@nestjs/common';
+import { Controller, Get, Param, Patch, Query, UseGuards, Body } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiPropertyOptional, ApiTags } from '@nestjs/swagger';
-import { IsOptional, IsString, MaxLength } from 'class-validator';
+import { IsBoolean, IsOptional, IsString, MaxLength } from 'class-validator';
 import { AdminPermission, UserRole } from '@rateq/types';
 import { RequireAdminPermission } from '../../common/decorators/require-admin-permission.decorator';
 import { Roles } from '../../common/decorators/roles.decorator';
@@ -15,6 +15,11 @@ class AdminListCompaniesQueryDto extends PaginationDto {
   @IsString()
   @MaxLength(200)
   search?: string;
+}
+
+class UpdateCompanyStampDto {
+  @IsBoolean()
+  showVerifiedStamp!: boolean;
 }
 
 @ApiTags('admin')
@@ -58,6 +63,13 @@ export class AdminController {
   @ApiOperation({ summary: 'Company detail with reviews and replies' })
   getCompanyDetail(@Param('id') id: string) {
     return this.adminService.getCompanyDetail(id);
+  }
+
+  @Patch('companies/:id/stamp')
+  @RequireAdminPermission(AdminPermission.DIRECTORY)
+  @ApiOperation({ summary: 'Toggle verified stamp visibility on company profile' })
+  setCompanyStamp(@Param('id') id: string, @Body() dto: UpdateCompanyStampDto) {
+    return this.adminService.setCompanyVerifiedStamp(id, dto.showVerifiedStamp);
   }
 
   @Get('team')

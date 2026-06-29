@@ -25,13 +25,20 @@ export default function AdminCategoriesPage() {
   const [categories, setCategories] = useState<CategoryPublic[]>([]);
   const [nameEn, setNameEn] = useState('');
   const [nameAr, setNameAr] = useState('');
+  const [iconUrl, setIconUrl] = useState('');
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editNameEn, setEditNameEn] = useState('');
   const [editNameAr, setEditNameAr] = useState('');
+  const [editIconUrl, setEditIconUrl] = useState('');
   const [editSaving, setEditSaving] = useState(false);
+  const [expandedCategoryId, setExpandedCategoryId] = useState<string | null>(null);
+  const [subNameEn, setSubNameEn] = useState('');
+  const [subNameAr, setSubNameAr] = useState('');
+  const [subSubmitting, setSubSubmitting] = useState(false);
+  const [subDeletingId, setSubDeletingId] = useState<string | null>(null);
 
   useRequireAdmin(AdminPermission.CONTENT);
 
@@ -69,9 +76,14 @@ export default function AdminCategoriesPage() {
 
     setSubmitting(true);
     try {
-      await adminApi.createCategory({ nameEn: trimmedEn, nameAr: trimmedAr });
+      await adminApi.createCategory({
+        nameEn: trimmedEn,
+        nameAr: trimmedAr,
+        iconUrl: iconUrl.trim() || null,
+      });
       setNameEn('');
       setNameAr('');
+      setIconUrl('');
       await loadCategories();
       toast.success(t('created'));
     } catch (err) {
@@ -101,12 +113,14 @@ export default function AdminCategoriesPage() {
     setEditingId(category.id);
     setEditNameEn(category.nameEn);
     setEditNameAr(category.nameAr);
+    setEditIconUrl(category.iconUrl ?? '');
   };
 
   const cancelEdit = () => {
     setEditingId(null);
     setEditNameEn('');
     setEditNameAr('');
+    setEditIconUrl('');
   };
 
   const handleUpdate = async (id: string) => {
@@ -120,6 +134,7 @@ export default function AdminCategoriesPage() {
       await adminApi.updateCategory(id, {
         nameEn: editNameEn.trim(),
         nameAr: editNameAr.trim(),
+        iconUrl: editIconUrl.trim() || null,
       });
       cancelEdit();
       await loadCategories();
@@ -129,6 +144,44 @@ export default function AdminCategoriesPage() {
       toast.error(message);
     } finally {
       setEditSaving(false);
+    }
+  };
+
+  const handleAddSubcategory = async (categoryId: string) => {
+    if (!subNameEn.trim() || !subNameAr.trim()) {
+      toast.error(t('namesRequired'));
+      return;
+    }
+
+    setSubSubmitting(true);
+    try {
+      await adminApi.addSubcategory(categoryId, {
+        nameEn: subNameEn.trim(),
+        nameAr: subNameAr.trim(),
+      });
+      setSubNameEn('');
+      setSubNameAr('');
+      await loadCategories();
+      toast.success(t('subcategoryCreated'));
+    } catch (err) {
+      const message = err instanceof ApiError ? err.message : t('subcategoryCreateError');
+      toast.error(message);
+    } finally {
+      setSubSubmitting(false);
+    }
+  };
+
+  const handleRemoveSubcategory = async (categoryId: string, subcategoryId: string) => {
+    setSubDeletingId(subcategoryId);
+    try {
+      await adminApi.removeSubcategory(categoryId, subcategoryId);
+      await loadCategories();
+      toast.success(t('subcategoryDeleted'));
+    } catch (err) {
+      const message = err instanceof ApiError ? err.message : t('subcategoryDeleteError');
+      toast.error(message);
+    } finally {
+      setSubDeletingId(null);
     }
   };
 
@@ -158,28 +211,38 @@ export default function AdminCategoriesPage() {
 
         {activeTab === 'categories' ? (
           <div className="surface-card p-6">
-            <form onSubmit={handleCreate} className="mb-6 grid gap-3 sm:grid-cols-[1fr_1fr_auto]">
-              <Input
-                value={nameEn}
-                onChange={(e) => setNameEn(e.target.value)}
-                placeholder={t('nameEnPlaceholder')}
-                className="h-11"
-              />
-              <Input
-                value={nameAr}
-                onChange={(e) => setNameAr(e.target.value)}
-                placeholder={t('nameArPlaceholder')}
-                className="h-11"
-                dir="rtl"
-              />
-              <Button type="submit" disabled={submitting} className="h-11 gap-2">
-                {submitting ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  <Plus className="h-4 w-4" />
-                )}
-                {t('add')}
-              </Button>
+            <form onSubmit={handleCreate} className="mb-6 space-y-3">
+              <div className="grid gap-3 sm:grid-cols-[1fr_1fr]">
+                <Input
+                  value={nameEn}
+                  onChange={(e) => setNameEn(e.target.value)}
+                  placeholder={t('nameEnPlaceholder')}
+                  className="h-11"
+                />
+                <Input
+                  value={nameAr}
+                  onChange={(e) => setNameAr(e.target.value)}
+                  placeholder={t('nameArPlaceholder')}
+                  className="h-11"
+                  dir="rtl"
+                />
+              </div>
+              <div className="flex flex-wrap gap-3">
+                <Input
+                  value={iconUrl}
+                  onChange={(e) => setIconUrl(e.target.value)}
+                  placeholder={t('iconUrlPlaceholder')}
+                  className="h-11 min-w-[240px] flex-1"
+                />
+                <Button type="submit" disabled={submitting} className="h-11 gap-2">
+                  {submitting ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Plus className="h-4 w-4" />
+                  )}
+                  {t('add')}
+                </Button>
+              </div>
             </form>
 
             {loading ? (
@@ -193,71 +256,177 @@ export default function AdminCategoriesPage() {
                 {categories.map((category) => (
                   <li key={category.id} className="px-4 py-3">
                     {editingId === category.id ? (
-                      <div className="grid gap-3 sm:grid-cols-[1fr_1fr_auto_auto]">
-                        <Input
-                          value={editNameEn}
-                          onChange={(e) => setEditNameEn(e.target.value)}
-                          className="h-10"
-                        />
-                        <Input
-                          value={editNameAr}
-                          onChange={(e) => setEditNameAr(e.target.value)}
-                          className="h-10"
-                          dir="rtl"
-                        />
-                        <Button
-                          type="button"
-                          size="sm"
-                          disabled={editSaving}
-                          onClick={() => void handleUpdate(category.id)}
-                        >
-                          {editSaving ? (
-                            <Loader2 className="h-4 w-4 animate-spin" />
-                          ) : (
-                            t('saveEdit')
-                          )}
-                        </Button>
-                        <Button type="button" variant="ghost" size="sm" onClick={cancelEdit}>
-                          <X className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    ) : (
-                      <div className="flex items-center justify-between gap-3">
-                        <div className="min-w-0">
-                          <p className="text-sm font-medium text-primary">{category.nameEn}</p>
-                          <p className="text-sm text-secondary" dir="rtl">
-                            {category.nameAr}
-                          </p>
-                          <p className="text-xs text-secondary">
-                            {t('companyCount', { count: category.companyCount ?? 0 })}
-                          </p>
+                      <div className="space-y-3">
+                        <div className="grid gap-3 sm:grid-cols-[1fr_1fr]">
+                          <Input
+                            value={editNameEn}
+                            onChange={(e) => setEditNameEn(e.target.value)}
+                            className="h-10"
+                          />
+                          <Input
+                            value={editNameAr}
+                            onChange={(e) => setEditNameAr(e.target.value)}
+                            className="h-10"
+                            dir="rtl"
+                          />
                         </div>
-                        <div className="flex shrink-0 gap-1">
+                        <Input
+                          value={editIconUrl}
+                          onChange={(e) => setEditIconUrl(e.target.value)}
+                          placeholder={t('iconUrlPlaceholder')}
+                          className="h-10"
+                        />
+                        <div className="flex gap-2">
                           <Button
                             type="button"
-                            variant="ghost"
                             size="sm"
-                            onClick={() => startEdit(category)}
-                            aria-label={t('edit')}
+                            disabled={editSaving}
+                            onClick={() => void handleUpdate(category.id)}
                           >
-                            <Pencil className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="sm"
-                            disabled={deletingId === category.id}
-                            onClick={() => void handleDelete(category.id)}
-                            className="text-red-600 hover:text-red-700"
-                            aria-label={t('remove')}
-                          >
-                            {deletingId === category.id ? (
+                            {editSaving ? (
                               <Loader2 className="h-4 w-4 animate-spin" />
                             ) : (
-                              <Trash2 className="h-4 w-4" />
+                              t('saveEdit')
                             )}
                           </Button>
+                          <Button type="button" variant="ghost" size="sm" onClick={cancelEdit}>
+                            <X className="h-4 w-4" />
+                          </Button>
                         </div>
+                      </div>
+                    ) : (
+                      <div>
+                        <div className="flex items-center justify-between gap-3">
+                          <div className="flex min-w-0 items-center gap-3">
+                            {category.iconUrl ? (
+                              <img
+                                src={category.iconUrl}
+                                alt=""
+                                className="h-10 w-10 shrink-0 rounded-lg object-contain"
+                              />
+                            ) : null}
+                            <div className="min-w-0">
+                              <p className="text-sm font-medium text-primary">{category.nameEn}</p>
+                              <p className="text-sm text-secondary" dir="rtl">
+                                {category.nameAr}
+                              </p>
+                              <p className="text-xs text-secondary">
+                                {t('companyCount', { count: category.companyCount ?? 0 })}
+                              </p>
+                            </div>
+                          </div>
+                          <div className="flex shrink-0 gap-1">
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              onClick={() =>
+                                setExpandedCategoryId((current) =>
+                                  current === category.id ? null : category.id,
+                                )
+                              }
+                            >
+                              {expandedCategoryId === category.id
+                                ? t('collapseSubcategories')
+                                : t('manageSubcategories')}
+                            </Button>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => startEdit(category)}
+                              aria-label={t('edit')}
+                            >
+                              <Pencil className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              disabled={deletingId === category.id}
+                              onClick={() => void handleDelete(category.id)}
+                              className="text-red-600 hover:text-red-700"
+                              aria-label={t('remove')}
+                            >
+                              {deletingId === category.id ? (
+                                <Loader2 className="h-4 w-4 animate-spin" />
+                              ) : (
+                                <Trash2 className="h-4 w-4" />
+                              )}
+                            </Button>
+                          </div>
+                        </div>
+                        {expandedCategoryId === category.id ? (
+                          <div className="mt-4 rounded-xl border border-subtle bg-slate-50 p-4 dark:bg-dm-elevated">
+                            <p className="text-sm font-medium text-primary">
+                              {t('subcategoriesTitle')}
+                            </p>
+                            {(category.subcategories ?? []).length > 0 ? (
+                              <ul className="mt-3 space-y-2">
+                                {(category.subcategories ?? []).map((subcategory) => (
+                                  <li
+                                    key={subcategory.id}
+                                    className="flex items-center justify-between gap-2 rounded-lg border border-subtle bg-white px-3 py-2 dark:bg-dm-surface"
+                                  >
+                                    <div>
+                                      <p className="text-sm font-medium text-primary">
+                                        {subcategory.nameEn}
+                                      </p>
+                                      <p className="text-sm text-secondary" dir="rtl">
+                                        {subcategory.nameAr}
+                                      </p>
+                                    </div>
+                                    <Button
+                                      type="button"
+                                      variant="ghost"
+                                      size="sm"
+                                      disabled={subDeletingId === subcategory.id}
+                                      onClick={() =>
+                                        void handleRemoveSubcategory(category.id, subcategory.id)
+                                      }
+                                      className="text-red-600"
+                                    >
+                                      {subDeletingId === subcategory.id ? (
+                                        <Loader2 className="h-4 w-4 animate-spin" />
+                                      ) : (
+                                        <Trash2 className="h-4 w-4" />
+                                      )}
+                                    </Button>
+                                  </li>
+                                ))}
+                              </ul>
+                            ) : (
+                              <p className="mt-2 text-sm text-secondary">{t('noSubcategories')}</p>
+                            )}
+                            <div className="mt-4 grid gap-2 sm:grid-cols-[1fr_1fr_auto]">
+                              <Input
+                                value={subNameEn}
+                                onChange={(e) => setSubNameEn(e.target.value)}
+                                placeholder={t('subNameEnPlaceholder')}
+                                className="h-10"
+                              />
+                              <Input
+                                value={subNameAr}
+                                onChange={(e) => setSubNameAr(e.target.value)}
+                                placeholder={t('subNameArPlaceholder')}
+                                className="h-10"
+                                dir="rtl"
+                              />
+                              <Button
+                                type="button"
+                                size="sm"
+                                disabled={subSubmitting}
+                                onClick={() => void handleAddSubcategory(category.id)}
+                              >
+                                {subSubmitting ? (
+                                  <Loader2 className="h-4 w-4 animate-spin" />
+                                ) : (
+                                  t('addSubcategory')
+                                )}
+                              </Button>
+                            </div>
+                          </div>
+                        ) : null}
                       </div>
                     )}
                   </li>

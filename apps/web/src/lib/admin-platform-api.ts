@@ -58,6 +58,13 @@ export const adminApi = {
   deleteCompany: (token: string, companyId: string) =>
     apiClient<MessageResponse>(`/companies/${companyId}`, { method: 'DELETE', token }),
 
+  updateCompanyStamp: (token: string, companyId: string, showVerifiedStamp: boolean) =>
+    apiClient<AdminCompanyDetail>(`/admin/companies/${companyId}/stamp`, {
+      method: 'PATCH',
+      body: JSON.stringify({ showVerifiedStamp }),
+      token,
+    }),
+
   deleteReviewReply: (token: string, reviewId: string) =>
     apiClient<MessageResponse>(`/moderation/reviews/${reviewId}/reply`, {
       method: 'DELETE',

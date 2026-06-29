@@ -14,5 +14,7 @@ export * from './platform';
 export * from './blog';
 export * from './company-catalog';
 export * from './invitation';
+export * from './review-report';
+export * from './reviewer-invitation-request';
 export * from './admin-permissions';
 export * from './admin-activity';

@@ -2,6 +2,8 @@
 
 import { AdminCompanyMetrics } from '@/components/dashboard/admin-company-metrics';
 import { AdminProjectsPanel } from '@/components/dashboard/admin-projects-panel';
+import { AdminReviewReportsPanel } from '@/components/dashboard/admin-review-reports-panel';
+import { AdminReviewerInvitationRequestsPanel } from '@/components/dashboard/admin-reviewer-invitation-requests-panel';
 import { ReviewsManagementPanel } from '@/components/dashboard/reviews-management-panel';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -21,8 +23,10 @@ import type {
 import { UserRole } from '@rateq/types';
 import {
   Building2,
+  Flag,
   FolderKanban,
   Loader2,
+  Mail,
   MessageSquareText,
   Star,
   Trash2,
@@ -32,7 +36,7 @@ import { useLocale, useTranslations } from 'next-intl';
 import { useCallback, useEffect, useState } from 'react';
 import { toast } from 'sonner';
 
-type DirectoryTab = 'reviewers' | 'companies' | 'reviews' | 'projects';
+type DirectoryTab = 'reviewers' | 'companies' | 'reviews' | 'projects' | 'reports' | 'invitations';
 
 const reviewStatusStyles: Record<string, string> = {
   PENDING: 'bg-amber-50 text-amber-700 dark:bg-amber-950/50 dark:text-amber-300',
@@ -339,6 +343,15 @@ export function AdminDirectoryPanel() {
     await runAction(() => adminApi.deleteCompany(token, companyId), t('deleteSuccess'));
   };
 
+  const handleToggleCompanyStamp = async (companyId: string, enabled: boolean) => {
+    const token = await ensureValidAccessToken();
+    if (!token) return;
+    await runAction(
+      () => adminApi.updateCompanyStamp(token, companyId, !enabled),
+      enabled ? t('stampRemoved') : t('stampEnabled'),
+    );
+  };
+
   const handleDeleteReview = async (reviewId: string) => {
     if (!window.confirm(tr('deleteConfirm'))) return;
     const token = await ensureValidAccessToken();
@@ -358,6 +371,8 @@ export function AdminDirectoryPanel() {
     { id: 'companies', label: t('tabs.companies'), icon: Building2 },
     { id: 'reviews', label: t('tabs.reviews'), icon: Star },
     { id: 'projects', label: t('tabs.projects'), icon: FolderKanban },
+    { id: 'reports', label: t('tabs.reports'), icon: Flag },
+    { id: 'invitations', label: t('tabs.invitations'), icon: Mail },
   ];
 
   return (
@@ -382,6 +397,10 @@ export function AdminDirectoryPanel() {
       {tab === 'reviews' ? <ReviewsManagementPanel mode="admin" /> : null}
 
       {tab === 'projects' ? <AdminProjectsPanel /> : null}
+
+      {tab === 'reports' ? <AdminReviewReportsPanel /> : null}
+
+      {tab === 'invitations' ? <AdminReviewerInvitationRequestsPanel /> : null}
 
       {tab === 'reviewers' ? (
         <div className="grid gap-6 xl:grid-cols-[360px_1fr]">
@@ -649,22 +668,48 @@ export function AdminDirectoryPanel() {
                 </div>
                 <div className="flex flex-wrap gap-2 border-b border-subtle pb-4">
                   {companyDetail.ownerId ? (
-                    <Button
-                      type="button"
-                      variant="outline"
-                      disabled={acting}
-                      onClick={() =>
-                        void handleToggleCompanyOwnerActive(
-                          companyDetail.ownerId!,
-                          companyDetail.ownerIsActive ?? true,
-                        )
-                      }
-                    >
-                      {companyDetail.ownerIsActive === false
-                        ? t('activateOwner')
-                        : t('deactivateOwner')}
-                    </Button>
+                    <>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        disabled={acting}
+                        onClick={() =>
+                          void handleToggleCompanyOwnerActive(
+                            companyDetail.ownerId!,
+                            companyDetail.ownerIsActive ?? true,
+                          )
+                        }
+                      >
+                        {companyDetail.ownerIsActive === false
+                          ? t('activateOwner')
+                          : t('deactivateOwner')}
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="destructive"
+                        disabled={acting}
+                        onClick={() => {
+                          if (!window.confirm(t('deleteOwnerConfirm'))) return;
+                          void handleDeleteReviewer(companyDetail.ownerId!);
+                        }}
+                      >
+                        {t('deleteOwner')}
+                      </Button>
+                    </>
                   ) : null}
+                  <Button
+                    type="button"
+                    variant="outline"
+                    disabled={acting}
+                    onClick={() =>
+                      void handleToggleCompanyStamp(
+                        companyDetail.id,
+                        companyDetail.showVerifiedStamp ?? false,
+                      )
+                    }
+                  >
+                    {companyDetail.showVerifiedStamp ? t('removeStamp') : t('enableStamp')}
+                  </Button>
                   <Button
                     type="button"
                     variant="destructive"

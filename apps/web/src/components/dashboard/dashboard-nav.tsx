@@ -13,6 +13,7 @@ import {
   Home,
   LayoutGrid,
   LogOut,
+  Mail,
   Settings,
   Shield,
   Star,
@@ -101,6 +102,12 @@ export const DASHBOARD_NAV_ITEMS: {
   },
   { href: '/dashboard/admin/payments', key: 'payments', icon: Wallet, roles: ['admin'] },
   { href: '#', key: 'payments', icon: Wallet, roles: ['company'] },
+  {
+    href: '/dashboard/company/invitations',
+    key: 'reviewerInvitations',
+    icon: Mail,
+    roles: ['company'],
+  },
   { href: '/dashboard/company/profile', key: 'settings', icon: Settings, roles: ['company'] },
   { href: '/dashboard/reviewer/profile', key: 'settings', icon: Settings, roles: ['reviewer'] },
   {

@@ -18,6 +18,8 @@ import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { Public } from '../../common/decorators/public.decorator';
 import { Roles } from '../../common/decorators/roles.decorator';
 import { ReviewsService } from './reviews.service';
+import { ReviewReportsService } from '../moderation/review-reports.service';
+import { CreateReviewReportDto } from './dto/create-review-report.dto';
 import { CreateReviewDto } from './dto/create-review.dto';
 import { CreateReviewReplyDto } from './dto/create-reply.dto';
 import { ListReviewsQueryDto } from './dto/list-reviews-query.dto';
@@ -27,7 +29,10 @@ import { PaginatedReviewsDto, ReviewPublicDto } from './dto/review-response.dto'
 @ApiTags('reviews')
 @Controller('reviews')
 export class ReviewsController {
-  constructor(private readonly reviewsService: ReviewsService) {}
+  constructor(
+    private readonly reviewsService: ReviewsService,
+    private readonly reviewReportsService: ReviewReportsService,
+  ) {}
 
   @Post()
   @HttpCode(HttpStatus.CREATED)
@@ -117,6 +122,18 @@ export class ReviewsController {
   @ApiResponse({ status: 200, type: ReviewPublicDto })
   withdrawResolution(@CurrentUser() user: AuthenticatedUser, @Param('reviewId') reviewId: string) {
     return this.reviewsService.withdrawResolution(user, reviewId);
+  }
+
+  @Post(':reviewId/report')
+  @HttpCode(HttpStatus.CREATED)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Report a published review for admin review' })
+  reportReview(
+    @CurrentUser() user: AuthenticatedUser,
+    @Param('reviewId') reviewId: string,
+    @Body() dto: CreateReviewReportDto,
+  ) {
+    return this.reviewReportsService.submit(user.id, reviewId, dto);
   }
 
   @Post(':reviewId/reply')

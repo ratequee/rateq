@@ -396,6 +396,13 @@
     "linkCopied": "تم نسخ الرابط.",
     "copyFailed": "تعذر نسخ الرابط.",
     "closeShare": "إغلاق",
+    "saveFavorite": "حفظ الشركة",
+    "saved": "محفوظة",
+    "addFavorite": "إضافة إلى المفضلة",
+    "removeFavorite": "إزالة من المفضلة",
+    "favoriteAdded": "تم حفظ الشركة في مفضلتك.",
+    "favoriteRemoved": "تمت إزالة الشركة من المفضلة.",
+    "favoriteError": "تعذر تحديث المفضلة.",
     "tabs": {
       "reviews": "المراجعات",
       "projects": "المشاريع",
@@ -616,6 +623,8 @@
     "category": "فئة النشاط",
     "selectCategory": "اختر فئة",
     "categoriesMultiHint": "اختر فئة نشاط واحدة أو أكثر.",
+    "subcategories": "الفئات الفرعية",
+    "subcategoriesHint": "اختر فئة فرعية واحدة على الأقل لكل فئة محددة عند توفرها.",
     "socialLinksTitle": "روابط التواصل",
     "socialLinksHint": "اختياري. تظهر على صفحة شركتك العامة.",
     "socialLinksCardSubtitle": "تُحفظ التحديثات فورًا — دون الحاجة لموافقة الإدارة.",
@@ -787,7 +796,8 @@
       "phoneNotVerified": "يرجى التحقق من رقم الهاتف عبر SMS قبل المتابعة.",
       "uploadPermissionDenied": "تم رفض رفع الملف. في Firebase Console → Storage → Rules، انشر القواعد من docs/firebase-storage.rules في المستودع.",
       "locationRequired": "ابحث عن عنوانك أو حدد موقعاً على الخريطة لتحديد المدينة والدولة.",
-      "profileLoading": "بيانات الملف لا تزال قيد التحميل. انتظر قليلاً ثم حاول مرة أخرى."
+      "profileLoading": "بيانات الملف لا تزال قيد التحميل. انتظر قليلاً ثم حاول مرة أخرى.",
+      "subcategoryRequired": "اختر فئة فرعية واحدة على الأقل لكل فئة تتضمن فئات فرعية."
     }
   },
   "dashboardShell": {
@@ -830,7 +840,8 @@
       "team": "فريق الإدارة",
       "viewSite": "عرض الموقع العام",
       "visitCompanies": "زيارة الشركات",
-      "companyCatalog": "كتالوج الشركات"
+      "companyCatalog": "كتالوج الشركات",
+      "reviewerInvitations": "دعوات المُراجعين"
     },
     "stats": {
       "sales": "إجمالي المبيعات",
@@ -891,6 +902,7 @@
     "replyPendingInList": "رد قيد المراجعة",
     "resolutionDeadline": "موعد انتهاء الحل",
     "unknownReviewer": "المراجع",
+    "newAccountReview": "حساب جديد (أقل من 7 أيام)",
     "unknownCompany": "الشركة",
     "accept": "قبول",
     "reject": "رفض",
@@ -992,7 +1004,15 @@
       "contentMax": "يجب ألا تتجاوز المراجعة 2000 حرف.",
       "contentInvalid": "المراجعة تحتوي على أحرف غير صالحة.",
       "proofRequired": "ملف الإثبات مطلوب."
-    }
+    },
+    "reportReview": "الإبلاغ عن المراجعة",
+    "reportReviewTitle": "الإبلاغ عن هذه المراجعة",
+    "reportReviewPlaceholder": "سبب اختياري للإبلاغ…",
+    "reportSubmit": "إرسال البلاغ",
+    "reportSubmitting": "جارٍ الإرسال…",
+    "reportCancel": "إلغاء",
+    "reportSubmitted": "تم إرسال البلاغ. سيراجعه فريقنا.",
+    "reportError": "تعذر إرسال البلاغ."
   },
   "dashboard": {
     "companyTitle": "لوحة تحكم الشركة",
@@ -1036,7 +1056,9 @@
       "reviewers": "المُراجعون",
       "companies": "الشركات",
       "reviews": "المراجعات",
-      "projects": "المشاريع"
+      "projects": "المشاريع",
+      "reports": "بلاغات المراجعات",
+      "invitations": "طلبات الدعوة"
     },
     "search": "بحث",
     "searchReviewers": "البحث عن مُراجع بالبريد",
@@ -1064,7 +1086,13 @@
     "activateSuccess": "تم تفعيل الحساب.",
     "deleteSuccess": "تم الحذف بنجاح.",
     "deleteReviewerConfirm": "حذف حساب هذا المُراجع نهائياً؟ ستُحذف مراجعاته أيضاً.",
-    "deleteCompanyConfirm": "حذف هذه الشركة نهائياً؟ ستُحذف جميع المراجعات والبيانات."
+    "deleteCompanyConfirm": "حذف هذه الشركة نهائياً؟ ستُحذف جميع المراجعات والبيانات.",
+    "deleteOwner": "حذف حساب المالك",
+    "deleteOwnerConfirm": "حذف حساب مالك هذه الشركة نهائياً؟",
+    "enableStamp": "إظهار ختم التوثيق",
+    "removeStamp": "إزالة ختم التوثيق",
+    "stampEnabled": "تم تفعيل ختم التوثيق على ملف الشركة.",
+    "stampRemoved": "تمت إزالة ختم التوثيق من ملف الشركة."
   },
   "adminProjects": {
     "title": "المشاريع",
@@ -1376,6 +1404,70 @@
     "inviteReviewerSubtitle": "ادعُ أشخاصًا للانضمام إلى RateQ ومراجعة شركتك.",
     "recentInvites": "الدعوات الأخيرة"
   },
+  "reviewerInvitations": {
+    "pageTitle": "دعوات المُراجعين",
+    "pageSubtitle": "قدّم طلبات دعوة للمُراجعين لموافقة الإدارة قبل إرسال البريد.",
+    "title": "دعوة مُراجع",
+    "subtitle": "أرسل بيانات المُراجع وإثبات الخدمة. سيراجعها المسؤول قبل الإرسال.",
+    "reviewerNamePlaceholder": "الاسم الكامل للمُراجع",
+    "emailPlaceholder": "البريد الإلكتروني للمُراجع",
+    "servicePlaceholder": "صف الخدمة التي تلقاها هذا المُراجع من شركتك",
+    "addProof": "إضافة ملفات إثبات",
+    "proofHint": "ارفع حتى 8 صور أو ملفات PDF (10 ميجابايت لكل ملف).",
+    "removeProof": "إزالة الملف",
+    "proofRequired": "أضف ملف إثبات واحد على الأقل.",
+    "fieldsRequired": "يرجى تعبئة جميع الحقول المطلوبة.",
+    "submit": "إرسال الطلب",
+    "submitted": "تم إرسال طلب الدعوة للمراجعة.",
+    "submitError": "تعذر إرسال طلب الدعوة.",
+    "recentRequests": "طلباتك",
+    "empty": "لا توجد طلبات دعوة بعد.",
+    "status": {
+      "pending": "قيد المراجعة",
+      "approved": "موافق عليه",
+      "rejected": "مرفوض"
+    }
+  },
+  "adminReviewReports": {
+    "empty": "لا توجد بلاغات مراجعات بعد.",
+    "loadError": "تعذر تحميل بلاغات المراجعات.",
+    "actionError": "تعذر تحديث البلاغ.",
+    "approved": "تمت الموافقة على البلاغ وإزالة المراجعة.",
+    "rejected": "تم رفض البلاغ.",
+    "approve": "الموافقة وإزالة المراجعة",
+    "reject": "رفض البلاغ",
+    "reason": "السبب",
+    "reportedBy": "أبلغ {email}",
+    "unknownCompany": "شركة غير معروفة",
+    "unknownReporter": "مُبلّغ غير معروف",
+    "previous": "السابق",
+    "next": "التالي",
+    "pageOf": "صفحة {page} من {total}",
+    "status": {
+      "pending": "قيد الانتظار",
+      "approved": "موافق عليه",
+      "rejected": "مرفوض"
+    }
+  },
+  "adminReviewerInvitations": {
+    "empty": "لا توجد طلبات دعوة مُراجعين.",
+    "loadError": "تعذر تحميل طلبات الدعوة.",
+    "actionError": "تعذر إكمال هذا الإجراء.",
+    "approved": "تمت الموافقة على الدعوة وإرسال البريد.",
+    "rejected": "تم رفض الدعوة وإبلاغ الشركة.",
+    "deleted": "تم حذف الطلب.",
+    "approve": "موافقة",
+    "reject": "رفض",
+    "delete": "حذف",
+    "deleteConfirm": "حذف طلب الدعوة هذا نهائيًا؟",
+    "companyLabel": "الشركة",
+    "proofFile": "إثبات {index}",
+    "status": {
+      "pending": "قيد الانتظار",
+      "approved": "موافق عليه",
+      "rejected": "مرفوض"
+    }
+  },
   "adminCatalog": {
     "pageTitle": "خدمات وأنشطة الشركات",
     "pageSubtitle": "إدارة الخيارات ثنائية اللغة التي تختارها الشركات في ملفها.",
@@ -1449,6 +1541,18 @@
     "serviceDeleteError": "تعذر حذف الخدمة.",
     "serviceNameTooShort": "يجب أن يكون اسم الخدمة حرفين على الأقل.",
     "expandCategory": "إدارة الخدمات",
-    "collapseCategory": "إخفاء الخدمات"
+    "collapseCategory": "إخفاء الخدمات",
+    "iconUrlPlaceholder": "رابط صورة الأيقونة (اختياري)",
+    "subcategoriesTitle": "الفئات الفرعية",
+    "manageSubcategories": "الفئات الفرعية",
+    "collapseSubcategories": "إخفاء الفئات الفرعية",
+    "noSubcategories": "لا توجد فئات فرعية بعد.",
+    "subNameEnPlaceholder": "الفئة الفرعية (إنجليزي)",
+    "subNameArPlaceholder": "الفئة الفرعية (عربي)",
+    "addSubcategory": "إضافة فئة فرعية",
+    "subcategoryCreated": "تمت إضافة الفئة الفرعية.",
+    "subcategoryDeleted": "تمت إزالة الفئة الفرعية.",
+    "subcategoryCreateError": "تعذر إضافة الفئة الفرعية.",
+    "subcategoryDeleteError": "تعذر إزالة الفئة الفرعية."
   }
 }
