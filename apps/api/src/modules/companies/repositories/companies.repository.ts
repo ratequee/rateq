@@ -11,6 +11,7 @@ export interface SearchCompaniesFilters {
   country?: string;
   city?: string;
   categoryId?: string;
+  subcategoryId?: string;
   minRating?: number;
   sort?: CompanySortOption;
   page: number;
@@ -333,6 +334,12 @@ export class CompaniesRepository {
           { categoryId: filters.categoryId },
           { categoryIds: { array_contains: [filters.categoryId] } },
         ],
+      });
+    }
+
+    if (filters.subcategoryId) {
+      andConditions.push({
+        subcategoryIds: { array_contains: [filters.subcategoryId] },
       });
     }
 

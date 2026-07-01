@@ -83,6 +83,16 @@ export const adminApi = {
       { method: 'POST', body: JSON.stringify(data), token: await token() },
     ),
 
+  updateSubcategory: async (
+    categoryId: string,
+    subcategoryId: string,
+    data: import('@rateq/types').UpdateCategorySubcategoryInput,
+  ) =>
+    apiClient<import('@rateq/types').CategorySubcategoryPublic>(
+      `/admin/categories/${categoryId}/subcategories/${subcategoryId}`,
+      { method: 'PATCH', body: JSON.stringify(data), token: await token() },
+    ),
+
   removeSubcategory: async (categoryId: string, subcategoryId: string) =>
     apiClient<{ message: string }>(
       `/admin/categories/${categoryId}/subcategories/${subcategoryId}`,

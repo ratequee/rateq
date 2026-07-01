@@ -2,6 +2,7 @@
 
 import { darkBorder, darkCard } from '@/lib/dark-surfaces';
 
+import { VerifiedStampBadge } from '@/components/company/verified-stamp-badge';
 import type { CompanyPublic } from '@rateq/types';
 import { Badge } from '@/components/ui/badge';
 import { StarRating } from '@/components/ui/star-rating';
@@ -20,9 +21,7 @@ export function FeaturedCompanyCard({ company }: FeaturedCompanyCardProps) {
   const locale = useLocale();
   const categoryLabel = getLocalizedCategoryName(company, locale);
 
-  const badges = [t('badgeVerifiedLabel'), categoryLabel].filter((label): label is string =>
-    Boolean(label),
-  );
+  const badges = [categoryLabel].filter((label): label is string => Boolean(label));
 
   return (
     <Link
@@ -46,16 +45,19 @@ export function FeaturedCompanyCard({ company }: FeaturedCompanyCardProps) {
         ) : (
           <div className="absolute inset-0 bg-gradient-to-br from-brand-500/90 to-brand-700" />
         )}
+        {company.showVerifiedStamp ? (
+          <div className="absolute start-4 top-4 z-10">
+            <VerifiedStampBadge size="md" alt={t('badgeVerifiedLabel')} />
+          </div>
+        ) : null}
         {badges.length > 0 && (
-          <div className="absolute start-4 top-4 z-10 flex flex-wrap gap-2">
+          <div
+            className={`absolute start-4 z-10 flex flex-wrap gap-2 ${company.showVerifiedStamp ? 'top-20' : 'top-4'}`}
+          >
             {badges.map((badge, index) => (
               <Badge
                 key={`${index}-${badge}`}
-                className={cn(
-                  'rounded-sm border-0 bg-gold-300 text-xs font-medium text-white',
-                  index === 0 && 'bg-gold-500',
-                  index === 1 && 'bg-white text-brand-500',
-                )}
+                className="rounded-sm border-0 bg-white text-xs font-medium text-brand-500"
               >
                 {badge}
               </Badge>
@@ -78,9 +80,14 @@ export function FeaturedCompanyCard({ company }: FeaturedCompanyCardProps) {
             </div>
           )}
           <div className="flex flex-col">
-            <h3 className="text-lg font-semibold text-ink transition-colors group-hover:text-brand-500 dark:text-white dark:group-hover:text-white/90">
-              {company.name}
-            </h3>
+            <div className="flex items-center gap-2">
+              <h3 className="text-lg font-semibold text-ink transition-colors group-hover:text-brand-500 dark:text-white dark:group-hover:text-white/90">
+                {company.name}
+              </h3>
+              {company.showVerifiedStamp ? (
+                <VerifiedStampBadge size="sm" alt={t('badgeVerifiedLabel')} />
+              ) : null}
+            </div>
             <p className="mt-0.5 text-sm text-ink-muted dark:text-white/85">
               {company.city}, {company.country}
             </p>

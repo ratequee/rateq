@@ -112,35 +112,44 @@ export function CategoryCard({ category, variant = 'default', className }: Categ
   }
 
   return (
-    <Link
-      href={href}
+    <div
       className={cn(
         'group relative mt-10 flex flex-col rounded-2xl border border-default bg-white px-6 pb-6 pt-14 shadow-sm transition-all hover:border-gold-400 hover:shadow-md dark:bg-dm-surface',
         className,
       )}
     >
-      <div className="absolute start-1/2 top-0 flex h-20 w-20 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-xl bg-gold-300 text-white transition-colors group-hover:bg-gold-400 rtl:translate-x-1/2">
+      <Link
+        href={href}
+        className="absolute start-1/2 top-0 flex h-20 w-20 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-xl bg-gold-300 text-white transition-colors group-hover:bg-gold-400 rtl:translate-x-1/2"
+      >
         <CategoryIconDisplay category={category} className="h-11 w-11" iconClassName="h-11 w-11" />
-      </div>
+      </Link>
 
-      <CategoryBilingualName
-        nameEn={category.nameEn}
-        nameAr={category.nameAr}
-        className="text-center"
-        primaryClassName="text-lg font-bold text-primary dark:text-white"
-        secondaryClassName="text-sm font-medium text-secondary dark:text-white/80"
-      />
+      <Link href={href} className="text-center">
+        <CategoryBilingualName
+          nameEn={category.nameEn}
+          nameAr={category.nameAr}
+          className="text-center"
+          primaryClassName="text-lg font-bold text-primary transition-colors group-hover:text-brand-500 dark:text-white"
+          secondaryClassName="text-sm font-medium text-secondary dark:text-white/80"
+        />
+      </Link>
 
       {subcategories.length > 0 ? (
         <ul className="mt-4 divide-y divide-slate-200 dark:divide-dm-border">
           {subcategories.map((subcategory) => (
-            <li key={subcategory.id} className="py-3">
-              <p className="text-sm font-medium text-primary dark:text-white">
-                {subcategory.nameEn}
-              </p>
-              <p className="text-sm text-secondary dark:text-white/80" dir="rtl">
-                {subcategory.nameAr}
-              </p>
+            <li key={subcategory.id}>
+              <Link
+                href={`/categories/${category.slug}?subcategoryId=${subcategory.id}`}
+                className="block py-3 transition-colors hover:bg-brand-50/50 dark:hover:bg-dm-elevated"
+              >
+                <p className="text-sm font-medium text-primary dark:text-white">
+                  {subcategory.nameEn}
+                </p>
+                <p className="text-sm text-secondary dark:text-white/80" dir="rtl">
+                  {subcategory.nameAr}
+                </p>
+              </Link>
             </li>
           ))}
         </ul>
@@ -149,6 +158,6 @@ export function CategoryCard({ category, variant = 'default', className }: Categ
           {t('noSubcategories')}
         </p>
       )}
-    </Link>
+    </div>
   );
 }

@@ -45,4 +45,8 @@ export class CategorySubcategoriesRepository {
   delete(id: string): Promise<CategorySubcategory> {
     return this.prisma.categorySubcategory.delete({ where: { id } });
   }
+
+  update(id: string, data: Prisma.CategorySubcategoryUpdateInput): Promise<CategorySubcategory> {
+    return this.prisma.categorySubcategory.update({ where: { id }, data });
+  }
 }

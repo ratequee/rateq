@@ -44,6 +44,11 @@ export interface CreateCategorySubcategoryInput {
   nameAr: string;
 }
 
+export interface UpdateCategorySubcategoryInput {
+  nameEn?: string;
+  nameAr?: string;
+}
+
 export interface CreateCategoryServiceInput {
   name: string;
 }

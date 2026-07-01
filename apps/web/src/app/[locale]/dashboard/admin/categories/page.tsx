@@ -40,6 +40,10 @@ export default function AdminCategoriesPage() {
   const [subNameAr, setSubNameAr] = useState('');
   const [subSubmitting, setSubSubmitting] = useState(false);
   const [subDeletingId, setSubDeletingId] = useState<string | null>(null);
+  const [editingSubcategoryId, setEditingSubcategoryId] = useState<string | null>(null);
+  const [editSubNameEn, setEditSubNameEn] = useState('');
+  const [editSubNameAr, setEditSubNameAr] = useState('');
+  const [subEditSaving, setSubEditSaving] = useState(false);
 
   useRequireAdmin(AdminPermission.CONTENT);
 
@@ -173,6 +177,8 @@ export default function AdminCategoriesPage() {
   };
 
   const handleRemoveSubcategory = async (categoryId: string, subcategoryId: string) => {
+    if (!window.confirm(t('subcategoryDeleteConfirm'))) return;
+
     setSubDeletingId(subcategoryId);
     try {
       await adminApi.removeSubcategory(categoryId, subcategoryId);
@@ -183,6 +189,41 @@ export default function AdminCategoriesPage() {
       toast.error(message);
     } finally {
       setSubDeletingId(null);
+    }
+  };
+
+  const startSubcategoryEdit = (subcategory: { id: string; nameEn: string; nameAr: string }) => {
+    setEditingSubcategoryId(subcategory.id);
+    setEditSubNameEn(subcategory.nameEn);
+    setEditSubNameAr(subcategory.nameAr);
+  };
+
+  const cancelSubcategoryEdit = () => {
+    setEditingSubcategoryId(null);
+    setEditSubNameEn('');
+    setEditSubNameAr('');
+  };
+
+  const handleUpdateSubcategory = async (categoryId: string, subcategoryId: string) => {
+    if (!editSubNameEn.trim() || !editSubNameAr.trim()) {
+      toast.error(t('namesRequired'));
+      return;
+    }
+
+    setSubEditSaving(true);
+    try {
+      await adminApi.updateSubcategory(categoryId, subcategoryId, {
+        nameEn: editSubNameEn.trim(),
+        nameAr: editSubNameAr.trim(),
+      });
+      cancelSubcategoryEdit();
+      await loadCategories();
+      toast.success(t('subcategoryUpdated'));
+    } catch (err) {
+      const message = err instanceof ApiError ? err.message : t('subcategoryUpdateError');
+      toast.error(message);
+    } finally {
+      setSubEditSaving(false);
     }
   };
 
@@ -366,32 +407,94 @@ export default function AdminCategoriesPage() {
                                 {(category.subcategories ?? []).map((subcategory) => (
                                   <li
                                     key={subcategory.id}
-                                    className="flex items-center justify-between gap-2 rounded-lg border border-subtle bg-white px-3 py-2 dark:bg-dm-surface"
+                                    className="rounded-lg border border-subtle bg-white px-3 py-2 dark:bg-dm-surface"
                                   >
-                                    <div>
-                                      <p className="text-sm font-medium text-primary">
-                                        {subcategory.nameEn}
-                                      </p>
-                                      <p className="text-sm text-secondary" dir="rtl">
-                                        {subcategory.nameAr}
-                                      </p>
-                                    </div>
-                                    <Button
-                                      type="button"
-                                      variant="ghost"
-                                      size="sm"
-                                      disabled={subDeletingId === subcategory.id}
-                                      onClick={() =>
-                                        void handleRemoveSubcategory(category.id, subcategory.id)
-                                      }
-                                      className="text-red-600"
-                                    >
-                                      {subDeletingId === subcategory.id ? (
-                                        <Loader2 className="h-4 w-4 animate-spin" />
-                                      ) : (
-                                        <Trash2 className="h-4 w-4" />
-                                      )}
-                                    </Button>
+                                    {editingSubcategoryId === subcategory.id ? (
+                                      <div className="space-y-2">
+                                        <div className="grid gap-2 sm:grid-cols-2">
+                                          <Input
+                                            value={editSubNameEn}
+                                            onChange={(e) => setEditSubNameEn(e.target.value)}
+                                            className="h-9"
+                                          />
+                                          <Input
+                                            value={editSubNameAr}
+                                            onChange={(e) => setEditSubNameAr(e.target.value)}
+                                            className="h-9"
+                                            dir="rtl"
+                                          />
+                                        </div>
+                                        <div className="flex gap-2">
+                                          <Button
+                                            type="button"
+                                            size="sm"
+                                            disabled={subEditSaving}
+                                            onClick={() =>
+                                              void handleUpdateSubcategory(
+                                                category.id,
+                                                subcategory.id,
+                                              )
+                                            }
+                                          >
+                                            {subEditSaving ? (
+                                              <Loader2 className="h-4 w-4 animate-spin" />
+                                            ) : (
+                                              t('saveEdit')
+                                            )}
+                                          </Button>
+                                          <Button
+                                            type="button"
+                                            variant="ghost"
+                                            size="sm"
+                                            onClick={cancelSubcategoryEdit}
+                                          >
+                                            <X className="h-4 w-4" />
+                                          </Button>
+                                        </div>
+                                      </div>
+                                    ) : (
+                                      <div className="flex items-center justify-between gap-2">
+                                        <div>
+                                          <p className="text-sm font-medium text-primary">
+                                            {subcategory.nameEn}
+                                          </p>
+                                          <p className="text-sm text-secondary" dir="rtl">
+                                            {subcategory.nameAr}
+                                          </p>
+                                        </div>
+                                        <div className="flex shrink-0 gap-1">
+                                          <Button
+                                            type="button"
+                                            variant="ghost"
+                                            size="sm"
+                                            onClick={() => startSubcategoryEdit(subcategory)}
+                                            aria-label={t('edit')}
+                                          >
+                                            <Pencil className="h-4 w-4" />
+                                          </Button>
+                                          <Button
+                                            type="button"
+                                            variant="ghost"
+                                            size="sm"
+                                            disabled={subDeletingId === subcategory.id}
+                                            onClick={() =>
+                                              void handleRemoveSubcategory(
+                                                category.id,
+                                                subcategory.id,
+                                              )
+                                            }
+                                            className="text-red-600"
+                                            aria-label={t('remove')}
+                                          >
+                                            {subDeletingId === subcategory.id ? (
+                                              <Loader2 className="h-4 w-4 animate-spin" />
+                                            ) : (
+                                              <Trash2 className="h-4 w-4" />
+                                            )}
+                                          </Button>
+                                        </div>
+                                      </div>
+                                    )}
                                   </li>
                                 ))}
                               </ul>

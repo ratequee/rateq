@@ -15,6 +15,7 @@ import { RequireAdminPermission } from '../../common/decorators/require-admin-pe
 import { AdminPermissionGuard } from '../auth/guards/admin-permission.guard';
 import { CreateCategoryDto } from './dto/create-category.dto';
 import { CreateCategorySubcategoryDto } from './dto/create-category-subcategory.dto';
+import { UpdateCategorySubcategoryDto } from './dto/update-category-subcategory.dto';
 import { UpdateCategoryDto } from './dto/update-category.dto';
 import { CategoriesService } from './categories.service';
 
@@ -42,6 +43,16 @@ export class AdminCategoriesController {
   @ApiOperation({ summary: 'Add a subcategory to a business category (admin)' })
   addSubcategory(@Param('id') id: string, @Body() dto: CreateCategorySubcategoryDto) {
     return this.categoriesService.addSubcategory(id, dto);
+  }
+
+  @Patch(':id/subcategories/:subcategoryId')
+  @ApiOperation({ summary: 'Update a subcategory (admin)' })
+  updateSubcategory(
+    @Param('id') id: string,
+    @Param('subcategoryId') subcategoryId: string,
+    @Body() dto: UpdateCategorySubcategoryDto,
+  ) {
+    return this.categoriesService.updateSubcategory(id, subcategoryId, dto);
   }
 
   @Delete(':id/subcategories/:subcategoryId')

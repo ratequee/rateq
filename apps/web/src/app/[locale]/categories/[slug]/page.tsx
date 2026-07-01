@@ -16,6 +16,7 @@ interface CategoryDetailPageProps {
   params: Promise<{ locale: string; slug: string }>;
   searchParams: Promise<{
     query?: string;
+    subcategoryId?: string;
     city?: string;
     minRating?: string;
     sort?: string;
@@ -58,6 +59,7 @@ export default async function CategoryDetailPage({
     categoryId: category.id,
   });
   if (filters.query?.trim()) query.set('query', filters.query.trim());
+  if (filters.subcategoryId) query.set('subcategoryId', filters.subcategoryId);
   if (filters.minRating) query.set('minRating', filters.minRating);
 
   const result = await fetchCompanies(query);
@@ -71,6 +73,7 @@ export default async function CategoryDetailPage({
         category={category}
         params={{
           query: filters.query,
+          subcategoryId: filters.subcategoryId,
           minRating: filters.minRating,
           sort: filters.sort,
         }}

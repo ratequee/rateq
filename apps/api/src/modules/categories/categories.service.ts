@@ -15,6 +15,7 @@ import type {
   CreateCategorySubcategoryInput,
   MessageResponse,
   UpdateCategoryInput,
+  UpdateCategorySubcategoryInput,
 } from '@rateq/types';
 import { slugify, withSlugSuffix } from '@rateq/utils';
 import { CategoriesRepository } from './repositories/categories.repository';
@@ -164,6 +165,40 @@ export class CategoriesService {
     return toCategorySubcategoryPublic(subcategory);
   }
 
+  async updateSubcategory(
+    categoryId: string,
+    subcategoryId: string,
+    input: UpdateCategorySubcategoryInput,
+  ): Promise<CategorySubcategoryPublic> {
+    await this.assertExists(categoryId);
+    const subcategory = await this.categorySubcategoriesRepository.findById(subcategoryId);
+    if (!subcategory || subcategory.categoryId !== categoryId) {
+      throw new NotFoundException('Subcategory not found for this category');
+    }
+
+    const nameEn = input.nameEn?.trim();
+    const nameAr = input.nameAr?.trim();
+
+    if (nameEn !== undefined && !nameEn) {
+      throw new BadRequestException('English subcategory name cannot be empty');
+    }
+    if (nameAr !== undefined && !nameAr) {
+      throw new BadRequestException('Arabic subcategory name cannot be empty');
+    }
+
+    const slug =
+      nameEn && nameEn !== subcategory.nameEn
+        ? await this.generateUniqueSubcategorySlug(categoryId, nameEn, subcategoryId)
+        : undefined;
+
+    const updated = await this.categorySubcategoriesRepository.update(subcategoryId, {
+      ...(nameEn !== undefined && { nameEn, ...(slug ? { slug } : {}) }),
+      ...(nameAr !== undefined && { nameAr }),
+    });
+
+    return toCategorySubcategoryPublic(updated);
+  }
+
   async removeSubcategory(categoryId: string, subcategoryId: string): Promise<MessageResponse> {
     await this.assertExists(categoryId);
     const subcategory = await this.categorySubcategoriesRepository.findById(subcategoryId);
@@ -175,7 +210,11 @@ export class CategoriesService {
     return { message: 'Subcategory deleted successfully' };
   }
 
-  private async generateUniqueSubcategorySlug(categoryId: string, name: string): Promise<string> {
+  private async generateUniqueSubcategorySlug(
+    categoryId: string,
+    name: string,
+    excludeId?: string,
+  ): Promise<string> {
     const base = slugify(name);
     if (!base) {
       throw new BadRequestException('Subcategory name cannot produce a valid URL slug');
@@ -183,7 +222,9 @@ export class CategoriesService {
 
     let attempt = 0;
     let candidate = base;
-    while (await this.categorySubcategoriesRepository.slugExists(categoryId, candidate)) {
+    while (
+      await this.categorySubcategoriesRepository.slugExists(categoryId, candidate, excludeId)
+    ) {
       attempt += 1;
       candidate = withSlugSuffix(base, attempt);
       if (attempt > 100) {

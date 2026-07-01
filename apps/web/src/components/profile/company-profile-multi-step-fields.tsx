@@ -9,8 +9,7 @@ import type { CompanyMapLocation } from '@/lib/company-location';
 import type { CategoryPublic, CompanyCatalogItemPublic } from '@rateq/types';
 import type { CompanyExistingAssets } from '@/lib/profile-company-assets';
 import { cn } from '@/lib/utils';
-import { CategoryMultiSelect } from '@/components/profile/category-multi-select';
-import { SubcategoryMultiSelect } from '@/components/profile/subcategory-multi-select';
+import { CategorySubcategoryPicker } from '@/components/profile/category-subcategory-picker';
 import { useTranslations } from 'next-intl';
 import type { Dispatch, SetStateAction } from 'react';
 
@@ -293,22 +292,16 @@ export function CompanyProfileMultiStepFields({
             label={t('phone')}
             fieldKey="companyPhone"
           />
-          <CategoryMultiSelect
+          <CategorySubcategoryPicker
             label={t('category')}
-            hint={t('categoriesMultiHint')}
-            categories={categories}
-            selectedIds={categoryIds}
-            onChange={setCategoryIds}
-            error={errors.categoryId}
-          />
-          <SubcategoryMultiSelect
-            label={t('subcategories')}
-            hint={t('subcategoriesHint')}
+            hint={t('categoriesSubcategoriesHint')}
             categories={categories}
             selectedCategoryIds={categoryIds}
             selectedSubcategoryIds={subcategoryIds}
-            onChange={setSubcategoryIds}
-            error={errors.subcategoryIds}
+            onCategoryChange={setCategoryIds}
+            onSubcategoryChange={setSubcategoryIds}
+            categoryError={errors.categoryId}
+            subcategoryError={errors.subcategoryIds}
           />
         </>
       ) : null}

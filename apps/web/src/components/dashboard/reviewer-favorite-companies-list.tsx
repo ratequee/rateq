@@ -1,6 +1,7 @@
 'use client';
 
 import { AvatarImage } from '@/components/ui/avatar-image';
+import { VerifiedStampBadge } from '@/components/company/verified-stamp-badge';
 import { StarRating } from '@/components/ui/star-rating';
 import { companiesApi } from '@/lib/api';
 import { Link } from '@/i18n/routing';
@@ -11,6 +12,7 @@ import { useEffect, useState } from 'react';
 
 export function ReviewerFavoriteCompaniesList() {
   const t = useTranslations('reviewerFavorites');
+  const tc = useTranslations('company');
   const [companies, setCompanies] = useState<CompanyPublic[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -60,7 +62,12 @@ export function ReviewerFavoriteCompaniesList() {
                 className="h-14 w-14 shrink-0 shadow-md ring-1 ring-slate-100"
               />
               <div className="min-w-0 text-start">
-                <p className="truncate font-semibold text-primary">{company.name}</p>
+                <div className="flex items-center gap-2">
+                  <p className="truncate font-semibold text-primary">{company.name}</p>
+                  {company.showVerifiedStamp ? (
+                    <VerifiedStampBadge size="sm" alt={tc('verifiedBadge')} />
+                  ) : null}
+                </div>
                 <p className="text-sm text-secondary">
                   {company.city}, {company.country}
                 </p>

@@ -65,6 +65,7 @@ export class CompaniesService {
       country: query.country,
       city: query.city,
       categoryId: query.categoryId,
+      subcategoryId: query.subcategoryId,
       minRating: query.minRating,
       sort: query.sort,
       page: query.page,

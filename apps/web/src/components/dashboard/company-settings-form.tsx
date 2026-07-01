@@ -1,7 +1,6 @@
 'use client';
 
-import { CategoryMultiSelect } from '@/components/profile/category-multi-select';
-import { SubcategoryMultiSelect } from '@/components/profile/subcategory-multi-select';
+import { CategorySubcategoryPicker } from '@/components/profile/category-subcategory-picker';
 import { CompanyAddressMapField } from '@/components/profile/company-address-map-field';
 import {
   ProfileChangesPendingBanner,
@@ -165,27 +164,21 @@ function CompanySettingsForm({ company }: { company: CompanyProfileDetail }) {
           className="bg-slate-50 dark:bg-dm-elevated"
         />
       </Field>
-      <CategoryMultiSelect
+      <CategorySubcategoryPicker
         label={t('category')}
-        hint={t('categoriesMultiHint')}
+        hint={t('categoriesSubcategoriesHint')}
         categories={categories}
-        selectedIds={categoryIds}
-        onChange={(ids) => {
+        selectedCategoryIds={categoryIds}
+        selectedSubcategoryIds={subcategoryIds}
+        onCategoryChange={(ids) => {
           setCategoryIds(ids);
           setSubcategoryIds((current) =>
             filterSubcategoryIdsForCategories(categories, ids, current),
           );
         }}
-        error={errors.categoryId}
-      />
-      <SubcategoryMultiSelect
-        label={t('subcategories')}
-        hint={t('subcategoriesHint')}
-        categories={categories}
-        selectedCategoryIds={categoryIds}
-        selectedSubcategoryIds={subcategoryIds}
-        onChange={setSubcategoryIds}
-        error={errors.subcategoryIds}
+        onSubcategoryChange={setSubcategoryIds}
+        categoryError={errors.categoryId}
+        subcategoryError={errors.subcategoryIds}
       />
       <Button type="submit" disabled={submitting} className="w-full">
         {submitting ? t('saving') : t('saveChanges')}

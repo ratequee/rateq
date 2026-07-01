@@ -339,6 +339,8 @@
     "sortName": "الاسم أ–ي",
     "allCategories": "جميع التصنيفات",
     "category": "التصنيف",
+    "subcategory": "الفئة الفرعية",
+    "allSubcategories": "جميع الفئات الفرعية",
     "resultsCount": "{count} نتيجة"
   },
   "company": {
@@ -624,8 +626,11 @@
     "category": "فئة النشاط",
     "selectCategory": "اختر فئة",
     "categoriesMultiHint": "اختر فئة نشاط واحدة أو أكثر.",
+    "categoriesSubcategoriesHint": "اختر الفئات، ثم اختر فئة فرعية واحدة على الأقل لكل فئة محددة.",
     "subcategories": "الفئات الفرعية",
     "subcategoriesHint": "اختر فئة فرعية واحدة على الأقل لكل فئة محددة عند توفرها.",
+    "subcategoryRequiredSelection": "اختر واحدة على الأقل *",
+    "subcategorySelectedCount": "{count, plural, one {تم اختيار #} other {تم اختيار #}}",
     "socialLinksTitle": "روابط التواصل",
     "socialLinksHint": "اختياري. تظهر على صفحة شركتك العامة.",
     "socialLinksCardSubtitle": "تُحفظ التحديثات فورًا — دون الحاجة لموافقة الإدارة.",
@@ -1574,8 +1579,11 @@
     "subNameArPlaceholder": "الفئة الفرعية (عربي)",
     "addSubcategory": "إضافة فئة فرعية",
     "subcategoryCreated": "تمت إضافة الفئة الفرعية.",
+    "subcategoryUpdated": "تم تحديث الفئة الفرعية.",
     "subcategoryDeleted": "تمت إزالة الفئة الفرعية.",
     "subcategoryCreateError": "تعذر إضافة الفئة الفرعية.",
-    "subcategoryDeleteError": "تعذر إزالة الفئة الفرعية."
+    "subcategoryUpdateError": "تعذر تحديث الفئة الفرعية.",
+    "subcategoryDeleteError": "تعذر إزالة الفئة الفرعية.",
+    "subcategoryDeleteConfirm": "حذف هذه الفئة الفرعية؟ ستبقى الشركات المرتبطة بها حتى يتم تحديثها."
   }
 }

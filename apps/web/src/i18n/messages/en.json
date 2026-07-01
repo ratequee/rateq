@@ -339,6 +339,8 @@
     "sortName": "Name A–Z",
     "allCategories": "All categories",
     "category": "Category",
+    "subcategory": "Subcategory",
+    "allSubcategories": "All subcategories",
     "resultsCount": "{count} results"
   },
   "company": {
@@ -624,8 +626,11 @@
     "category": "Business category",
     "selectCategory": "Select a category",
     "categoriesMultiHint": "Select one or more business categories.",
+    "categoriesSubcategoriesHint": "Select categories, then choose at least one subcategory for each selected category.",
     "subcategories": "Subcategories",
     "subcategoriesHint": "Choose at least one subcategory for each selected category when available.",
+    "subcategoryRequiredSelection": "Select at least one *",
+    "subcategorySelectedCount": "{count, plural, one {# selected} other {# selected}}",
     "socialLinksTitle": "Social links",
     "socialLinksHint": "Optional. Shown on your public company page.",
     "socialLinksCardSubtitle": "Updates save immediately — no admin approval needed.",
@@ -1322,9 +1327,12 @@
     "subNameArPlaceholder": "Subcategory (Arabic)",
     "addSubcategory": "Add subcategory",
     "subcategoryCreated": "Subcategory added.",
+    "subcategoryUpdated": "Subcategory updated.",
     "subcategoryDeleted": "Subcategory removed.",
     "subcategoryCreateError": "Could not add subcategory.",
-    "subcategoryDeleteError": "Could not remove subcategory."
+    "subcategoryUpdateError": "Could not update subcategory.",
+    "subcategoryDeleteError": "Could not remove subcategory.",
+    "subcategoryDeleteConfirm": "Delete this subcategory? Companies linked to it will keep the ID until updated."
   },
   "adminTeam": {
     "title": "Admin team",

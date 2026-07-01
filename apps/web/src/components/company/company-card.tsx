@@ -4,6 +4,7 @@ import type { CompanyPublic } from '@rateq/types';
 import { Link } from '@/i18n/routing';
 import { Card, CardContent } from '@/components/ui/card';
 import { StarRating } from '@/components/ui/star-rating';
+import { VerifiedStampBadge } from '@/components/company/verified-stamp-badge';
 import { MapPin } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 
@@ -13,14 +14,22 @@ interface CompanyCardProps {
 
 export function CompanyCard({ company }: CompanyCardProps) {
   const t = useTranslations('common');
+  const tc = useTranslations('company');
 
   return (
     <Link href={`/companies/${company.slug}`}>
       <Card className="h-full transition-shadow hover:shadow-md">
         <CardContent className="flex flex-col gap-3 p-5">
           <div className="flex items-start justify-between gap-3">
-            <div>
-              <h3 className="font-semibold text-slate-900 dark:text-white">{company.name}</h3>
+            <div className="min-w-0 flex-1">
+              <div className="flex items-center gap-2">
+                <h3 className="truncate font-semibold text-slate-900 dark:text-white">
+                  {company.name}
+                </h3>
+                {company.showVerifiedStamp ? (
+                  <VerifiedStampBadge size="sm" alt={tc('verifiedBadge')} />
+                ) : null}
+              </div>
               <p className="mt-1 flex items-center gap-1 text-sm text-slate-500 dark:text-slate-400">
                 <MapPin className="h-3.5 w-3.5" />
                 {company.city}, {company.country}
