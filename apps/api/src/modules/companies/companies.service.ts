@@ -21,8 +21,8 @@ import type {
 import { UserRole } from '@rateq/types';
 import { AdminActivityAction, AdminActivityEntityType } from '@rateq/types';
 import { UserRole as PrismaUserRole, Prisma, ReviewStatus } from '@prisma/client';
-import { slugify, withSlugSuffix } from '@rateq/utils';
-import { calculateYearsInBusiness } from '@rateq/utils';
+import { slugify, withSlugSuffix, calculateYearsInBusiness } from '@rateq/utils';
+import { PrismaService } from '../../infrastructure/database/prisma.service';
 import { buildPaginationMeta } from '../../common/utils/pagination.util';
 import { CompaniesRepository } from './repositories/companies.repository';
 import { CategoriesService } from '../categories/categories.service';
