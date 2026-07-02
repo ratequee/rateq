@@ -37,6 +37,7 @@ import {
 } from '@/lib/validation/profile-fields';
 import { cn } from '@/lib/utils';
 import { approximateRegistrationDateFromYears } from '@/lib/company-years';
+import { isRemoteImage, isRemotePdf } from '@/lib/profile-company-assets';
 import { getSuggestedDisplayName } from '@/lib/user-display-name';
 import { PhoneVerificationField } from '@/components/profile/phone-verification-field';
 import { extractQatarPhoneDigits, formatQatarPhoneForSubmit } from '@/lib/qatar-phone';
