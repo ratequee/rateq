@@ -74,6 +74,7 @@ export interface CompanyPublic {
   activityItems: CompanyCatalogLabel[];
   serviceRatingAggregates?: CompanyServiceRatingAggregate[];
   yearsEstablished: number | null;
+  firstRegistrationDate?: string | null;
   publicProjectCount: number | null;
   privateProjectCount: number | null;
   projects: CompanyProjectPublic[];
@@ -137,6 +138,7 @@ export interface CreateCompanyInput {
   serviceIds?: string[];
   activityIds?: string[];
   yearsEstablished?: number;
+  firstRegistrationDate?: string;
   publicProjectCount?: number;
   privateProjectCount?: number;
 }
@@ -172,6 +174,7 @@ export interface UpdateCompanyInput {
   serviceIds?: string[];
   activityIds?: string[];
   yearsEstablished?: number;
+  firstRegistrationDate?: string;
   publicProjectCount?: number;
   privateProjectCount?: number;
   projects?: UpdateCompanyProjectInput[];

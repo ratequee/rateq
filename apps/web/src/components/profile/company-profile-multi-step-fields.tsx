@@ -9,7 +9,7 @@ import type { CompanyMapLocation } from '@/lib/company-location';
 import type { CategoryPublic, CompanyCatalogItemPublic } from '@rateq/types';
 import type { CompanyExistingAssets } from '@/lib/profile-company-assets';
 import { cn } from '@/lib/utils';
-import { CategorySubcategoryPicker } from '@/components/profile/category-subcategory-picker';
+import { CompanyYearsEstablishedField } from '@/components/profile/company-years-established-field';
 import { useTranslations } from 'next-intl';
 import type { Dispatch, SetStateAction } from 'react';
 
@@ -30,8 +30,8 @@ interface CompanyProfileMultiStepFieldsProps {
   setServiceIds: Dispatch<SetStateAction<string[]>>;
   activityIds: string[];
   setActivityIds: Dispatch<SetStateAction<string[]>>;
-  yearsEstablished: string;
-  setYearsEstablished: (value: string) => void;
+  firstRegistrationDate: string;
+  setFirstRegistrationDate: (value: string) => void;
   publicProjectCount: string;
   setPublicProjectCount: (value: string) => void;
   privateProjectCount: string;
@@ -120,8 +120,8 @@ export function CompanyProfileMultiStepFields({
   setServiceIds,
   activityIds,
   setActivityIds,
-  yearsEstablished,
-  setYearsEstablished,
+  firstRegistrationDate,
+  setFirstRegistrationDate,
   publicProjectCount,
   setPublicProjectCount,
   privateProjectCount,
@@ -240,16 +240,10 @@ export function CompanyProfileMultiStepFields({
             onChange={setActivityIds}
           />
           <div className="grid gap-4 sm:grid-cols-3">
-            <Field label={t('yearsEstablished')} fieldKey="yearsEstablished">
-              <Input
-                type="number"
-                min={0}
-                max={200}
-                value={yearsEstablished}
-                onChange={(e) => setYearsEstablished(e.target.value)}
-                className="h-11"
-              />
-            </Field>
+            <CompanyYearsEstablishedField
+              firstRegistrationDate={firstRegistrationDate}
+              onChange={setFirstRegistrationDate}
+            />
             <Field label={t('publicProjectCount')} fieldKey="publicProjectCount">
               <Input
                 type="number"

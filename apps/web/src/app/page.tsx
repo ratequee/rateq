@@ -8,7 +8,7 @@ export default function ComingSoonPage(): JSX.Element {
     <div className="min-h-screen bg-brand-500">
       <div className="mx-auto flex min-h-screen max-w-page flex-col px-4 sm:px-6 lg:px-8">
         <header className="flex items-center justify-between py-6">
-          <Logo variant="light" />
+          <Logo variant="light" className="h-9 w-auto sm:h-10" />
           <div className="flex items-center gap-2 text-sm font-medium">
             <Link
               href="/en"

@@ -36,7 +36,7 @@ import {
   validateReviewerProfileFields,
 } from '@/lib/validation/profile-fields';
 import { cn } from '@/lib/utils';
-import { isRemoteImage, isRemotePdf } from '@/lib/profile-company-assets';
+import { approximateRegistrationDateFromYears } from '@/lib/company-years';
 import { getSuggestedDisplayName } from '@/lib/user-display-name';
 import { PhoneVerificationField } from '@/components/profile/phone-verification-field';
 import { extractQatarPhoneDigits, formatQatarPhoneForSubmit } from '@/lib/qatar-phone';
@@ -86,7 +86,7 @@ export default function CompleteProfilePage() {
   const [descriptionAr, setDescriptionAr] = useState('');
   const [serviceIds, setServiceIds] = useState<string[]>([]);
   const [activityIds, setActivityIds] = useState<string[]>([]);
-  const [yearsEstablished, setYearsEstablished] = useState('');
+  const [firstRegistrationDate, setFirstRegistrationDate] = useState('');
   const [publicProjectCount, setPublicProjectCount] = useState('');
   const [privateProjectCount, setPrivateProjectCount] = useState('');
   const [catalogServices, setCatalogServices] = useState<CompanyCatalogItemPublic[]>([]);
@@ -161,10 +161,11 @@ export default function CompleteProfilePage() {
       setDescriptionAr(onboarding.company.descriptionAr ?? '');
       setServiceIds(onboarding.company.serviceItems?.map((item) => item.id) ?? []);
       setActivityIds(onboarding.company.activityItems?.map((item) => item.id) ?? []);
-      setYearsEstablished(
-        onboarding.company.yearsEstablished != null
-          ? String(onboarding.company.yearsEstablished)
-          : '',
+      setFirstRegistrationDate(
+        onboarding.company.firstRegistrationDate?.slice(0, 10) ??
+          (onboarding.company.yearsEstablished != null
+            ? approximateRegistrationDateFromYears(onboarding.company.yearsEstablished)
+            : ''),
       );
       setPublicProjectCount(
         onboarding.company.publicProjectCount != null
@@ -534,7 +535,7 @@ export default function CompleteProfilePage() {
         descriptionAr: descriptionAr.trim() || undefined,
         serviceIds,
         activityIds,
-        yearsEstablished: yearsEstablished ? Number(yearsEstablished) : undefined,
+        firstRegistrationDate: firstRegistrationDate || undefined,
         publicProjectCount: publicProjectCount ? Number(publicProjectCount) : undefined,
         privateProjectCount: privateProjectCount ? Number(privateProjectCount) : undefined,
         address: companyAddress.trim(),
@@ -736,8 +737,8 @@ export default function CompleteProfilePage() {
                   setServiceIds={setServiceIds}
                   activityIds={activityIds}
                   setActivityIds={setActivityIds}
-                  yearsEstablished={yearsEstablished}
-                  setYearsEstablished={setYearsEstablished}
+                  firstRegistrationDate={firstRegistrationDate}
+                  setFirstRegistrationDate={setFirstRegistrationDate}
                   publicProjectCount={publicProjectCount}
                   setPublicProjectCount={setPublicProjectCount}
                   privateProjectCount={privateProjectCount}

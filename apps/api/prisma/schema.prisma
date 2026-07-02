@@ -310,6 +310,7 @@ model Company {
   serviceIds         Json?                     @map("service_ids")
   activityIds        Json?                     @map("activity_ids")
   yearsEstablished   Int?                      @map("years_established")
+  firstRegistrationDate DateTime?              @map("first_registration_date")
   publicProjectCount Int?                      @map("public_project_count")
   privateProjectCount Int?                     @map("private_project_count")
   ratingAverage      Decimal                   @default(0) @map("rating_average") @db.Decimal(3, 2)

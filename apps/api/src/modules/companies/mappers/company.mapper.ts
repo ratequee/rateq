@@ -11,6 +11,7 @@ import type {
   ReviewRatingDistribution,
 } from '@rateq/types';
 import { CompanyProjectStatus } from '@rateq/types';
+import { calculateYearsInBusiness } from '@rateq/utils';
 
 type CompanyWithPublicRelations = Company & {
   owner?: Pick<User, 'email'> | null;
@@ -137,7 +138,10 @@ export function toCompanyPublic(
     serviceItems: extras?.serviceItems ?? [],
     activityItems: extras?.activityItems ?? [],
     serviceRatingAggregates: extras?.serviceRatingAggregates ?? [],
-    yearsEstablished: company.yearsEstablished,
+    yearsEstablished: company.firstRegistrationDate
+      ? calculateYearsInBusiness(company.firstRegistrationDate)
+      : company.yearsEstablished,
+    firstRegistrationDate: company.firstRegistrationDate?.toISOString() ?? null,
     publicProjectCount: company.publicProjectCount,
     privateProjectCount: company.privateProjectCount,
     projects: visibleProjects.map(toCompanyProjectPublic),

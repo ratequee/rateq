@@ -70,6 +70,11 @@ export class CreateCompanyDto {
   @Max(200)
   yearsEstablished?: number;
 
+  @ApiPropertyOptional({ example: '2015-06-01' })
+  @IsOptional()
+  @IsDateString()
+  firstRegistrationDate?: string;
+
   @ApiPropertyOptional()
   @IsOptional()
   @IsInt()

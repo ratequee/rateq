@@ -7,6 +7,7 @@ import { RelatedCompaniesSection } from '@/components/company/related-companies-
 import { fetchCompanyBySlug } from '@/lib/companies-data';
 import { scrollRevealProps } from '@/lib/scroll-reveal';
 import { reviewsApi } from '@/lib/api';
+import { getCompanyYearsInBusiness } from '@/lib/company-years';
 import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
 import type { JSX } from 'react';
@@ -69,6 +70,8 @@ export default async function CompanyPage({ params }: CompanyPageProps): Promise
       }),
     ),
   ].slice(0, 6);
+
+  const yearsInBusiness = getCompanyYearsInBusiness(company);
 
   return (
     <>
@@ -198,14 +201,14 @@ export default async function CompanyPage({ params }: CompanyPageProps): Promise
                     )}
                   </div>
                   <CompanySocialLinksRow socialLinks={company.socialLinks} />
-                  {(company.yearsEstablished != null ||
+                  {(yearsInBusiness != null ||
                     company.publicProjectCount != null ||
                     company.privateProjectCount != null) && (
                     <div className="flex flex-wrap items-center gap-4 text-sm text-secondary">
-                      {company.yearsEstablished != null && (
+                      {yearsInBusiness != null && (
                         <span className="inline-flex items-center gap-1.5">
                           <Building2 className="h-4 w-4 shrink-0" aria-hidden />
-                          {t('yearsEstablishedStat', { count: company.yearsEstablished })}
+                          {t('yearsEstablishedStat', { count: yearsInBusiness })}
                         </span>
                       )}
                       {company.publicProjectCount != null && (

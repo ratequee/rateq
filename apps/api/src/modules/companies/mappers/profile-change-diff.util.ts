@@ -1,6 +1,7 @@
 import type { Company } from '@prisma/client';
 import type { AdminProfileChangeField, UpdateCompanyInput } from '@rateq/types';
 import { parseCompanyIdList } from './company.mapper';
+import { calculateYearsInBusiness } from '@rateq/utils';
 
 type LabelResolver = (ids: string[]) => Promise<Map<string, string>>;
 type CategoryLabelResolver = (
@@ -84,7 +85,11 @@ function currentFieldValue(company: Company, key: keyof UpdateCompanyInput): unk
     case 'validationDate':
       return company.validationDate?.toISOString().slice(0, 10) ?? null;
     case 'yearsEstablished':
-      return company.yearsEstablished;
+      return company.firstRegistrationDate
+        ? calculateYearsInBusiness(company.firstRegistrationDate)
+        : company.yearsEstablished;
+    case 'firstRegistrationDate':
+      return company.firstRegistrationDate?.toISOString().slice(0, 10) ?? null;
     case 'publicProjectCount':
       return company.publicProjectCount;
     case 'privateProjectCount':
@@ -122,7 +127,8 @@ const FIELD_LABELS: Record<string, string> = {
   subcategoryIds: 'Subcategories',
   crNumber: 'CR number',
   validationDate: 'Validation date',
-  yearsEstablished: 'Years established',
+  yearsEstablished: 'Years in business',
+  firstRegistrationDate: 'First registration date',
   publicProjectCount: 'Public projects count',
   privateProjectCount: 'Private projects count',
   latitude: 'Latitude',

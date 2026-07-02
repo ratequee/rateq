@@ -1,6 +1,6 @@
 'use client';
 
-import { CatalogMultiSelect } from '@/components/profile/catalog-multi-select';
+import { CompanyYearsEstablishedField } from '@/components/profile/company-years-established-field';
 import {
   ProfileChangesPendingBanner,
   profileUpdateSuccessMessage,
@@ -11,7 +11,7 @@ import { Input } from '@/components/ui/input';
 import { useProfile } from '@/components/providers/profile-provider';
 import { fetchCompanyCatalogClient } from '@/lib/company-catalog-api';
 import { onboardingApi } from '@/lib/onboarding-api';
-import { ApiError } from '@/lib/api';
+import { approximateRegistrationDateFromYears } from '@/lib/company-years';
 import type { CompanyCatalogItemPublic, CompanyProfileDetail } from '@rateq/types';
 import { useTranslations } from 'next-intl';
 import { useEffect, useState } from 'react';
@@ -34,8 +34,12 @@ function CompanyPublicProfileFormFields({ company }: { company: CompanyProfileDe
   const [activityIds, setActivityIds] = useState<string[]>(
     () => company.activityItems?.map((item) => item.id) ?? [],
   );
-  const [yearsEstablished, setYearsEstablished] = useState(() =>
-    company.yearsEstablished != null ? String(company.yearsEstablished) : '',
+  const [firstRegistrationDate, setFirstRegistrationDate] = useState(() =>
+    company.firstRegistrationDate
+      ? company.firstRegistrationDate.slice(0, 10)
+      : company.yearsEstablished != null
+        ? approximateRegistrationDateFromYears(company.yearsEstablished)
+        : '',
   );
   const [publicProjectCount, setPublicProjectCount] = useState(() =>
     company.publicProjectCount != null ? String(company.publicProjectCount) : '',
@@ -72,7 +76,7 @@ function CompanyPublicProfileFormFields({ company }: { company: CompanyProfileDe
         websiteUrl: websiteUrl.trim() || null,
         serviceIds,
         activityIds,
-        yearsEstablished: yearsEstablished ? Number(yearsEstablished) : undefined,
+        firstRegistrationDate: firstRegistrationDate || undefined,
         publicProjectCount: publicProjectCount ? Number(publicProjectCount) : undefined,
         privateProjectCount: privateProjectCount ? Number(privateProjectCount) : undefined,
       });
@@ -167,16 +171,10 @@ function CompanyPublicProfileFormFields({ company }: { company: CompanyProfileDe
       />
 
       <div className="grid gap-4 sm:grid-cols-3">
-        <Field label={t('yearsEstablished')} hint={t('yearsEstablishedHint')}>
-          <Input
-            type="number"
-            min={0}
-            max={200}
-            value={yearsEstablished}
-            onChange={(e) => setYearsEstablished(e.target.value)}
-            className="h-11"
-          />
-        </Field>
+        <CompanyYearsEstablishedField
+          firstRegistrationDate={firstRegistrationDate}
+          onChange={setFirstRegistrationDate}
+        />
         <Field label={t('publicProjectCount')} hint={t('publicProjectCountHint')}>
           <Input
             type="number"

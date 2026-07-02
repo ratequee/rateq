@@ -22,7 +22,7 @@ import { UserRole } from '@rateq/types';
 import { AdminActivityAction, AdminActivityEntityType } from '@rateq/types';
 import { UserRole as PrismaUserRole, Prisma, ReviewStatus } from '@prisma/client';
 import { slugify, withSlugSuffix } from '@rateq/utils';
-import { PrismaService } from '../../infrastructure/database/prisma.service';
+import { calculateYearsInBusiness } from '@rateq/utils';
 import { buildPaginationMeta } from '../../common/utils/pagination.util';
 import { CompaniesRepository } from './repositories/companies.repository';
 import { CategoriesService } from '../categories/categories.service';
@@ -312,7 +312,12 @@ export class CompaniesService {
       city: input.city.trim(),
       serviceIds: input.serviceIds ?? [],
       activityIds: input.activityIds ?? [],
-      yearsEstablished: input.yearsEstablished ?? null,
+      yearsEstablished: input.firstRegistrationDate
+        ? calculateYearsInBusiness(input.firstRegistrationDate)
+        : (input.yearsEstablished ?? null),
+      firstRegistrationDate: input.firstRegistrationDate
+        ? new Date(input.firstRegistrationDate)
+        : null,
       publicProjectCount: input.publicProjectCount ?? null,
       privateProjectCount: input.privateProjectCount ?? null,
       categoryIds,
@@ -864,6 +869,14 @@ export class CompaniesService {
       ...(input.activityIds !== undefined && { activityIds: input.activityIds }),
       ...(input.yearsEstablished !== undefined && {
         yearsEstablished: input.yearsEstablished,
+      }),
+      ...(input.firstRegistrationDate !== undefined && {
+        firstRegistrationDate: input.firstRegistrationDate
+          ? new Date(input.firstRegistrationDate)
+          : null,
+        yearsEstablished: input.firstRegistrationDate
+          ? calculateYearsInBusiness(input.firstRegistrationDate)
+          : null,
       }),
       ...(input.publicProjectCount !== undefined && {
         publicProjectCount: input.publicProjectCount,
