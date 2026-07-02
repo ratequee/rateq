@@ -95,6 +95,16 @@ export class CategoriesService {
     return toCategoryPublic(updated);
   }
 
+  async resolveSubcategoryLabelMap(
+    subcategoryIds: string[],
+  ): Promise<Map<string, { en: string; ar: string | null }>> {
+    const normalized = [...new Set(subcategoryIds.map((id) => id.trim()).filter(Boolean))];
+    if (normalized.length === 0) return new Map();
+
+    const subcategories = await this.categorySubcategoriesRepository.findByIds(normalized);
+    return new Map(subcategories.map((item) => [item.id, { en: item.nameEn, ar: item.nameAr }]));
+  }
+
   async resolveSubcategoryLabels(
     subcategoryIds: string[],
     locale: 'en' | 'ar' = 'en',

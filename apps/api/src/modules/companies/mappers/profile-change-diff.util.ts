@@ -31,15 +31,20 @@ function resolveCurrentCategoryIds(company: Company): string[] {
   return company.categoryId ? [company.categoryId] : [];
 }
 
+function normalizeIdList(value: unknown): string[] {
+  return parseCompanyIdList(value);
+}
+
 function formatCategoryDisplay(
   ids: string[],
   labelMap: Map<string, { en: string; ar: string | null }>,
+  missingLabel = 'Removed subcategory',
 ): string {
   if (ids.length === 0) return '—';
   return ids
     .map((id) => {
       const names = labelMap.get(id);
-      if (!names) return id;
+      if (!names) return missingLabel;
       if (names.ar && names.ar !== names.en) {
         return `${names.en} (${names.ar})`;
       }
@@ -180,8 +185,8 @@ export async function buildProfileChangeFields(
     }
 
     if (key === 'subcategoryIds') {
-      const currentIds = Array.isArray(current) ? (current as string[]) : [];
-      const proposedIds = Array.isArray(proposed) ? proposed : [];
+      const currentIds = normalizeIdList(current);
+      const proposedIds = normalizeIdList(proposed);
       const allIds = [...new Set([...currentIds, ...proposedIds])];
       const labelMap = await resolveSubcategoryLabels(allIds);
       currentDisplay = formatCategoryDisplay(currentIds, labelMap);

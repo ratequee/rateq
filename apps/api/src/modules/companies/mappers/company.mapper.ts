@@ -36,8 +36,15 @@ function parseServices(value: unknown): string[] {
 }
 
 function parseIds(value: unknown): string[] {
+  if (typeof value === 'string') {
+    const trimmed = value.trim();
+    return trimmed ? [trimmed] : [];
+  }
   if (!Array.isArray(value)) return [];
-  return value.filter((item): item is string => typeof item === 'string');
+  return value
+    .filter((item): item is string => typeof item === 'string')
+    .map((item) => item.trim())
+    .filter(Boolean);
 }
 
 function parseDemoImages(value: unknown): string[] {

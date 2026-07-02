@@ -655,10 +655,7 @@ export class CompaniesService {
         const labels = await this.categoriesService.resolveLabels(ids, 'en');
         return new Map(labels.map((entry) => [entry.id, { en: entry.label, ar: entry.labelAr }]));
       },
-      async (ids) => {
-        const labels = await this.categoriesService.resolveSubcategoryLabels(ids, 'en');
-        return new Map(labels.map((entry) => [entry.id, { en: entry.label, ar: entry.labelAr }]));
-      },
+      async (ids) => this.categoriesService.resolveSubcategoryLabelMap(ids),
     );
 
     return {

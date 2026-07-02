@@ -45,15 +45,8 @@ export function FeaturedCompanyCard({ company }: FeaturedCompanyCardProps) {
         ) : (
           <div className="absolute inset-0 bg-gradient-to-br from-brand-500/90 to-brand-700" />
         )}
-        {company.showVerifiedStamp ? (
-          <div className="absolute start-4 top-4 z-10">
-            <VerifiedStampBadge size="md" alt={t('badgeVerifiedLabel')} />
-          </div>
-        ) : null}
         {badges.length > 0 && (
-          <div
-            className={`absolute start-4 z-10 flex flex-wrap gap-2 ${company.showVerifiedStamp ? 'top-20' : 'top-4'}`}
-          >
+          <div className="absolute start-4 top-4 z-10 flex flex-wrap gap-2">
             {badges.map((badge, index) => (
               <Badge
                 key={`${index}-${badge}`}
