@@ -1,6 +1,7 @@
 'use client';
 
 import { CatalogMultiSelect } from '@/components/profile/catalog-multi-select';
+import { CategorySubcategoryPicker } from '@/components/profile/category-subcategory-picker';
 import { CompanyAddressMapField } from '@/components/profile/company-address-map-field';
 import { PhoneVerificationField } from '@/components/profile/phone-verification-field';
 import { Button } from '@/components/ui/button';
