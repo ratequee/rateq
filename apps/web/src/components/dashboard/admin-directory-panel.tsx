@@ -1,6 +1,7 @@
 'use client';
 
 import { AdminCompanyMetrics } from '@/components/dashboard/admin-company-metrics';
+import { AdminCompanyDocumentsSection } from '@/components/dashboard/admin-company-documents-section';
 import { AdminProjectsPanel } from '@/components/dashboard/admin-projects-panel';
 import { AdminReviewReportsPanel } from '@/components/dashboard/admin-review-reports-panel';
 import { AdminReviewerInvitationRequestsPanel } from '@/components/dashboard/admin-reviewer-invitation-requests-panel';
@@ -20,7 +21,6 @@ import type {
   ReviewPublic,
   UserProfile,
 } from '@rateq/types';
-import { UserRole } from '@rateq/types';
 import {
   Building2,
   Flag,
@@ -173,7 +173,7 @@ export function AdminDirectoryPanel() {
       const params = new URLSearchParams();
       params.set('page', String(reviewerPage));
       params.set('limit', '15');
-      params.set('role', UserRole.USER);
+      params.set('excludeAdmins', 'true');
       if (reviewerSearch.trim()) params.set('search', reviewerSearch.trim());
       const response = await usersApi.list(token, params);
       setReviewers(response.data);
@@ -334,13 +334,32 @@ export function AdminDirectoryPanel() {
     );
   };
 
-  const handleDeleteCompany = async (companyId: string) => {
-    if (!window.confirm(t('deleteCompanyConfirm'))) return;
+  const handleDeleteOwner = async (ownerId: string) => {
+    if (!window.confirm(t('deleteOwnerConfirm'))) return;
+    const token = await ensureValidAccessToken();
+    if (!token) return;
+    await runAction(() => adminApi.deleteUser(token, ownerId), t('deleteOwnerSuccess'));
+    if (tab === 'companies') {
+      setSelectedCompanyId(null);
+      setCompanyDetail(null);
+      await loadCompanies();
+    }
+  };
+
+  const handleDeleteCompany = async (companyId: string, ownerId?: string | null) => {
+    const confirmed = ownerId
+      ? window.confirm(t('deleteCompanyAndOwnerConfirm'))
+      : window.confirm(t('deleteCompanyConfirm'));
+    if (!confirmed) return;
+
     const token = await ensureValidAccessToken();
     if (!token) return;
     setSelectedCompanyId(null);
     setCompanyDetail(null);
-    await runAction(() => adminApi.deleteCompany(token, companyId), t('deleteSuccess'));
+    await runAction(
+      () => adminApi.deleteCompany(token, companyId, Boolean(ownerId)),
+      ownerId ? t('deleteCompanyAndOwnerSuccess') : t('deleteSuccess'),
+    );
   };
 
   const handleToggleCompanyStamp = async (companyId: string, enabled: boolean) => {
@@ -689,8 +708,7 @@ export function AdminDirectoryPanel() {
                         variant="destructive"
                         disabled={acting}
                         onClick={() => {
-                          if (!window.confirm(t('deleteOwnerConfirm'))) return;
-                          void handleDeleteReviewer(companyDetail.ownerId!);
+                          void handleDeleteOwner(companyDetail.ownerId!);
                         }}
                       >
                         {t('deleteOwner')}
@@ -714,11 +732,20 @@ export function AdminDirectoryPanel() {
                     type="button"
                     variant="destructive"
                     disabled={acting}
-                    onClick={() => void handleDeleteCompany(companyDetail.id)}
+                    onClick={() =>
+                      void handleDeleteCompany(companyDetail.id, companyDetail.ownerId)
+                    }
                   >
                     {t('deleteCompany')}
                   </Button>
                 </div>
+                <AdminCompanyDocumentsSection
+                  registrationDocUrl={companyDetail.registrationDocUrl}
+                  establishmentCardUrl={companyDetail.establishmentCardUrl}
+                  tradeLicenseUrl={companyDetail.tradeLicenseUrl}
+                  logoUrl={companyDetail.logo}
+                  coverUrl={companyDetail.coverUrl}
+                />
                 <div>
                   <h4 className="mb-3 text-sm font-semibold text-primary">
                     {t('reviewsAndReplies')}

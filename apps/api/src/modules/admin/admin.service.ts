@@ -4,6 +4,8 @@ import type {
   AdminCompanyListItem,
   AdminPlatformStats,
   AdminUserDetail,
+  AuthenticatedUser,
+  MessageResponse,
   PaginatedCompaniesResponse,
   UserProfile,
 } from '@rateq/types';
@@ -13,6 +15,7 @@ import { toCompanyPublic } from '../companies/mappers/company.mapper';
 import { ReviewsRepository } from '../reviews/repositories/reviews.repository';
 import { toReviewPublic } from '../reviews/mappers/review.mapper';
 import { UsersRepository } from '../users/repositories/users.repository';
+import { UsersService } from '../users/users.service';
 import { toUserProfile } from '../users/mappers/user.mapper';
 import { PrismaService } from '../../infrastructure/database/prisma.service';
 
@@ -21,6 +24,7 @@ export class AdminService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly usersRepository: UsersRepository,
+    private readonly usersService: UsersService,
     private readonly companiesRepository: CompaniesRepository,
     private readonly reviewsRepository: ReviewsRepository,
   ) {}
@@ -176,8 +180,40 @@ export class AdminService {
       ownerIsActive: company.owner?.isActive ?? null,
       showVerifiedStamp: company.showVerifiedStamp ?? false,
       pageVisitCount,
+      crNumber: company.crNumber,
+      address: company.address,
+      validationDate: company.validationDate?.toISOString() ?? null,
+      registrationDocUrl: company.registrationDocUrl,
+      establishmentCardUrl: company.establishmentCardUrl,
+      tradeLicenseUrl: company.tradeLicenseUrl,
       reviews: reviews.map((review) => toReviewPublic(review, { includeUnpublishedReply: true })),
     };
+  }
+
+  async deleteCompany(
+    companyId: string,
+    actor: AuthenticatedUser,
+    deleteOwner: boolean,
+  ): Promise<MessageResponse> {
+    const company = await this.companiesRepository.findById(companyId);
+
+    if (!company) {
+      throw new NotFoundException('Company not found');
+    }
+
+    const ownerId = company.ownerId;
+    await this.companiesRepository.delete(companyId);
+
+    if (deleteOwner && ownerId) {
+      await this.usersService.adminDelete(ownerId, actor);
+      return { message: 'Company and owner account deleted successfully' };
+    }
+
+    if (ownerId) {
+      await this.usersRepository.updateById(ownerId, { role: 'USER' });
+    }
+
+    return { message: 'Company deleted successfully' };
   }
 
   async setCompanyVerifiedStamp(

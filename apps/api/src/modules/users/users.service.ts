@@ -176,6 +176,7 @@ export class UsersService {
   async listUsers(query: ListUsersQueryDto): Promise<PaginatedUsersResponse> {
     const filters = {
       role: query.role as PrismaUserRole | undefined,
+      excludeAdmins: query.excludeAdmins,
       isVerified: query.isVerified,
       search: query.search,
       page: query.page,

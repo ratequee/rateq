@@ -18,6 +18,12 @@ export class ListUsersQueryDto extends PaginationDto {
   @IsEnum(UserRole)
   role?: UserRole;
 
+  @ApiPropertyOptional({ description: 'Exclude admin accounts from results' })
+  @IsOptional()
+  @Transform(toBoolean)
+  @IsBoolean()
+  excludeAdmins?: boolean;
+
   @ApiPropertyOptional()
   @IsOptional()
   @Transform(toBoolean)

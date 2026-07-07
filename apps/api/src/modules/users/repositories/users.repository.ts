@@ -5,6 +5,7 @@ import { paginationSkip } from '../../../common/utils/pagination.util';
 
 export interface ListUsersFilters {
   role?: UserRole;
+  excludeAdmins?: boolean;
   isVerified?: boolean;
   search?: string;
   page: number;
@@ -83,6 +84,10 @@ export class UsersRepository {
 
     if (filters.role) {
       where.role = filters.role;
+    }
+
+    if (filters.excludeAdmins) {
+      where.role = { not: 'ADMIN' };
     }
 
     if (filters.isVerified !== undefined) {

@@ -1,9 +1,10 @@
-import { Controller, Get, Param, Patch, Query, UseGuards, Body } from '@nestjs/common';
+import { Controller, Get, Param, Patch, Query, UseGuards, Body, Delete } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiPropertyOptional, ApiTags } from '@nestjs/swagger';
 import { IsBoolean, IsOptional, IsString, MaxLength } from 'class-validator';
-import { AdminPermission, UserRole } from '@rateq/types';
+import { AdminPermission, UserRole, type AuthenticatedUser } from '@rateq/types';
 import { RequireAdminPermission } from '../../common/decorators/require-admin-permission.decorator';
 import { Roles } from '../../common/decorators/roles.decorator';
+import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { AdminPermissionGuard } from '../auth/guards/admin-permission.guard';
 import { PaginationDto } from '../../common/dto/pagination.dto';
 import { AdminActivityService } from '../admin-activity/admin-activity.service';
@@ -70,6 +71,18 @@ export class AdminController {
   @ApiOperation({ summary: 'Toggle verified stamp visibility on company profile' })
   setCompanyStamp(@Param('id') id: string, @Body() dto: UpdateCompanyStampDto) {
     return this.adminService.setCompanyVerifiedStamp(id, dto.showVerifiedStamp);
+  }
+
+  @Delete('companies/:id')
+  @RequireAdminPermission(AdminPermission.DIRECTORY)
+  @ApiOperation({ summary: 'Delete company and optionally delete owner account' })
+  deleteCompany(
+    @Param('id') id: string,
+    @CurrentUser() actor: AuthenticatedUser,
+    @Query('deleteOwner') deleteOwner?: string,
+  ) {
+    const shouldDeleteOwner = deleteOwner === 'true' || deleteOwner === '1';
+    return this.adminService.deleteCompany(id, actor, shouldDeleteOwner);
   }
 
   @Get('team')

@@ -112,5 +112,11 @@ export interface AdminUserDetail extends UserProfile {
 }
 
 export interface AdminCompanyDetail extends AdminCompanyListItem {
+  crNumber: string | null;
+  address: string | null;
+  validationDate: string | null;
+  registrationDocUrl: string | null;
+  establishmentCardUrl: string | null;
+  tradeLicenseUrl: string | null;
   reviews: ReviewPublic[];
 }

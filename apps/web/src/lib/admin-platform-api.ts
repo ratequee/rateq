@@ -55,8 +55,11 @@ export const adminApi = {
   deleteUser: (token: string, userId: string) =>
     apiClient<MessageResponse>(`/users/${userId}`, { method: 'DELETE', token }),
 
-  deleteCompany: (token: string, companyId: string) =>
-    apiClient<MessageResponse>(`/companies/${companyId}`, { method: 'DELETE', token }),
+  deleteCompany: (token: string, companyId: string, deleteOwner = false) =>
+    apiClient<MessageResponse>(
+      `/admin/companies/${companyId}${deleteOwner ? '?deleteOwner=true' : ''}`,
+      { method: 'DELETE', token },
+    ),
 
   updateCompanyStamp: (token: string, companyId: string, showVerifiedStamp: boolean) =>
     apiClient<AdminCompanyDetail>(`/admin/companies/${companyId}/stamp`, {
