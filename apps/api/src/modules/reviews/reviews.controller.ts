@@ -24,6 +24,7 @@ import { CreateReviewDto } from './dto/create-review.dto';
 import { CreateReviewReplyDto } from './dto/create-reply.dto';
 import { ListReviewsQueryDto } from './dto/list-reviews-query.dto';
 import { SetResolutionWindowDto } from './dto/set-resolution-window.dto';
+import { ModifyResolutionDto } from './dto/modify-resolution.dto';
 import { PaginatedReviewsDto, ReviewPublicDto } from './dto/review-response.dto';
 
 @ApiTags('reviews')
@@ -109,16 +110,29 @@ export class ReviewsController {
   @Patch(':reviewId/resolution/proceed')
   @HttpCode(HttpStatus.OK)
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Publish a review after admin resolution flow' })
+  @ApiOperation({ summary: 'Submit review for admin after resolution window ends' })
   @ApiResponse({ status: 200, type: ReviewPublicDto })
   proceedResolution(@CurrentUser() user: AuthenticatedUser, @Param('reviewId') reviewId: string) {
     return this.reviewsService.proceedResolution(user, reviewId);
   }
 
+  @Patch(':reviewId/resolution/modify')
+  @HttpCode(HttpStatus.OK)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Edit review during resolution window' })
+  @ApiResponse({ status: 200, type: ReviewPublicDto })
+  modifyResolution(
+    @CurrentUser() user: AuthenticatedUser,
+    @Param('reviewId') reviewId: string,
+    @Body() dto: ModifyResolutionDto,
+  ) {
+    return this.reviewsService.modifyResolution(user, reviewId, dto);
+  }
+
   @Patch(':reviewId/resolution/withdraw')
   @HttpCode(HttpStatus.OK)
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Withdraw a review after admin resolution flow' })
+  @ApiOperation({ summary: 'Withdraw a review during the resolution window' })
   @ApiResponse({ status: 200, type: ReviewPublicDto })
   withdrawResolution(@CurrentUser() user: AuthenticatedUser, @Param('reviewId') reviewId: string) {
     return this.reviewsService.withdrawResolution(user, reviewId);

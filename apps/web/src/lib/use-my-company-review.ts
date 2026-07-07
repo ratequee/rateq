@@ -7,48 +7,77 @@ import type { ReviewPublic } from '@rateq/types';
 import { ReviewStatus, UserRole } from '@rateq/types';
 import { useCallback, useEffect, useState } from 'react';
 
-const ACTIVE_REVIEW_STATUSES: ReviewStatus[] = [
+const IN_FLIGHT_REVIEW_STATUSES: ReviewStatus[] = [
   ReviewStatus.PENDING,
   ReviewStatus.RESOLUTION_PENDING,
-  ReviewStatus.APPROVED,
+  ReviewStatus.MODIFIED,
+  ReviewStatus.PROCEEDED,
 ];
 
-function resolveCompanyReviews(reviews: ReviewPublic[], companyId: string) {
+export interface CompanyReviewState {
+  publishedReview: ReviewPublic | null;
+  inFlightReview: ReviewPublic | null;
+  myReview: ReviewPublic | null;
+  lastInactiveReview: ReviewPublic | null;
+  canWriteNewReview: boolean;
+}
+
+const EMPTY_REVIEW_STATE: CompanyReviewState = {
+  publishedReview: null,
+  inFlightReview: null,
+  myReview: null,
+  lastInactiveReview: null,
+  canWriteNewReview: true,
+};
+
+export function resolveCompanyReviews(
+  reviews: ReviewPublic[],
+  companyId: string,
+): CompanyReviewState {
   const forCompany = reviews
     .filter((review) => review.companyId === companyId)
     .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 
-  const myReview =
-    forCompany.find((review) => ACTIVE_REVIEW_STATUSES.includes(review.status)) ?? null;
+  const publishedReview =
+    forCompany.find((review) => review.status === ReviewStatus.APPROVED) ?? null;
+  const inFlightReview =
+    forCompany.find((review) => IN_FLIGHT_REVIEW_STATUSES.includes(review.status)) ?? null;
+  const myReview = publishedReview ?? inFlightReview;
+  const canWriteNewReview = !publishedReview && !inFlightReview;
 
-  const lastInactiveReview =
-    !myReview && forCompany.some((review) => review.status === ReviewStatus.REJECTED)
-      ? (forCompany.find((review) => review.status === ReviewStatus.REJECTED) ?? null)
-      : null;
+  const lastInactiveReview = canWriteNewReview
+    ? (forCompany.find(
+        (review) =>
+          review.status === ReviewStatus.WITHDRAWN || review.status === ReviewStatus.REJECTED,
+      ) ?? null)
+    : null;
 
-  return { myReview, lastInactiveReview };
+  return {
+    publishedReview,
+    inFlightReview,
+    myReview,
+    lastInactiveReview,
+    canWriteNewReview,
+  };
 }
 
 export function useMyCompanyReview(companyId: string) {
   const { user } = useAuth();
-  const [myReview, setMyReview] = useState<ReviewPublic | null>(null);
-  const [lastInactiveReview, setLastInactiveReview] = useState<ReviewPublic | null>(null);
+  const [reviewState, setReviewState] = useState<CompanyReviewState>(EMPTY_REVIEW_STATE);
   const [loading, setLoading] = useState(false);
 
-  const refreshMyReview = useCallback(async () => {
+  const refreshMyReview = useCallback(async (): Promise<CompanyReviewState> => {
     if (!user || user.role === UserRole.COMPANY) {
-      setMyReview(null);
-      setLastInactiveReview(null);
-      return null;
+      setReviewState(EMPTY_REVIEW_STATE);
+      return EMPTY_REVIEW_STATE;
     }
 
     setLoading(true);
     try {
       const token = await ensureValidAccessToken();
       if (!token) {
-        setMyReview(null);
-        setLastInactiveReview(null);
-        return null;
+        setReviewState(EMPTY_REVIEW_STATE);
+        return EMPTY_REVIEW_STATE;
       }
 
       const params = new URLSearchParams();
@@ -57,13 +86,11 @@ export function useMyCompanyReview(companyId: string) {
 
       const response = await reviewsApi.listMine(token, params);
       const resolved = resolveCompanyReviews(response.data, companyId);
-      setMyReview(resolved.myReview);
-      setLastInactiveReview(resolved.lastInactiveReview);
-      return resolved.myReview;
+      setReviewState(resolved);
+      return resolved;
     } catch {
-      setMyReview(null);
-      setLastInactiveReview(null);
-      return null;
+      setReviewState(EMPTY_REVIEW_STATE);
+      return EMPTY_REVIEW_STATE;
     } finally {
       setLoading(false);
     }
@@ -73,9 +100,26 @@ export function useMyCompanyReview(companyId: string) {
     void refreshMyReview();
   }, [refreshMyReview]);
 
+  const setMyReview = useCallback((review: ReviewPublic | null) => {
+    setReviewState((current) => ({
+      ...current,
+      myReview: review,
+      publishedReview: review?.status === ReviewStatus.APPROVED ? review : current.publishedReview,
+      inFlightReview:
+        review && IN_FLIGHT_REVIEW_STATUSES.includes(review.status)
+          ? review
+          : current.inFlightReview,
+      canWriteNewReview:
+        review?.status === ReviewStatus.APPROVED
+          ? false
+          : review && IN_FLIGHT_REVIEW_STATUSES.includes(review.status)
+            ? false
+            : current.canWriteNewReview,
+    }));
+  }, []);
+
   return {
-    myReview,
-    lastInactiveReview,
+    ...reviewState,
     loading,
     refreshMyReview,
     setMyReview,

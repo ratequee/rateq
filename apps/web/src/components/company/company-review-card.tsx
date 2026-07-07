@@ -57,14 +57,26 @@ export function CompanyReviewCard({ review, company, onReviewUpdated }: CompanyR
                     ? 'border-amber-200 bg-amber-50 text-amber-700'
                     : review.status === ReviewStatus.RESOLUTION_PENDING
                       ? 'border-sky-200 bg-sky-50 text-sky-700'
-                      : 'border-red-200 bg-red-50 text-red-700',
+                      : review.status === ReviewStatus.MODIFIED
+                        ? 'border-orange-200 bg-orange-50 text-orange-700'
+                        : review.status === ReviewStatus.PROCEEDED
+                          ? 'border-violet-200 bg-violet-50 text-violet-700'
+                          : review.status === ReviewStatus.WITHDRAWN
+                            ? 'border-rose-200 bg-rose-50 text-rose-700'
+                            : 'border-red-200 bg-red-50 text-red-700',
                 )}
               >
                 {review.status === ReviewStatus.PENDING
                   ? t('pending')
                   : review.status === ReviewStatus.RESOLUTION_PENDING
                     ? t('resolutionPending')
-                    : t('rejected')}
+                    : review.status === ReviewStatus.MODIFIED
+                      ? t('statusLabel.MODIFIED')
+                      : review.status === ReviewStatus.PROCEEDED
+                        ? t('statusLabel.PROCEEDED')
+                        : review.status === ReviewStatus.WITHDRAWN
+                          ? t('statusLabel.WITHDRAWN')
+                          : t('rejected')}
               </Badge>
             )}
           </div>

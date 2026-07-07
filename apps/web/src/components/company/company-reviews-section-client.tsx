@@ -10,7 +10,7 @@ import { Link, useRouter } from '@/i18n/routing';
 import { OPEN_WRITE_REVIEW_EVENT } from '@/lib/write-review-events';
 import { useMyCompanyReview } from '@/lib/use-my-company-review';
 import type { CompanyPublic, ReviewPublic } from '@rateq/types';
-import { UserRole } from '@rateq/types';
+import { ReviewStatus, UserRole } from '@rateq/types';
 import { useTranslations } from 'next-intl';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
@@ -18,7 +18,7 @@ interface CompanyReviewsSectionClientProps {
   company: CompanyPublic;
 }
 
-type ReviewPanel = 'form' | 'already-reviewed' | 'login' | 'cannot-own' | 'verify';
+type ReviewPanel = 'form' | 'already-reviewed' | 'published' | 'login' | 'cannot-own' | 'verify';
 
 export function CompanyReviewsSectionClient({ company }: CompanyReviewsSectionClientProps) {
   const tr = useTranslations('review');
@@ -28,9 +28,14 @@ export function CompanyReviewsSectionClient({ company }: CompanyReviewsSectionCl
   const { user } = useAuth();
   const { onboarding } = useProfile();
   const [panel, setPanel] = useState<ReviewPanel | null>(null);
-  const { myReview, lastInactiveReview, refreshMyReview, setMyReview } = useMyCompanyReview(
-    company.id,
-  );
+  const {
+    myReview,
+    lastInactiveReview,
+    canWriteNewReview,
+    publishedReview,
+    refreshMyReview,
+    setMyReview,
+  } = useMyCompanyReview(company.id);
 
   const isOwner = onboarding?.company?.id === company.id;
   const companyServices = company.serviceItems ?? [];
@@ -51,14 +56,25 @@ export function CompanyReviewsSectionClient({ company }: CompanyReviewsSectionCl
       return;
     }
 
-    const existing = myReview ?? (await refreshMyReview());
-    if (existing) {
+    const state = await refreshMyReview();
+
+    if (state.publishedReview) {
+      setPanel('published');
+      return;
+    }
+
+    if (state.inFlightReview) {
+      setPanel('already-reviewed');
+      return;
+    }
+
+    if (!state.canWriteNewReview) {
       setPanel('already-reviewed');
       return;
     }
 
     setPanel('form');
-  }, [isOwner, myReview, refreshMyReview, user]);
+  }, [isOwner, refreshMyReview, user]);
 
   useEffect(() => {
     const handleOpen = () => {
@@ -87,6 +103,19 @@ export function CompanyReviewsSectionClient({ company }: CompanyReviewsSectionCl
     if (!panel) return null;
 
     switch (panel) {
+      case 'published':
+        return (
+          <Card className="border-emerald-200 bg-emerald-50 dark:border-emerald-900 dark:bg-emerald-950/40">
+            <CardContent className="flex flex-col gap-3 p-5 sm:flex-row sm:items-center sm:justify-between">
+              <p className="text-sm text-emerald-900 dark:text-emerald-200">
+                {tr('publishedReviewBlocksNew')}
+              </p>
+              <Button type="button" variant="ghost" size="sm" onClick={() => setPanel(null)}>
+                {tr('dismiss')}
+              </Button>
+            </CardContent>
+          </Card>
+        );
       case 'already-reviewed':
         return (
           <Card className="border-amber-200 bg-amber-50 dark:border-amber-900 dark:bg-amber-950/40">
@@ -138,10 +167,14 @@ export function CompanyReviewsSectionClient({ company }: CompanyReviewsSectionCl
         {myReview && panel !== 'form' && panel !== 'already-reviewed' ? (
           <ReviewerReviewStatusCard review={myReview} />
         ) : null}
-        {lastInactiveReview && !myReview && panel !== 'form' ? (
+        {lastInactiveReview && canWriteNewReview && !publishedReview && panel !== 'form' ? (
           <Card className="border-subtle surface-muted">
             <CardContent className="flex flex-col gap-3 p-5 sm:flex-row sm:items-center sm:justify-between">
-              <p className="text-sm text-secondary">{tr('reviewAgainHint')}</p>
+              <p className="text-sm text-secondary">
+                {lastInactiveReview.status === ReviewStatus.WITHDRAWN
+                  ? tr('withdrawnReviewAgainHint')
+                  : tr('reviewAgainHint')}
+              </p>
               <Button
                 type="button"
                 variant="outline-brand"

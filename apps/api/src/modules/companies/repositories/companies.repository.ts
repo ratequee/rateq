@@ -98,6 +98,28 @@ export class CompaniesRepository {
     return this.prisma.company.count({ where });
   }
 
+  async findRandomApprovedWithReviews() {
+    const where: Prisma.CompanyWhereInput = {
+      verificationStatus: 'APPROVED',
+      reviewCount: { gt: 0 },
+      OR: [{ ownerId: null }, { owner: { isActive: true } }],
+    };
+
+    const count = await this.prisma.company.count({ where });
+    if (count === 0) return null;
+
+    const skip = Math.floor(Math.random() * count);
+    return this.prisma.company.findFirst({
+      where,
+      skip,
+      take: 1,
+      orderBy: { id: 'asc' },
+      include: {
+        category: { select: { id: true, nameEn: true, nameAr: true, slug: true } },
+      },
+    });
+  }
+
   findManyForAdminVerification(input: {
     status?: CompanyVerificationStatus | 'profile_changes';
     page: number;
@@ -295,13 +317,17 @@ export class CompaniesRepository {
 
           switch (group.status as ReviewStatus) {
             case 'PENDING':
-              stats.pendingReviews = count;
+            case 'RESOLUTION_PENDING':
+            case 'MODIFIED':
+            case 'PROCEEDED':
+              stats.pendingReviews += count;
               break;
             case 'APPROVED':
               stats.approvedReviews = count;
               break;
             case 'REJECTED':
-              stats.rejectedReviews = count;
+            case 'WITHDRAWN':
+              stats.rejectedReviews += count;
               break;
           }
         }

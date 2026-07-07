@@ -18,9 +18,12 @@ export function mapReviewStatus(status: string): DashboardReviewRowStatus {
     case 'APPROVED':
       return 'approved';
     case 'REJECTED':
+    case 'WITHDRAWN':
       return 'rejected';
     case 'PENDING':
     case 'RESOLUTION_PENDING':
+    case 'MODIFIED':
+    case 'PROCEEDED':
     default:
       return 'pending';
   }

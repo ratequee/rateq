@@ -248,3 +248,8 @@ export interface AdminCompanyProjectListItem {
 }
 
 export type PaginatedAdminProjectsResponse = PaginatedResponse<AdminCompanyProjectListItem>;
+
+export interface HeroSpotlightResponse {
+  company: CompanyPublic;
+  review: ReviewPublic | null;
+}

@@ -18,6 +18,14 @@ export async function fetchCompanies(params: URLSearchParams): Promise<Paginated
   }
 }
 
+export async function fetchHeroSpotlight() {
+  try {
+    return await companiesApi.getHeroSpotlight();
+  } catch {
+    return null;
+  }
+}
+
 export async function fetchCompanyBySlug(slug: string) {
   try {
     return await companiesApi.getBySlug(slug);

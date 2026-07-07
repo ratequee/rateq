@@ -37,6 +37,7 @@ import {
 import type { ListReviewsQueryDto } from './dto/list-reviews-query.dto';
 import type { CreateReviewReplyDto } from './dto/create-reply.dto';
 import type { SetResolutionWindowDto } from './dto/set-resolution-window.dto';
+import type { ModifyResolutionDto } from './dto/modify-resolution.dto';
 import { ModerationAction } from '@prisma/client';
 
 @Injectable()
@@ -79,13 +80,17 @@ export class ReviewsService {
       throw new ForbiddenException('You cannot review your own company');
     }
 
-    const existing = await this.reviewsRepository.findActiveByUserAndCompany(
-      user.id,
-      input.companyId,
-    );
+    const [publishedReview, inFlightReview] = await Promise.all([
+      this.reviewsRepository.findPublishedByUserAndCompany(user.id, input.companyId),
+      this.reviewsRepository.findInFlightReviewByUserAndCompany(user.id, input.companyId),
+    ]);
 
-    if (existing) {
-      throw new ConflictException('You already have an active review for this company');
+    if (publishedReview) {
+      throw new ConflictException('You already have a published review for this company');
+    }
+
+    if (inFlightReview) {
+      throw new ConflictException('You already have a review pending for this company');
     }
 
     const clientIp = this.extractClientIp(request);
@@ -317,7 +322,7 @@ export class ReviewsService {
     this.assertResolutionDeadlinePassed(review);
 
     await this.reviewsRepository.updateModerationResult(reviewId, {
-      status: 'APPROVED',
+      status: 'PROCEEDED',
       moderationScore: review.moderationScore,
     });
 
@@ -326,20 +331,6 @@ export class ReviewsService {
       reason: `resolution_proceeded_by_reviewer:${user.id}`,
       score: review.moderationScore,
       action: ModerationAction.RESOLUTION_PROCEEDED,
-    });
-
-    await this.reviewsRepository.recalculateCompanyRating(review.companyId);
-    await this.reviewsRepository.incrementUserReviewCount(review.userId);
-
-    const companyName = review.company?.name ?? 'Company';
-    const reviewer = resolveReviewerContact(review);
-    const companyEmail = resolveCompanyOwnerEmail(review);
-
-    await this.emailService.sendReviewPublishedEmails({
-      reviewerEmail: reviewer.email,
-      companyEmail,
-      companyName,
-      reviewTitle: review.title,
     });
 
     const updated = await this.reviewsRepository.findById(reviewId);
@@ -361,10 +352,10 @@ export class ReviewsService {
       throw new BadRequestException('This review is not awaiting your resolution decision');
     }
 
-    this.assertResolutionDeadlinePassed(review);
+    this.assertResolutionWindowActive(review);
 
     await this.reviewsRepository.updateModerationResult(reviewId, {
-      status: 'REJECTED',
+      status: 'WITHDRAWN',
       moderationScore: review.moderationScore,
     });
 
@@ -384,6 +375,45 @@ export class ReviewsService {
       companyEmail,
       companyName,
       reviewTitle: review.title,
+    });
+
+    const updated = await this.reviewsRepository.findById(reviewId);
+    return toReviewPublic(updated!);
+  }
+
+  async modifyResolution(
+    user: AuthenticatedUser,
+    reviewId: string,
+    dto: ModifyResolutionDto,
+  ): Promise<ReviewPublic> {
+    const review = await this.reviewsRepository.findById(reviewId);
+
+    if (!review) {
+      throw new NotFoundException('Review not found');
+    }
+
+    if (review.userId !== user.id) {
+      throw new ForbiddenException('Only the reviewer can modify this review');
+    }
+
+    if (review.status !== 'RESOLUTION_PENDING') {
+      throw new BadRequestException('This review is not in the resolution process');
+    }
+
+    this.assertResolutionWindowActive(review);
+
+    await this.reviewsRepository.updateReviewContent(reviewId, {
+      rating: dto.rating,
+      title: dto.title.trim(),
+      content: dto.content.trim(),
+      status: 'MODIFIED',
+    });
+
+    await this.reviewsRepository.createModerationLog({
+      reviewId,
+      reason: `resolution_modified_by_reviewer:${user.id}`,
+      score: review.moderationScore,
+      action: ModerationAction.RESOLUTION_MODIFIED,
     });
 
     const updated = await this.reviewsRepository.findById(reviewId);
@@ -494,7 +524,11 @@ export class ReviewsService {
       statusGroups.map((group) => [group.status, group._count.id]),
     );
 
-    const pendingReviews = (statusMap.PENDING ?? 0) + (statusMap.RESOLUTION_PENDING ?? 0);
+    const pendingReviews =
+      (statusMap.PENDING ?? 0) +
+      (statusMap.RESOLUTION_PENDING ?? 0) +
+      (statusMap.MODIFIED ?? 0) +
+      (statusMap.PROCEEDED ?? 0);
 
     return {
       stats: {
@@ -610,6 +644,16 @@ export class ReviewsService {
 
     if (new Date() < review.resolutionDeadlineAt) {
       throw new BadRequestException('The resolution window has not ended yet');
+    }
+  }
+
+  private assertResolutionWindowActive(review: { resolutionDeadlineAt: Date | null }): void {
+    if (!review.resolutionDeadlineAt) {
+      throw new BadRequestException('The company has not set a resolution window yet');
+    }
+
+    if (new Date() >= review.resolutionDeadlineAt) {
+      throw new BadRequestException('The resolution window has ended');
     }
   }
 

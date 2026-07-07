@@ -164,6 +164,10 @@ export const authApi = {
 export const companiesApi = {
   search: (params: URLSearchParams) =>
     apiServer<PaginatedCompaniesResponse>(`/companies?${params}`),
+  getHeroSpotlight: () =>
+    apiServer<import('@rateq/types').HeroSpotlightResponse | null>('/companies/hero-spotlight', {
+      revalidate: false,
+    }),
   searchClient: (params: URLSearchParams) =>
     apiClient<PaginatedCompaniesResponse>(`/companies?${params}`, { token: null }),
   getBySlug: (slug: string) =>
@@ -292,6 +296,16 @@ export const reviewsApi = {
     apiClient<ReviewPublic>(`/reviews/${reviewId}/resolution/window`, {
       method: 'PATCH',
       body: JSON.stringify({ days }),
+      token,
+    }),
+  modifyResolution: (
+    token: string,
+    reviewId: string,
+    data: { rating: number; title: string; content: string },
+  ) =>
+    apiClient<ReviewPublic>(`/reviews/${reviewId}/resolution/modify`, {
+      method: 'PATCH',
+      body: JSON.stringify(data),
       token,
     }),
   proceedResolution: (token: string, reviewId: string) =>

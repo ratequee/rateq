@@ -83,6 +83,62 @@ export class CompaniesService {
     };
   }
 
+  async getHeroSpotlight(): Promise<import('@rateq/types').HeroSpotlightResponse | null> {
+    const company = await this.companiesRepository.findRandomApprovedWithReviews();
+    if (!company) return null;
+
+    const reviewWhere = { companyId: company.id, status: 'APPROVED' as const };
+    const reviewCount = await this.prisma.review.count({ where: reviewWhere });
+    let review = null;
+
+    if (reviewCount > 0) {
+      const skip = Math.floor(Math.random() * reviewCount);
+      review = await this.prisma.review.findFirst({
+        where: reviewWhere,
+        skip,
+        take: 1,
+        orderBy: { id: 'asc' },
+        include: {
+          user: {
+            select: {
+              id: true,
+              email: true,
+              displayName: true,
+              phone: true,
+              phoneVerified: true,
+              createdAt: true,
+              profile: { select: { fullName: true, avatarUrl: true, phone: true } },
+            },
+          },
+          company: {
+            select: {
+              id: true,
+              name: true,
+              slug: true,
+              logo: true,
+              categoryId: true,
+              email: true,
+              owner: { select: { id: true, email: true } },
+              category: { select: { id: true, nameEn: true, nameAr: true } },
+            },
+          },
+          replies: true,
+          attachments: true,
+          serviceRatings: {
+            include: {
+              companyCatalogItem: { select: { id: true, nameEn: true, nameAr: true } },
+            },
+          },
+        },
+      });
+    }
+
+    return {
+      company: toCompanyPublic(company),
+      review: review ? toReviewPublic(review) : null,
+    };
+  }
+
   async getPublicProfile(slug: string, viewerId?: string): Promise<CompanyPublic> {
     const company = await this.companiesRepository.findBySlug(slug);
 

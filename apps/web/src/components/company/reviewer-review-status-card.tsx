@@ -31,6 +31,24 @@ const statusConfig: Record<
       'border-sky-200 bg-sky-50 text-sky-950 dark:border-sky-900 dark:bg-sky-950/40 dark:text-sky-100',
     icon: MessageSquareWarning,
   },
+  [ReviewStatus.MODIFIED]: {
+    messageKey: 'myReviewModified',
+    className:
+      'border-orange-200 bg-orange-50 text-orange-950 dark:border-orange-900 dark:bg-orange-950/40 dark:text-orange-100',
+    icon: Clock3,
+  },
+  [ReviewStatus.PROCEEDED]: {
+    messageKey: 'myReviewProceeded',
+    className:
+      'border-violet-200 bg-violet-50 text-violet-950 dark:border-violet-900 dark:bg-violet-950/40 dark:text-violet-100',
+    icon: Clock3,
+  },
+  [ReviewStatus.WITHDRAWN]: {
+    messageKey: 'myReviewWithdrawn',
+    className:
+      'border-rose-200 bg-rose-50 text-rose-950 dark:border-rose-900 dark:bg-rose-950/40 dark:text-rose-100',
+    icon: XCircle,
+  },
   [ReviewStatus.APPROVED]: {
     messageKey: 'myReviewApproved',
     className:

@@ -23,15 +23,28 @@ export class ReviewsRepository {
     });
   }
 
-  findActiveByUserAndCompany(userId: string, companyId: string) {
+  findPublishedByUserAndCompany(userId: string, companyId: string) {
+    return this.prisma.review.findFirst({
+      where: { userId, companyId, status: 'APPROVED' },
+      orderBy: { createdAt: 'desc' },
+    });
+  }
+
+  findInFlightReviewByUserAndCompany(userId: string, companyId: string) {
     return this.prisma.review.findFirst({
       where: {
         userId,
         companyId,
-        status: { in: ['PENDING', 'RESOLUTION_PENDING', 'APPROVED'] },
+        status: { in: ['PENDING', 'RESOLUTION_PENDING', 'MODIFIED', 'PROCEEDED'] },
       },
       orderBy: { createdAt: 'desc' },
     });
+  }
+
+  async findActiveByUserAndCompany(userId: string, companyId: string) {
+    const published = await this.findPublishedByUserAndCompany(userId, companyId);
+    if (published) return published;
+    return this.findInFlightReviewByUserAndCompany(userId, companyId);
   }
 
   create(data: {
@@ -187,6 +200,41 @@ export class ReviewsRepository {
         resolutionWindowDays: data.resolutionWindowDays,
         resolutionDeadlineAt: data.resolutionDeadlineAt,
       },
+    });
+  }
+
+  updateReviewContent(
+    reviewId: string,
+    data: {
+      rating: number;
+      title: string;
+      content: string;
+      status: ReviewStatus;
+    },
+  ): Promise<Review> {
+    return this.prisma.review.update({
+      where: { id: reviewId },
+      data: {
+        rating: data.rating,
+        title: data.title,
+        content: data.content,
+        status: data.status,
+      },
+    });
+  }
+
+  async findRandomApprovedByCompany(companyId: string) {
+    const where = { companyId, status: 'APPROVED' as const };
+    const count = await this.prisma.review.count({ where });
+    if (count === 0) return null;
+
+    const skip = Math.floor(Math.random() * count);
+    return this.prisma.review.findFirst({
+      where,
+      skip,
+      take: 1,
+      orderBy: { id: 'asc' },
+      include: reviewInclude,
     });
   }
 

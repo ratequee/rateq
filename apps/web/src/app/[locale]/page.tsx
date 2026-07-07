@@ -10,9 +10,9 @@ import { TestimonialsCarousel } from '@/components/home/testimonials-carousel';
 import { WhyChooseSection } from '@/components/home/why-choose-section';
 import { fetchBlogPosts } from '@/lib/blog-data';
 import { fetchCategories } from '@/lib/categories-data';
-import { fetchCompanies } from '@/lib/companies-data';
+import { fetchCompanies, fetchHeroSpotlight } from '@/lib/companies-data';
 import { fetchPlatformStats } from '@/lib/platform-data';
-import { fetchFeaturedReviews, fetchLatestCompanyReview } from '@/lib/reviews-data';
+import { fetchFeaturedReviews } from '@/lib/reviews-data';
 import type { BlogLocale } from '@rateq/types';
 import type { JSX } from 'react';
 import { getLocale } from 'next-intl/server';
@@ -27,7 +27,7 @@ export default async function HomePage(): Promise<JSX.Element> {
     categories,
     stats,
     featuredReviews,
-    topCompanyResult,
+    heroSpotlight,
     blogResult,
   ] = await Promise.all([
     fetchCompanies(new URLSearchParams({ sort: 'rating', limit: '6' })),
@@ -35,16 +35,15 @@ export default async function HomePage(): Promise<JSX.Element> {
     fetchCategories(),
     fetchPlatformStats(),
     fetchFeaturedReviews(6),
-    fetchCompanies(new URLSearchParams({ sort: 'rating', limit: '1' })),
+    fetchHeroSpotlight(),
     fetchBlogPosts(locale, 3, 1),
   ]);
 
   const companies = companiesResult.data;
   const nearbyCompanies = nearbyResult.data;
   const carouselCategories = categories.slice(0, 8);
-  const topCompany = topCompanyResult.data[0] ?? null;
-  const heroReview =
-    topCompany && topCompany.reviewCount > 0 ? await fetchLatestCompanyReview(topCompany.id) : null;
+  const topCompany = heroSpotlight?.company ?? null;
+  const heroReview = heroSpotlight?.review ?? null;
 
   return (
     <>

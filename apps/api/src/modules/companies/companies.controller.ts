@@ -122,6 +122,13 @@ export class CompaniesController {
   }
 
   @Public()
+  @Get('hero-spotlight')
+  @ApiOperation({ summary: 'Random featured company with a matching approved review' })
+  getHeroSpotlight() {
+    return this.companiesService.getHeroSpotlight();
+  }
+
+  @Public()
   @Post(':slug/view')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Record a public company profile page view' })

@@ -33,6 +33,9 @@ const STATUS_OPTIONS: Array<ReviewStatus | 'all'> = [
   'all',
   ReviewStatus.PENDING,
   ReviewStatus.RESOLUTION_PENDING,
+  ReviewStatus.MODIFIED,
+  ReviewStatus.PROCEEDED,
+  ReviewStatus.WITHDRAWN,
   ReviewStatus.APPROVED,
   ReviewStatus.REJECTED,
 ];
@@ -40,9 +43,18 @@ const STATUS_OPTIONS: Array<ReviewStatus | 'all'> = [
 const statusStyles: Record<ReviewStatus, string> = {
   PENDING: 'bg-amber-50 text-amber-700 dark:bg-amber-950/50 dark:text-amber-300',
   RESOLUTION_PENDING: 'bg-sky-50 text-sky-700 dark:bg-sky-950/50 dark:text-sky-300',
+  MODIFIED: 'bg-orange-50 text-orange-700 dark:bg-orange-950/50 dark:text-orange-300',
+  PROCEEDED: 'bg-violet-50 text-violet-700 dark:bg-violet-950/50 dark:text-violet-300',
+  WITHDRAWN: 'bg-rose-50 text-rose-700 dark:bg-rose-950/50 dark:text-rose-300',
   APPROVED: 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-300',
   REJECTED: 'bg-red-50 text-red-700 dark:bg-red-950/50 dark:text-red-400',
 };
+
+const ADMIN_MODERATABLE_STATUSES: ReviewStatus[] = [
+  ReviewStatus.PENDING,
+  ReviewStatus.MODIFIED,
+  ReviewStatus.PROCEEDED,
+];
 
 function isNewReviewerAccount(createdAt: string | undefined): boolean {
   if (!createdAt) return false;
@@ -87,6 +99,10 @@ export function ReviewsManagementPanel({ mode, companyId }: ReviewsManagementPan
   const [categoryId, setCategoryId] = useState('');
   const [search, setSearch] = useState('');
   const [searchInput, setSearchInput] = useState('');
+  const [editing, setEditing] = useState(false);
+  const [editTitle, setEditTitle] = useState('');
+  const [editContent, setEditContent] = useState('');
+  const [editRating, setEditRating] = useState(5);
   const limit = 10;
 
   const selectedReview = useMemo(
@@ -105,6 +121,14 @@ export function ReviewsManagementPanel({ mode, companyId }: ReviewsManagementPan
     setSearch(initialSearch);
     setPage(1);
   }, [searchParams]);
+
+  useEffect(() => {
+    if (!selectedReview) return;
+    setEditTitle(selectedReview.title);
+    setEditContent(selectedReview.content);
+    setEditRating(selectedReview.rating);
+    setEditing(false);
+  }, [selectedReview?.id]);
 
   const loadReviews = useCallback(async () => {
     setLoading(true);
@@ -225,6 +249,21 @@ export function ReviewsManagementPanel({ mode, companyId }: ReviewsManagementPan
     await runAction(() => reviewsApi.withdrawResolution(token, reviewId), t('withdrawSuccess'));
   };
 
+  const handleModify = async (reviewId: string) => {
+    const token = await ensureValidAccessToken();
+    if (!token) return;
+    await runAction(
+      () =>
+        reviewsApi.modifyResolution(token, reviewId, {
+          rating: editRating,
+          title: editTitle,
+          content: editContent,
+        }),
+      t('modifySuccess'),
+    );
+    setEditing(false);
+  };
+
   const handleSetResolutionWindow = async (reviewId: string, days: 7 | 10) => {
     const token = await ensureValidAccessToken();
     if (!token) return;
@@ -236,6 +275,12 @@ export function ReviewsManagementPanel({ mode, companyId }: ReviewsManagementPan
 
   const resolutionDeadlinePassed = selectedReview
     ? isResolutionDeadlinePassed(selectedReview)
+    : false;
+  const resolutionWindowActive = Boolean(
+    selectedReview?.resolutionDeadlineAt && !resolutionDeadlinePassed,
+  );
+  const adminCanModerate = selectedReview
+    ? ADMIN_MODERATABLE_STATUSES.includes(selectedReview.status)
     : false;
 
   const totalPages = meta?.totalPages ?? 1;
@@ -530,10 +575,16 @@ export function ReviewsManagementPanel({ mode, companyId }: ReviewsManagementPan
                 {selectedReview.status === 'RESOLUTION_PENDING' ? (
                   <p className="text-sm text-secondary">{t('adminResolutionHint')}</p>
                 ) : null}
+                {selectedReview.status === 'MODIFIED' ? (
+                  <p className="text-sm text-secondary">{t('adminModifiedHint')}</p>
+                ) : null}
+                {selectedReview.status === 'PROCEEDED' ? (
+                  <p className="text-sm text-secondary">{t('adminProceededHint')}</p>
+                ) : null}
                 <div className="flex flex-wrap gap-2">
                   <Button
                     type="button"
-                    disabled={acting || selectedReview.status !== 'PENDING'}
+                    disabled={acting || !adminCanModerate}
                     onClick={() => void handleAdminApprove(selectedReview.id)}
                   >
                     {t('accept')}
@@ -541,7 +592,7 @@ export function ReviewsManagementPanel({ mode, companyId }: ReviewsManagementPan
                   <Button
                     type="button"
                     variant="outline"
-                    disabled={acting || selectedReview.status !== 'PENDING'}
+                    disabled={acting || !adminCanModerate}
                     onClick={() => void handleAdminReject(selectedReview.id)}
                   >
                     {t('reject')}
@@ -569,7 +620,7 @@ export function ReviewsManagementPanel({ mode, companyId }: ReviewsManagementPan
             ) : null}
 
             {mode === 'reviewer' &&
-            selectedReview.status === 'REJECTED' &&
+            (selectedReview.status === 'REJECTED' || selectedReview.status === 'WITHDRAWN') &&
             selectedReview.company?.slug ? (
               <div className="border-t border-subtle pt-4">
                 <Link href={`/companies/${selectedReview.company.slug}#write-review`}>
@@ -622,8 +673,8 @@ export function ReviewsManagementPanel({ mode, companyId }: ReviewsManagementPan
                   {!selectedReview.resolutionDeadlineAt
                     ? t('resolutionWaitingCompany')
                     : resolutionDeadlinePassed
-                      ? t('resolutionHint')
-                      : t('resolutionWaitingDeadline', {
+                      ? t('resolutionProceedHint')
+                      : t('resolutionDuringWindowHint', {
                           date: new Date(selectedReview.resolutionDeadlineAt).toLocaleString(
                             locale,
                             {
@@ -633,22 +684,82 @@ export function ReviewsManagementPanel({ mode, companyId }: ReviewsManagementPan
                           ),
                         })}
                 </p>
+
+                {resolutionWindowActive && editing ? (
+                  <div className="space-y-3 rounded-xl border border-subtle p-4">
+                    <div>
+                      <label className="mb-1 block text-sm font-medium text-primary">
+                        {t('editRating')}
+                      </label>
+                      <StarRating
+                        value={editRating}
+                        size="md"
+                        interactive
+                        onChange={setEditRating}
+                      />
+                    </div>
+                    <Input
+                      value={editTitle}
+                      onChange={(e) => setEditTitle(e.target.value)}
+                      placeholder={t('editTitle')}
+                    />
+                    <textarea
+                      value={editContent}
+                      onChange={(e) => setEditContent(e.target.value)}
+                      rows={4}
+                      className="textarea-field"
+                      placeholder={t('editContent')}
+                    />
+                    <div className="flex flex-wrap gap-2">
+                      <Button
+                        type="button"
+                        disabled={acting}
+                        onClick={() => void handleModify(selectedReview.id)}
+                      >
+                        {t('saveModification')}
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        disabled={acting}
+                        onClick={() => setEditing(false)}
+                      >
+                        {t('cancelEdit')}
+                      </Button>
+                    </div>
+                  </div>
+                ) : null}
+
                 <div className="flex flex-wrap gap-2">
-                  <Button
-                    type="button"
-                    disabled={acting || !resolutionDeadlinePassed}
-                    onClick={() => void handleProceed(selectedReview.id)}
-                  >
-                    {t('proceed')}
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    disabled={acting || !resolutionDeadlinePassed}
-                    onClick={() => void handleWithdraw(selectedReview.id)}
-                  >
-                    {t('withdraw')}
-                  </Button>
+                  {resolutionWindowActive ? (
+                    <>
+                      <Button
+                        type="button"
+                        variant="outline-brand"
+                        disabled={acting || editing}
+                        onClick={() => setEditing(true)}
+                      >
+                        {t('editReview')}
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        disabled={acting}
+                        onClick={() => void handleWithdraw(selectedReview.id)}
+                      >
+                        {t('withdraw')}
+                      </Button>
+                    </>
+                  ) : null}
+                  {resolutionDeadlinePassed ? (
+                    <Button
+                      type="button"
+                      disabled={acting}
+                      onClick={() => void handleProceed(selectedReview.id)}
+                    >
+                      {t('proceed')}
+                    </Button>
+                  ) : null}
                 </div>
               </div>
             ) : null}

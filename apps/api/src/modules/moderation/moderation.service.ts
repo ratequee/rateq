@@ -352,7 +352,12 @@ export class ModerationService {
       throw new NotFoundException('Review not found');
     }
 
-    const allowedStatuses: ReviewStatus[] = ['PENDING', 'RESOLUTION_PENDING'];
+    const allowedStatuses: ReviewStatus[] = [
+      'PENDING',
+      'RESOLUTION_PENDING',
+      'MODIFIED',
+      'PROCEEDED',
+    ];
     if (!allowedStatuses.includes(review.status)) {
       throw new BadRequestException('This review can no longer be moderated');
     }

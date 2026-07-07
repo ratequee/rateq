@@ -16,6 +16,9 @@ export function ReviewCard({ review }: ReviewCardProps) {
     [ReviewStatus.APPROVED]: 'border-green-200 bg-green-50 text-green-700',
     [ReviewStatus.PENDING]: 'border-amber-200 bg-amber-50 text-amber-700',
     [ReviewStatus.RESOLUTION_PENDING]: 'border-sky-200 bg-sky-50 text-sky-700',
+    [ReviewStatus.MODIFIED]: 'border-orange-200 bg-orange-50 text-orange-700',
+    [ReviewStatus.PROCEEDED]: 'border-violet-200 bg-violet-50 text-violet-700',
+    [ReviewStatus.WITHDRAWN]: 'border-rose-200 bg-rose-50 text-rose-700',
     [ReviewStatus.REJECTED]: 'border-red-200 bg-red-50 text-red-700',
   };
 
