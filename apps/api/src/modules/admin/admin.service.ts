@@ -38,6 +38,12 @@ export class AdminService {
       topReviewers,
       latestReviews,
       dailyActivity,
+      pendingCompanyApprovals,
+      pendingProfileChanges,
+      pendingReplies,
+      pendingProjects,
+      pendingReviewReports,
+      pendingInvitationRequests,
     ] = await Promise.all([
       this.prisma.company.count(),
       this.prisma.user.count({ where: { role: 'USER', profile: { isNot: null } } }),
@@ -62,11 +68,40 @@ export class AdminService {
       }),
       this.reviewsRepository.findMany({ page: 1, limit: 8 }),
       this.getDailyActivityLast7Days(),
+      this.prisma.company.count({ where: { verificationStatus: 'PENDING' } }),
+      this.prisma.company.count({
+        where: { profileChangeStatus: 'PENDING', verificationStatus: 'APPROVED' },
+      }),
+      this.prisma.reviewReply.count({ where: { status: 'PENDING' } }),
+      this.prisma.companyProject.count({ where: { status: 'PENDING' } }),
+      this.prisma.reviewReport.count({ where: { status: 'PENDING' } }),
+      this.prisma.reviewerInvitationRequest.count({ where: { status: 'PENDING' } }),
     ]);
 
     const statusMap = Object.fromEntries(
       statusGroups.map((group) => [group.status, group._count.id]),
     );
+
+    const reviewModeration =
+      (statusMap.PENDING ?? 0) + (statusMap.MODIFIED ?? 0) + (statusMap.PROCEEDED ?? 0);
+
+    const pendingActions = {
+      companyApprovals: pendingCompanyApprovals,
+      profileChanges: pendingProfileChanges,
+      reviewModeration,
+      replyModeration: pendingReplies,
+      projectModeration: pendingProjects,
+      reviewReports: pendingReviewReports,
+      reviewerInvitationRequests: pendingInvitationRequests,
+      total:
+        pendingCompanyApprovals +
+        pendingProfileChanges +
+        reviewModeration +
+        pendingReplies +
+        pendingProjects +
+        pendingReviewReports +
+        pendingInvitationRequests,
+    };
 
     return {
       totalCompanies,
@@ -76,6 +111,7 @@ export class AdminService {
       approvedReviews: statusMap.APPROVED ?? 0,
       rejectedReviews: statusMap.REJECTED ?? 0,
       resolutionPendingReviews: statusMap.RESOLUTION_PENDING ?? 0,
+      pendingActions,
       dailyActivity,
       topCompanies: topCompanies.map((company) => ({
         id: company.id,

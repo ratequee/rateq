@@ -22,7 +22,7 @@ export async function RelatedCategoriesSection({
 
   return (
     <section
-      {...scrollRevealProps('fade-up')}
+      {...scrollRevealProps('fade-right')}
       className="border-t border-slate-100 bg-slate-50/60 py-12 dark:border-dm-border dark:bg-dm-surface sm:py-16"
     >
       <div className="mx-auto max-w-page px-4 sm:px-6 lg:px-8">
@@ -41,7 +41,7 @@ export async function RelatedCategoriesSection({
 
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-4 lg:gap-5">
           {related.map((item, index) => (
-            <div key={item.id} {...scrollRevealProps('fade-up', scrollStaggerDelay(index))}>
+            <div key={item.id} {...scrollRevealProps('pop-up', scrollStaggerDelay(index))}>
               <CategoryCard category={item} />
             </div>
           ))}

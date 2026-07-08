@@ -9,6 +9,7 @@ import type {
   CompanyServiceRatingAggregate,
   CompanySocialLinks,
   ReviewRatingDistribution,
+  UpdateCompanyInput,
 } from '@rateq/types';
 import { CompanyProjectStatus } from '@rateq/types';
 import { calculateYearsInBusiness } from '@rateq/utils';
@@ -176,11 +177,18 @@ export function toCompanyDetail(
     isFavorited?: boolean;
   },
 ): CompanyDetail {
+  const profileChangeStatus = company.profileChangeStatus === 'PENDING' ? 'pending' : 'none';
+  const pendingProfileChanges =
+    profileChangeStatus === 'pending' && company.pendingProfileChanges
+      ? (company.pendingProfileChanges as UpdateCompanyInput)
+      : null;
+
   return {
     ...toCompanyPublic(company, { ...extras, includeUnpublishedProjects: true }),
     ...(extras?.isFavorited !== undefined && { isFavorited: extras.isFavorited }),
     updatedAt: company.updatedAt.toISOString(),
-    profileChangeStatus: company.profileChangeStatus === 'PENDING' ? 'pending' : 'none',
+    profileChangeStatus,
+    ...(pendingProfileChanges ? { pendingProfileChanges } : {}),
   };
 }
 

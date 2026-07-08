@@ -34,7 +34,7 @@ export function TestimonialsCarousel({ reviews }: TestimonialsCarouselProps) {
   };
 
   return (
-    <section {...scrollRevealProps('pop-up')} className="py-12 dark:bg-dm-bg sm:py-16 lg:py-20">
+    <section {...scrollRevealProps('fade-left')} className="py-12 dark:bg-dm-bg sm:py-16 lg:py-20">
       <div className="mx-auto max-w-page px-4 sm:px-6 lg:px-8">
         <SectionHeader
           title={t('testimonialsTitle')}
@@ -98,7 +98,7 @@ export function TestimonialsCarousel({ reviews }: TestimonialsCarouselProps) {
                   </div>
                 </div>
                 <StarRating value={review.rating} size="md" />
-                <blockquote className="mt-4 flex-1 text-sm leading-relaxed text-ink-muted dark:text-white/90">
+                <blockquote className="mt-4 line-clamp-5 min-w-0 flex-1 overflow-hidden break-words text-sm leading-relaxed text-ink-muted dark:text-white/90">
                   &ldquo;{review.content}&rdquo;
                 </blockquote>
                 <div className={cn('mt-6 border-t-2 border-slate-100 pt-4', darkBorder)}>

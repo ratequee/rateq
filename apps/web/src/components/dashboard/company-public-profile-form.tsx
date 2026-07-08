@@ -12,12 +12,79 @@ import { useProfile } from '@/components/providers/profile-provider';
 import { fetchCompanyCatalogClient } from '@/lib/company-catalog-api';
 import { onboardingApi } from '@/lib/onboarding-api';
 import { ApiError } from '@/lib/api';
-import { approximateRegistrationDateFromYears } from '@/lib/company-years';
+import { formatRegistrationDateInput } from '@/lib/company-years';
 import { CatalogMultiSelect } from '@/components/profile/catalog-multi-select';
-import type { CompanyCatalogItemPublic, CompanyProfileDetail } from '@rateq/types';
+import type {
+  CompanyCatalogItemPublic,
+  CompanyProfileDetail,
+  UpdateCompanyInput,
+} from '@rateq/types';
 import { useTranslations } from 'next-intl';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
+
+function buildPublicProfileUpdates(
+  company: CompanyProfileDetail,
+  form: {
+    nameEn: string;
+    nameAr: string;
+    descriptionEn: string;
+    descriptionAr: string;
+    websiteUrl: string;
+    serviceIds: string[];
+    activityIds: string[];
+    firstRegistrationDate: string;
+    publicProjectCount: string;
+    privateProjectCount: string;
+  },
+): UpdateCompanyInput {
+  const updates: UpdateCompanyInput = {};
+  const liveRegistrationDate = formatRegistrationDateInput(company);
+  const liveServiceIds = company.serviceItems?.map((item) => item.id) ?? [];
+  const liveActivityIds = company.activityItems?.map((item) => item.id) ?? [];
+
+  if (form.nameEn.trim() && form.nameEn.trim() !== (company.name ?? '')) {
+    updates.name = form.nameEn.trim();
+  }
+  if (form.nameAr.trim() !== (company.nameAr ?? '')) {
+    updates.nameAr = form.nameAr.trim() || undefined;
+  }
+  const liveDescriptionEn = company.descriptionEn ?? company.description ?? '';
+  if (form.descriptionEn.trim() !== liveDescriptionEn) {
+    updates.descriptionEn = form.descriptionEn.trim() || undefined;
+  }
+  if (form.descriptionAr.trim() !== (company.descriptionAr ?? '')) {
+    updates.descriptionAr = form.descriptionAr.trim() || undefined;
+  }
+  if (form.websiteUrl.trim() !== (company.websiteUrl ?? '')) {
+    updates.websiteUrl = form.websiteUrl.trim() || null;
+  }
+  if (JSON.stringify(form.serviceIds) !== JSON.stringify(liveServiceIds)) {
+    updates.serviceIds = form.serviceIds;
+  }
+  if (JSON.stringify(form.activityIds) !== JSON.stringify(liveActivityIds)) {
+    updates.activityIds = form.activityIds;
+  }
+  if (form.firstRegistrationDate && form.firstRegistrationDate !== liveRegistrationDate) {
+    updates.firstRegistrationDate = form.firstRegistrationDate;
+  }
+  const livePublicCount =
+    company.publicProjectCount != null ? String(company.publicProjectCount) : '';
+  if (form.publicProjectCount !== livePublicCount) {
+    updates.publicProjectCount = form.publicProjectCount
+      ? Number(form.publicProjectCount)
+      : undefined;
+  }
+  const livePrivateCount =
+    company.privateProjectCount != null ? String(company.privateProjectCount) : '';
+  if (form.privateProjectCount !== livePrivateCount) {
+    updates.privateProjectCount = form.privateProjectCount
+      ? Number(form.privateProjectCount)
+      : undefined;
+  }
+
+  return updates;
+}
 
 function CompanyPublicProfileFormFields({ company }: { company: CompanyProfileDetail }) {
   const t = useTranslations('profilePage');
@@ -37,11 +104,7 @@ function CompanyPublicProfileFormFields({ company }: { company: CompanyProfileDe
     () => company.activityItems?.map((item) => item.id) ?? [],
   );
   const [firstRegistrationDate, setFirstRegistrationDate] = useState(() =>
-    company.firstRegistrationDate
-      ? company.firstRegistrationDate.slice(0, 10)
-      : company.yearsEstablished != null
-        ? approximateRegistrationDateFromYears(company.yearsEstablished)
-        : '',
+    formatRegistrationDateInput(company),
   );
   const [publicProjectCount, setPublicProjectCount] = useState(() =>
     company.publicProjectCount != null ? String(company.publicProjectCount) : '',
@@ -54,6 +117,27 @@ function CompanyPublicProfileFormFields({ company }: { company: CompanyProfileDe
   const [submitting, setSubmitting] = useState(false);
 
   const pendingApproval = company.profileChangeStatus === 'pending';
+  const pendingRegistrationDate = company.pendingProfileChanges?.firstRegistrationDate?.slice(
+    0,
+    10,
+  );
+
+  useEffect(() => {
+    setNameEn(company.name ?? '');
+    setNameAr(company.nameAr ?? '');
+    setDescriptionEn(company.descriptionEn ?? company.description ?? '');
+    setDescriptionAr(company.descriptionAr ?? '');
+    setWebsiteUrl(company.websiteUrl ?? '');
+    setServiceIds(company.serviceItems?.map((item) => item.id) ?? []);
+    setActivityIds(company.activityItems?.map((item) => item.id) ?? []);
+    setFirstRegistrationDate(formatRegistrationDateInput(company));
+    setPublicProjectCount(
+      company.publicProjectCount != null ? String(company.publicProjectCount) : '',
+    );
+    setPrivateProjectCount(
+      company.privateProjectCount != null ? String(company.privateProjectCount) : '',
+    );
+  }, [company]);
 
   useEffect(() => {
     void Promise.all([
@@ -68,20 +152,27 @@ function CompanyPublicProfileFormFields({ company }: { company: CompanyProfileDe
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
 
+    const updates = buildPublicProfileUpdates(company, {
+      nameEn,
+      nameAr,
+      descriptionEn,
+      descriptionAr,
+      websiteUrl,
+      serviceIds,
+      activityIds,
+      firstRegistrationDate,
+      publicProjectCount,
+      privateProjectCount,
+    });
+
+    if (Object.keys(updates).length === 0) {
+      toast.info(t('noChangesToSubmit'));
+      return;
+    }
+
     setSubmitting(true);
     try {
-      await onboardingApi.updateCompany({
-        name: nameEn.trim() || undefined,
-        nameAr: nameAr.trim() || undefined,
-        descriptionEn: descriptionEn.trim() || undefined,
-        descriptionAr: descriptionAr.trim() || undefined,
-        websiteUrl: websiteUrl.trim() || null,
-        serviceIds,
-        activityIds,
-        firstRegistrationDate: firstRegistrationDate || undefined,
-        publicProjectCount: publicProjectCount ? Number(publicProjectCount) : undefined,
-        privateProjectCount: privateProjectCount ? Number(privateProjectCount) : undefined,
-      });
+      await onboardingApi.updateCompany(updates);
 
       await refreshOnboarding();
       toast.success(
@@ -176,6 +267,7 @@ function CompanyPublicProfileFormFields({ company }: { company: CompanyProfileDe
         <CompanyYearsEstablishedField
           firstRegistrationDate={firstRegistrationDate}
           onChange={setFirstRegistrationDate}
+          pendingRegistrationDate={pendingRegistrationDate}
         />
         <Field label={t('publicProjectCount')} hint={t('publicProjectCountHint')}>
           <Input

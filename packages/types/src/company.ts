@@ -100,6 +100,8 @@ export interface CompanyPublic {
 export interface CompanyDetail extends CompanyPublic {
   updatedAt: string;
   profileChangeStatus: 'none' | 'pending';
+  /** Proposed profile edits awaiting admin approval (owner view only). */
+  pendingProfileChanges?: UpdateCompanyInput | null;
 }
 
 export type PaginatedCompaniesResponse = PaginatedResponse<CompanyPublic>;

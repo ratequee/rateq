@@ -30,6 +30,18 @@ export function approximateRegistrationDateFromYears(
   return date.toISOString().slice(0, 10);
 }
 
+export function formatRegistrationDateInput(
+  company: Pick<CompanyPublic, 'yearsEstablished' | 'firstRegistrationDate'>,
+): string {
+  if (company.firstRegistrationDate) {
+    return company.firstRegistrationDate.slice(0, 10);
+  }
+  if (company.yearsEstablished != null) {
+    return approximateRegistrationDateFromYears(company.yearsEstablished);
+  }
+  return '';
+}
+
 export function getCompanyYearsInBusiness(
   company: Pick<CompanyPublic, 'yearsEstablished' | 'firstRegistrationDate'>,
 ): number | null {

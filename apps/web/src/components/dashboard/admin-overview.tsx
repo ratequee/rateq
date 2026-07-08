@@ -11,13 +11,40 @@ import {
   DashboardChartDailyFilter,
 } from '@/components/dashboard/dashboard-activity-chart';
 import { adminApi } from '@/lib/admin-platform-api';
+import { cn } from '@/lib/utils';
 import { mapReviewToDashboardRow } from '@/lib/dashboard-review-rows';
 import { ensureValidAccessToken } from '@/lib/auth-session';
 import { useAuth } from '@/components/providers/auth-provider';
 import type { AdminPlatformStats } from '@rateq/types';
-import { Building2, ClipboardList, Star, Users } from 'lucide-react';
+import {
+  ArrowRight,
+  Building2,
+  CheckCircle2,
+  ClipboardList,
+  Flag,
+  FolderKanban,
+  MessageSquareText,
+  PencilRuler,
+  Star,
+  UserPlus,
+  Users,
+} from 'lucide-react';
 import { useLocale, useTranslations } from 'next-intl';
 import { useEffect, useMemo, useState } from 'react';
+
+const PENDING_ACTION_ITEMS = [
+  { key: 'companyApprovals', href: '/dashboard/admin/companies?filter=pending', icon: Building2 },
+  {
+    key: 'profileChanges',
+    href: '/dashboard/admin/companies?filter=profile_changes',
+    icon: PencilRuler,
+  },
+  { key: 'reviewModeration', href: '/dashboard/admin/reviews', icon: ClipboardList },
+  { key: 'replyModeration', href: '/dashboard/admin/reviews', icon: MessageSquareText },
+  { key: 'projectModeration', href: '/dashboard/admin/projects', icon: FolderKanban },
+  { key: 'reviewReports', href: '/dashboard/admin/directory', icon: Flag },
+  { key: 'reviewerInvitationRequests', href: '/dashboard/admin/directory', icon: UserPlus },
+] as const;
 
 interface AdminOverviewProps {
   title: string;
@@ -107,6 +134,8 @@ export function AdminOverview({ title }: AdminOverviewProps) {
         ))}
       </div>
 
+      <PendingActionsPanel stats={stats} ta={ta} />
+
       <div className="grid gap-6 xl:grid-cols-[1.4fr_1fr]">
         <div className="rounded-2xl border border-subtle surface-card p-5 shadow-sm">
           <div className="mb-4 flex items-center justify-between gap-3">
@@ -184,6 +213,70 @@ export function AdminOverview({ title }: AdminOverviewProps) {
           </Link>
         </div>
       </div>
+    </div>
+  );
+}
+
+function PendingActionsPanel({
+  stats,
+  ta,
+}: {
+  stats: AdminPlatformStats | null;
+  ta: ReturnType<typeof useTranslations<'adminOverview'>>;
+}) {
+  const pending = stats?.pendingActions;
+  const total = pending?.total ?? 0;
+
+  return (
+    <div className="rounded-2xl border border-subtle surface-card p-5 shadow-sm">
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
+        <div>
+          <h3 className="text-lg font-bold text-primary">{ta('pendingActionsTitle')}</h3>
+          <p className="mt-0.5 text-sm text-secondary">{ta('pendingActionsSubtitle')}</p>
+        </div>
+        <span
+          className={cn(
+            'inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-sm font-semibold',
+            total > 0
+              ? 'bg-brand-50 text-brand-700 dark:bg-brand-950/50 dark:text-brand-300'
+              : 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-300',
+          )}
+        >
+          {total === 0 ? <CheckCircle2 className="h-4 w-4" /> : null}
+          {ta('pendingActionsTotal', { count: total })}
+        </span>
+      </div>
+
+      {total === 0 ? (
+        <p className="rounded-xl border border-dashed border-subtle px-4 py-6 text-center text-sm text-secondary">
+          {ta('pendingActionsAllClear')}
+        </p>
+      ) : (
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          {PENDING_ACTION_ITEMS.filter((item) => (pending?.[item.key] ?? 0) > 0).map((item) => {
+            const count = pending?.[item.key] ?? 0;
+            const Icon = item.icon;
+            return (
+              <Link
+                key={item.key}
+                href={item.href}
+                className="group flex items-center gap-3 rounded-xl border border-subtle bg-slate-50/60 p-4 transition hover:border-brand-300 hover:bg-brand-50/60 dark:bg-dm-elevated/50 dark:hover:bg-dm-elevated"
+              >
+                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-brand-100 text-brand-700 dark:bg-brand-950/60 dark:text-brand-300">
+                  <Icon className="h-5 w-5" />
+                </span>
+                <div className="min-w-0 flex-1">
+                  <p className="text-2xl font-bold leading-none text-primary">{count}</p>
+                  <p className="mt-1 truncate text-xs font-medium text-secondary">
+                    {ta(`pendingActions.${item.key}`)}
+                  </p>
+                </div>
+                <ArrowRight className="h-4 w-4 shrink-0 text-secondary transition group-hover:translate-x-0.5 group-hover:text-brand-600 rtl:rotate-180" />
+              </Link>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }

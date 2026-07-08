@@ -76,7 +76,7 @@ export function NearbyMapSection({ companies }: NearbyMapSectionProps) {
 
   return (
     <section
-      {...scrollRevealProps('pop-up')}
+      {...scrollRevealProps('fade-right')}
       className="bg-white py-12 dark:bg-dm-bg sm:py-16 lg:py-20"
     >
       <div

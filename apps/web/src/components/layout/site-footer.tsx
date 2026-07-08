@@ -63,7 +63,7 @@ export async function SiteFooter(): Promise<JSX.Element> {
               </li>
               <li className="flex items-center gap-2">
                 <Phone className="h-4 w-4 shrink-0 text-gold-300" aria-hidden />
-                <a href="tel:+97400000000" className="hover:text-gold-300">
+                <a href="tel:+97433044425" className="hover:text-gold-300" dir="ltr">
                   {t('phone')}
                 </a>
               </li>
@@ -75,7 +75,12 @@ export async function SiteFooter(): Promise<JSX.Element> {
               </li>
               <li className="flex items-center gap-2">
                 <Globe className="h-4 w-4 shrink-0 text-gold-300" aria-hidden />
-                <a href="https://www.RateQ.com" className="hover:text-gold-300">
+                <a
+                  href="https://www.rateq.qa/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="hover:text-gold-300"
+                >
                   {t('website')}
                 </a>
               </li>

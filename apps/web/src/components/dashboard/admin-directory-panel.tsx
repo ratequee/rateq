@@ -45,6 +45,51 @@ const reviewStatusStyles: Record<string, string> = {
   REJECTED: 'bg-red-50 text-red-700 dark:bg-red-950/50 dark:text-red-400',
 };
 
+function AdminCompanyContactDetails({
+  phone,
+  address,
+  crNumber,
+  validationDate,
+}: {
+  phone?: string | null;
+  address?: string | null;
+  crNumber?: string | null;
+  validationDate?: string | null;
+}) {
+  const t = useTranslations('adminCompanies');
+  const locale = useLocale();
+
+  const items: Array<{ label: string; value: string }> = [];
+  if (phone) items.push({ label: t('phone'), value: phone });
+  if (address) items.push({ label: t('address'), value: address });
+  if (crNumber) items.push({ label: t('crNumber'), value: crNumber });
+  if (validationDate) {
+    items.push({
+      label: t('validationDate'),
+      value: new Date(validationDate).toLocaleDateString(locale),
+    });
+  }
+
+  if (items.length === 0) return null;
+
+  return (
+    <section>
+      <h4 className="mb-3 text-sm font-semibold text-primary">{t('contactDetails')}</h4>
+      <dl className="grid gap-3 sm:grid-cols-2">
+        {items.map(({ label, value }) => (
+          <div
+            key={label}
+            className="rounded-xl border border-subtle bg-slate-50 px-4 py-3 dark:bg-dm-elevated/60"
+          >
+            <dt className="text-xs font-medium text-secondary">{label}</dt>
+            <dd className="mt-1 break-words text-sm font-medium text-primary">{value}</dd>
+          </div>
+        ))}
+      </dl>
+    </section>
+  );
+}
+
 function EntityReviewsList({
   reviews,
   acting,
@@ -739,6 +784,12 @@ export function AdminDirectoryPanel() {
                     {t('deleteCompany')}
                   </Button>
                 </div>
+                <AdminCompanyContactDetails
+                  phone={companyDetail.phone}
+                  address={companyDetail.address}
+                  crNumber={companyDetail.crNumber}
+                  validationDate={companyDetail.validationDate}
+                />
                 <AdminCompanyDocumentsSection
                   registrationDocUrl={companyDetail.registrationDocUrl}
                   establishmentCardUrl={companyDetail.establishmentCardUrl}

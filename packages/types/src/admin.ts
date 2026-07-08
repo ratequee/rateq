@@ -18,6 +18,17 @@ export interface AdminDailyActivityPoint {
   reviewersCount: number;
 }
 
+export interface AdminPendingActions {
+  companyApprovals: number;
+  profileChanges: number;
+  reviewModeration: number;
+  replyModeration: number;
+  projectModeration: number;
+  reviewReports: number;
+  reviewerInvitationRequests: number;
+  total: number;
+}
+
 export interface AdminPlatformStats {
   totalCompanies: number;
   totalReviewers: number;
@@ -26,6 +37,7 @@ export interface AdminPlatformStats {
   approvedReviews: number;
   rejectedReviews: number;
   resolutionPendingReviews: number;
+  pendingActions: AdminPendingActions;
   dailyActivity: AdminDailyActivityPoint[];
   topCompanies: Array<{
     id: string;

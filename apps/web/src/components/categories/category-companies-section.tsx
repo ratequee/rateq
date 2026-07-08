@@ -21,7 +21,7 @@ export async function CategoryCompaniesSection({
   const rest = companies.slice(3);
 
   return (
-    <section {...scrollRevealProps('fade-up')} className="py-12 dark:bg-dm-bg sm:py-16 lg:py-20">
+    <section {...scrollRevealProps('fade-right')} className="py-12 dark:bg-dm-bg sm:py-16 lg:py-20">
       <div className="mx-auto max-w-page px-4 sm:px-6 lg:px-8">
         <div className="mb-8 flex flex-wrap items-end justify-between gap-4">
           <div>
@@ -41,10 +41,7 @@ export async function CategoryCompaniesSection({
             {featured.length > 0 && (
               <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
                 {featured.map((company, index) => (
-                  <div
-                    key={company.id}
-                    {...scrollRevealProps('fade-up', scrollStaggerDelay(index))}
-                  >
+                  <div key={company.id} {...scrollRevealProps('pop-up', scrollStaggerDelay(index))}>
                     <FeaturedCompanyCard company={company} />
                   </div>
                 ))}
@@ -54,10 +51,7 @@ export async function CategoryCompaniesSection({
             {rest.length > 0 && (
               <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 {rest.map((company, index) => (
-                  <div
-                    key={company.id}
-                    {...scrollRevealProps('fade-up', scrollStaggerDelay(index))}
-                  >
+                  <div key={company.id} {...scrollRevealProps('pop-up', scrollStaggerDelay(index))}>
                     <CompanyCard company={company} />
                   </div>
                 ))}
