@@ -1,7 +1,6 @@
 'use client';
 
 import { darkBorder, darkCardElevated } from '@/lib/dark-surfaces';
-import { scrollRevealProps } from '@/lib/scroll-reveal';
 import { cn } from '@/lib/utils';
 
 import { NearbyCompaniesMap } from '@/components/home/nearby-companies-map';
@@ -75,10 +74,7 @@ export function NearbyMapSection({ companies }: NearbyMapSectionProps) {
         : t('nearbyUsingYourLocation');
 
   return (
-    <section
-      {...scrollRevealProps('fade-right')}
-      className="bg-white py-12 dark:bg-dm-bg sm:py-16 lg:py-20"
-    >
+    <section className="bg-white py-12 dark:bg-dm-bg sm:py-16 lg:py-20">
       <div
         className={cn(
           'relative z-10 mx-auto mt-[-200px] max-w-page rounded-3xl border border-slate-100 bg-white p-6 shadow-lg sm:p-8 lg:p-10',
