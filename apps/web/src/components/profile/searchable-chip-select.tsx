@@ -32,7 +32,7 @@ export function SearchableChipSelect({
   emptyLabel,
   showHeader = true,
 }: SearchableChipSelectProps) {
-  const t = useTranslations('profile');
+  const t = useTranslations('profilePage');
   const [query, setQuery] = useState('');
 
   const selectedSet = useMemo(() => new Set(selectedIds), [selectedIds]);

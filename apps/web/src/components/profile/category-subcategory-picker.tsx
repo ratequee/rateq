@@ -32,7 +32,7 @@ export function CategorySubcategoryPicker({
   subcategoryError,
 }: CategorySubcategoryPickerProps) {
   const locale = useLocale();
-  const t = useTranslations('profile');
+  const t = useTranslations('profilePage');
 
   const categoryOptions = useMemo<ChipOption[]>(
     () =>
