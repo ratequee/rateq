@@ -2,7 +2,7 @@
 
 import { CategoryCard } from '@/components/categories/category-card';
 import { CarouselControls } from '@/components/home/carousel-controls';
-import { scrollRevealProps } from '@/lib/scroll-reveal';
+import { scrollRevealProps, scrollStaggerDelay } from '@/lib/scroll-reveal';
 import { darkCard } from '@/lib/dark-surfaces';
 import { SectionHeader } from '@/components/home/section-header';
 import type { CategoryPublic } from '@rateq/types';
@@ -26,7 +26,7 @@ export function CategoryCarousel({ categories }: CategoryCarouselProps) {
 
   return (
     <section
-      {...scrollRevealProps('fade-left')}
+      {...scrollRevealProps('fade-in')}
       className="mt-[50px] py-12 dark:bg-dm-bg sm:py-16 lg:py-20"
     >
       <div className="mx-auto max-w-page px-4 sm:px-6 lg:px-8">
@@ -54,13 +54,10 @@ export function CategoryCarousel({ categories }: CategoryCarouselProps) {
             ref={scrollRef}
             className="scrollbar-hide -mx-4 flex gap-4 overflow-x-auto px-4 pb-2 sm:mx-0 sm:px-0"
           >
-            {categories.map((category) => (
-              <CategoryCard
-                key={category.id}
-                category={category}
-                variant="compact"
-                className={darkCard}
-              />
+            {categories.map((category, index) => (
+              <div key={category.id} {...scrollRevealProps('pop-up', scrollStaggerDelay(index))}>
+                <CategoryCard category={category} variant="compact" className={darkCard} />
+              </div>
             ))}
           </div>
         )}

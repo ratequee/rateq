@@ -30,7 +30,7 @@ export async function RelatedCompaniesSection({
 
   return (
     <section
-      {...scrollRevealProps('fade-left')}
+      {...scrollRevealProps('fade-in')}
       className="bg-slate-50 py-12 dark:bg-dm-elevated/50 sm:py-16 lg:py-20"
     >
       <div className="mx-auto max-w-page px-4 sm:px-6 lg:px-8">

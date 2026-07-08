@@ -1,6 +1,6 @@
 'use client';
 
-import { scrollRevealProps } from '@/lib/scroll-reveal';
+import { scrollRevealProps, scrollStaggerDelay } from '@/lib/scroll-reveal';
 import type { CompanyPublic } from '@rateq/types';
 import { CarouselControls } from '@/components/home/carousel-controls';
 import { FeaturedCompanyCard } from '@/components/home/featured-company-card';
@@ -26,7 +26,7 @@ export function FeaturedCompaniesSection({ companies }: FeaturedCompaniesSection
 
   return (
     <section
-      {...scrollRevealProps('pop-up')}
+      {...scrollRevealProps('fade-in')}
       className="bg-slate-50/60 py-12 dark:bg-dm-bg sm:py-16 lg:py-20"
     >
       <div className="mx-auto max-w-page px-4 sm:px-6 lg:px-8">
@@ -54,8 +54,16 @@ export function FeaturedCompaniesSection({ companies }: FeaturedCompaniesSection
             ref={scrollRef}
             className="scrollbar-hide -mx-4 grid auto-cols-[minmax(280px,1fr)] grid-flow-col gap-5 overflow-x-auto px-4 pb-2 sm:mx-0 sm:auto-cols-fr sm:grid-flow-row sm:grid-cols-2 sm:overflow-visible sm:px-0 lg:grid-cols-3"
           >
-            {companies.slice(0, 3).map((company) => (
-              <FeaturedCompanyCard key={company.id} company={company} />
+            {companies.slice(0, 3).map((company, index) => (
+              <div
+                key={company.id}
+                {...scrollRevealProps(
+                  index % 2 === 0 ? 'fade-left' : 'fade-right',
+                  scrollStaggerDelay(index),
+                )}
+              >
+                <FeaturedCompanyCard company={company} />
+              </div>
             ))}
           </div>
         )}

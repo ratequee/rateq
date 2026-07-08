@@ -22,7 +22,7 @@ export async function RelatedCategoriesSection({
 
   return (
     <section
-      {...scrollRevealProps('fade-right')}
+      {...scrollRevealProps('fade-in')}
       className="border-t border-slate-100 bg-slate-50/60 py-12 dark:border-dm-border dark:bg-dm-surface sm:py-16"
     >
       <div className="mx-auto max-w-page px-4 sm:px-6 lg:px-8">

@@ -32,7 +32,7 @@ export async function StatsBar({ stats }: StatsBarProps): Promise<JSX.Element> {
 
   return (
     <section
-      {...scrollRevealProps('scale-up')}
+      {...scrollRevealProps('fade-in')}
       className="py-12 dark:bg-dm-bg sm:py-16 lg:py-20"
       aria-label={t('statsAria')}
     >

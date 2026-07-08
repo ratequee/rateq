@@ -52,7 +52,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps): Pro
           />
         </div>
 
-        <div {...scrollRevealProps('fade-up', 120)} className="mt-8">
+        <div {...scrollRevealProps('fade-in', 120)} className="mt-8">
           {result.data.length === 0 ? (
             <p className="py-12 text-center text-secondary">{tc('noResults')}</p>
           ) : (
@@ -62,10 +62,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps): Pro
               </p>
               <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 {result.data.map((company, index) => (
-                  <div
-                    key={company.id}
-                    {...scrollRevealProps('fade-up', scrollStaggerDelay(index))}
-                  >
+                  <div key={company.id} {...scrollRevealProps('pop-up', scrollStaggerDelay(index))}>
                     <CompanyCard company={company} />
                   </div>
                 ))}

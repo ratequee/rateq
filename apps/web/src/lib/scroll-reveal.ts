@@ -6,7 +6,7 @@ export type ScrollRevealAnimation =
   | 'scale-up'
   | 'pop-up';
 
-export function scrollStaggerDelay(index: number, stepMs = 80): number {
+export function scrollStaggerDelay(index: number, stepMs = 120): number {
   return index * stepMs;
 }
 

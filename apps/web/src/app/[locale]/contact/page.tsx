@@ -17,13 +17,13 @@ export default async function ContactPage(): Promise<JSX.Element> {
     <>
       <ContactHeroSection />
 
-      <section {...scrollRevealProps('fade-up')} className="mt-20 pb-12 dark:bg-dm-bg sm:pb-16">
+      <section {...scrollRevealProps('fade-in')} className="mt-20 pb-12 dark:bg-dm-bg sm:pb-16">
         <div className="mx-auto max-w-page px-4 sm:px-6 lg:px-8">
           <div className="grid gap-8 lg:grid-cols-[1fr_360px] lg:gap-10">
-            <div {...scrollRevealProps('fade-right')}>
+            <div {...scrollRevealProps('fade-left')}>
               <ContactForm />
             </div>
-            <div {...scrollRevealProps('fade-left', 120)}>
+            <div {...scrollRevealProps('fade-right', 120)}>
               <ContactInfoSection />
             </div>
           </div>

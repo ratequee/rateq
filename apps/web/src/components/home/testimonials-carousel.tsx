@@ -11,7 +11,7 @@ import type { ReviewPublic } from '@rateq/types';
 import { useLocale, useTranslations } from 'next-intl';
 import { formatReviewTimeAgo } from '@/lib/format-relative-time';
 import { useRef } from 'react';
-import { scrollRevealProps } from '@/lib/scroll-reveal';
+import { scrollRevealProps, scrollStaggerDelay } from '@/lib/scroll-reveal';
 import { cn } from '@/lib/utils';
 
 interface TestimonialsCarouselProps {
@@ -34,7 +34,7 @@ export function TestimonialsCarousel({ reviews }: TestimonialsCarouselProps) {
   };
 
   return (
-    <section {...scrollRevealProps('fade-left')} className="py-12 dark:bg-dm-bg sm:py-16 lg:py-20">
+    <section {...scrollRevealProps('fade-in')} className="py-12 dark:bg-dm-bg sm:py-16 lg:py-20">
       <div className="mx-auto max-w-page px-4 sm:px-6 lg:px-8">
         <SectionHeader
           title={t('testimonialsTitle')}
@@ -55,7 +55,7 @@ export function TestimonialsCarousel({ reviews }: TestimonialsCarouselProps) {
           ref={scrollRef}
           className="scrollbar-hide -mx-4 grid auto-cols-[minmax(300px,1fr)] grid-flow-col gap-5 overflow-x-auto px-4 sm:mx-0 sm:auto-cols-fr sm:grid-flow-row sm:grid-cols-2 sm:overflow-visible sm:px-0 lg:grid-cols-3"
         >
-          {reviews.map((review) => {
+          {reviews.map((review, index) => {
             const authorName = review.author?.displayName ?? t('testimonialCompany');
             const companyName = review.company?.name ?? t('testimonialCompany');
             const companyCategory =
@@ -79,6 +79,10 @@ export function TestimonialsCarousel({ reviews }: TestimonialsCarouselProps) {
             return (
               <article
                 key={review.id}
+                {...scrollRevealProps(
+                  index % 2 === 0 ? 'fade-left' : 'fade-right',
+                  scrollStaggerDelay(index),
+                )}
                 className={cn(
                   'flex h-full flex-col rounded-2xl border border-slate-100 bg-white p-6 shadow-sm',
                   darkCard,

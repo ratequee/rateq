@@ -21,7 +21,7 @@ export async function LatestBlogSection({
 
   return (
     <section
-      {...scrollRevealProps('fade-right')}
+      {...scrollRevealProps('fade-in')}
       className="bg-white py-12 dark:bg-dm-bg sm:py-16 lg:py-20"
     >
       <div className="mx-auto max-w-page px-4 sm:px-6 lg:px-8">
@@ -32,7 +32,13 @@ export async function LatestBlogSection({
         />
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {posts.slice(0, 3).map((post, index) => (
-            <div key={post.id} {...scrollRevealProps('pop-up', scrollStaggerDelay(index))}>
+            <div
+              key={post.id}
+              {...scrollRevealProps(
+                index % 2 === 0 ? 'fade-left' : 'fade-right',
+                scrollStaggerDelay(index),
+              )}
+            >
               <BlogCard
                 post={post}
                 locale={locale}

@@ -20,7 +20,7 @@ export async function AboutStorySection({ stats }: AboutStorySectionProps): Prom
 
   return (
     <section
-      {...scrollRevealProps('fade-up')}
+      {...scrollRevealProps('fade-in')}
       className="overflow-hidden py-12 dark:bg-dm-bg sm:py-16 lg:py-20"
     >
       <div className="mx-auto max-w-page px-4 sm:px-6 lg:px-8">
@@ -40,7 +40,7 @@ export async function AboutStorySection({ stats }: AboutStorySectionProps): Prom
           {statItems.map(({ value, label }, index) => (
             <div
               key={label}
-              {...scrollRevealProps('fade-up', scrollStaggerDelay(index))}
+              {...scrollRevealProps('pop-up', scrollStaggerDelay(index))}
               className="rounded-2xl border border-slate-100 bg-white p-6 text-center shadow-sm dark:border-dm-border dark:bg-dm-surface"
             >
               <p className="text-3xl font-bold text-brand-500 dark:text-brand-300 sm:text-4xl">

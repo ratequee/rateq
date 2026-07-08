@@ -119,65 +119,154 @@
     display: none;
   }
 
+  /* Before entering the viewport, elements stay hidden and off-position.
+     The dramatic slide/pop happens via keyframe animations once revealed. */
   .scroll-reveal-pending {
     opacity: 0;
-    /* Premium easing: smooth glide for fades/slides */
-    transition:
-      opacity 0.9s cubic-bezier(0.16, 1, 0.3, 1),
-      transform 0.9s cubic-bezier(0.16, 1, 0.3, 1),
-      filter 0.9s cubic-bezier(0.16, 1, 0.3, 1);
-    transition-delay: var(--scroll-delay, 0ms);
-    will-change: opacity, transform, filter;
+    backface-visibility: hidden;
+    will-change: transform, opacity;
   }
 
-  .scroll-reveal-fade-up {
-    transform: translate3d(0, 3.25rem, 0) scale(0.97);
-    filter: blur(3px);
+  /* Hold the starting off-screen position so there's no pre-flash before the
+     animation fires (the observer adds .scroll-revealed to trigger motion). */
+  .scroll-reveal-pending.scroll-reveal-fade-left {
+    transform: translate3d(-110%, 0, 0);
   }
-
-  .scroll-reveal-fade-left {
-    /* Slides in from the left */
-    transform: translate3d(-4.5rem, 0, 0) scale(0.97);
-    filter: blur(3px);
+  .scroll-reveal-pending.scroll-reveal-fade-right {
+    transform: translate3d(110%, 0, 0);
   }
-
-  .scroll-reveal-fade-right {
-    /* Slides in from the right */
-    transform: translate3d(4.5rem, 0, 0) scale(0.97);
-    filter: blur(3px);
+  .scroll-reveal-pending.scroll-reveal-fade-up {
+    transform: translate3d(0, 5rem, 0) scale(0.95);
   }
-
-  .scroll-reveal-scale-up {
-    transform: scale(0.88);
-    filter: blur(4px);
-    transition-timing-function: cubic-bezier(0.34, 1.56, 0.64, 1);
+  .scroll-reveal-pending.scroll-reveal-pop-up {
+    transform: translate3d(0, 3rem, 0) scale(0.6);
   }
-
-  /* Pop-up: springy overshoot for a lively premium entrance */
-  .scroll-reveal-pop-up {
-    transform: translate3d(0, 2.75rem, 0) scale(0.8);
-    filter: blur(5px);
-    transition-timing-function: cubic-bezier(0.34, 1.56, 0.64, 1);
+  .scroll-reveal-pending.scroll-reveal-scale-up {
+    transform: scale(0.7);
   }
-
-  .scroll-reveal-fade-in {
-    transform: scale(0.985);
-    filter: blur(2px);
+  .scroll-reveal-pending.scroll-reveal-fade-in {
+    transform: scale(0.98);
   }
 
   .scroll-revealed {
     opacity: 1;
+  }
+
+  /* Slide in from the far left, glide past the resting spot, then settle. */
+  .scroll-revealed.scroll-reveal-fade-left {
+    animation: rq-reveal-left 0.95s cubic-bezier(0.22, 1, 0.36, 1) var(--scroll-delay, 0ms) both;
+  }
+  .scroll-revealed.scroll-reveal-fade-right {
+    animation: rq-reveal-right 0.95s cubic-bezier(0.22, 1, 0.36, 1) var(--scroll-delay, 0ms) both;
+  }
+  .scroll-revealed.scroll-reveal-fade-up {
+    animation: rq-reveal-up 0.85s cubic-bezier(0.22, 1, 0.36, 1) var(--scroll-delay, 0ms) both;
+  }
+  .scroll-revealed.scroll-reveal-pop-up {
+    animation: rq-reveal-pop 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) var(--scroll-delay, 0ms) both;
+  }
+  .scroll-revealed.scroll-reveal-scale-up {
+    animation: rq-reveal-scale 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) var(--scroll-delay, 0ms) both;
+  }
+  .scroll-revealed.scroll-reveal-fade-in {
+    animation: rq-reveal-in 0.7s cubic-bezier(0.22, 1, 0.36, 1) var(--scroll-delay, 0ms) both;
+  }
+}
+
+/* Keyframes live outside @layer so their state always wins over base rules. */
+@keyframes rq-reveal-left {
+  0% {
+    opacity: 0;
+    transform: translate3d(-110%, 0, 0) scale(0.94);
+  }
+  60% {
+    opacity: 1;
+    transform: translate3d(1.5rem, 0, 0) scale(1.015);
+  }
+  100% {
+    opacity: 1;
     transform: translate3d(0, 0, 0) scale(1);
-    filter: none;
+  }
+}
+
+@keyframes rq-reveal-right {
+  0% {
+    opacity: 0;
+    transform: translate3d(110%, 0, 0) scale(0.94);
+  }
+  60% {
+    opacity: 1;
+    transform: translate3d(-1.5rem, 0, 0) scale(1.015);
+  }
+  100% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+}
+
+@keyframes rq-reveal-up {
+  0% {
+    opacity: 0;
+    transform: translate3d(0, 5.5rem, 0) scale(0.94);
+  }
+  60% {
+    opacity: 1;
+    transform: translate3d(0, -0.75rem, 0) scale(1.01);
+  }
+  100% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+}
+
+/* Pop-up: jumps up toward the viewer, overshoots, then settles. */
+@keyframes rq-reveal-pop {
+  0% {
+    opacity: 0;
+    transform: translate3d(0, 3rem, 0) scale(0.6);
+  }
+  55% {
+    opacity: 1;
+    transform: translate3d(0, -0.5rem, 0) scale(1.06);
+  }
+  100% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+}
+
+@keyframes rq-reveal-scale {
+  0% {
+    opacity: 0;
+    transform: scale(0.7);
+  }
+  55% {
+    opacity: 1;
+    transform: scale(1.05);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes rq-reveal-in {
+  0% {
+    opacity: 0;
+    transform: scale(0.98);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .scroll-reveal-pending {
-    opacity: 1;
-    transform: none;
-    filter: none;
-    transition: none;
+  .scroll-reveal-pending,
+  .scroll-revealed {
+    opacity: 1 !important;
+    transform: none !important;
+    animation: none !important;
   }
 }
 

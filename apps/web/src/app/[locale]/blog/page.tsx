@@ -36,14 +36,14 @@ export default async function BlogPage(): Promise<JSX.Element> {
         </div>
       </section>
 
-      <section {...scrollRevealProps('fade-up')} className="py-12 dark:bg-dm-bg sm:py-16">
+      <section {...scrollRevealProps('fade-in')} className="py-12 dark:bg-dm-bg sm:py-16">
         <div className="mx-auto max-w-page px-4 sm:px-6 lg:px-8">
           {posts.length === 0 ? (
             <p className="py-16 text-center text-ink-muted dark:text-white/85">{tc('noResults')}</p>
           ) : (
             <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
               {posts.map((post, index) => (
-                <div key={post.id} {...scrollRevealProps('fade-up', scrollStaggerDelay(index))}>
+                <div key={post.id} {...scrollRevealProps('pop-up', scrollStaggerDelay(index))}>
                   <BlogCard post={post} locale={locale} readMoreLabel={t('readMore')} />
                 </div>
               ))}
