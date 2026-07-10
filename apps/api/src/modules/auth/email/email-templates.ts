@@ -1,10 +1,12 @@
-import { emailParagraphRtl } from './email-bilingual.util';
+import { emailParagraphRtl, emailParagraphRtlHtml } from './email-bilingual.util';
 import {
   appendBilingualText,
+  emailBold,
   emailButton,
   emailCallout,
   emailFallbackLink,
   emailParagraph,
+  emailParagraphHtml,
   emailSecondaryLink,
   escapeHtml,
   renderBilingualEmailLayout,
@@ -435,8 +437,8 @@ export function buildAdminCompanyCreatedEmailHtml(
       : '';
 
   const bodyHtml = `
-    ${emailParagraph(
-      `An administrator has registered <strong>${escapeHtml(content.companyName)}</strong> on RateQ on your behalf.`,
+    ${emailParagraphHtml(
+      `An administrator has registered ${emailBold(content.companyName)} on RateQ on your behalf.`,
     )}
     ${
       content.missingFields.length > 0
@@ -455,8 +457,8 @@ export function buildAdminCompanyCreatedEmailHtml(
   `;
 
   const bodyHtmlAr = `
-    ${emailParagraphRtl(
-      `قام أحد المسؤولين بتسجيل <strong>${escapeHtml(content.companyName)}</strong> على RateQ نيابةً عنكم.`,
+    ${emailParagraphRtlHtml(
+      `قام أحد المسؤولين بتسجيل ${emailBold(content.companyName)} على RateQ نيابةً عنكم.`,
     )}
     ${
       content.missingFields.length > 0
@@ -518,8 +520,8 @@ export function buildCompanyProfileUpdatedByAdminEmailHtml(
   content: CompanyProfileUpdatedByAdminEmailContent,
 ): string {
   const bodyHtml = `
-    ${emailParagraph(
-      `An administrator updated the profile for <strong>${escapeHtml(content.companyName)}</strong> on RateQ.`,
+    ${emailParagraphHtml(
+      `An administrator updated the profile for ${emailBold(content.companyName)} on RateQ.`,
     )}
     ${emailParagraph('Please review the changes in your company dashboard.')}
     ${emailButton(content.dashboardUrl, 'Open company dashboard')}
@@ -527,8 +529,8 @@ export function buildCompanyProfileUpdatedByAdminEmailHtml(
   `;
 
   const bodyHtmlAr = `
-    ${emailParagraphRtl(
-      `قام أحد المسؤولين بتحديث ملف <strong>${escapeHtml(content.companyName)}</strong> على RateQ.`,
+    ${emailParagraphRtlHtml(
+      `قام أحد المسؤولين بتحديث ملف ${emailBold(content.companyName)} على RateQ.`,
     )}
     ${emailParagraphRtl('يرجى مراجعة التغييرات من لوحة تحكم الشركة.')}
     ${emailButton(content.dashboardUrl, 'فتح لوحة تحكم الشركة')}

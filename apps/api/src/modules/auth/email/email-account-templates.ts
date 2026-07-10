@@ -34,14 +34,14 @@ export function buildAccountDeactivatedEmailHtml(
     : '<p dir="rtl" style="margin:0;text-align:right;">لن تتمكنوا من تسجيل الدخول أو تقديم التقييمات أو استخدام ميزات لوحة التحكم حتى يُعاد تفعيل حسابكم.</p>';
 
   const bodyHtml = `
-    ${emailParagraph(`Hi ${escapeHtml(name)},`)}
+    ${emailParagraph(`Hi ${name},`)}
     ${emailParagraph('Your RateQ account has been deactivated by an administrator.')}
     ${emailCallout('What this means', companyNote, 'warning')}
     ${emailParagraph('If you believe this was a mistake, please contact RateQ support.')}
   `;
 
   const bodyHtmlAr = `
-    ${emailParagraphRtl(`مرحبًا ${escapeHtml(nameAr)}،`)}
+    ${emailParagraphRtl(`مرحبًا ${nameAr}،`)}
     ${emailParagraphRtl('تم إلغاء تفعيل حسابكم في RateQ من قِبل أحد المسؤولين.')}
     ${emailCallout('ماذا يعني ذلك؟', companyNoteAr, 'warning')}
     ${emailParagraphRtl('إذا كنتم تعتقدون أن هذا خطأ، يُرجى التواصل مع دعم RateQ.')}
@@ -89,7 +89,7 @@ export function buildAccountReactivatedEmailHtml(
   const nameAr = content.displayName?.trim() || 'عزيزي المستخدم';
 
   const bodyHtml = `
-    ${emailParagraph(`Hi ${escapeHtml(name)},`)}
+    ${emailParagraph(`Hi ${name},`)}
     ${emailParagraph('Good news — your RateQ account has been reactivated. You can sign in and use the platform again.')}
     ${emailCallout(
       'Welcome back',
@@ -99,7 +99,7 @@ export function buildAccountReactivatedEmailHtml(
   `;
 
   const bodyHtmlAr = `
-    ${emailParagraphRtl(`مرحبًا ${escapeHtml(nameAr)}،`)}
+    ${emailParagraphRtl(`مرحبًا ${nameAr}،`)}
     ${emailParagraphRtl('أخبار سارة — تمت إعادة تفعيل حسابكم في RateQ. يمكنكم تسجيل الدخول واستخدام المنصة مجددًا.')}
     ${emailCallout(
       'مرحبًا بعودتكم',
@@ -145,7 +145,7 @@ export function buildAccountDeletedEmailHtml(
   const nameAr = content.displayName?.trim() || 'عزيزي المستخدم';
 
   const bodyHtml = `
-    ${emailParagraph(`Hi ${escapeHtml(name)},`)}
+    ${emailParagraph(`Hi ${name},`)}
     ${emailParagraph('Your RateQ account and associated profile data have been permanently deleted by an administrator.')}
     ${emailCallout(
       'Account removed',
@@ -155,7 +155,7 @@ export function buildAccountDeletedEmailHtml(
   `;
 
   const bodyHtmlAr = `
-    ${emailParagraphRtl(`مرحبًا ${escapeHtml(nameAr)}،`)}
+    ${emailParagraphRtl(`مرحبًا ${nameAr}،`)}
     ${emailParagraphRtl('تم حذف حسابكم في RateQ وبيانات الملف المرتبطة به نهائيًا من قِبل أحد المسؤولين.')}
     ${emailCallout(
       'تم حذف الحساب',
@@ -200,7 +200,7 @@ export function buildReviewDeletedEmailHtml(
   content: Omit<ReviewDeletedEmailContent, 'reviewerEmail'> & { appUrl: string },
 ): string {
   const bodyHtml = `
-    ${emailParagraph(`Your review "${escapeHtml(content.reviewTitle)}" for ${escapeHtml(content.companyName)} has been removed from RateQ by an administrator.`)}
+    ${emailParagraph(`Your review "${content.reviewTitle}" for ${content.companyName} has been removed from RateQ by an administrator.`)}
     ${emailCallout(
       'Review removed',
       '<p style="margin:0;">You may submit a new review for this company if you still have feedback to share.</p>',
@@ -209,7 +209,7 @@ export function buildReviewDeletedEmailHtml(
   `;
 
   const bodyHtmlAr = `
-    ${emailParagraphRtl(`تمت إزالة تقييمكم "${escapeHtml(content.reviewTitle)}" لـ ${escapeHtml(content.companyName)} من RateQ من قِبل أحد المسؤولين.`)}
+    ${emailParagraphRtl(`تمت إزالة تقييمكم "${content.reviewTitle}" لـ ${content.companyName} من RateQ من قِبل أحد المسؤولين.`)}
     ${emailCallout(
       'تمت إزالة التقييم',
       '<p dir="rtl" style="margin:0;text-align:right;">يمكنكم تقديم تقييم جديد لهذه الشركة إذا كان لديكم ملاحظات أخرى لمشاركتها.</p>',

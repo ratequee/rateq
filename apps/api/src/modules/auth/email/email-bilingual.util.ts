@@ -8,6 +8,11 @@ export function emailParagraphRtl(text: string): string {
   return `<p dir="rtl" style="margin:0 0 16px;font-family:Arial,Helvetica,sans-serif;font-size:15px;line-height:1.8;color:#373737;text-align:right;">${escapeHtml(text)}</p>`;
 }
 
+/** RTL paragraph with trusted HTML. Escape any user-provided values before interpolating. */
+export function emailParagraphRtlHtml(html: string): string {
+  return `<p dir="rtl" style="margin:0 0 16px;font-family:Arial,Helvetica,sans-serif;font-size:15px;line-height:1.8;color:#373737;text-align:right;">${html}</p>`;
+}
+
 export function emailBilingualBlock(englishHtml: string, arabicHtml: string): string {
   return `
     <div style="margin-bottom:8px;">

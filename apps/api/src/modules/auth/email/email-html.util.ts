@@ -121,6 +121,16 @@ export function emailParagraph(text: string): string {
   return `<p style="margin:0 0 16px;font-family:Arial,Helvetica,sans-serif;font-size:15px;line-height:1.7;color:${INK};">${escapeHtml(text)}</p>`;
 }
 
+/** Paragraph with trusted HTML. Escape any user-provided values before interpolating. */
+export function emailParagraphHtml(html: string): string {
+  return `<p style="margin:0 0 16px;font-family:Arial,Helvetica,sans-serif;font-size:15px;line-height:1.7;color:${INK};">${html}</p>`;
+}
+
+/** Bold escaped text for use inside emailParagraphHtml. */
+export function emailBold(text: string): string {
+  return `<strong>${escapeHtml(text)}</strong>`;
+}
+
 export interface BilingualEmailLayoutOptions extends EmailLayoutOptions {
   titleAr: string;
   bodyHtmlAr: string;
