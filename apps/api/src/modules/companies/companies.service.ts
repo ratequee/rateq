@@ -7,6 +7,7 @@ import {
 } from '@nestjs/common';
 import type {
   AdminCompanyVerificationDetail,
+  AdminCreateCompanyInput,
   AuthenticatedUser,
   CompanyDashboard,
   CompanyDetail,
@@ -28,8 +29,11 @@ import { CompaniesRepository } from './repositories/companies.repository';
 import { CategoriesService } from '../categories/categories.service';
 import { PhoneOtpService } from '../phone-verification/phone-otp.service';
 import { EmailService } from '../auth/services/email.service';
+import { FirebaseAdminService } from '../auth/services/firebase-admin.service';
+import { AuthRepository } from '../auth/repositories/auth.repository';
 import { AdminActivityService } from '../admin-activity/admin-activity.service';
 import { CompanyCatalogService } from './company-catalog.service';
+import { randomBytes } from 'crypto';
 import {
   toCompanyDetail,
   toCompanyPublic,
@@ -57,6 +61,8 @@ export class CompaniesService {
     private readonly emailService: EmailService,
     private readonly catalogService: CompanyCatalogService,
     private readonly adminActivity: AdminActivityService,
+    private readonly firebaseAdmin: FirebaseAdminService,
+    private readonly authRepository: AuthRepository,
   ) {}
 
   async search(query: SearchCompaniesQueryDto): Promise<PaginatedCompaniesResponse> {
@@ -654,14 +660,208 @@ export class CompaniesService {
     }
   }
 
-  async adminUpdate(companyId: string, input: UpdateCompanyInput): Promise<CompanyDetail> {
+  async adminUpdate(
+    companyId: string,
+    input: UpdateCompanyInput,
+    options?: { notifyOwner?: boolean },
+  ): Promise<CompanyDetail> {
     const company = await this.companiesRepository.findById(companyId);
 
     if (!company) {
       throw new NotFoundException('Company not found');
     }
 
-    return this.applyUpdate(company.id, company.slug, input);
+    if (input.serviceIds?.length) {
+      await this.catalogService.assertIdsExist(input.serviceIds, 'service');
+    }
+    if (input.activityIds?.length) {
+      await this.catalogService.assertIdsExist(input.activityIds, 'activity');
+    }
+
+    const updated = await this.applyUpdate(company.id, company.slug, input);
+
+    if (options?.notifyOwner) {
+      const notifyEmail = company.email ?? company.owner?.email;
+      if (notifyEmail) {
+        await this.emailService.sendCompanyProfileUpdatedByAdminEmail(notifyEmail, company.name);
+      }
+    }
+
+    return updated;
+  }
+
+  async adminCreate(input: AdminCreateCompanyInput): Promise<CompanyDetail> {
+    const ownerEmail = input.ownerEmail.trim().toLowerCase();
+    const companyName = input.name.trim();
+
+    let owner = await this.authRepository.findUserByEmail(ownerEmail);
+    let passwordResetUrl: string | null = null;
+    let createdNewUser = false;
+
+    if (owner) {
+      if (owner.role === PrismaUserRole.ADMIN) {
+        throw new BadRequestException('Cannot assign a company to an admin account');
+      }
+      const existingCompany = await this.companiesRepository.findByOwnerId(owner.id);
+      if (existingCompany) {
+        throw new ConflictException('This user already has a registered company');
+      }
+      const reviewerProfile = await this.prisma.userProfile.findUnique({
+        where: { userId: owner.id },
+      });
+      if (reviewerProfile) {
+        throw new ConflictException('This account already has a reviewer profile');
+      }
+    } else {
+      createdNewUser = true;
+      const tempPassword = randomBytes(24).toString('base64url');
+      const firebaseUser = await this.firebaseAdmin.createUser({
+        email: ownerEmail,
+        password: tempPassword,
+        displayName: companyName,
+      });
+      owner = await this.authRepository.createUser({
+        email: ownerEmail,
+        firebaseUid: firebaseUser.uid,
+        displayName: companyName,
+        role: PrismaUserRole.COMPANY,
+        isVerified: true,
+        phone: input.phone?.trim(),
+        phoneVerified: Boolean(input.phone),
+      });
+      try {
+        passwordResetUrl = await this.firebaseAdmin.generatePasswordResetLink(ownerEmail);
+      } catch {
+        passwordResetUrl = null;
+      }
+    }
+
+    if (owner.role === PrismaUserRole.USER) {
+      await this.authRepository.updateUserRole(owner.id, PrismaUserRole.COMPANY);
+    }
+
+    const categoryIds = normalizeCategoryIdsInput(input.categoryIds, input.categoryId);
+    for (const categoryId of categoryIds) {
+      await this.categoriesService.assertExists(categoryId);
+    }
+    const subcategoryIds = input.subcategoryIds?.filter(Boolean) ?? [];
+    if (categoryIds.length > 0) {
+      await this.categoriesService.assertSubcategoriesForCategories(categoryIds, subcategoryIds);
+    }
+    if (input.serviceIds?.length) {
+      await this.catalogService.assertIdsExist(input.serviceIds, 'service');
+    }
+    if (input.activityIds?.length) {
+      await this.catalogService.assertIdsExist(input.activityIds, 'activity');
+    }
+
+    const slug = await this.generateUniqueSlug(companyName);
+    const approveImmediately = input.approveImmediately !== false;
+    const country = input.country?.trim() || 'Qatar';
+    const city = input.city?.trim() || 'Doha';
+
+    await this.companiesRepository.create({
+      name: companyName,
+      nameAr: input.nameAr?.trim() ?? null,
+      slug,
+      email: ownerEmail,
+      phone: input.phone?.trim() ?? null,
+      description: input.descriptionEn?.trim() ?? input.description?.trim() ?? null,
+      descriptionEn: input.descriptionEn?.trim() ?? input.description?.trim() ?? null,
+      descriptionAr: input.descriptionAr?.trim() ?? null,
+      logo: input.logo ?? null,
+      coverUrl: input.coverUrl ?? null,
+      address: input.address?.trim() ?? null,
+      latitude: input.latitude ?? null,
+      longitude: input.longitude ?? null,
+      crNumber: input.crNumber?.trim() ?? null,
+      validationDate: input.validationDate ? new Date(input.validationDate) : null,
+      registrationDocUrl: input.registrationDocUrl ?? null,
+      establishmentCardUrl: input.establishmentCardUrl ?? null,
+      tradeLicenseUrl: input.tradeLicenseUrl ?? null,
+      verificationStatus: approveImmediately ? 'APPROVED' : 'PENDING',
+      registeredByAdmin: true,
+      country,
+      city,
+      websiteUrl: input.websiteUrl?.trim() ?? null,
+      whatsappNumber: input.whatsappNumber?.trim() ?? null,
+      instagramUrl: input.instagramUrl?.trim() ?? null,
+      youtubeUrl: input.youtubeUrl?.trim() ?? null,
+      facebookUrl: input.facebookUrl?.trim() ?? null,
+      linkedinUrl: input.linkedinUrl?.trim() ?? null,
+      twitterUrl: input.twitterUrl?.trim() ?? null,
+      serviceIds: input.serviceIds ?? [],
+      activityIds: input.activityIds ?? [],
+      yearsEstablished: input.firstRegistrationDate
+        ? calculateYearsInBusiness(input.firstRegistrationDate)
+        : (input.yearsEstablished ?? null),
+      firstRegistrationDate: input.firstRegistrationDate
+        ? new Date(input.firstRegistrationDate)
+        : null,
+      publicProjectCount: input.publicProjectCount ?? null,
+      privateProjectCount: input.privateProjectCount ?? null,
+      categoryIds,
+      subcategoryIds,
+      ...(categoryIds[0] ? { category: { connect: { id: categoryIds[0] } } } : {}),
+      owner: { connect: { id: owner.id } },
+    });
+
+    const created = await this.companiesRepository.findByOwnerId(owner.id);
+    if (!created) {
+      throw new NotFoundException('Failed to load created company');
+    }
+
+    const missingFields = this.collectMissingCompanyFields(created);
+    await this.emailService.sendAdminCompanyCreatedEmail({
+      email: ownerEmail,
+      companyName,
+      missingFields,
+      passwordResetUrl: createdNewUser ? passwordResetUrl : null,
+    });
+
+    return this.mapCompanyDetail(created);
+  }
+
+  private collectMissingCompanyFields(company: {
+    nameAr?: string | null;
+    descriptionEn?: string | null;
+    descriptionAr?: string | null;
+    phone?: string | null;
+    address?: string | null;
+    latitude?: number | null;
+    longitude?: number | null;
+    logo?: string | null;
+    coverUrl?: string | null;
+    crNumber?: string | null;
+    validationDate?: Date | null;
+    registrationDocUrl?: string | null;
+    establishmentCardUrl?: string | null;
+    tradeLicenseUrl?: string | null;
+    categoryIds?: unknown;
+    categoryId?: string | null;
+    firstRegistrationDate?: Date | null;
+  }): string[] {
+    const missing: string[] = [];
+    if (!company.nameAr?.trim()) missing.push('Arabic company name');
+    if (!company.descriptionEn?.trim()) missing.push('English description');
+    if (!company.descriptionAr?.trim()) missing.push('Arabic description');
+    if (!company.phone?.trim()) missing.push('Phone number');
+    if (!company.address?.trim()) missing.push('Address');
+    if (company.latitude == null || company.longitude == null) missing.push('Map location');
+    if (!company.logo) missing.push('Logo');
+    if (!company.coverUrl) missing.push('Cover image');
+    if (!company.crNumber?.trim()) missing.push('CR number');
+    if (!company.validationDate) missing.push('Validation date');
+    if (!company.registrationDocUrl) missing.push('Registration document');
+    if (!company.establishmentCardUrl) missing.push('Establishment card');
+    if (!company.tradeLicenseUrl) missing.push('Trade license');
+    if (!company.firstRegistrationDate) missing.push('First registration date');
+    const cats = normalizeCategoryIdsInput(
+      parseCompanyIdList(company.categoryIds),
+      company.categoryId ?? undefined,
+    );
+    if (cats.length === 0) missing.push('Category');
+    return missing;
   }
 
   async listAdminVerifications(input: {

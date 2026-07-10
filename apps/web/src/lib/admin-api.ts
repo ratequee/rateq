@@ -1,5 +1,6 @@
 import type {
   AdminCompanyVerificationDetail,
+  AdminCreateCompanyInput,
   CategoryPublic,
   CompanyCatalogItemPublic,
   CompanyDetail,
@@ -8,9 +9,12 @@ import type {
   InvitationPublic,
   PaginatedAdminCompanyVerifications,
   SendInvitationInput,
+  SiteSettingsPublic,
   UpdateCategoryInput,
   UpdateCompanyCatalogItemInput,
+  UpdateCompanyInput,
   UpdateCompanyVerificationInput,
+  UpdateSiteSettingsInput,
 } from '@rateq/types';
 import { apiClient } from '@/lib/api';
 import { ensureValidAccessToken } from '@/lib/auth-session';
@@ -171,6 +175,30 @@ export const adminApi = {
   inviteCompany: async (data: SendInvitationInput) =>
     apiClient<InvitationPublic>('/admin/invitations/company', {
       method: 'POST',
+      body: JSON.stringify(data),
+      token: await token(),
+    }),
+
+  createCompany: async (data: AdminCreateCompanyInput) =>
+    apiClient<CompanyDetail>('/admin/companies', {
+      method: 'POST',
+      body: JSON.stringify(data),
+      token: await token(),
+    }),
+
+  updateCompany: async (id: string, data: UpdateCompanyInput) =>
+    apiClient<CompanyDetail>(`/admin/companies/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+      token: await token(),
+    }),
+
+  getSiteSettings: async () =>
+    apiClient<SiteSettingsPublic>('/admin/settings', { token: await token() }),
+
+  updateSiteSettings: async (data: UpdateSiteSettingsInput) =>
+    apiClient<SiteSettingsPublic>('/admin/settings', {
+      method: 'PATCH',
       body: JSON.stringify(data),
       token: await token(),
     }),

@@ -145,6 +145,47 @@ export interface CreateCompanyInput {
   privateProjectCount?: number;
 }
 
+/** Admin-created company — owner email required; other fields may be partial. */
+export interface AdminCreateCompanyInput {
+  ownerEmail: string;
+  name: string;
+  nameAr?: string;
+  descriptionEn?: string;
+  descriptionAr?: string;
+  description?: string;
+  logo?: string;
+  coverUrl?: string;
+  address?: string;
+  latitude?: number;
+  longitude?: number;
+  phone?: string;
+  categoryId?: string;
+  categoryIds?: string[];
+  subcategoryIds?: string[];
+  crNumber?: string;
+  validationDate?: string;
+  registrationDocUrl?: string;
+  establishmentCardUrl?: string;
+  tradeLicenseUrl?: string;
+  country?: string;
+  city?: string;
+  serviceIds?: string[];
+  activityIds?: string[];
+  yearsEstablished?: number;
+  firstRegistrationDate?: string;
+  publicProjectCount?: number;
+  privateProjectCount?: number;
+  websiteUrl?: string | null;
+  whatsappNumber?: string | null;
+  instagramUrl?: string | null;
+  youtubeUrl?: string | null;
+  facebookUrl?: string | null;
+  linkedinUrl?: string | null;
+  twitterUrl?: string | null;
+  /** When true (default), company is approved immediately. */
+  approveImmediately?: boolean;
+}
+
 export interface UpdateCompanyProjectInput {
   slug?: string;
   title: string;

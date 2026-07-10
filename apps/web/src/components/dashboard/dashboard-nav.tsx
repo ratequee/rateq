@@ -101,6 +101,13 @@ export const DASHBOARD_NAV_ITEMS: {
     adminPermission: AdminPermission.CONTENT,
   },
   {
+    href: '/dashboard/admin/settings',
+    key: 'siteSettings',
+    icon: Settings,
+    roles: ['admin'],
+    adminPermission: AdminPermission.CONTENT,
+  },
+  {
     href: '/dashboard/admin/team',
     key: 'team',
     icon: Shield,

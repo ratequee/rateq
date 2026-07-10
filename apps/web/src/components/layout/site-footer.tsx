@@ -1,14 +1,35 @@
 import { Logo } from '@/components/brand/logo';
 import { Link } from '@/i18n/routing';
+import { fetchSiteSettings } from '@/lib/platform-data';
 import { Globe, Mail, MapPin, Phone } from 'lucide-react';
-import { getTranslations } from 'next-intl/server';
+import { getLocale, getTranslations } from 'next-intl/server';
 import Image from 'next/image';
 import type { JSX } from 'react';
+
+function websiteHref(website: string): string {
+  if (/^https?:\/\//i.test(website)) return website;
+  return `https://${website}`;
+}
+
+function phoneHref(phone: string): string {
+  return `tel:${phone.replace(/[^\d+]/g, '')}`;
+}
 
 export async function SiteFooter(): Promise<JSX.Element> {
   const t = await getTranslations('footer');
   const tc = await getTranslations('common');
+  const locale = await getLocale();
+  const settings = await fetchSiteSettings();
   const year = new Date().getFullYear();
+
+  const address = settings.address?.trim() || t('address');
+  const phone = settings.phone?.trim() || t('phone');
+  const email = settings.email?.trim() || t('email');
+  const website = settings.website?.trim() || t('website');
+  const aboutText =
+    (locale === 'ar'
+      ? settings.aboutTextAr?.trim() || settings.aboutTextEn?.trim()
+      : settings.aboutTextEn?.trim() || settings.aboutTextAr?.trim()) || t('aboutText');
 
   const mainLinks = [
     { href: '/', label: t('home') },
@@ -20,10 +41,26 @@ export async function SiteFooter(): Promise<JSX.Element> {
   const supportLinks = [{ href: '/contact', label: t('contactUs') }];
 
   const social = [
-    { icon: '/images/fb.svg', label: 'Facebook', href: '#' },
-    { icon: '/images/x.svg', label: 'X', href: '#' },
-    { icon: '/images/utube.svg', label: 'Youtube', href: '#' },
-    { icon: '/images/in.svg', label: 'LinkedIn', href: '#' },
+    {
+      icon: '/images/fb.svg',
+      label: 'Facebook',
+      href: settings.facebookUrl?.trim() || '#',
+    },
+    {
+      icon: '/images/x.svg',
+      label: 'X',
+      href: settings.twitterUrl?.trim() || '#',
+    },
+    {
+      icon: '/images/utube.svg',
+      label: 'Youtube',
+      href: settings.youtubeUrl?.trim() || '#',
+    },
+    {
+      icon: '/images/in.svg',
+      label: 'LinkedIn',
+      href: settings.linkedinUrl?.trim() || '#',
+    },
   ];
 
   return (
@@ -32,7 +69,7 @@ export async function SiteFooter(): Promise<JSX.Element> {
         <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-4 lg:gap-8">
           <div className="sm:col-span-2 lg:col-span-1">
             <Logo variant="light" />
-            <p className="mt-4 max-w-xs text-sm leading-relaxed text-white">{t('aboutText')}</p>
+            <p className="mt-4 max-w-xs text-sm leading-relaxed text-white">{aboutText}</p>
             <p className="mt-6 text-sm font-semibold text-white">{t('followUs')}</p>
             <ul className="mt-3 flex gap-2">
               {social.map(({ icon: Icon, label, href }) => (
@@ -41,6 +78,7 @@ export async function SiteFooter(): Promise<JSX.Element> {
                     href={href}
                     aria-label={label}
                     className="flex h-9 w-9 items-center justify-center rounded-full bg-white text-white transition-colors hover:bg-gold-300 hover:text-brand-800"
+                    {...(href !== '#' ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
                   >
                     <Image
                       src={Icon}
@@ -59,29 +97,29 @@ export async function SiteFooter(): Promise<JSX.Element> {
             <ul className="mt-4 space-y-3 text-sm text-white">
               <li className="flex items-start gap-2">
                 <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-gold-300" aria-hidden />
-                {t('address')}
+                {address}
               </li>
               <li className="flex items-center gap-2">
                 <Phone className="h-4 w-4 shrink-0 text-gold-300" aria-hidden />
-                <a href="tel:+97433044425" className="hover:text-gold-300" dir="ltr">
-                  {t('phone')}
+                <a href={phoneHref(phone)} className="hover:text-gold-300" dir="ltr">
+                  {phone}
                 </a>
               </li>
               <li className="flex items-center gap-2">
                 <Mail className="h-4 w-4 shrink-0 text-gold-300" aria-hidden />
-                <a href="mailto:support@RateQ.com" className="hover:text-gold-300">
-                  {t('email')}
+                <a href={`mailto:${email}`} className="hover:text-gold-300">
+                  {email}
                 </a>
               </li>
               <li className="flex items-center gap-2">
                 <Globe className="h-4 w-4 shrink-0 text-gold-300" aria-hidden />
                 <a
-                  href="https://www.rateq.qa/"
+                  href={websiteHref(website)}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="hover:text-gold-300"
                 >
-                  {t('website')}
+                  {website.replace(/^https?:\/\//i, '')}
                 </a>
               </li>
             </ul>

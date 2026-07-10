@@ -253,6 +253,7 @@
     "servicesLabel": "الخدمات",
     "noServices": "لا توجد خدمات مدرجة بعد.",
     "noSubcategories": "لا توجد فئات فرعية مدرجة بعد.",
+    "subcategoryCount": "{count} فئات فرعية",
     "categoryDescription": "اكتشف شركات {name} الموثوقة واقرأ مراجعات العملاء المعتمدة.",
     "resultsCount": "{count} تصنيف",
     "noResults": "لا توجد تصنيفات مطابقة لبحثك.",
@@ -322,6 +323,9 @@
     "applyFilters": "تطبيق التصفية",
     "companiesTitle": "شركات في هذا التصنيف",
     "companiesSubtitle": "تم العثور على {count} شركة",
+    "subcategoriesTitle": "الأقسام الفرعية",
+    "subcategoriesSubtitle": "اختر قسمًا فرعيًا لتصفح الشركات، أو اعرض جميع الشركات في هذا التصنيف.",
+    "viewAllCompanies": "مشاهدة جميع الشركات",
     "topRated": "الأعلى تقييماً",
     "relatedTitle": "تصنيفات ذات صلة",
     "viewAllCategories": "عرض جميع التصنيفات"
@@ -853,6 +857,7 @@
       "companyVerifications": "طلبات الشركات",
       "directory": "الدليل",
       "blog": "المدونة",
+      "siteSettings": "إعدادات الموقع",
       "team": "فريق الإدارة",
       "viewSite": "عرض الموقع العام",
       "visitCompanies": "زيارة الشركات",
@@ -1147,7 +1152,8 @@
     "enableStamp": "إظهار ختم التوثيق",
     "removeStamp": "إزالة ختم التوثيق",
     "stampEnabled": "تم تفعيل ختم التوثيق على ملف الشركة.",
-    "stampRemoved": "تمت إزالة ختم التوثيق من ملف الشركة."
+    "stampRemoved": "تمت إزالة ختم التوثيق من ملف الشركة.",
+    "editCompany": "تعديل الشركة"
   },
   "adminProjects": {
     "title": "المشاريع",
@@ -1319,11 +1325,73 @@
     "profileChangeRejected": "تم رفض تغييرات الملف.",
     "profileChangeBadge": "تحديث الملف",
     "viewProfileChanges": "عرض تغييرات الملف المعلقة",
+    "registerCompany": "تسجيل شركة",
     "status": {
       "pending": "قيد الانتظار",
       "revision_requested": "طلب مراجعة",
       "approved": "موافق عليه",
       "rejected": "مرفوض"
+    }
+  },
+  "adminCompanyForm": {
+    "createTitle": "تسجيل شركة",
+    "createSubtitle": "إنشاء حساب شركة لمالك. سيتم إرسال بريد إلكتروني بتعليمات الوصول.",
+    "editTitle": "تعديل الشركة",
+    "editSubtitle": "تحديث بيانات الشركة. سيتم إشعار المالك بالبريد الإلكتروني.",
+    "loading": "جاري تحميل الشركة…",
+    "ownerEmail": "بريد المالك",
+    "ownerEmailPlaceholder": "owner@example.com",
+    "websiteUrl": "الموقع الإلكتروني",
+    "phoneNoOtpHint": "يُحفظ رقم الهاتف دون التحقق عبر OTP عند التسجيل من لوحة الإدارة.",
+    "submitCreate": "إنشاء الشركة",
+    "submitUpdate": "حفظ التغييرات",
+    "saving": "جاري الحفظ…",
+    "cancel": "إلغاء",
+    "createSuccess": "تم إنشاء الشركة. تم إرسال بريد إلكتروني إلى المالك.",
+    "updateSuccess": "تم تحديث الشركة. تم إشعار المالك بالبريد الإلكتروني.",
+    "sections": {
+      "owner": "حساب المالك",
+      "ownerHint": "إذا كان البريد جديداً، يُنشأ حساب ويُرسل رابط إعادة تعيين كلمة المرور.",
+      "basic": "ملف الشركة",
+      "catalog": "الخدمات والأنشطة والتصنيفات",
+      "location": "العنوان والهاتف",
+      "documents": "مستندات التسجيل"
+    },
+    "errors": {
+      "required": "هذا الحقل مطلوب.",
+      "invalidEmail": "أدخل بريداً إلكترونياً صالحاً.",
+      "fixForm": "يرجى تصحيح الحقول المميزة.",
+      "uploadFailed": "تعذر رفع الملفات. حاول مرة أخرى.",
+      "missingCompany": "معرّف الشركة مفقود.",
+      "loadFailed": "تعذر تحميل بيانات الشركة.",
+      "sessionExpired": "انتهت الجلسة. يرجى تسجيل الدخول مجدداً."
+    }
+  },
+  "adminSettings": {
+    "title": "إعدادات الموقع",
+    "subtitle": "تحديث بيانات التواصل وروابط التواصل الاجتماعي ونص التعريف في تذييل الموقع العام.",
+    "loading": "جاري تحميل الإعدادات…",
+    "save": "حفظ الإعدادات",
+    "saving": "جاري الحفظ…",
+    "saveSuccess": "تم حفظ إعدادات الموقع.",
+    "saveError": "تعذر حفظ الإعدادات.",
+    "loadError": "تعذر تحميل الإعدادات.",
+    "sections": {
+      "contact": "بيانات التواصل",
+      "social": "روابط التواصل",
+      "about": "نص التعريف"
+    },
+    "fields": {
+      "address": "العنوان",
+      "phone": "الهاتف",
+      "email": "البريد الإلكتروني",
+      "website": "الموقع",
+      "facebookUrl": "رابط فيسبوك",
+      "twitterUrl": "رابط X / تويتر",
+      "youtubeUrl": "رابط يوتيوب",
+      "linkedinUrl": "رابط لينكدإن",
+      "aboutTextEn": "نص التعريف (إنجليزي)",
+      "aboutTextAr": "نص التعريف (عربي)"
     }
   },
   "adminTeam": {

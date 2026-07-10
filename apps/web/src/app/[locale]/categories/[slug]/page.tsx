@@ -1,6 +1,7 @@
 import { CategoryCompaniesSection } from '@/components/categories/category-companies-section';
 import { CategoryDetailHero } from '@/components/categories/category-detail-hero';
 import { CategoryFilters } from '@/components/categories/category-filters';
+import { CategorySubcategoriesSection } from '@/components/categories/category-subcategories-section';
 import { RelatedCategoriesSection } from '@/components/categories/related-categories-section';
 import { fetchCompanies } from '@/lib/companies-data';
 import { fetchCategoryBySlug } from '@/lib/categories-data';
@@ -8,7 +9,6 @@ import { getCategoryLabel } from '@/lib/category-label';
 import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
 import type { JSX } from 'react';
-// import { MobileAppsCta } from '@/components/home/mobile-apps-cta';
 
 export const dynamic = 'force-dynamic';
 
@@ -17,6 +17,7 @@ interface CategoryDetailPageProps {
   searchParams: Promise<{
     query?: string;
     subcategoryId?: string;
+    view?: string;
     city?: string;
     minRating?: string;
     sort?: string;
@@ -52,6 +53,26 @@ export default async function CategoryDetailPage({
     notFound();
   }
 
+  const subcategories = category.subcategories ?? [];
+  const showSubcategories =
+    subcategories.length > 0 &&
+    !filters.subcategoryId &&
+    filters.view !== 'all' &&
+    !filters.query?.trim() &&
+    !filters.minRating &&
+    !filters.sort &&
+    !filters.page;
+
+  if (showSubcategories) {
+    return (
+      <>
+        <CategoryDetailHero category={category} />
+        <CategorySubcategoriesSection category={category} />
+        <RelatedCategoriesSection category={category} />
+      </>
+    );
+  }
+
   const query = new URLSearchParams({
     sort: filters.sort ?? 'rating',
     page: filters.page ?? '1',
@@ -76,11 +97,11 @@ export default async function CategoryDetailPage({
           subcategoryId: filters.subcategoryId,
           minRating: filters.minRating,
           sort: filters.sort,
+          view: filters.view,
         }}
       />
       <CategoryCompaniesSection companies={companies} total={total} />
       <RelatedCategoriesSection category={category} />
-      {/* <MobileAppsCta /> */}
     </>
   );
 }

@@ -5,6 +5,7 @@ import { DashboardPageHeader } from '@/components/dashboard/dashboard-page-heade
 import { DashboardShell } from '@/components/dashboard/dashboard-shell';
 import { Button } from '@/components/ui/button';
 import { useRequireAdmin } from '@/hooks/use-require-admin';
+import { Link } from '@/i18n/routing';
 import { AdminPermission } from '@rateq/types';
 import { adminApi } from '@/lib/admin-api';
 import { ApiError } from '@/lib/api';
@@ -16,7 +17,7 @@ import type {
   UpdateCompanyVerificationInput,
 } from '@rateq/types';
 import { cn } from '@/lib/utils';
-import { Building2, ExternalLink, FileText, ImageIcon, Loader2 } from 'lucide-react';
+import { Building2, ExternalLink, FileText, ImageIcon, Loader2, Plus } from 'lucide-react';
 import { useLocale, useTranslations } from 'next-intl';
 import { useSearchParams } from 'next/navigation';
 import { useCallback, useEffect, useState } from 'react';
@@ -175,7 +176,16 @@ export default function AdminCompanyVerificationsPage() {
 
   return (
     <DashboardShell role="admin">
-      <DashboardPageHeader title={PAGE_TITLE} subtitle={PAGE_SUBTITLE} />
+      <div className="mb-6 flex flex-wrap items-start justify-between gap-4">
+        <DashboardPageHeader title={PAGE_TITLE} subtitle={PAGE_SUBTITLE} className="mb-0" />
+        <Link
+          href="/dashboard/admin/companies/new"
+          className="inline-flex h-10 items-center gap-2 rounded-lg bg-brand-500 px-4 text-sm font-medium text-white transition-colors hover:bg-brand-600"
+        >
+          <Plus className="h-4 w-4" />
+          {t('registerCompany')}
+        </Link>
+      </div>
 
       <div className="mb-4 flex flex-wrap gap-2">
         {filters.map(({ key, label }) => (

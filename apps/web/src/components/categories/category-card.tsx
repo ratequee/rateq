@@ -33,6 +33,9 @@ function CategoryIconDisplay({
   return <Icon className={iconClassName} aria-hidden />;
 }
 
+const hoverScaleClass =
+  'transition-transform duration-300 ease-out hover:scale-105 hover:z-10 focus-visible:scale-105';
+
 export function CategoryCard({ category, variant = 'default', className }: CategoryCardProps) {
   const t = useTranslations('categories');
   const locale = useLocale();
@@ -40,7 +43,7 @@ export function CategoryCard({ category, variant = 'default', className }: Categ
   const descriptionName = label;
   const href = `/categories/${category.slug}`;
   const count = category.companyCount ?? 0;
-  const subcategories = category.subcategories ?? [];
+  const subcategoryCount = category.subcategories?.length ?? 0;
 
   if (variant === 'compact') {
     return (
@@ -48,6 +51,7 @@ export function CategoryCard({ category, variant = 'default', className }: Categ
         href={href}
         className={cn(
           'flex w-[140px] shrink-0 flex-col items-center rounded-2xl border border-subtle bg-white p-5 shadow-sm transition-shadow hover:border-gold-300 hover:shadow-card dark:border-dm-border dark:bg-dm-elevated dark:hover:border-brand-500 sm:w-[160px]',
+          hoverScaleClass,
           className,
         )}
       >
@@ -74,6 +78,7 @@ export function CategoryCard({ category, variant = 'default', className }: Categ
         href={href}
         className={cn(
           'group relative overflow-hidden rounded-2xl border border-subtle bg-white p-6 shadow-sm transition-all hover:border-brand-200 hover:shadow-card dark:bg-dm-surface dark:hover:border-brand-800',
+          hoverScaleClass,
           className,
         )}
       >
@@ -112,52 +117,41 @@ export function CategoryCard({ category, variant = 'default', className }: Categ
   }
 
   return (
-    <div
+    <Link
+      href={href}
       className={cn(
-        'group relative mt-10 flex flex-col rounded-2xl border border-default bg-white px-6 pb-6 pt-14 shadow-sm transition-all hover:border-gold-400 hover:shadow-md dark:bg-dm-surface',
+        'group relative flex min-h-[200px] flex-col overflow-hidden rounded-3xl border border-subtle bg-gradient-to-br from-slate-50 via-white to-gold-50/40 p-5 shadow-sm hover:border-gold-300 hover:shadow-lg dark:border-dm-border dark:from-dm-elevated dark:via-dm-surface dark:to-dm-elevated dark:hover:border-brand-500 sm:min-h-[220px] sm:p-6',
+        hoverScaleClass,
         className,
       )}
     >
-      <Link
-        href={href}
-        className="absolute start-1/2 top-0 flex h-20 w-20 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-xl bg-gold-300 text-white transition-colors group-hover:bg-gold-400 rtl:translate-x-1/2"
-      >
-        <CategoryIconDisplay category={category} className="h-11 w-11" iconClassName="h-11 w-11" />
-      </Link>
-
-      <Link href={href} className="text-center">
+      <div className="flex flex-1 flex-col">
         <CategoryBilingualName
           nameEn={category.nameEn}
           nameAr={category.nameAr}
-          className="text-center"
-          primaryClassName="text-lg font-bold text-primary transition-colors group-hover:text-brand-500 dark:text-white"
+          className="text-start"
+          primaryClassName="text-base font-bold text-primary transition-colors group-hover:text-brand-500 dark:text-white sm:text-lg"
           secondaryClassName="text-sm font-medium text-secondary dark:text-white/80"
         />
-      </Link>
-
-      {subcategories.length > 0 ? (
-        <ul className="mt-4 divide-y divide-slate-200 dark:divide-dm-border">
-          {subcategories.map((subcategory) => (
-            <li key={subcategory.id}>
-              <Link
-                href={`/categories/${category.slug}?subcategoryId=${subcategory.id}`}
-                className="block py-3 transition-colors hover:bg-brand-50/50 dark:hover:bg-dm-elevated"
-              >
-                <p className="text-sm font-medium text-primary dark:text-white">
-                  {subcategory.nameEn}
-                </p>
-                <p className="text-sm text-secondary dark:text-white/80" dir="rtl">
-                  {subcategory.nameAr}
-                </p>
-              </Link>
-            </li>
-          ))}
-        </ul>
-      ) : (
-        <p className="mt-4 border-t border-default py-3 text-center text-sm text-secondary dark:text-white/80">
-          {t('noSubcategories')}
+        <p className="mt-2 text-xs text-ink-muted dark:text-white/70">
+          {subcategoryCount > 0
+            ? t('subcategoryCount', { count: subcategoryCount })
+            : t('companyCount', { count })}
         </p>
-      )}
-    </div>
+      </div>
+
+      <div className="mt-4 flex items-end justify-between gap-3">
+        <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gold-300 text-white shadow-sm transition-colors group-hover:bg-brand-500 sm:h-20 sm:w-20">
+          <CategoryIconDisplay
+            category={category}
+            className="h-10 w-10 sm:h-12 sm:w-12"
+            iconClassName="h-10 w-10 sm:h-12 sm:w-12"
+          />
+        </div>
+        <span className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-white/80 text-brand-500 opacity-0 transition-opacity group-hover:opacity-100 dark:bg-dm-hover dark:text-white">
+          <ArrowRight className="h-4 w-4 rtl:rotate-180" />
+        </span>
+      </div>
+    </Link>
   );
 }

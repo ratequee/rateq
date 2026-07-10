@@ -253,6 +253,7 @@
     "servicesLabel": "Services",
     "noServices": "No services listed yet.",
     "noSubcategories": "No subcategories listed yet.",
+    "subcategoryCount": "{count} subcategories",
     "categoryDescription": "Discover trusted {name} businesses and read verified customer reviews.",
     "resultsCount": "{count} categories",
     "noResults": "No categories match your search.",
@@ -322,6 +323,9 @@
     "applyFilters": "Apply filters",
     "companiesTitle": "Companies in this category",
     "companiesSubtitle": "{count} companies found",
+    "subcategoriesTitle": "Subcategories",
+    "subcategoriesSubtitle": "Choose a subcategory to browse companies, or view all companies in this category.",
+    "viewAllCompanies": "View all companies",
     "topRated": "Top Rated",
     "relatedTitle": "Related Categories",
     "viewAllCategories": "View all categories"
@@ -853,6 +857,7 @@
       "companyVerifications": "Company verifications",
       "directory": "Directory",
       "blog": "Blog",
+      "siteSettings": "Site settings",
       "team": "Admin team",
       "viewSite": "View public site",
       "visitCompanies": "Visit companies",
@@ -1147,7 +1152,8 @@
     "enableStamp": "Show verified stamp",
     "removeStamp": "Remove verified stamp",
     "stampEnabled": "Verified stamp enabled on company profile.",
-    "stampRemoved": "Verified stamp removed from company profile."
+    "stampRemoved": "Verified stamp removed from company profile.",
+    "editCompany": "Edit company"
   },
   "adminProjects": {
     "title": "Projects",
@@ -1319,11 +1325,73 @@
     "profileChangeRejected": "Profile changes rejected.",
     "profileChangeBadge": "Profile update",
     "viewProfileChanges": "View pending profile changes",
+    "registerCompany": "Register company",
     "status": {
       "pending": "Pending",
       "revision_requested": "Sent for review",
       "approved": "Approved",
       "rejected": "Rejected"
+    }
+  },
+  "adminCompanyForm": {
+    "createTitle": "Register company",
+    "createSubtitle": "Create a company account for an owner. An email with access instructions will be sent.",
+    "editTitle": "Edit company",
+    "editSubtitle": "Update company details. The owner will be notified by email.",
+    "loading": "Loading company…",
+    "ownerEmail": "Owner email",
+    "ownerEmailPlaceholder": "owner@example.com",
+    "websiteUrl": "Website",
+    "phoneNoOtpHint": "Phone is saved without OTP verification for admin registration.",
+    "submitCreate": "Create company",
+    "submitUpdate": "Save changes",
+    "saving": "Saving…",
+    "cancel": "Cancel",
+    "createSuccess": "Company created. An email was sent to the owner.",
+    "updateSuccess": "Company updated. The owner was notified by email.",
+    "sections": {
+      "owner": "Owner account",
+      "ownerHint": "If the email is new, an account is created and a password-reset link is emailed.",
+      "basic": "Company profile",
+      "catalog": "Services, activities & categories",
+      "location": "Address & phone",
+      "documents": "Registration documents"
+    },
+    "errors": {
+      "required": "This field is required.",
+      "invalidEmail": "Enter a valid email address.",
+      "fixForm": "Please fix the highlighted fields.",
+      "uploadFailed": "Could not upload files. Try again.",
+      "missingCompany": "Company id is missing.",
+      "loadFailed": "Could not load company details.",
+      "sessionExpired": "Session expired. Please log in again."
+    }
+  },
+  "adminSettings": {
+    "title": "Site settings",
+    "subtitle": "Update footer contact details, social links, and about text shown on the public site.",
+    "loading": "Loading settings…",
+    "save": "Save settings",
+    "saving": "Saving…",
+    "saveSuccess": "Site settings saved.",
+    "saveError": "Could not save settings.",
+    "loadError": "Could not load settings.",
+    "sections": {
+      "contact": "Contact details",
+      "social": "Social links",
+      "about": "About text"
+    },
+    "fields": {
+      "address": "Address",
+      "phone": "Phone",
+      "email": "Email",
+      "website": "Website",
+      "facebookUrl": "Facebook URL",
+      "twitterUrl": "X / Twitter URL",
+      "youtubeUrl": "YouTube URL",
+      "linkedinUrl": "LinkedIn URL",
+      "aboutTextEn": "About text (English)",
+      "aboutTextAr": "About text (Arabic)"
     }
   },
   "adminCategories": {

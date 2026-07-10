@@ -157,4 +157,14 @@ export class FirebaseAdminService implements OnModuleInit {
       );
     }
   }
+
+  async generatePasswordResetLink(email: string): Promise<string> {
+    if (!this.initialized) {
+      throw new ServiceUnavailableException(
+        'Firebase authentication is not configured on the server',
+      );
+    }
+
+    return admin.auth().generatePasswordResetLink(email.toLowerCase());
+  }
 }

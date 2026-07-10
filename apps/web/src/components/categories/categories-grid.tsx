@@ -55,10 +55,11 @@ export function CategoriesGrid({
         {filtered.length === 0 ? (
           <p className="py-16 text-center text-ink-muted dark:text-white/85">{t('noResults')}</p>
         ) : (
-          <div className="grid grid-cols-2 gap-x-4 gap-y-12 sm:grid-cols-3 lg:grid-cols-4 lg:gap-x-6">
+          <div className="grid grid-cols-2 gap-4 overflow-visible sm:grid-cols-3 lg:grid-cols-4 lg:gap-6">
             {filtered.map((category, index) => (
               <div
                 key={category.id}
+                className="overflow-visible"
                 {...scrollRevealProps('pop-up', scrollStaggerDelay(index % 8))}
               >
                 <CategoryCard category={category} />

@@ -415,3 +415,146 @@ export function buildUserInvitationEmailText(content: UserInvitationEmailContent
   const arabic = ['أنتم مدعوون إلى RateQ', '', `التسجيل: ${content.registerUrl}`].join('\n');
   return appendBilingualText(english, arabic);
 }
+
+export interface AdminCompanyCreatedEmailContent {
+  appUrl: string;
+  dashboardUrl: string;
+  companyName: string;
+  missingFields: string[];
+  passwordResetUrl?: string | null;
+}
+
+export function buildAdminCompanyCreatedEmailHtml(
+  content: AdminCompanyCreatedEmailContent,
+): string {
+  const missingList =
+    content.missingFields.length > 0
+      ? `<ul style="margin:12px 0;padding-inline-start:20px;">${content.missingFields
+          .map((field) => `<li>${escapeHtml(field)}</li>`)
+          .join('')}</ul>`
+      : '';
+
+  const bodyHtml = `
+    ${emailParagraph(
+      `An administrator has registered <strong>${escapeHtml(content.companyName)}</strong> on RateQ on your behalf.`,
+    )}
+    ${
+      content.missingFields.length > 0
+        ? `${emailParagraph('Please complete the following missing information in your company dashboard:')}
+    ${missingList}`
+        : emailParagraph('Your company profile is ready. Sign in to review and manage it.')
+    }
+    ${
+      content.passwordResetUrl
+        ? `${emailParagraph('Set your password to access your account:')}
+    ${emailButton(content.passwordResetUrl, 'Set password')}
+    ${emailFallbackLink(content.passwordResetUrl)}`
+        : `${emailButton(content.dashboardUrl, 'Open company dashboard')}
+    ${emailFallbackLink(content.dashboardUrl)}`
+    }
+  `;
+
+  const bodyHtmlAr = `
+    ${emailParagraphRtl(
+      `قام أحد المسؤولين بتسجيل <strong>${escapeHtml(content.companyName)}</strong> على RateQ نيابةً عنكم.`,
+    )}
+    ${
+      content.missingFields.length > 0
+        ? emailParagraphRtl('يرجى إكمال المعلومات الناقصة التالية من لوحة تحكم الشركة:')
+        : emailParagraphRtl('ملف شركتكم جاهز. سجّلوا الدخول لمراجعته وإدارته.')
+    }
+    ${
+      content.passwordResetUrl
+        ? `${emailParagraphRtl('عيّنوا كلمة المرور للوصول إلى حسابكم:')}
+    ${emailButton(content.passwordResetUrl, 'تعيين كلمة المرور')}`
+        : `${emailButton(content.dashboardUrl, 'فتح لوحة تحكم الشركة')}`
+    }
+  `;
+
+  return renderBilingualEmailLayout({
+    appUrl: content.appUrl,
+    preheader: 'Your company was registered on RateQ by an administrator.',
+    eyebrow: 'Company registration | تسجيل الشركة',
+    title: 'Your company was registered on RateQ',
+    titleAr: 'تم تسجيل شركتكم على RateQ',
+    bodyHtml,
+    bodyHtmlAr,
+  });
+}
+
+export function buildAdminCompanyCreatedEmailText(
+  content: AdminCompanyCreatedEmailContent,
+): string {
+  const english = [
+    `Your company "${content.companyName}" was registered on RateQ by an administrator.`,
+    content.missingFields.length
+      ? `Missing information:\n${content.missingFields.map((f) => `- ${f}`).join('\n')}`
+      : 'Your profile looks complete.',
+    content.passwordResetUrl
+      ? `Set password: ${content.passwordResetUrl}`
+      : `Dashboard: ${content.dashboardUrl}`,
+  ].join('\n\n');
+
+  const arabic = [
+    `تم تسجيل شركتكم "${content.companyName}" على RateQ بواسطة أحد المسؤولين.`,
+    content.missingFields.length
+      ? `معلومات ناقصة:\n${content.missingFields.map((f) => `- ${f}`).join('\n')}`
+      : 'يبدو أن ملفكم مكتمل.',
+    content.passwordResetUrl
+      ? `تعيين كلمة المرور: ${content.passwordResetUrl}`
+      : `لوحة التحكم: ${content.dashboardUrl}`,
+  ].join('\n\n');
+
+  return appendBilingualText(english, arabic);
+}
+
+export interface CompanyProfileUpdatedByAdminEmailContent {
+  appUrl: string;
+  dashboardUrl: string;
+  companyName: string;
+}
+
+export function buildCompanyProfileUpdatedByAdminEmailHtml(
+  content: CompanyProfileUpdatedByAdminEmailContent,
+): string {
+  const bodyHtml = `
+    ${emailParagraph(
+      `An administrator updated the profile for <strong>${escapeHtml(content.companyName)}</strong> on RateQ.`,
+    )}
+    ${emailParagraph('Please review the changes in your company dashboard.')}
+    ${emailButton(content.dashboardUrl, 'Open company dashboard')}
+    ${emailFallbackLink(content.dashboardUrl)}
+  `;
+
+  const bodyHtmlAr = `
+    ${emailParagraphRtl(
+      `قام أحد المسؤولين بتحديث ملف <strong>${escapeHtml(content.companyName)}</strong> على RateQ.`,
+    )}
+    ${emailParagraphRtl('يرجى مراجعة التغييرات من لوحة تحكم الشركة.')}
+    ${emailButton(content.dashboardUrl, 'فتح لوحة تحكم الشركة')}
+  `;
+
+  return renderBilingualEmailLayout({
+    appUrl: content.appUrl,
+    preheader: 'Your company profile was updated by an administrator.',
+    eyebrow: 'Profile update | تحديث الملف',
+    title: 'Your company profile was updated',
+    titleAr: 'تم تحديث ملف شركتكم',
+    bodyHtml,
+    bodyHtmlAr,
+  });
+}
+
+export function buildCompanyProfileUpdatedByAdminEmailText(
+  content: CompanyProfileUpdatedByAdminEmailContent,
+): string {
+  const english = [
+    `Your company "${content.companyName}" was updated by an administrator.`,
+    `Dashboard: ${content.dashboardUrl}`,
+  ].join('\n\n');
+  const arabic = [
+    `تم تحديث ملف شركتكم "${content.companyName}" بواسطة أحد المسؤولين.`,
+    `لوحة التحكم: ${content.dashboardUrl}`,
+  ].join('\n\n');
+  return appendBilingualText(english, arabic);
+}

@@ -28,6 +28,7 @@ import {
   Loader2,
   Mail,
   MessageSquareText,
+  Pencil,
   Star,
   Trash2,
   Users,
@@ -35,6 +36,7 @@ import {
 import { useLocale, useTranslations } from 'next-intl';
 import { useCallback, useEffect, useState } from 'react';
 import { toast } from 'sonner';
+import { Link } from '@/i18n/routing';
 
 type DirectoryTab = 'reviewers' | 'companies' | 'reviews' | 'projects' | 'reports' | 'invitations';
 
@@ -731,6 +733,13 @@ export function AdminDirectoryPanel() {
                   />
                 </div>
                 <div className="flex flex-wrap gap-2 border-b border-subtle pb-4">
+                  <Link
+                    href={`/dashboard/admin/companies/${companyDetail.id}/edit`}
+                    className="inline-flex h-10 items-center gap-2 rounded-lg border border-slate-200 bg-white px-4 text-sm font-medium text-ink transition-colors hover:bg-slate-50 dark:border-dm-border dark:bg-dm-surface dark:text-slate-100 dark:hover:bg-dm-elevated"
+                  >
+                    <Pencil className="h-4 w-4" />
+                    {t('editCompany')}
+                  </Link>
                   {companyDetail.ownerId ? (
                     <>
                       <Button

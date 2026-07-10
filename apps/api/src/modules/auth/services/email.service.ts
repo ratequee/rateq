@@ -16,6 +16,10 @@ import {
   buildPasswordResetEmailText,
   buildVerificationEmailHtml,
   buildVerificationEmailText,
+  buildAdminCompanyCreatedEmailHtml,
+  buildAdminCompanyCreatedEmailText,
+  buildCompanyProfileUpdatedByAdminEmailHtml,
+  buildCompanyProfileUpdatedByAdminEmailText,
   type UserInvitationEmailContent,
 } from '../email/email-templates';
 import {
@@ -174,6 +178,51 @@ export class EmailService {
       ),
       text: buildUserInvitationEmailText(content),
       html: buildUserInvitationEmailHtml({ ...content, appUrl }),
+    });
+  }
+
+  async sendAdminCompanyCreatedEmail(content: {
+    email: string;
+    companyName: string;
+    missingFields: string[];
+    passwordResetUrl?: string | null;
+  }): Promise<void> {
+    const appUrl = this.configService.get('APP_URL', { infer: true });
+    const payload = {
+      appUrl,
+      dashboardUrl: `${appUrl}/dashboard/company`,
+      companyName: content.companyName,
+      missingFields: content.missingFields,
+      passwordResetUrl: content.passwordResetUrl,
+    };
+
+    await this.send({
+      to: content.email,
+      subject: bilingualSubject(
+        'Your company was registered on RateQ',
+        'تم تسجيل شركتكم على RateQ',
+      ),
+      text: buildAdminCompanyCreatedEmailText(payload),
+      html: buildAdminCompanyCreatedEmailHtml(payload),
+    });
+  }
+
+  async sendCompanyProfileUpdatedByAdminEmail(email: string, companyName: string): Promise<void> {
+    const appUrl = this.configService.get('APP_URL', { infer: true });
+    const payload = {
+      appUrl,
+      dashboardUrl: `${appUrl}/dashboard/company`,
+      companyName,
+    };
+
+    await this.send({
+      to: email,
+      subject: bilingualSubject(
+        'Your RateQ company profile was updated',
+        'تم تحديث ملف شركتكم في RateQ',
+      ),
+      text: buildCompanyProfileUpdatedByAdminEmailText(payload),
+      html: buildCompanyProfileUpdatedByAdminEmailHtml(payload),
     });
   }
 

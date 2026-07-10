@@ -298,6 +298,7 @@ model Company {
   establishmentCardUrl String?                   @map("establishment_card_url")
   tradeLicenseUrl      String?                   @map("trade_license_url")
   verificationStatus   CompanyVerificationStatus @default(PENDING) @map("verification_status")
+  registeredByAdmin    Boolean                   @default(false) @map("registered_by_admin")
   profileChangeStatus  CompanyProfileChangeStatus @default(NONE) @map("profile_change_status")
   pendingProfileChanges Json?                    @map("pending_profile_changes")
   revisionNotes        String?                   @map("revision_notes") @db.Text
@@ -629,4 +630,25 @@ model BlogPostTranslation {
   @@unique([locale, slug])
   @@index([locale, slug])
   @@map("blog_post_translations")
+}
+
+// ---------------------------------------------------------------------------
+// Site settings (singleton)
+// ---------------------------------------------------------------------------
+
+model SiteSettings {
+  id           String   @id @default("default")
+  address      String?
+  phone        String?
+  email        String?
+  website      String?
+  facebookUrl  String?  @map("facebook_url")
+  twitterUrl   String?  @map("twitter_url")
+  youtubeUrl   String?  @map("youtube_url")
+  linkedinUrl  String?  @map("linkedin_url")
+  aboutTextEn  String?  @map("about_text_en") @db.Text
+  aboutTextAr  String?  @map("about_text_ar") @db.Text
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  @@map("site_settings")
 }

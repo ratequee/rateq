@@ -1,4 +1,4 @@
-import type { PlatformStats } from '@rateq/types';
+import type { PlatformStats, SiteSettingsPublic } from '@rateq/types';
 import { platformApi } from '@/lib/api';
 
 const EMPTY_STATS: PlatformStats = {
@@ -7,11 +7,32 @@ const EMPTY_STATS: PlatformStats = {
   totalReviews: 0,
 };
 
+const EMPTY_SETTINGS: SiteSettingsPublic = {
+  address: null,
+  phone: null,
+  email: null,
+  website: null,
+  facebookUrl: null,
+  twitterUrl: null,
+  youtubeUrl: null,
+  linkedinUrl: null,
+  aboutTextEn: null,
+  aboutTextAr: null,
+};
+
 export async function fetchPlatformStats(): Promise<PlatformStats> {
   try {
     return await platformApi.getStats();
   } catch {
     return EMPTY_STATS;
+  }
+}
+
+export async function fetchSiteSettings(): Promise<SiteSettingsPublic> {
+  try {
+    return await platformApi.getSettings();
+  } catch {
+    return EMPTY_SETTINGS;
   }
 }
 

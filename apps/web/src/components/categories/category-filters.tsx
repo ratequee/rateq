@@ -12,6 +12,7 @@ interface CategoryFiltersProps {
     subcategoryId?: string;
     minRating?: string;
     sort?: string;
+    view?: string;
   };
 }
 
@@ -34,6 +35,7 @@ export async function CategoryFilters({
           action={`/${locale}/categories/${category.slug}`}
           className="grid gap-3 rounded-2xl border border-slate-100 bg-slate-50/50 p-4 dark:border-dm-border dark:bg-dm-elevated/60 sm:grid-cols-2 lg:grid-cols-5 lg:items-end"
         >
+          {params.view === 'all' ? <input type="hidden" name="view" value="all" /> : null}
           <div className="lg:col-span-2">
             <label
               htmlFor="query"

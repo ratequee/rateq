@@ -10,6 +10,7 @@ import type {
   PaginatedUsersResponse,
   PlatformStats,
   ReviewPublic,
+  SiteSettingsPublic,
   UserProfile,
 } from '@rateq/types';
 import type { MessageResponse } from '@rateq/types';
@@ -224,6 +225,7 @@ export const usersOnboardingApi = {
 // Platform
 export const platformApi = {
   getStats: () => apiServer<PlatformStats>('/platform/stats'),
+  getSettings: () => apiServer<SiteSettingsPublic>('/platform/settings'),
 };
 
 // Reviews

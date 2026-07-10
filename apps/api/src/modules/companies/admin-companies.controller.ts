@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Patch, Query, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Param, Patch, Post, Query, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import type { AuthenticatedUser } from '@rateq/types';
 import { AdminPermission } from '@rateq/types';
@@ -6,6 +6,8 @@ import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { RequireAdminPermission } from '../../common/decorators/require-admin-permission.decorator';
 import { AdminPermissionGuard } from '../auth/guards/admin-permission.guard';
 import { CompaniesService } from './companies.service';
+import { AdminCreateCompanyDto } from './dto/admin-create-company.dto';
+import { UpdateCompanyDto } from './dto/update-company.dto';
 import {
   ListCompanyVerificationsQueryDto,
   UpdateCompanyVerificationDto,
@@ -18,6 +20,12 @@ import {
 @RequireAdminPermission(AdminPermission.COMPANIES)
 export class AdminCompaniesController {
   constructor(private readonly companiesService: CompaniesService) {}
+
+  @Post()
+  @ApiOperation({ summary: 'Register a company from top admin (full onboarding fields)' })
+  createCompany(@Body() dto: AdminCreateCompanyDto) {
+    return this.companiesService.adminCreate(dto);
+  }
 
   @Get('verifications')
   @ApiOperation({ summary: 'List company profile verification requests (Firebase admin)' })
@@ -61,5 +69,11 @@ export class AdminCompaniesController {
   @ApiOperation({ summary: 'Reject pending profile changes for an approved company' })
   rejectProfileChanges(@Param('id') id: string, @CurrentUser() admin: AuthenticatedUser) {
     return this.companiesService.rejectProfileChanges(id, admin.id);
+  }
+
+  @Patch(':id')
+  @ApiOperation({ summary: 'Edit company info from top admin (notifies company by email)' })
+  updateCompany(@Param('id') id: string, @Body() dto: UpdateCompanyDto) {
+    return this.companiesService.adminUpdate(id, dto, { notifyOwner: true });
   }
 }
