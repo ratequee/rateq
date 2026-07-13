@@ -178,6 +178,9 @@ export class ReviewsRepository {
       status: ReviewStatus;
       moderationScore: number;
       similarityScore?: number;
+      resolutionRequestedAt?: Date | null;
+      resolutionWindowDays?: number | null;
+      resolutionDeadlineAt?: Date | null;
     },
   ): Promise<Review> {
     return this.prisma.review.update({
@@ -186,6 +189,15 @@ export class ReviewsRepository {
         status: data.status,
         moderationScore: data.moderationScore,
         similarityScore: data.similarityScore,
+        ...(data.resolutionRequestedAt !== undefined && {
+          resolutionRequestedAt: data.resolutionRequestedAt,
+        }),
+        ...(data.resolutionWindowDays !== undefined && {
+          resolutionWindowDays: data.resolutionWindowDays,
+        }),
+        ...(data.resolutionDeadlineAt !== undefined && {
+          resolutionDeadlineAt: data.resolutionDeadlineAt,
+        }),
       },
     });
   }
@@ -201,6 +213,28 @@ export class ReviewsRepository {
         resolutionDeadlineAt: data.resolutionDeadlineAt,
       },
     });
+  }
+
+  /** Return reviews to PENDING when company never chose 7/10 days within 24h. */
+  async expireOverdueResolutionWindowChoices(): Promise<number> {
+    const cutoff = new Date(Date.now() - 24 * 60 * 60 * 1000);
+    const result = await this.prisma.review.updateMany({
+      where: {
+        status: 'RESOLUTION_PENDING',
+        resolutionDeadlineAt: null,
+        OR: [
+          { resolutionRequestedAt: { lte: cutoff } },
+          { resolutionRequestedAt: null, updatedAt: { lte: cutoff } },
+        ],
+      },
+      data: {
+        status: 'PENDING',
+        resolutionRequestedAt: null,
+        resolutionWindowDays: null,
+        resolutionDeadlineAt: null,
+      },
+    });
+    return result.count;
   }
 
   updateReviewContent(

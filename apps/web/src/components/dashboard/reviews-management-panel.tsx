@@ -573,7 +573,11 @@ export function ReviewsManagementPanel({ mode, companyId }: ReviewsManagementPan
             {mode === 'admin' ? (
               <div className="space-y-3 border-t border-subtle pt-4">
                 {selectedReview.status === 'RESOLUTION_PENDING' ? (
-                  <p className="text-sm text-secondary">{t('adminResolutionHint')}</p>
+                  <p className="text-sm text-secondary">
+                    {selectedReview.resolutionDeadlineAt
+                      ? t('adminResolutionHint')
+                      : t('adminResolutionAwaitingCompanyHint')}
+                  </p>
                 ) : null}
                 {selectedReview.status === 'MODIFIED' ? (
                   <p className="text-sm text-secondary">{t('adminModifiedHint')}</p>
@@ -636,6 +640,9 @@ export function ReviewsManagementPanel({ mode, companyId }: ReviewsManagementPan
                 {!selectedReview.resolutionDeadlineAt ? (
                   <>
                     <p className="text-sm text-secondary">{t('companyResolutionHint')}</p>
+                    <p className="text-xs text-amber-700 dark:text-amber-300">
+                      {t('companyResolutionDeadlineHint')}
+                    </p>
                     <div className="flex flex-wrap gap-2">
                       <Button
                         type="button"

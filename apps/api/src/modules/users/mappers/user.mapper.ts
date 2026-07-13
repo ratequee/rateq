@@ -13,7 +13,9 @@ export function toSafeUser(user: User): SafeUser {
 }
 
 export function toUserProfile(
-  user: User & { profile?: { fullName: string; city: string; country: string } | null },
+  user: User & {
+    profile?: { fullName: string; phone?: string; city: string; country: string } | null;
+  },
 ): UserProfile {
   return {
     id: user.id,
@@ -25,6 +27,7 @@ export function toUserProfile(
     reviewCount: user.reviewCount,
     displayName: user.displayName,
     fullName: user.profile?.fullName ?? null,
+    phone: user.profile?.phone?.trim() || user.phone?.trim() || null,
     city: user.profile?.city ?? null,
     country: user.profile?.country ?? null,
     createdAt: user.createdAt.toISOString(),

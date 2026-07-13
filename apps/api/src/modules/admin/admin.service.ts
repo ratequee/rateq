@@ -45,10 +45,13 @@ export class AdminService {
       pendingReviewReports,
       pendingInvitationRequests,
     ] = await Promise.all([
-      this.prisma.company.count(),
-      this.prisma.user.count({ where: { role: 'USER', profile: { isNot: null } } }),
+      this.prisma.company.count({ where: { verificationStatus: 'APPROVED' } }),
+      this.prisma.user.count({
+        where: { role: 'USER', isActive: true, profile: { isNot: null } },
+      }),
       this.prisma.review.groupBy({ by: ['status'], _count: { id: true } }),
       this.prisma.company.findMany({
+        where: { verificationStatus: 'APPROVED' },
         orderBy: [{ reviewCount: 'desc' }, { ratingAverage: 'desc' }],
         take: 5,
         select: {
@@ -61,10 +64,10 @@ export class AdminService {
         },
       }),
       this.prisma.user.findMany({
-        where: { role: 'USER' },
+        where: { role: 'USER', isActive: true, profile: { isNot: null } },
         orderBy: { reviewCount: 'desc' },
         take: 5,
-        include: { profile: { select: { fullName: true, avatarUrl: true } } },
+        include: { profile: { select: { fullName: true, avatarUrl: true, phone: true } } },
       }),
       this.reviewsRepository.findMany({ page: 1, limit: 8 }),
       this.getDailyActivityLast7Days(),
@@ -106,7 +109,8 @@ export class AdminService {
     return {
       totalCompanies,
       totalReviewers,
-      totalReviews: Object.values(statusMap).reduce((sum, count) => sum + count, 0),
+      /** Published reviews only (APPROVED). */
+      totalReviews: statusMap.APPROVED ?? 0,
       pendingReviews: statusMap.PENDING ?? 0,
       approvedReviews: statusMap.APPROVED ?? 0,
       rejectedReviews: statusMap.REJECTED ?? 0,

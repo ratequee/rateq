@@ -103,6 +103,7 @@ export function toReviewPublic(
     status: review.status as ReviewStatus,
     resolutionWindowDays: review.resolutionWindowDays,
     resolutionDeadlineAt: review.resolutionDeadlineAt?.toISOString() ?? null,
+    resolutionRequestedAt: review.resolutionRequestedAt?.toISOString() ?? null,
     createdAt: review.createdAt.toISOString(),
     updatedAt: review.updatedAt.toISOString(),
     ...(serviceRatings && { serviceRatings }),

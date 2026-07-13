@@ -1,4 +1,6 @@
 import { BadRequestException, Injectable, Logger, NotFoundException } from '@nestjs/common';
+import { InjectQueue } from '@nestjs/bullmq';
+import { Queue } from 'bullmq';
 import type { ReviewStatus } from '@prisma/client';
 import { ModerationAction } from '@prisma/client';
 import type { PaginatedAdminProjectsResponse } from '@rateq/types';
@@ -10,6 +12,7 @@ import { resolveCompanyOwnerEmail, resolveReviewerContact } from '../reviews/map
 import { CompaniesRepository } from '../companies/repositories/companies.repository';
 import { toAdminCompanyProjectListItem } from '../companies/mappers/company.mapper';
 import { buildPaginationMeta } from '../../common/utils/pagination.util';
+import { REVIEW_MODERATION_QUEUE } from '../../infrastructure/queue/queue.constants';
 import { ModerationRepository } from './repositories/moderation.repository';
 import {
   ModerationEngineService,
@@ -18,6 +21,9 @@ import {
 import type { ListProjectsQueryDto } from './dto/list-projects-query.dto';
 
 export const NEGATIVE_REVIEW_MAX_RATING = 3;
+/** Company must choose 7/10 day window within this period after admin resolve. */
+export const RESOLUTION_CHOICE_TIMEOUT_MS = 24 * 60 * 60 * 1000;
+export const RESOLUTION_CHOICE_TIMEOUT_JOB = 'resolution-choice-timeout';
 
 @Injectable()
 export class ModerationService {
@@ -30,6 +36,8 @@ export class ModerationService {
     private readonly moderationEngine: ModerationEngineService,
     private readonly emailService: EmailService,
     private readonly adminActivity: AdminActivityService,
+    @InjectQueue(REVIEW_MODERATION_QUEUE)
+    private readonly moderationQueue: Queue,
   ) {}
 
   async processReview(reviewId: string): Promise<void> {
@@ -245,6 +253,9 @@ export class ModerationService {
     await this.reviewsRepository.updateModerationResult(reviewId, {
       status: 'RESOLUTION_PENDING',
       moderationScore: review.moderationScore,
+      resolutionRequestedAt: new Date(),
+      resolutionWindowDays: null,
+      resolutionDeadlineAt: null,
     });
 
     await this.moderationRepository.createLog({
@@ -253,6 +264,8 @@ export class ModerationService {
       score: review.moderationScore,
       action: ModerationAction.MANUAL_RESOLVE,
     });
+
+    await this.scheduleResolutionChoiceTimeout(reviewId);
 
     const reviewer = resolveReviewerContact(review);
     const companyName = review.company?.name ?? 'Company';
@@ -281,6 +294,82 @@ export class ModerationService {
       entityLabel: review.title,
       action: AdminActivityAction.RESOLVED,
     });
+  }
+
+  /**
+   * If company did not pick 7/10 days within 24h, return review to PENDING for admin.
+   */
+  async expireResolutionWindowChoice(reviewId: string): Promise<void> {
+    const review = await this.reviewsRepository.findById(reviewId);
+    if (!review) return;
+
+    if (review.status !== 'RESOLUTION_PENDING') return;
+    if (review.resolutionDeadlineAt) return;
+
+    const requestedAt = review.resolutionRequestedAt ?? review.updatedAt;
+    const deadline = requestedAt.getTime() + RESOLUTION_CHOICE_TIMEOUT_MS;
+    if (Date.now() < deadline) {
+      const remaining = deadline - Date.now();
+      await this.scheduleResolutionChoiceTimeout(reviewId, remaining);
+      return;
+    }
+
+    await this.reviewsRepository.updateModerationResult(reviewId, {
+      status: 'PENDING',
+      moderationScore: review.moderationScore,
+      resolutionRequestedAt: null,
+      resolutionWindowDays: null,
+      resolutionDeadlineAt: null,
+    });
+
+    await this.moderationRepository.createLog({
+      reviewId,
+      reason: 'resolution_window_choice_timeout_24h',
+      score: review.moderationScore,
+      action: ModerationAction.MANUAL_RESOLVE,
+    });
+
+    this.logger.log(
+      `Review ${reviewId} returned to PENDING — company did not set resolution window within 24h`,
+    );
+  }
+
+  async cancelResolutionChoiceTimeout(reviewId: string): Promise<void> {
+    const jobId = `resolution-choice-${reviewId}`;
+    try {
+      const job = await this.moderationQueue.getJob(jobId);
+      if (job) await job.remove();
+    } catch (error) {
+      this.logger.warn(
+        `Could not cancel resolution choice timeout for ${reviewId}: ${
+          error instanceof Error ? error.message : 'unknown'
+        }`,
+      );
+    }
+  }
+
+  private async scheduleResolutionChoiceTimeout(
+    reviewId: string,
+    delayMs = RESOLUTION_CHOICE_TIMEOUT_MS,
+  ): Promise<void> {
+    const jobId = `resolution-choice-${reviewId}`;
+    try {
+      const existing = await this.moderationQueue.getJob(jobId);
+      if (existing) await existing.remove();
+    } catch {
+      // ignore
+    }
+
+    await this.moderationQueue.add(
+      RESOLUTION_CHOICE_TIMEOUT_JOB,
+      { reviewId },
+      {
+        jobId,
+        delay: Math.max(delayMs, 1000),
+        removeOnComplete: true,
+        removeOnFail: true,
+      },
+    );
   }
 
   private async notifyReviewerDecision(

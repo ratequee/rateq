@@ -12,6 +12,7 @@ export interface UserProfile {
   reviewCount: number;
   displayName?: string | null;
   fullName?: string | null;
+  phone?: string | null;
   city?: string | null;
   country?: string | null;
   createdAt: string;

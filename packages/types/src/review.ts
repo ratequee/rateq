@@ -40,6 +40,8 @@ export interface ReviewPublic {
   status: ReviewStatus;
   resolutionWindowDays?: number | null;
   resolutionDeadlineAt?: string | null;
+  /** When admin sent review to resolution; company must set window within 24h. */
+  resolutionRequestedAt?: string | null;
   createdAt: string;
   updatedAt: string;
   author?: ReviewAuthor;

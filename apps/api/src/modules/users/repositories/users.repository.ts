@@ -16,14 +16,15 @@ export interface ListUsersFilters {
 export class UsersRepository {
   constructor(private readonly prisma: PrismaService) {}
 
-  findById(
-    id: string,
-  ): Promise<
-    (User & { profile?: { fullName: string; city: string; country: string } | null }) | null
+  findById(id: string): Promise<
+    | (User & {
+        profile?: { fullName: string; phone: string; city: string; country: string } | null;
+      })
+    | null
   > {
     return this.prisma.user.findUnique({
       where: { id },
-      include: { profile: { select: { fullName: true, city: true, country: true } } },
+      include: { profile: { select: { fullName: true, phone: true, city: true, country: true } } },
     });
   }
 
@@ -50,7 +51,7 @@ export class UsersRepository {
       take: filters.limit,
       orderBy: { createdAt: 'desc' },
       include: {
-        profile: { select: { fullName: true, city: true, country: true } },
+        profile: { select: { fullName: true, phone: true, city: true, country: true } },
       },
     });
   }

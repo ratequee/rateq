@@ -249,7 +249,7 @@ export default async function CompanyPage({ params }: CompanyPageProps): Promise
             ) : null}
           </div>
 
-          <div {...scrollRevealProps('fade-left', 120)} className="mt-20 lg:self-start">
+          <div {...scrollRevealProps('fade-in')} className="mt-8 lg:mt-20 lg:self-start">
             <CompanyRatingBreakdown
               average={company.ratingAverage}
               reviewCount={company.reviewCount}

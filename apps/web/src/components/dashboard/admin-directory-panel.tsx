@@ -508,6 +508,11 @@ export function AdminDirectoryPanel() {
                       {user.fullName ?? user.displayName ?? user.email}
                     </span>
                     <span className="text-xs text-secondary">{user.email}</span>
+                    {user.phone ? (
+                      <span className="text-xs text-secondary" dir="ltr">
+                        {user.phone}
+                      </span>
+                    ) : null}
                     <span className="mt-1 text-xs text-secondary">
                       {t('reviewCount', { count: user.reviewCount })}
                       {!user.isActive ? ` · ${t('inactive')}` : ''}
@@ -563,6 +568,16 @@ export function AdminDirectoryPanel() {
                         reviewerDetail.email}
                     </h3>
                     <p className="mt-1 text-sm text-secondary">{reviewerDetail.email}</p>
+                    {reviewerDetail.phone ? (
+                      <p className="mt-1 text-sm text-secondary" dir="ltr">
+                        <a
+                          href={`tel:${reviewerDetail.phone.replace(/[^\d+]/g, '')}`}
+                          className="hover:text-brand-500"
+                        >
+                          {reviewerDetail.phone}
+                        </a>
+                      </p>
+                    ) : null}
                     {reviewerDetail.city || reviewerDetail.country ? (
                       <p className="text-sm text-secondary">
                         {[reviewerDetail.city, reviewerDetail.country].filter(Boolean).join(', ')}

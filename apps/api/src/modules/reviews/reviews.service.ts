@@ -283,6 +283,8 @@ export class ReviewsService {
   }
 
   async listForAdmin(query: ListReviewsQueryDto): Promise<PaginatedReviewsResponse> {
+    await this.reviewsRepository.expireOverdueResolutionWindowChoices();
+
     const filters = {
       userId: query.userId,
       companyId: query.companyId,
@@ -456,6 +458,13 @@ export class ReviewsService {
       resolutionWindowDays: dto.days,
       resolutionDeadlineAt: deadline,
     });
+
+    try {
+      const job = await this.moderationQueue.getJob(`resolution-choice-${reviewId}`);
+      if (job) await job.remove();
+    } catch {
+      // ignore — timeout job may already be gone
+    }
 
     const updated = await this.reviewsRepository.findById(reviewId);
     return toReviewPublic(updated!);
