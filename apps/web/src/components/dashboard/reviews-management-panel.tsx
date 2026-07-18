@@ -38,6 +38,7 @@ const STATUS_OPTIONS: Array<ReviewStatus | 'all'> = [
   ReviewStatus.WITHDRAWN,
   ReviewStatus.APPROVED,
   ReviewStatus.REJECTED,
+  ReviewStatus.DELETED,
 ];
 
 const statusStyles: Record<ReviewStatus, string> = {
@@ -48,12 +49,20 @@ const statusStyles: Record<ReviewStatus, string> = {
   WITHDRAWN: 'bg-rose-50 text-rose-700 dark:bg-rose-950/50 dark:text-rose-300',
   APPROVED: 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-300',
   REJECTED: 'bg-red-50 text-red-700 dark:bg-red-950/50 dark:text-red-400',
+  DELETED: 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300',
 };
 
 const ADMIN_MODERATABLE_STATUSES: ReviewStatus[] = [
   ReviewStatus.PENDING,
   ReviewStatus.MODIFIED,
   ReviewStatus.PROCEEDED,
+];
+
+const RESOLUTION_RELATED_STATUSES: ReviewStatus[] = [
+  ReviewStatus.RESOLUTION_PENDING,
+  ReviewStatus.MODIFIED,
+  ReviewStatus.PROCEEDED,
+  ReviewStatus.WITHDRAWN,
 ];
 
 function isNewReviewerAccount(createdAt: string | undefined): boolean {
@@ -103,6 +112,9 @@ export function ReviewsManagementPanel({ mode, companyId }: ReviewsManagementPan
   const [editTitle, setEditTitle] = useState('');
   const [editContent, setEditContent] = useState('');
   const [editRating, setEditRating] = useState(5);
+  const [statusCounts, setStatusCounts] = useState<Partial<Record<ReviewStatus | 'all', number>>>(
+    {},
+  );
   const limit = 10;
 
   const selectedReview = useMemo(
@@ -169,9 +181,38 @@ export function ReviewsManagementPanel({ mode, companyId }: ReviewsManagementPan
     }
   }, [mode, companyId, page, status, categoryId, search, t]);
 
+  const loadStatusCounts = useCallback(async () => {
+    const token = await ensureValidAccessToken();
+    if (!token || (mode === 'company' && !companyId)) return;
+
+    const responses = await Promise.all(
+      STATUS_OPTIONS.map((option) => {
+        const params = buildParams({
+          page: 1,
+          limit: 1,
+          status: option,
+          categoryId: '',
+          search: '',
+        });
+        if (mode === 'admin') return reviewsApi.listAdmin(token, params);
+        if (mode === 'reviewer') return reviewsApi.listMine(token, params);
+        return reviewsApi.listByCompanyManage(token, companyId!, params);
+      }),
+    );
+    setStatusCounts(
+      Object.fromEntries(
+        STATUS_OPTIONS.map((option, index) => [option, responses[index]?.meta.total ?? 0]),
+      ),
+    );
+  }, [companyId, mode]);
+
   useEffect(() => {
     void loadReviews();
   }, [loadReviews]);
+
+  useEffect(() => {
+    void loadStatusCounts();
+  }, [loadStatusCounts]);
 
   const runAction = async (action: () => Promise<unknown>, successMessage: string) => {
     setActing(true);
@@ -179,6 +220,7 @@ export function ReviewsManagementPanel({ mode, companyId }: ReviewsManagementPan
       await action();
       toast.success(successMessage);
       await loadReviews();
+      await loadStatusCounts();
       router.refresh();
     } catch (err) {
       const message = err instanceof ApiError ? err.message : t('actionError');
@@ -306,7 +348,8 @@ export function ReviewsManagementPanel({ mode, companyId }: ReviewsManagementPan
             >
               {STATUS_OPTIONS.map((option) => (
                 <option key={option} value={option}>
-                  {option === 'all' ? t('allStatuses') : t(`status.${option}`)}
+                  {option === 'all' ? t('allStatuses') : t(`status.${option}`)} (
+                  {statusCounts[option] ?? '—'})
                 </option>
               ))}
             </select>
@@ -486,6 +529,55 @@ export function ReviewsManagementPanel({ mode, companyId }: ReviewsManagementPan
               </div>
             </div>
 
+            {RESOLUTION_RELATED_STATUSES.includes(selectedReview.status) ? (
+              <div className="grid gap-3 rounded-xl border border-sky-200 bg-sky-50/60 p-4 dark:border-sky-900/60 dark:bg-sky-950/20 sm:grid-cols-2">
+                <div>
+                  <p className="text-xs font-medium text-secondary">{t('resolutionSelection')}</p>
+                  <p className="mt-1 text-sm font-semibold text-primary">
+                    {selectedReview.resolutionWindowDays
+                      ? t('resolutionSelectedDays', {
+                          days: selectedReview.resolutionWindowDays,
+                        })
+                      : t('resolutionNotSelected')}
+                  </p>
+                  {selectedReview.resolutionDeadlineAt ? (
+                    <p className="mt-1 text-sm text-secondary">
+                      {t('resolutionDeadline')}:{' '}
+                      {new Date(selectedReview.resolutionDeadlineAt).toLocaleString(locale, {
+                        dateStyle: 'medium',
+                        timeStyle: 'short',
+                      })}
+                    </p>
+                  ) : null}
+                </div>
+                {(mode === 'admin' || mode === 'company') && selectedReview.reviewerContact ? (
+                  <div>
+                    <p className="text-xs font-medium text-secondary">{t('reviewerContact')}</p>
+                    <p className="mt-1 text-sm font-semibold text-primary">
+                      {selectedReview.reviewerContact.name}
+                    </p>
+                    <a
+                      href={`mailto:${selectedReview.reviewerContact.email}`}
+                      className="block break-all text-sm text-brand-500 hover:underline"
+                    >
+                      {selectedReview.reviewerContact.email}
+                    </a>
+                    {selectedReview.reviewerContact.phone ? (
+                      <a
+                        href={`tel:${selectedReview.reviewerContact.phone.replace(/[^\d+]/g, '')}`}
+                        className="block text-sm text-brand-500 hover:underline"
+                        dir="ltr"
+                      >
+                        {selectedReview.reviewerContact.phone}
+                      </a>
+                    ) : (
+                      <p className="text-sm text-secondary">{t('phoneNotProvided')}</p>
+                    )}
+                  </div>
+                ) : null}
+              </div>
+            ) : null}
+
             <div>
               <p className="mb-2 text-sm font-semibold text-primary">{t('reviewContent')}</p>
               <p className="whitespace-pre-wrap text-sm leading-7 text-secondary">
@@ -611,20 +703,24 @@ export function ReviewsManagementPanel({ mode, companyId }: ReviewsManagementPan
                   >
                     {t('resolve')}
                   </Button>
-                  <Button
-                    type="button"
-                    variant="destructive"
-                    disabled={acting}
-                    onClick={() => void handleAdminDelete(selectedReview.id)}
-                  >
-                    {t('delete')}
-                  </Button>
+                  {selectedReview.status !== 'DELETED' ? (
+                    <Button
+                      type="button"
+                      variant="destructive"
+                      disabled={acting}
+                      onClick={() => void handleAdminDelete(selectedReview.id)}
+                    >
+                      {t('delete')}
+                    </Button>
+                  ) : null}
                 </div>
               </div>
             ) : null}
 
             {mode === 'reviewer' &&
-            (selectedReview.status === 'REJECTED' || selectedReview.status === 'WITHDRAWN') &&
+            (selectedReview.status === 'REJECTED' ||
+              selectedReview.status === 'WITHDRAWN' ||
+              selectedReview.status === 'DELETED') &&
             selectedReview.company?.slug ? (
               <div className="border-t border-subtle pt-4">
                 <Link href={`/companies/${selectedReview.company.slug}#write-review`}>

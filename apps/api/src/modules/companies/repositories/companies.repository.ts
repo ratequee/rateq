@@ -300,7 +300,7 @@ export class CompaniesRepository {
     return this.prisma.review
       .groupBy({
         by: ['status'],
-        where: { companyId },
+        where: { companyId, status: { notIn: ['REJECTED', 'DELETED'] } },
         _count: { status: true },
       })
       .then((groups) => {
@@ -325,7 +325,6 @@ export class CompaniesRepository {
             case 'APPROVED':
               stats.approvedReviews = count;
               break;
-            case 'REJECTED':
             case 'WITHDRAWN':
               stats.rejectedReviews += count;
               break;

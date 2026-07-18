@@ -8,6 +8,12 @@ export interface ReviewAuthor {
   createdAt?: string;
 }
 
+export interface ReviewReviewerContact {
+  name: string;
+  email: string;
+  phone: string | null;
+}
+
 export interface ReviewServiceRatingPublic {
   catalogItemId: string;
   serviceName: string;
@@ -45,6 +51,8 @@ export interface ReviewPublic {
   createdAt: string;
   updatedAt: string;
   author?: ReviewAuthor;
+  /** Exposed only to admins and the company owner in management views. */
+  reviewerContact?: ReviewReviewerContact;
   company?: ReviewCompanySummary;
   reply?: ReviewReplyPublic | null;
   serviceRatings?: ReviewServiceRatingPublic[];
@@ -65,11 +73,10 @@ export interface ReviewServiceRatingInput {
 
 export interface CreateReviewInput {
   companyId: string;
-  rating?: number;
+  rating: number;
   title: string;
   content: string;
   deviceFingerprint?: string;
-  serviceRatings?: ReviewServiceRatingInput[];
   proofUrls: string[];
 }
 

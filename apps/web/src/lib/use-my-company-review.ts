@@ -48,7 +48,9 @@ export function resolveCompanyReviews(
   const lastInactiveReview = canWriteNewReview
     ? (forCompany.find(
         (review) =>
-          review.status === ReviewStatus.WITHDRAWN || review.status === ReviewStatus.REJECTED,
+          review.status === ReviewStatus.WITHDRAWN ||
+          review.status === ReviewStatus.REJECTED ||
+          review.status === ReviewStatus.DELETED,
       ) ?? null)
     : null;
 

@@ -16,7 +16,7 @@ import { CompanyShareButton } from '@/components/company/company-share-button';
 import { CompanyFavoriteButton } from '@/components/company/company-favorite-button';
 import { Badge } from '@/components/ui/badge';
 import { Mail, MapPin, Phone, Star, Building2, FolderOpen, Lock } from 'lucide-react';
-import { getTranslations } from 'next-intl/server';
+import { getLocale, getTranslations } from 'next-intl/server';
 // import { MobileAppsCta } from '@/components/home/mobile-apps-cta';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
@@ -24,22 +24,28 @@ import { Button } from '@/components/ui/button';
 export const dynamic = 'force-dynamic';
 
 interface CompanyPageProps {
-  params: Promise<{ slug: string }>;
+  params: Promise<{ locale: string; slug: string }>;
 }
 
 export async function generateMetadata({ params }: CompanyPageProps): Promise<Metadata> {
-  const { slug } = await params;
+  const { locale, slug } = await params;
   const company = await fetchCompanyBySlug(slug);
 
   if (!company) {
     return { title: 'Company' };
   }
 
+  const companyName = locale === 'ar' ? company.nameAr?.trim() || company.name : company.name;
+  const companyDescription =
+    locale === 'ar'
+      ? company.descriptionAr?.trim() || company.descriptionEn || company.description
+      : company.descriptionEn?.trim() || company.description;
+
   return {
-    title: company.name,
-    description: company.description ?? `${company.name} reviews and ratings on RateQ`,
+    title: companyName,
+    description: companyDescription ?? `${companyName} reviews and ratings on RateQ`,
     openGraph: {
-      title: `${company.name} | RateQ`,
+      title: `${companyName} | RateQ`,
       description: `${company.ratingAverage}★ · ${company.reviewCount} reviews`,
     },
   };
@@ -47,6 +53,7 @@ export async function generateMetadata({ params }: CompanyPageProps): Promise<Me
 
 export default async function CompanyPage({ params }: CompanyPageProps): Promise<JSX.Element> {
   const t = await getTranslations('companyPage');
+  const locale = await getLocale();
   const { slug } = await params;
   const company = await fetchCompanyBySlug(slug);
 
@@ -72,11 +79,21 @@ export default async function CompanyPage({ params }: CompanyPageProps): Promise
   ].slice(0, 6);
 
   const yearsInBusiness = getCompanyYearsInBusiness(company);
+  const companyName = locale === 'ar' ? company.nameAr?.trim() || company.name : company.name;
+  const companyDescription =
+    locale === 'ar'
+      ? company.descriptionAr?.trim() || company.descriptionEn || company.description
+      : company.descriptionEn?.trim() || company.description;
+  const localizedCompany = {
+    ...company,
+    name: companyName,
+    description: companyDescription,
+  };
 
   return (
     <>
       <CompanyPageViewTracker slug={slug} />
-      <CompanyHeroSection company={company} />
+      <CompanyHeroSection company={localizedCompany} />
 
       <div className="mx-auto max-w-page px-4 pb-12 sm:px-6 sm:pb-16 lg:px-8">
         <div className="grid min-w-0 gap-8 lg:grid-cols-[minmax(0,1fr)_300px] lg:items-start lg:gap-10 xl:grid-cols-[minmax(0,1fr)_320px]">
@@ -121,7 +138,7 @@ export default async function CompanyPage({ params }: CompanyPageProps): Promise
                     />
                   ) : (
                     <div className="relative z-10 flex h-24 w-24 items-center justify-center rounded-2xl border-4 border-white bg-brand-100 text-3xl font-bold text-brand-500 shadow-md dark:border-dm-surface dark:bg-brand-950 sm:h-28 sm:w-28">
-                      {company.name.charAt(0)}
+                      {companyName.charAt(0)}
                     </div>
                   )}
                 </div>
@@ -130,7 +147,7 @@ export default async function CompanyPage({ params }: CompanyPageProps): Promise
                   <div>
                     <div className="flex flex-wrap items-center gap-3">
                       <h1 className="text-xl font-bold text-primary sm:text-3xl lg:text-2xl">
-                        {company.name}
+                        {companyName}
                       </h1>
                       {company.showVerifiedStamp ? (
                         <Image
@@ -228,19 +245,19 @@ export default async function CompanyPage({ params }: CompanyPageProps): Promise
                 </div>
                 <div className="flex flex-wrap items-center gap-3">
                   <CompanyFavoriteButton companyId={company.id} slug={slug} />
-                  <CompanyShareButton slug={slug} companyName={company.name} />
+                  <CompanyShareButton slug={slug} companyName={companyName} />
                   <CompanyWriteReviewButton label={t('writeReview')} />
                 </div>
               </div>
             </div>
 
-            {company.description ? (
+            {companyDescription ? (
               <div className="mt-8 border-t border-subtle surface-muted p-8">
                 <h2 className="text-lg font-bold text-primary sm:text-xl lg:text-2xl">
-                  {t('aboutTitle', { name: company.name })}
+                  {t('aboutTitle', { name: companyName })}
                 </h2>
                 <p className="mt-4 max-w-3xl whitespace-pre-wrap text-sm leading-relaxed text-secondary sm:text-base">
-                  {company.description}
+                  {companyDescription}
                 </p>
                 <a href="#reviews-hub">
                   <Button className="mt-4">{t('reviewsText')}</Button>
@@ -260,7 +277,7 @@ export default async function CompanyPage({ params }: CompanyPageProps): Promise
 
         <div id="reviews-hub" className="mt-10 scroll-mt-14">
           <CompanyContentTabs
-            company={company}
+            company={localizedCompany}
             reviews={reviews.data}
             topMentions={topMentions}
             projects={company.projects}

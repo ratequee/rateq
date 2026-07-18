@@ -3,6 +3,7 @@ export interface SiteSettingsPublic {
   phone: string | null;
   email: string | null;
   website: string | null;
+  instagramUrl: string | null;
   facebookUrl: string | null;
   twitterUrl: string | null;
   youtubeUrl: string | null;
@@ -16,6 +17,7 @@ export interface UpdateSiteSettingsInput {
   phone?: string | null;
   email?: string | null;
   website?: string | null;
+  instagramUrl?: string | null;
   facebookUrl?: string | null;
   twitterUrl?: string | null;
   youtubeUrl?: string | null;

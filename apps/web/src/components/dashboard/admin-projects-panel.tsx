@@ -34,6 +34,9 @@ export function AdminProjectsPanel() {
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(true);
   const [acting, setActing] = useState(false);
+  const [statusCounts, setStatusCounts] = useState<
+    Partial<Record<CompanyProjectStatus | 'all', number>>
+  >({});
 
   const selectedProject = projects.find((project) => project.id === selectedId) ?? null;
 
@@ -64,15 +67,37 @@ export function AdminProjectsPanel() {
     }
   }, [page, status, t]);
 
+  const loadStatusCounts = useCallback(async () => {
+    const token = await ensureValidAccessToken();
+    if (!token) return;
+    const responses = await Promise.all(
+      STATUS_OPTIONS.map((option) => {
+        const params = new URLSearchParams({ page: '1', limit: '1' });
+        if (option !== 'all') params.set('status', option);
+        return reviewsApi.listAdminProjects(token, params);
+      }),
+    );
+    setStatusCounts(
+      Object.fromEntries(
+        STATUS_OPTIONS.map((option, index) => [option, responses[index]?.meta.total ?? 0]),
+      ),
+    );
+  }, []);
+
   useEffect(() => {
     void loadProjects();
   }, [loadProjects]);
+
+  useEffect(() => {
+    void loadStatusCounts();
+  }, [loadStatusCounts]);
 
   const runAction = async (action: () => Promise<void>) => {
     setActing(true);
     try {
       await action();
       await loadProjects();
+      await loadStatusCounts();
     } catch (err) {
       const message = err instanceof ApiError ? err.message : t('actionError');
       toast.error(message);
@@ -127,7 +152,8 @@ export function AdminProjectsPanel() {
                 : 'bg-slate-100 text-secondary hover:bg-slate-200 dark:bg-dm-elevated dark:hover:bg-dm-surface',
             )}
           >
-            {option === 'all' ? t('filters.all') : t(`status.${option}`)}
+            {option === 'all' ? t('filters.all') : t(`status.${option}`)} (
+            {statusCounts[option] ?? '—'})
           </button>
         ))}
       </div>

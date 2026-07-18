@@ -102,6 +102,12 @@ function currentFieldValue(company: Company, key: keyof UpdateCompanyInput): unk
       return parseCompanyIdList(company.serviceIds);
     case 'activityIds':
       return parseCompanyIdList(company.activityIds);
+    case 'registrationDocUrl':
+      return company.registrationDocUrl;
+    case 'establishmentCardUrl':
+      return company.establishmentCardUrl;
+    case 'tradeLicenseUrl':
+      return company.tradeLicenseUrl;
     case 'subcategoryIds':
       return parseCompanyIdList(company.subcategoryIds);
     case 'services':
@@ -135,6 +141,9 @@ const FIELD_LABELS: Record<string, string> = {
   longitude: 'Longitude',
   serviceIds: 'Services',
   activityIds: 'Activities',
+  registrationDocUrl: 'Registration document',
+  establishmentCardUrl: 'Establishment card',
+  tradeLicenseUrl: 'Trade license',
   services: 'Legacy services',
   projects: 'Projects',
 };

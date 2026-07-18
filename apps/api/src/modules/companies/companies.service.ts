@@ -464,19 +464,6 @@ export class CompaniesService {
     }
 
     if (company.verificationStatus === 'APPROVED') {
-      const hasDocumentUpdate =
-        input.logo !== undefined ||
-        input.coverUrl !== undefined ||
-        input.registrationDocUrl !== undefined ||
-        input.establishmentCardUrl !== undefined ||
-        input.tradeLicenseUrl !== undefined;
-
-      if (hasDocumentUpdate) {
-        throw new ForbiddenException(
-          'Document uploads cannot be changed from the profile settings page',
-        );
-      }
-
       const projectUpdates = input.projects;
       const inputWithoutProjects =
         projectUpdates !== undefined ? { ...input, projects: undefined } : input;
@@ -629,6 +616,9 @@ export class CompaniesService {
     'facebookUrl',
     'linkedinUrl',
     'twitterUrl',
+    // Brand images are safe to publish immediately; legal documents still require approval.
+    'logo',
+    'coverUrl',
   ] as const satisfies readonly (keyof UpdateCompanyInput)[];
 
   private splitSocialLinksFromInput(input: UpdateCompanyInput): {
@@ -1257,7 +1247,11 @@ export class CompaniesService {
 
     const [reviews, pageViews] = await Promise.all([
       this.prisma.review.findMany({
-        where: { companyId, createdAt: { gte: rangeStart } },
+        where: {
+          companyId,
+          status: { notIn: ['REJECTED', 'DELETED'] },
+          createdAt: { gte: rangeStart },
+        },
         select: { createdAt: true },
       }),
       this.prisma.companyPageView.findMany({
@@ -1354,7 +1348,7 @@ export class CompaniesService {
 
   private async getCompanyLatestReviews(companyId: string) {
     const reviews = await this.prisma.review.findMany({
-      where: { companyId },
+      where: { companyId, status: { notIn: ['REJECTED', 'DELETED'] } },
       orderBy: { createdAt: 'desc' },
       take: 8,
       include: {

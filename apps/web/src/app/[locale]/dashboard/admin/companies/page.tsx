@@ -49,8 +49,34 @@ export default function AdminCompanyVerificationsPage() {
   const [profileChangeActing, setProfileChangeActing] = useState(false);
   const [revisionOpen, setRevisionOpen] = useState(false);
   const [revisionNotes, setRevisionNotes] = useState('');
+  const [filterCounts, setFilterCounts] = useState<Partial<Record<FilterStatus, number>>>({});
 
   useRequireAdmin(AdminPermission.COMPANIES);
+
+  const loadFilterCounts = useCallback(async () => {
+    const filterKeys: FilterStatus[] = [
+      'pending',
+      'profile_changes',
+      'revision_requested',
+      'approved',
+      'rejected',
+      'all',
+    ];
+    const responses = await Promise.all(
+      filterKeys.map((status) =>
+        adminApi.listCompanyVerifications({
+          status: status === 'all' ? undefined : status,
+          page: 1,
+          limit: 1,
+        }),
+      ),
+    );
+    setFilterCounts(
+      Object.fromEntries(
+        filterKeys.map((status, index) => [status, responses[index]?.meta.total ?? 0]),
+      ),
+    );
+  }, []);
 
   const loadList = useCallback(async () => {
     setListLoading(true);
@@ -80,6 +106,10 @@ export default function AdminCompanyVerificationsPage() {
   useEffect(() => {
     void loadList();
   }, [loadList]);
+
+  useEffect(() => {
+    void loadFilterCounts();
+  }, [loadFilterCounts]);
 
   useEffect(() => {
     if (!selectedId) {
@@ -134,6 +164,7 @@ export default function AdminCompanyVerificationsPage() {
         setRevisionNotes('');
       }
       await loadList();
+      await loadFilterCounts();
     } catch (err) {
       const message = err instanceof ApiError ? err.message : t('actionError');
       toast.error(message);
@@ -155,6 +186,7 @@ export default function AdminCompanyVerificationsPage() {
         toast.success(t('profileChangeRejected'));
       }
       await loadList();
+      await loadFilterCounts();
       const refreshed = await adminApi.getCompanyVerification(selectedId);
       setDetail(refreshed);
     } catch (err) {
@@ -198,7 +230,7 @@ export default function AdminCompanyVerificationsPage() {
               filter === key ? 'dashboard-tab-active' : 'dashboard-tab-inactive',
             )}
           >
-            {label}
+            {label} <span aria-hidden>({filterCounts[key] ?? '—'})</span>
           </button>
         ))}
       </div>
@@ -398,10 +430,10 @@ function ProfileChangeDetailPanel({
                   <tr key={field.field}>
                     <td className="px-4 py-3 font-medium text-primary">{field.label}</td>
                     <td className="px-4 py-3 text-secondary dark:text-slate-300">
-                      {field.current}
+                      <ProfileChangeValue field={field.field} value={field.current} />
                     </td>
                     <td className="px-4 py-3 font-medium text-ink dark:text-white">
-                      {field.proposed}
+                      <ProfileChangeValue field={field.field} value={field.proposed} />
                     </td>
                   </tr>
                 ))}
@@ -423,6 +455,29 @@ function ProfileChangeDetailPanel({
       </dl>
     </div>
   );
+}
+
+const DOCUMENT_PROFILE_FIELDS = new Set([
+  'registrationDocUrl',
+  'establishmentCardUrl',
+  'tradeLicenseUrl',
+]);
+
+function ProfileChangeValue({ field, value }: { field: string; value: string }) {
+  if (DOCUMENT_PROFILE_FIELDS.has(field) && /^https?:\/\//i.test(value)) {
+    return (
+      <a
+        href={value}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="inline-flex items-center gap-1 text-brand-500 hover:underline"
+      >
+        <ExternalLink className="h-3.5 w-3.5" />
+        View document
+      </a>
+    );
+  }
+  return value;
 }
 
 function CompanyDetailPanel({

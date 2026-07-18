@@ -15,12 +15,14 @@ interface AdminCompanyCatalogPanelProps {
   fixedType?: CompanyCatalogType;
   hideTypeTabs?: boolean;
   hideHeader?: boolean;
+  onCountChange?: (type: CompanyCatalogType, count: number) => void;
 }
 
 export function AdminCompanyCatalogPanel({
   fixedType,
   hideTypeTabs = false,
   hideHeader = false,
+  onCountChange,
 }: AdminCompanyCatalogPanelProps = {}) {
   const t = useTranslations('adminCatalog');
   const [type, setType] = useState<CompanyCatalogType>(fixedType ?? 'service');
@@ -41,7 +43,9 @@ export function AdminCompanyCatalogPanel({
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      setItems(await adminApi.listCompanyCatalog(type));
+      const nextItems = await adminApi.listCompanyCatalog(type);
+      setItems(nextItems);
+      onCountChange?.(type, nextItems.length);
     } catch (err) {
       const message = err instanceof ApiError ? err.message : t('loadError');
       toast.error(message);
@@ -49,7 +53,7 @@ export function AdminCompanyCatalogPanel({
     } finally {
       setLoading(false);
     }
-  }, [type, t]);
+  }, [onCountChange, type, t]);
 
   useEffect(() => {
     void load();

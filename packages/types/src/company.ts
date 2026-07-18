@@ -46,6 +46,7 @@ export interface ReviewRatingDistribution {
 export interface CompanyCatalogLabel {
   id: string;
   label: string;
+  labelAr?: string | null;
 }
 
 export interface CompanyServiceRatingAggregate {

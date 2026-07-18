@@ -11,7 +11,7 @@ import type {
 } from '@rateq/types';
 import { buildPaginationMeta } from '../../common/utils/pagination.util';
 import { CompaniesRepository } from '../companies/repositories/companies.repository';
-import { toCompanyPublic } from '../companies/mappers/company.mapper';
+import { parseCompanyIdList, toCompanyPublic } from '../companies/mappers/company.mapper';
 import { ReviewsRepository } from '../reviews/repositories/reviews.repository';
 import { toReviewPublic } from '../reviews/mappers/review.mapper';
 import { UsersRepository } from '../users/repositories/users.repository';
@@ -203,17 +203,34 @@ export class AdminService {
       throw new NotFoundException('Company not found');
     }
 
-    const [reviews, pageVisitCount] = await Promise.all([
+    const serviceIds = parseCompanyIdList(company.serviceIds);
+    const activityIds = parseCompanyIdList(company.activityIds);
+    const catalogIds = [...new Set([...serviceIds, ...activityIds])];
+
+    const [reviews, pageVisitCount, catalogItems] = await Promise.all([
       this.reviewsRepository.findMany({
         companyId,
         page: 1,
         limit: 50,
       }),
       this.prisma.companyPageView.count({ where: { companyId } }),
+      this.prisma.companyCatalogItem.findMany({
+        where: { id: { in: catalogIds } },
+        select: { id: true, nameEn: true, nameAr: true },
+      }),
     ]);
+    const catalogMap = new Map(catalogItems.map((item) => [item.id, item]));
+    const resolveCatalogItems = (ids: string[]) =>
+      ids.flatMap((id) => {
+        const item = catalogMap.get(id);
+        return item ? [{ id, label: item.nameEn, labelAr: item.nameAr }] : [];
+      });
 
     return {
-      ...toCompanyPublic(company),
+      ...toCompanyPublic(company, {
+        serviceItems: resolveCatalogItems(serviceIds),
+        activityItems: resolveCatalogItems(activityIds),
+      }),
       verificationStatus: company.verificationStatus.toLowerCase(),
       ownerEmail: company.owner?.email ?? company.email ?? null,
       ownerId: company.ownerId ?? null,

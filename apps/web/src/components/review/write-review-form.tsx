@@ -17,10 +17,8 @@ import {
 } from '@/lib/validation/review-fields';
 import type { CompanyCatalogLabel, ReviewPublic } from '@rateq/types';
 import { useTranslations } from 'next-intl';
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 import { toast } from 'sonner';
-
-const EMPTY_COMPANY_SERVICES: CompanyCatalogLabel[] = [];
 
 interface WriteReviewFormProps {
   companyId: string;
@@ -30,36 +28,19 @@ interface WriteReviewFormProps {
   onCancel?: () => void;
 }
 
-function buildDefaultServiceRatings(services: CompanyCatalogLabel[]): Record<string, number> {
-  return Object.fromEntries(services.map((service) => [service.id, 5]));
-}
-
 export function WriteReviewForm({
   companyId,
-  companyServices = EMPTY_COMPANY_SERVICES,
   className,
   onSubmitted,
   onCancel,
 }: WriteReviewFormProps) {
   const t = useTranslations('review');
   const [overallRating, setOverallRating] = useState(5);
-  const [serviceRatings, setServiceRatings] = useState<Record<string, number>>(() =>
-    buildDefaultServiceRatings(companyServices),
-  );
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [proofFile, setProofFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
   const [fieldErrors, setFieldErrors] = useState<ReviewFieldErrors>({});
-
-  const usesServiceRatings = companyServices.length > 0;
-
-  const aggregatedPreview = useMemo(() => {
-    if (!usesServiceRatings) return overallRating;
-    const values = companyServices.map((service) => serviceRatings[service.id] ?? 0);
-    if (values.some((value) => value < 1)) return 0;
-    return Math.round(values.reduce((sum, value) => sum + value, 0) / values.length);
-  }, [companyServices, overallRating, serviceRatings, usesServiceRatings]);
 
   const handleProofChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0] ?? null;
@@ -108,17 +89,10 @@ export function WriteReviewForm({
 
       const review = await reviewsApi.submit(token, {
         companyId,
-        title,
-        content,
+        rating: overallRating,
+        title: sanitizeReviewTitle(title).trim(),
+        content: sanitizeReviewContent(content).trim(),
         ...(deviceFingerprint ? { deviceFingerprint } : {}),
-        ...(usesServiceRatings
-          ? {
-              serviceRatings: companyServices.map((service) => ({
-                catalogItemId: service.id,
-                rating: serviceRatings[service.id] ?? 5,
-              })),
-            }
-          : { rating: overallRating }),
         proofUrls,
       });
 
@@ -127,7 +101,6 @@ export function WriteReviewForm({
       setContent('');
       setOverallRating(5);
       setProofFile(null);
-      setServiceRatings(buildDefaultServiceRatings(companyServices));
       onSubmitted?.(review);
     } catch (err) {
       if (isAccountDeactivatedApiError(err)) {
@@ -154,31 +127,10 @@ export function WriteReviewForm({
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
-          {usesServiceRatings ? (
-            <div className="space-y-4">
-              <p className="text-sm text-secondary">{t('serviceRatingsHint')}</p>
-              {companyServices.map((service) => (
-                <div key={service.id}>
-                  <label className="text-sm font-medium text-primary">{service.label}</label>
-                  <StarRating
-                    value={serviceRatings[service.id] ?? 5}
-                    interactive
-                    onChange={(value) =>
-                      setServiceRatings((current) => ({ ...current, [service.id]: value }))
-                    }
-                  />
-                </div>
-              ))}
-              <p className="text-sm text-secondary">
-                {t('aggregatedRating', { rating: aggregatedPreview })}
-              </p>
-            </div>
-          ) : (
-            <div>
-              <label className="text-sm font-medium text-primary">{t('rating')}</label>
-              <StarRating value={overallRating} interactive onChange={setOverallRating} />
-            </div>
-          )}
+          <div>
+            <label className="text-sm font-medium text-primary">{t('rating')}</label>
+            <StarRating value={overallRating} interactive onChange={setOverallRating} />
+          </div>
 
           <div>
             <label className="text-sm font-medium text-primary">{t('title')}</label>

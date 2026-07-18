@@ -12,6 +12,7 @@ const EMPTY_SETTINGS: SiteSettingsPublic = {
   phone: null,
   email: null,
   website: null,
+  instagramUrl: null,
   facebookUrl: null,
   twitterUrl: null,
   youtubeUrl: null,

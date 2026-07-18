@@ -12,6 +12,7 @@ export enum ReviewStatus {
   MODIFIED = 'MODIFIED',
   WITHDRAWN = 'WITHDRAWN',
   PROCEEDED = 'PROCEEDED',
+  DELETED = 'DELETED',
 }
 
 export enum ReviewReplyStatus {

@@ -94,7 +94,7 @@ export class CompanyCatalogService {
   async resolveLabels(
     ids: string[],
     locale: 'en' | 'ar' = 'en',
-  ): Promise<Array<{ id: string; label: string }>> {
+  ): Promise<Array<{ id: string; label: string; labelAr: string }>> {
     if (!ids.length) return [];
 
     const items = await this.prisma.companyCatalogItem.findMany({
@@ -107,9 +107,13 @@ export class CompanyCatalogService {
       .map((id) => {
         const item = itemMap.get(id);
         if (!item) return null;
-        return { id, label: locale === 'ar' ? item.nameAr : item.nameEn };
+        return {
+          id,
+          label: locale === 'ar' ? item.nameAr : item.nameEn,
+          labelAr: item.nameAr,
+        };
       })
-      .filter((entry): entry is { id: string; label: string } => entry !== null);
+      .filter((entry): entry is { id: string; label: string; labelAr: string } => entry !== null);
   }
 
   async assertIdsExist(ids: string[], type: CompanyCatalogType): Promise<void> {

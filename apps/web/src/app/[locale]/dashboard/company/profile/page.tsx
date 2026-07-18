@@ -4,6 +4,7 @@ import { DashboardShell } from '@/components/dashboard/dashboard-shell';
 import { DashboardPageHeader } from '@/components/dashboard/dashboard-page-header';
 import { DashboardProfileLoading } from '@/components/dashboard/dashboard-profile-loading';
 import { CompanyPublicProfileForm } from '@/components/dashboard/company-public-profile-form';
+import { CompanyDocumentsForm } from '@/components/dashboard/company-documents-form';
 import { CompanySocialLinksForm } from '@/components/dashboard/company-social-links-form';
 import { CompanySettingsForm } from '@/components/dashboard/company-settings-form';
 import { useProfile } from '@/components/providers/profile-provider';
@@ -70,6 +71,7 @@ export default function CompanyProfileSettingsPage() {
           <DashboardProfileLoading />
         ) : company ? (
           <>
+            <CompanyDocumentsForm key={`documents-${company.updatedAt}`} company={company} />
             {(registrationDetails.length > 0 || documents.length > 0) && (
               <section className="mb-6 rounded-2xl surface-card border p-6 shadow-sm">
                 <h2 className="text-lg font-semibold text-primary">

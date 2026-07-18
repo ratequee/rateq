@@ -61,6 +61,12 @@ const statusConfig: Record<
       'border-red-200 bg-red-50 text-red-950 dark:border-red-900 dark:bg-red-950/40 dark:text-red-100',
     icon: XCircle,
   },
+  [ReviewStatus.DELETED]: {
+    messageKey: 'myReviewDeleted',
+    className:
+      'border-slate-200 bg-slate-50 text-slate-950 dark:border-slate-700 dark:bg-slate-900/40 dark:text-slate-100',
+    icon: XCircle,
+  },
 };
 
 export function ReviewerReviewStatusCard({

@@ -35,6 +35,13 @@ export class UpdateSiteSettingsDto {
   @ValidateIf((_, v) => v !== null && v !== '')
   @IsUrl()
   @MaxLength(2048)
+  instagramUrl?: string | null;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @ValidateIf((_, v) => v !== null && v !== '')
+  @IsUrl()
+  @MaxLength(2048)
   facebookUrl?: string | null;
 
   @ApiPropertyOptional()

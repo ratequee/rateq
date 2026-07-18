@@ -17,6 +17,7 @@ import { ReviewReplyStatusBadge } from '@/components/review/review-reply-status-
 import type {
   AdminCompanyDetail,
   AdminCompanyListItem,
+  AdminPlatformStats,
   AdminUserDetail,
   ReviewPublic,
   UserProfile,
@@ -211,6 +212,17 @@ export function AdminDirectoryPanel() {
   const [listLoading, setListLoading] = useState(false);
   const [detailLoading, setDetailLoading] = useState(false);
   const [acting, setActing] = useState(false);
+  const [stats, setStats] = useState<AdminPlatformStats | null>(null);
+
+  useEffect(() => {
+    void ensureValidAccessToken().then((token) => {
+      if (!token) return;
+      void adminApi
+        .getStats(token)
+        .then(setStats)
+        .catch(() => undefined);
+    });
+  }, []);
 
   const loadReviewers = useCallback(async () => {
     setListLoading(true);
@@ -432,19 +444,34 @@ export function AdminDirectoryPanel() {
     await runAction(() => reviewsApi.deleteReviewReply(token, reviewId), tr('deleteReplySuccess'));
   };
 
-  const tabs: Array<{ id: DirectoryTab; label: string; icon: typeof Users }> = [
-    { id: 'reviewers', label: t('tabs.reviewers'), icon: Users },
-    { id: 'companies', label: t('tabs.companies'), icon: Building2 },
-    { id: 'reviews', label: t('tabs.reviews'), icon: Star },
-    { id: 'projects', label: t('tabs.projects'), icon: FolderKanban },
-    { id: 'reports', label: t('tabs.reports'), icon: Flag },
-    { id: 'invitations', label: t('tabs.invitations'), icon: Mail },
+  const tabs: Array<{ id: DirectoryTab; label: string; icon: typeof Users; count?: number }> = [
+    { id: 'reviewers', label: t('tabs.reviewers'), icon: Users, count: stats?.totalReviewers },
+    { id: 'companies', label: t('tabs.companies'), icon: Building2, count: stats?.totalCompanies },
+    { id: 'reviews', label: t('tabs.reviews'), icon: Star, count: stats?.totalReviews },
+    {
+      id: 'projects',
+      label: t('tabs.projects'),
+      icon: FolderKanban,
+      count: stats?.pendingActions.projectModeration,
+    },
+    {
+      id: 'reports',
+      label: t('tabs.reports'),
+      icon: Flag,
+      count: stats?.pendingActions.reviewReports,
+    },
+    {
+      id: 'invitations',
+      label: t('tabs.invitations'),
+      icon: Mail,
+      count: stats?.pendingActions.reviewerInvitationRequests,
+    },
   ];
 
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap gap-2">
-        {tabs.map(({ id, label, icon: Icon }) => (
+        {tabs.map(({ id, label, icon: Icon, count }) => (
           <button
             key={id}
             type="button"
@@ -455,7 +482,7 @@ export function AdminDirectoryPanel() {
             )}
           >
             <Icon className="h-4 w-4" />
-            {label}
+            {label} <span aria-hidden>({count ?? '—'})</span>
           </button>
         ))}
       </div>

@@ -42,6 +42,11 @@ export async function SiteFooter(): Promise<JSX.Element> {
 
   const social = [
     {
+      icon: '/images/instagram.svg',
+      label: 'Instagram',
+      href: settings.instagramUrl?.trim() || '#',
+    },
+    {
       icon: '/images/fb.svg',
       label: 'Facebook',
       href: settings.facebookUrl?.trim() || '#',

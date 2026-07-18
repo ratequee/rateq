@@ -162,13 +162,22 @@ export class ModerationService {
     if (!review) {
       throw new NotFoundException('Review not found');
     }
+    if (review.status === 'DELETED') {
+      throw new BadRequestException('Review is already deleted');
+    }
 
     const wasApproved = review.status === 'APPROVED';
     const { companyId, userId } = review;
     const reviewerEmail = review.user?.email;
     const companyName = review.company?.name ?? 'the company';
 
-    await this.reviewsRepository.deleteById(reviewId);
+    await this.reviewsRepository.updateModerationResult(reviewId, {
+      status: 'DELETED',
+      moderationScore: review.moderationScore,
+      resolutionRequestedAt: null,
+      resolutionWindowDays: null,
+      resolutionDeadlineAt: null,
+    });
 
     await this.adminActivity.log({
       adminId,
@@ -508,7 +517,7 @@ export class ModerationService {
 
     return {
       data: items.map(toAdminCompanyProjectListItem),
-      meta: buildPaginationMeta(total, page, limit),
+      meta: buildPaginationMeta(page, limit, total),
     };
   }
 

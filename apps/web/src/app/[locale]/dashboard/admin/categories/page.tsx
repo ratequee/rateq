@@ -10,7 +10,7 @@ import { adminApi } from '@/lib/admin-api';
 import { fetchCategoriesClient } from '@/lib/categories-api';
 import { ApiError } from '@/lib/api';
 import { AdminPermission } from '@rateq/types';
-import type { CategoryPublic } from '@rateq/types';
+import type { CategoryPublic, CompanyCatalogType } from '@rateq/types';
 import { cn } from '@/lib/utils';
 import { Loader2, Pencil, Plus, Trash2, X } from 'lucide-react';
 import { useTranslations } from 'next-intl';
@@ -44,13 +44,16 @@ export default function AdminCategoriesPage() {
   const [editSubNameEn, setEditSubNameEn] = useState('');
   const [editSubNameAr, setEditSubNameAr] = useState('');
   const [subEditSaving, setSubEditSaving] = useState(false);
+  const [catalogCounts, setCatalogCounts] = useState<Partial<Record<CompanyCatalogType, number>>>(
+    {},
+  );
 
   useRequireAdmin(AdminPermission.CONTENT);
 
-  const tabs: { id: AdminCatalogTab; label: string }[] = [
-    { id: 'categories', label: t('tabCategories') },
-    { id: 'services', label: tc('service') },
-    { id: 'activities', label: tc('activity') },
+  const tabs: { id: AdminCatalogTab; label: string; count?: number }[] = [
+    { id: 'categories', label: t('tabCategories'), count: loading ? undefined : categories.length },
+    { id: 'services', label: tc('service'), count: catalogCounts.service },
+    { id: 'activities', label: tc('activity'), count: catalogCounts.activity },
   ];
 
   const loadCategories = useCallback(async () => {
@@ -69,6 +72,19 @@ export default function AdminCategoriesPage() {
   useEffect(() => {
     if (activeTab === 'categories') void loadCategories();
   }, [activeTab, loadCategories]);
+
+  useEffect(() => {
+    void Promise.all([
+      adminApi.listCompanyCatalog('service'),
+      adminApi.listCompanyCatalog('activity'),
+    ]).then(([services, activities]) =>
+      setCatalogCounts({ service: services.length, activity: activities.length }),
+    );
+  }, []);
+
+  const handleCatalogCountChange = useCallback((type: CompanyCatalogType, count: number) => {
+    setCatalogCounts((current) => ({ ...current, [type]: count }));
+  }, []);
 
   const handleCreate = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -253,7 +269,7 @@ export default function AdminCategoriesPage() {
                 activeTab === tab.id ? 'dashboard-tab-active' : 'dashboard-tab-inactive',
               )}
             >
-              {tab.label}
+              {tab.label} <span aria-hidden>({tab.count ?? '—'})</span>
             </button>
           ))}
         </div>
@@ -543,6 +559,7 @@ export default function AdminCategoriesPage() {
               fixedType={activeTab === 'services' ? 'service' : 'activity'}
               hideTypeTabs
               hideHeader
+              onCountChange={handleCatalogCountChange}
             />
           </div>
         )}

@@ -22,6 +22,7 @@ const EMPTY_FORM: UpdateSiteSettingsInput = {
   phone: '',
   email: '',
   website: '',
+  instagramUrl: '',
   facebookUrl: '',
   twitterUrl: '',
   youtubeUrl: '',
@@ -36,6 +37,7 @@ function toForm(settings: SiteSettingsPublic): UpdateSiteSettingsInput {
     phone: settings.phone ?? '',
     email: settings.email ?? '',
     website: settings.website ?? '',
+    instagramUrl: settings.instagramUrl ?? '',
     facebookUrl: settings.facebookUrl ?? '',
     twitterUrl: settings.twitterUrl ?? '',
     youtubeUrl: settings.youtubeUrl ?? '',
@@ -55,6 +57,7 @@ function toPayload(form: UpdateSiteSettingsInput): UpdateSiteSettingsInput {
     phone: normalize(form.phone),
     email: normalize(form.email),
     website: normalize(form.website),
+    instagramUrl: normalize(form.instagramUrl),
     facebookUrl: normalize(form.facebookUrl),
     twitterUrl: normalize(form.twitterUrl),
     youtubeUrl: normalize(form.youtubeUrl),
@@ -159,6 +162,13 @@ export default function AdminSiteSettingsPage() {
           <section className="surface-card space-y-4 rounded-2xl border p-5 sm:p-6">
             <h2 className="text-base font-semibold text-primary">{t('sections.social')}</h2>
             <div className="grid gap-4 sm:grid-cols-2">
+              <Field label={t('fields.instagramUrl')}>
+                <Input
+                  value={form.instagramUrl ?? ''}
+                  onChange={(e) => updateField('instagramUrl', e.target.value)}
+                  className="h-11"
+                />
+              </Field>
               <Field label={t('fields.facebookUrl')}>
                 <Input
                   value={form.facebookUrl ?? ''}

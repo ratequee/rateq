@@ -20,7 +20,6 @@ import type { AppConfig } from '../../common/config/env.validation';
 import { buildPaginationMeta } from '../../common/utils/pagination.util';
 import { PrismaService } from '../../infrastructure/database/prisma.service';
 import { CompaniesRepository } from '../companies/repositories/companies.repository';
-import { parseCompanyIdList } from '../companies/mappers/company.mapper';
 import { EmailService } from '../auth/services/email.service';
 import { ReviewsRepository } from './repositories/reviews.repository';
 import { InjectQueue } from '@nestjs/bullmq';
@@ -99,48 +98,9 @@ export class ReviewsService {
 
     await this.rateLimitService.assertWithinLimit(user.id, hashedIp);
 
-    const companyServiceIds = parseCompanyIdList(company.serviceIds);
-
-    let aggregateRating = input.rating;
-    let serviceRatings = input.serviceRatings?.map((entry) => ({
-      companyCatalogItemId: entry.catalogItemId,
-      rating: entry.rating,
-    }));
-
-    if (companyServiceIds.length > 0) {
-      if (!serviceRatings?.length) {
-        throw new BadRequestException('Rate each service listed on this company profile');
-      }
-
-      const expectedIds = new Set(companyServiceIds);
-      const providedIds = new Set(serviceRatings.map((entry) => entry.companyCatalogItemId));
-
-      if (providedIds.size !== expectedIds.size) {
-        throw new BadRequestException('Provide a rating for every service on this company profile');
-      }
-
-      for (const serviceId of expectedIds) {
-        if (!providedIds.has(serviceId)) {
-          throw new BadRequestException(
-            'Provide a rating for every service on this company profile',
-          );
-        }
-      }
-
-      for (const entry of serviceRatings) {
-        if (!expectedIds.has(entry.companyCatalogItemId)) {
-          throw new BadRequestException('One or more service ratings are invalid for this company');
-        }
-      }
-
-      aggregateRating = Math.round(
-        serviceRatings.reduce((sum, entry) => sum + entry.rating, 0) / serviceRatings.length,
-      );
-    } else {
-      if (!aggregateRating) {
-        throw new BadRequestException('Overall rating is required');
-      }
-      serviceRatings = undefined;
+    const aggregateRating = input.rating;
+    if (!aggregateRating) {
+      throw new BadRequestException('Overall rating is required');
     }
 
     if (!input.proofUrls?.length) {
@@ -151,15 +111,20 @@ export class ReviewsService {
       throw new BadRequestException('Only one proof file is allowed per review');
     }
 
+    const normalizedTitle = input.title.trim().replace(/\s+/g, ' ');
+    const normalizedContent = input.content.trim().replace(/\s+/g, ' ');
+    if (normalizedTitle.length < 3 || normalizedContent.length < 20) {
+      throw new BadRequestException('Review title or content is too short');
+    }
+
     const review = await this.reviewsRepository.create({
       userId: user.id,
       companyId: input.companyId,
       rating: aggregateRating,
-      title: input.title.trim(),
-      content: input.content.trim(),
+      title: normalizedTitle,
+      content: normalizedContent,
       hashedIp,
       deviceFingerprint: input.deviceFingerprint,
-      serviceRatings,
       proofUrls: input.proofUrls,
     });
 
@@ -219,6 +184,13 @@ export class ReviewsService {
       throw new ForbiddenException('Not authorized to manage reviews for this company');
     }
 
+    if (query.status === ReviewStatus.REJECTED || query.status === ReviewStatus.DELETED) {
+      return {
+        data: [],
+        meta: buildPaginationMeta(query.page, query.limit, 0),
+      };
+    }
+
     return this.listCompanyReviews(companyId, query, query.status, true);
   }
 
@@ -237,6 +209,9 @@ export class ReviewsService {
     const filters = {
       companyId,
       status,
+      ...(includeUnpublishedReply
+        ? { excludeStatuses: [ReviewStatus.REJECTED, ReviewStatus.DELETED] }
+        : {}),
       categoryId: query.categoryId,
       search: query.search,
       page: query.page,
@@ -251,7 +226,9 @@ export class ReviewsService {
     return {
       data: mapReviewsPublic(
         reviews,
-        includeUnpublishedReply ? { includeUnpublishedReply: true } : undefined,
+        includeUnpublishedReply
+          ? { includeUnpublishedReply: true, includeReviewerContact: true }
+          : undefined,
       ),
       meta: buildPaginationMeta(query.page, query.limit, total),
     };
@@ -301,7 +278,10 @@ export class ReviewsService {
     ]);
 
     return {
-      data: mapReviewsPublic(reviews, { includeUnpublishedReply: true }),
+      data: mapReviewsPublic(reviews, {
+        includeUnpublishedReply: true,
+        includeReviewerContact: true,
+      }),
       meta: buildPaginationMeta(query.page, query.limit, total),
     };
   }
@@ -404,10 +384,16 @@ export class ReviewsService {
 
     this.assertResolutionWindowActive(review);
 
+    const normalizedTitle = dto.title.trim().replace(/\s+/g, ' ');
+    const normalizedContent = dto.content.trim().replace(/\s+/g, ' ');
+    if (normalizedTitle.length < 3 || normalizedContent.length < 20) {
+      throw new BadRequestException('Review title or content is too short');
+    }
+
     await this.reviewsRepository.updateReviewContent(reviewId, {
       rating: dto.rating,
-      title: dto.title.trim(),
-      content: dto.content.trim(),
+      title: normalizedTitle,
+      content: normalizedContent,
       status: 'MODIFIED',
     });
 

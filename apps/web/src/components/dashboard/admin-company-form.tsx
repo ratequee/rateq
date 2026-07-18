@@ -4,6 +4,7 @@ import { CatalogMultiSelect } from '@/components/profile/catalog-multi-select';
 import { CategorySubcategoryPicker } from '@/components/profile/category-subcategory-picker';
 import { CompanyAddressMapField } from '@/components/profile/company-address-map-field';
 import { CompanyYearsEstablishedField } from '@/components/profile/company-years-established-field';
+import { CompanySocialLinksFields } from '@/components/profile/company-social-links-fields';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { QatarPhoneInput } from '@/components/ui/qatar-phone-input';
@@ -38,6 +39,7 @@ import type {
   AdminCreateCompanyInput,
   CategoryPublic,
   CompanyCatalogItemPublic,
+  CompanySocialLinks,
   UpdateCompanyInput,
 } from '@rateq/types';
 import { Building2, ExternalLink, FileText, Loader2, Upload, X } from 'lucide-react';
@@ -157,6 +159,14 @@ export function AdminCompanyForm({ mode, companyId, initialValues }: AdminCompan
     () => initialValues?.validationDate?.slice(0, 10) ?? '',
   );
   const [websiteUrl, setWebsiteUrl] = useState(initialValues?.websiteUrl ?? '');
+  const [socialLinks, setSocialLinks] = useState<CompanySocialLinks>(() => ({
+    whatsappNumber: initialValues?.socialLinks?.whatsappNumber ?? null,
+    instagramUrl: initialValues?.socialLinks?.instagramUrl ?? null,
+    youtubeUrl: initialValues?.socialLinks?.youtubeUrl ?? null,
+    facebookUrl: initialValues?.socialLinks?.facebookUrl ?? null,
+    linkedinUrl: initialValues?.socialLinks?.linkedinUrl ?? null,
+    twitterUrl: initialValues?.socialLinks?.twitterUrl ?? null,
+  }));
   const [registrationDocFile, setRegistrationDocFile] = useState<File | null>(null);
   const [establishmentCardFile, setEstablishmentCardFile] = useState<File | null>(null);
   const [tradeLicenseFile, setTradeLicenseFile] = useState<File | null>(null);
@@ -310,6 +320,12 @@ export function AdminCompanyForm({ mode, companyId, initialValues }: AdminCompan
       logo: logoUrl ?? undefined,
       coverUrl: coverUrl ?? undefined,
       websiteUrl: websiteUrl.trim() || null,
+      whatsappNumber: socialLinks.whatsappNumber,
+      instagramUrl: socialLinks.instagramUrl,
+      youtubeUrl: socialLinks.youtubeUrl,
+      facebookUrl: socialLinks.facebookUrl,
+      linkedinUrl: socialLinks.linkedinUrl,
+      twitterUrl: socialLinks.twitterUrl,
     };
   };
 
@@ -415,6 +431,15 @@ export function AdminCompanyForm({ mode, companyId, initialValues }: AdminCompan
             placeholder="https://"
           />
         </Field>
+        <div>
+          <SectionHeading title={tp('socialLinksTitle')} subtitle={tp('socialLinksCardSubtitle')} />
+          <div className="mt-4">
+            <CompanySocialLinksFields
+              values={socialLinks}
+              onChange={(patch) => setSocialLinks((current) => ({ ...current, ...patch }))}
+            />
+          </div>
+        </div>
       </section>
 
       <section className="surface-card space-y-4 rounded-2xl border p-5 sm:p-6">

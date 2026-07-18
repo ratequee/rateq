@@ -13,22 +13,7 @@ import {
   MaxLength,
   Min,
   MinLength,
-  ValidateNested,
 } from 'class-validator';
-
-export class ReviewServiceRatingDto {
-  @ApiProperty()
-  @IsString()
-  @IsNotEmpty()
-  catalogItemId!: string;
-
-  @ApiProperty({ minimum: 1, maximum: 5 })
-  @Type(() => Number)
-  @IsInt()
-  @Min(1)
-  @Max(5)
-  rating!: number;
-}
 
 export class CreateReviewDto {
   @ApiProperty()
@@ -36,13 +21,12 @@ export class CreateReviewDto {
   @IsNotEmpty()
   companyId!: string;
 
-  @ApiPropertyOptional({ minimum: 1, maximum: 5 })
-  @IsOptional()
+  @ApiProperty({ minimum: 1, maximum: 5 })
   @Type(() => Number)
   @IsInt()
   @Min(1)
   @Max(5)
-  rating?: number;
+  rating!: number;
 
   @ApiProperty({ example: 'Great experience' })
   @IsString()
@@ -61,13 +45,6 @@ export class CreateReviewDto {
   @IsString()
   @MaxLength(255)
   deviceFingerprint?: string;
-
-  @ApiPropertyOptional({ type: [ReviewServiceRatingDto] })
-  @IsOptional()
-  @IsArray()
-  @ValidateNested({ each: true })
-  @Type(() => ReviewServiceRatingDto)
-  serviceRatings?: ReviewServiceRatingDto[];
 
   @ApiProperty({ type: [String], description: 'Firebase URL for one required proof attachment' })
   @IsArray()

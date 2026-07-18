@@ -4,7 +4,7 @@ import { fetchCompanyBySlug } from '@/lib/companies-data';
 import { scrollRevealProps, scrollStaggerDelay } from '@/lib/scroll-reveal';
 import { Link } from '@/i18n/routing';
 import { ArrowLeft, Building2, Calendar, MapPin, User } from 'lucide-react';
-import { getTranslations } from 'next-intl/server';
+import { getLocale, getTranslations } from 'next-intl/server';
 import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
 import type { JSX } from 'react';
@@ -34,6 +34,7 @@ export default async function CompanyProjectPage({
   params,
 }: ProjectPageProps): Promise<JSX.Element> {
   const t = await getTranslations('companyPage');
+  const locale = await getLocale();
   const { slug, projectSlug } = await params;
   const company = await fetchCompanyBySlug(slug);
 
@@ -53,7 +54,7 @@ export default async function CompanyProjectPage({
       : project.serviceIds.length > 0
         ? company.serviceItems
             .filter((item) => project.serviceIds.includes(item.id))
-            .map((item) => item.label)
+            .map((item) => (locale === 'ar' ? item.labelAr || item.label : item.label))
         : [];
 
   const projectDateLabel = project.projectDate

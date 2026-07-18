@@ -20,6 +20,7 @@ export function ReviewCard({ review }: ReviewCardProps) {
     [ReviewStatus.PROCEEDED]: 'border-violet-200 bg-violet-50 text-violet-700',
     [ReviewStatus.WITHDRAWN]: 'border-rose-200 bg-rose-50 text-rose-700',
     [ReviewStatus.REJECTED]: 'border-red-200 bg-red-50 text-red-700',
+    [ReviewStatus.DELETED]: 'border-slate-200 bg-slate-50 text-slate-700',
   };
 
   return (

@@ -1,5 +1,3 @@
-const REVIEW_CONTENT_PATTERN = /^[\p{L}\p{N}\s.,!?\-—'"]+$/u;
-
 export type ReviewFieldErrors = {
   title?: string;
   content?: string;
@@ -10,7 +8,7 @@ export function sanitizeReviewTitle(value: string): string {
 }
 
 export function sanitizeReviewContent(value: string): string {
-  return value.replace(/^\s+/, '');
+  return value.replace(/\s+/g, ' ').replace(/^\s+/, '');
 }
 
 export function validateReviewFields(
@@ -30,8 +28,6 @@ export function validateReviewFields(
     errors.title = messages.title.min;
   } else if (title.length > 120) {
     errors.title = messages.title.max;
-  } else if (!REVIEW_CONTENT_PATTERN.test(title)) {
-    errors.title = messages.title.invalid;
   }
 
   if (!content) {
@@ -40,8 +36,6 @@ export function validateReviewFields(
     errors.content = messages.content.min;
   } else if (content.length > 2000) {
     errors.content = messages.content.max;
-  } else if (!REVIEW_CONTENT_PATTERN.test(content)) {
-    errors.content = messages.content.invalid;
   }
 
   return errors;

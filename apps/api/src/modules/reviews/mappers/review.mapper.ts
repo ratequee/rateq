@@ -69,7 +69,7 @@ function toReviewCompanySummary(
 
 export function toReviewPublic(
   review: ReviewWithRelations,
-  options?: { includeUnpublishedReply?: boolean },
+  options?: { includeUnpublishedReply?: boolean; includeReviewerContact?: boolean },
 ): ReviewPublic {
   const reply = review.replies?.[0];
   const visibleReply =
@@ -116,6 +116,10 @@ export function toReviewPublic(
         createdAt: review.user.createdAt.toISOString(),
       },
     }),
+    ...(review.user &&
+      options?.includeReviewerContact && {
+        reviewerContact: resolveReviewerContact(review),
+      }),
     ...(review.company && { company: toReviewCompanySummary(review.company) }),
     reply: visibleReply ? toReviewReplyPublic(visibleReply) : null,
   };
@@ -123,7 +127,7 @@ export function toReviewPublic(
 
 export function mapReviewsPublic(
   reviews: ReviewWithRelations[],
-  options?: { includeUnpublishedReply?: boolean },
+  options?: { includeUnpublishedReply?: boolean; includeReviewerContact?: boolean },
 ): ReviewPublic[] {
   return reviews.map((review) => toReviewPublic(review, options));
 }

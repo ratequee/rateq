@@ -28,6 +28,7 @@ enum ReviewStatus {
   MODIFIED
   WITHDRAWN
   PROCEEDED
+  DELETED
 }
 
 enum ReviewReplyStatus {
@@ -644,6 +645,7 @@ model SiteSettings {
   phone        String?
   email        String?
   website      String?
+  instagramUrl String?  @map("instagram_url")
   facebookUrl  String?  @map("facebook_url")
   twitterUrl   String?  @map("twitter_url")
   youtubeUrl   String?  @map("youtube_url")
