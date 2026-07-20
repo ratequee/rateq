@@ -1,6 +1,7 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
+import { ImageLightbox, SingleImageLightbox } from '@/components/ui/image-lightbox';
 import { ensureValidAccessToken } from '@/lib/auth-session';
 import { reviewsApi, ApiError } from '@/lib/api';
 import { cn } from '@/lib/utils';
@@ -246,10 +247,11 @@ export function AdminProjectsPanel() {
             <p className="text-sm text-secondary">{t('selectProject')}</p>
           ) : (
             <div className="space-y-4">
-              <img
+              <SingleImageLightbox
                 src={selectedProject.imageUrl}
-                alt=""
-                className="h-44 w-full rounded-xl object-cover"
+                alt={selectedProject.title}
+                className="h-44 w-full rounded-xl"
+                imageClassName="h-44"
               />
               <div>
                 <h3 className="text-lg font-semibold text-primary">{selectedProject.title}</h3>
@@ -284,15 +286,15 @@ export function AdminProjectsPanel() {
               ) : null}
 
               {selectedProject.demoImages.length > 0 ? (
-                <div className="grid grid-cols-2 gap-2">
-                  {selectedProject.demoImages.map((url, index) => (
-                    <img
-                      key={`${url}-${index}`}
-                      src={url}
-                      alt=""
-                      className="h-24 w-full rounded-lg object-cover"
-                    />
-                  ))}
+                <div>
+                  <p className="mb-2 text-sm font-semibold text-primary">{t('gallery')}</p>
+                  <ImageLightbox
+                    images={selectedProject.demoImages}
+                    alt={selectedProject.title}
+                    className="grid-cols-2 gap-2 sm:grid-cols-2 lg:grid-cols-2"
+                    thumbnailClassName="rounded-lg"
+                    imageClassName="h-24 sm:h-24"
+                  />
                 </div>
               ) : null}
 

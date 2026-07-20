@@ -236,6 +236,7 @@ export function CompanyProfileMultiStepFields({
           <CatalogMultiSelect
             label={t('companyActivities')}
             hint={t('companyActivitiesHint')}
+            notice={t('companyActivitiesNotice')}
             items={catalogActivities}
             selectedIds={activityIds}
             onChange={setActivityIds}

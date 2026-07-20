@@ -258,6 +258,7 @@ function CompanyPublicProfileFormFields({ company }: { company: CompanyProfileDe
       <CatalogMultiSelect
         label={t('companyActivities')}
         hint={t('companyActivitiesHint')}
+        notice={t('companyActivitiesNotice')}
         items={activities}
         selectedIds={activityIds}
         onChange={setActivityIds}

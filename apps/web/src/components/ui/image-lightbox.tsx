@@ -122,6 +122,7 @@ interface ImageLightboxProps {
   alt?: string;
   className?: string;
   thumbnailClassName?: string;
+  imageClassName?: string;
 }
 
 export function ImageLightbox({
@@ -129,6 +130,7 @@ export function ImageLightbox({
   alt = '',
   className,
   thumbnailClassName,
+  imageClassName,
 }: ImageLightboxProps) {
   const [open, setOpen] = useState(false);
   const [index, setIndex] = useState(0);
@@ -155,7 +157,11 @@ export function ImageLightbox({
               thumbnailClassName,
             )}
           >
-            <img src={imageUrl} alt={alt} className="h-48 w-full object-cover sm:h-56" />
+            <img
+              src={imageUrl}
+              alt={alt}
+              className={cn('h-48 w-full object-cover sm:h-56', imageClassName)}
+            />
             <span className="absolute inset-0 flex items-center justify-center bg-black/0 transition-colors group-hover:bg-black/25">
               <ZoomIn className="h-8 w-8 text-white opacity-0 transition-opacity group-hover:opacity-100" />
             </span>
