@@ -261,6 +261,20 @@ export class CompaniesRepository {
     });
   }
 
+  updateProjectImages(
+    projectId: string,
+    data: { imageUrl: string; demoImages: string[]; status?: 'APPROVED' },
+  ) {
+    return this.prisma.companyProject.update({
+      where: { id: projectId },
+      data: {
+        imageUrl: data.imageUrl,
+        demoImages: data.demoImages,
+        ...(data.status ? { status: data.status } : {}),
+      },
+    });
+  }
+
   deleteProjectById(projectId: string) {
     return this.prisma.companyProject.delete({ where: { id: projectId } });
   }

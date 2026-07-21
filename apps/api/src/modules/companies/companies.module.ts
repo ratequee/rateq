@@ -18,6 +18,7 @@ import { AdminReviewerInvitationRequestsController } from './admin-reviewer-invi
 import { CompaniesController } from './companies.controller';
 import { CompaniesService } from './companies.service';
 import { CompaniesRepository } from './repositories/companies.repository';
+import { ProjectImageWatermarkService } from './services/project-image-watermark.service';
 
 @Module({
   imports: [
@@ -42,6 +43,7 @@ import { CompaniesRepository } from './repositories/companies.repository';
     CompaniesService,
     CompaniesRepository,
     CompanyCatalogService,
+    ProjectImageWatermarkService,
     InvitationsService,
     ReviewerInvitationRequestsService,
   ],
@@ -49,6 +51,7 @@ import { CompaniesRepository } from './repositories/companies.repository';
     CompaniesService,
     CompaniesRepository,
     CompanyCatalogService,
+    ProjectImageWatermarkService,
     InvitationsService,
     ReviewerInvitationRequestsService,
   ],

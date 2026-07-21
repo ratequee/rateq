@@ -33,6 +33,7 @@ import { FirebaseAdminService } from '../auth/services/firebase-admin.service';
 import { AuthRepository } from '../auth/repositories/auth.repository';
 import { AdminActivityService } from '../admin-activity/admin-activity.service';
 import { CompanyCatalogService } from './company-catalog.service';
+import { ProjectImageWatermarkService } from './services/project-image-watermark.service';
 import { randomBytes } from 'crypto';
 import {
   toCompanyDetail,
@@ -63,6 +64,7 @@ export class CompaniesService {
     private readonly adminActivity: AdminActivityService,
     private readonly firebaseAdmin: FirebaseAdminService,
     private readonly authRepository: AuthRepository,
+    private readonly projectImageWatermark: ProjectImageWatermarkService,
   ) {}
 
   async search(query: SearchCompaniesQueryDto): Promise<PaginatedCompaniesResponse> {
@@ -1163,12 +1165,40 @@ export class CompaniesService {
       await this.companiesRepository.replaceProjects(companyId, input.projects, {
         defaultStatus: 'APPROVED',
       });
+      await this.watermarkApprovedCompanyProjects(companyId);
     }
 
     const refreshed = await this.companiesRepository.findById(companyId);
     const ratingDistribution =
       await this.companiesRepository.getApprovedRatingDistribution(companyId);
     return this.mapCompanyDetail(refreshed!, { ratingDistribution });
+  }
+
+  private async watermarkApprovedCompanyProjects(companyId: string): Promise<void> {
+    const projects = await this.prisma.companyProject.findMany({
+      where: { companyId, status: 'APPROVED' },
+      select: { id: true, companyId: true, imageUrl: true, demoImages: true },
+    });
+
+    for (const project of projects) {
+      if (project.imageUrl.includes('/watermarked/')) continue;
+
+      const demoImages = Array.isArray(project.demoImages)
+        ? project.demoImages.filter((item): item is string => typeof item === 'string')
+        : [];
+
+      const watermarked = await this.projectImageWatermark.watermarkProjectImages({
+        projectId: project.id,
+        companyId: project.companyId,
+        imageUrl: project.imageUrl,
+        demoImages,
+      });
+
+      await this.companiesRepository.updateProjectImages(project.id, {
+        imageUrl: watermarked.imageUrl,
+        demoImages: watermarked.demoImages,
+      });
+    }
   }
 
   private async generateUniqueSlug(name: string, excludeId?: string): Promise<string> {

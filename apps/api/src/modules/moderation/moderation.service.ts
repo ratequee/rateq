@@ -18,6 +18,7 @@ import {
   ModerationEngineService,
   type ModerationContext,
 } from './services/moderation-engine.service';
+import { ProjectImageWatermarkService } from '../companies/services/project-image-watermark.service';
 import type { ListProjectsQueryDto } from './dto/list-projects-query.dto';
 
 export const NEGATIVE_REVIEW_MAX_RATING = 3;
@@ -34,6 +35,7 @@ export class ModerationService {
     private readonly companiesRepository: CompaniesRepository,
     private readonly moderationRepository: ModerationRepository,
     private readonly moderationEngine: ModerationEngineService,
+    private readonly projectImageWatermark: ProjectImageWatermarkService,
     private readonly emailService: EmailService,
     private readonly adminActivity: AdminActivityService,
     @InjectQueue(REVIEW_MODERATION_QUEUE)
@@ -532,7 +534,22 @@ export class ModerationService {
       throw new BadRequestException('This project can no longer be moderated');
     }
 
-    await this.companiesRepository.updateProjectStatus(projectId, 'APPROVED');
+    const demoImages = Array.isArray(project.demoImages)
+      ? project.demoImages.filter((item): item is string => typeof item === 'string')
+      : [];
+
+    const watermarked = await this.projectImageWatermark.watermarkProjectImages({
+      projectId: project.id,
+      companyId: project.companyId,
+      imageUrl: project.imageUrl,
+      demoImages,
+    });
+
+    await this.companiesRepository.updateProjectImages(projectId, {
+      imageUrl: watermarked.imageUrl,
+      demoImages: watermarked.demoImages,
+      status: 'APPROVED',
+    });
 
     await this.adminActivity.log({
       adminId,

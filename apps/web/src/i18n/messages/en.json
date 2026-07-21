@@ -1175,7 +1175,7 @@
     "subtitle": "Review and moderate company portfolio projects.",
     "loadError": "Could not load projects.",
     "actionError": "Could not complete that action.",
-    "approveSuccess": "Project approved.",
+    "approveSuccess": "Project approved. Watermark https://www.rateq.qa/ was applied to project images.",
     "rejectSuccess": "Project rejected.",
     "deleteSuccess": "Project deleted.",
     "deleteConfirm": "Delete this project permanently?",

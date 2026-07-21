@@ -1,5 +1,6 @@
 import { Injectable, Logger, OnModuleInit, ServiceUnavailableException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { randomUUID } from 'crypto';
 import * as admin from 'firebase-admin';
 import type { AppConfig } from '../../../common/config/env.validation';
 
@@ -166,5 +167,84 @@ export class FirebaseAdminService implements OnModuleInit {
     }
 
     return admin.auth().generatePasswordResetLink(email.toLowerCase());
+  }
+
+  /**
+   * Uploads a buffer to Firebase Storage and returns a public download URL
+   * compatible with the client SDK getDownloadURL format.
+   */
+  async uploadPublicFile(path: string, buffer: Buffer, contentType: string): Promise<string> {
+    if (!this.initialized) {
+      throw new ServiceUnavailableException(
+        'Firebase authentication is not configured on the server',
+      );
+    }
+
+    const bucket = admin.storage().bucket();
+    const token = randomUUID();
+    const file = bucket.file(path);
+
+    await file.save(buffer, {
+      resumable: false,
+      contentType,
+      metadata: {
+        cacheControl: 'public, max-age=31536000',
+        metadata: {
+          firebaseStorageDownloadTokens: token,
+        },
+      },
+    });
+
+    return `https://firebasestorage.googleapis.com/v0/b/${bucket.name}/o/${encodeURIComponent(
+      path,
+    )}?alt=media&token=${token}`;
+  }
+
+  /**
+   * Downloads a file by Firebase download URL using Admin SDK when possible,
+   * with HTTP fetch as a fallback for non-Firebase hosts.
+   */
+  async downloadFileFromUrl(url: string): Promise<Buffer> {
+    if (!this.initialized) {
+      throw new ServiceUnavailableException(
+        'Firebase authentication is not configured on the server',
+      );
+    }
+
+    const objectPath = this.parseFirebaseStorageObjectPath(url);
+    if (objectPath) {
+      const [buffer] = await admin.storage().bucket().file(objectPath).download();
+      return buffer;
+    }
+
+    const response = await fetch(url);
+    if (!response.ok) {
+      throw new Error(`Failed to download file (${response.status})`);
+    }
+
+    return Buffer.from(await response.arrayBuffer());
+  }
+
+  private parseFirebaseStorageObjectPath(url: string): string | null {
+    try {
+      const parsed = new URL(url);
+      const host = parsed.hostname;
+
+      if (host === 'firebasestorage.googleapis.com') {
+        const match = parsed.pathname.match(/\/v0\/b\/[^/]+\/o\/(.+)$/);
+        if (!match?.[1]) return null;
+        return decodeURIComponent(match[1]);
+      }
+
+      if (host.endsWith('.firebasestorage.app') || host.endsWith('.appspot.com')) {
+        const match = parsed.pathname.match(/\/o\/(.+)$/);
+        if (!match?.[1]) return null;
+        return decodeURIComponent(match[1]);
+      }
+
+      return null;
+    } catch {
+      return null;
+    }
   }
 }
