@@ -2,7 +2,7 @@ import { ApiProperty } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import { IsIn, IsInt } from 'class-validator';
 
-const ALLOWED_RESOLUTION_WINDOW_DAYS = [7, 10] as const;
+const ALLOWED_RESOLUTION_WINDOW_DAYS = [7, 14] as const;
 
 export type ResolutionWindowDays = (typeof ALLOWED_RESOLUTION_WINDOW_DAYS)[number];
 

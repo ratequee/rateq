@@ -294,7 +294,7 @@ export const reviewsApi = {
     apiClient<MessageResponse>(`/moderation/projects/${id}/reject`, { method: 'PATCH', token }),
   deleteProject: (token: string, id: string) =>
     apiClient<MessageResponse>(`/moderation/projects/${id}`, { method: 'DELETE', token }),
-  setResolutionWindow: (token: string, reviewId: string, days: 7 | 10) =>
+  setResolutionWindow: (token: string, reviewId: string, days: 7 | 14) =>
     apiClient<ReviewPublic>(`/reviews/${reviewId}/resolution/window`, {
       method: 'PATCH',
       body: JSON.stringify({ days }),

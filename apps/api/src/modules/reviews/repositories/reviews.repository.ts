@@ -217,7 +217,7 @@ export class ReviewsRepository {
     });
   }
 
-  /** Return reviews to PENDING when company never chose 7/10 days within 24h. */
+  /** Return reviews to PENDING when company never chose 7/14 days within 24h. */
   async expireOverdueResolutionWindowChoices(): Promise<number> {
     const cutoff = new Date(Date.now() - 24 * 60 * 60 * 1000);
     const result = await this.prisma.review.updateMany({

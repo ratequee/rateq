@@ -22,7 +22,7 @@ import { ProjectImageWatermarkService } from '../companies/services/project-imag
 import type { ListProjectsQueryDto } from './dto/list-projects-query.dto';
 
 export const NEGATIVE_REVIEW_MAX_RATING = 3;
-/** Company must choose 7/10 day window within this period after admin resolve. */
+/** Company must choose 7/14 day window within this period after admin resolve. */
 export const RESOLUTION_CHOICE_TIMEOUT_MS = 24 * 60 * 60 * 1000;
 export const RESOLUTION_CHOICE_TIMEOUT_JOB = 'resolution-choice-timeout';
 
@@ -310,7 +310,7 @@ export class ModerationService {
   }
 
   /**
-   * If company did not pick 7/10 days within 24h, return review to PENDING for admin.
+   * If company did not pick 7/14 days within 24h, return review to PENDING for admin.
    */
   async expireResolutionWindowChoice(reviewId: string): Promise<void> {
     const review = await this.reviewsRepository.findById(reviewId);

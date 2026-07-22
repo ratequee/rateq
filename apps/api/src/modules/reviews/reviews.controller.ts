@@ -97,7 +97,7 @@ export class ReviewsController {
   @HttpCode(HttpStatus.OK)
   @ApiBearerAuth()
   @Roles(UserRole.COMPANY, UserRole.ADMIN)
-  @ApiOperation({ summary: 'Company sets a 7 or 10 day resolution window' })
+  @ApiOperation({ summary: 'Company sets a 7 or 14 day resolution window' })
   @ApiResponse({ status: 200, type: ReviewPublicDto })
   setResolutionWindow(
     @CurrentUser() user: AuthenticatedUser,

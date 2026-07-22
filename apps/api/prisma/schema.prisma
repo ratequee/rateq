@@ -471,7 +471,7 @@ model Review {
   moderationScore   Int          @default(0) @map("moderation_score")
   resolutionWindowDays Int?      @map("resolution_window_days")
   resolutionDeadlineAt DateTime? @map("resolution_deadline_at")
-  /** When admin sent the review to resolution; company must pick 7/10 days within 24h. */
+  /** When admin sent the review to resolution; company must pick 7/14 days within 24h. */
   resolutionRequestedAt DateTime? @map("resolution_requested_at")
   /** How many times admin sent this review to company resolution (survives 24h timeouts). */
   resolutionSentCount Int         @default(0) @map("resolution_sent_count")

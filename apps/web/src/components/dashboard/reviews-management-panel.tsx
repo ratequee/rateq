@@ -317,7 +317,7 @@ export function ReviewsManagementPanel({ mode, companyId }: ReviewsManagementPan
     setEditing(false);
   };
 
-  const handleSetResolutionWindow = async (reviewId: string, days: 7 | 10) => {
+  const handleSetResolutionWindow = async (reviewId: string, days: 7 | 14) => {
     const token = await ensureValidAccessToken();
     if (!token) return;
     await runAction(
@@ -770,9 +770,9 @@ export function ReviewsManagementPanel({ mode, companyId }: ReviewsManagementPan
                         type="button"
                         variant="outline-brand"
                         disabled={acting}
-                        onClick={() => void handleSetResolutionWindow(selectedReview.id, 10)}
+                        onClick={() => void handleSetResolutionWindow(selectedReview.id, 14)}
                       >
-                        {t('setWindow10')}
+                        {t('setWindow14')}
                       </Button>
                     </div>
                   </>
