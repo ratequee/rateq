@@ -48,6 +48,8 @@ export interface ReviewPublic {
   resolutionDeadlineAt?: string | null;
   /** When admin sent review to resolution; company must set window within 24h. */
   resolutionRequestedAt?: string | null;
+  /** Times admin sent this review to company resolution (kept across 24h timeouts). */
+  resolutionSentCount?: number;
   createdAt: string;
   updatedAt: string;
   author?: ReviewAuthor;

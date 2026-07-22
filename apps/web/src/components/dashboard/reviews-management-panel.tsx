@@ -41,6 +41,12 @@ const STATUS_OPTIONS: Array<ReviewStatus | 'all'> = [
   ReviewStatus.DELETED,
 ];
 
+const COMPANY_STATUS_OPTIONS: Array<ReviewStatus | 'all'> = [
+  'all',
+  ReviewStatus.APPROVED,
+  ReviewStatus.RESOLUTION_PENDING,
+];
+
 const statusStyles: Record<ReviewStatus, string> = {
   PENDING: 'bg-amber-50 text-amber-700 dark:bg-amber-950/50 dark:text-amber-300',
   RESOLUTION_PENDING: 'bg-sky-50 text-sky-700 dark:bg-sky-950/50 dark:text-sky-300',
@@ -117,6 +123,11 @@ export function ReviewsManagementPanel({ mode, companyId }: ReviewsManagementPan
   );
   const limit = 10;
 
+  const statusOptions = useMemo(
+    () => (mode === 'company' ? COMPANY_STATUS_OPTIONS : STATUS_OPTIONS),
+    [mode],
+  );
+
   const selectedReview = useMemo(
     () => reviews.find((review) => review.id === selectedId) ?? null,
     [reviews, selectedId],
@@ -186,7 +197,7 @@ export function ReviewsManagementPanel({ mode, companyId }: ReviewsManagementPan
     if (!token || (mode === 'company' && !companyId)) return;
 
     const responses = await Promise.all(
-      STATUS_OPTIONS.map((option) => {
+      statusOptions.map((option) => {
         const params = buildParams({
           page: 1,
           limit: 1,
@@ -201,10 +212,10 @@ export function ReviewsManagementPanel({ mode, companyId }: ReviewsManagementPan
     );
     setStatusCounts(
       Object.fromEntries(
-        STATUS_OPTIONS.map((option, index) => [option, responses[index]?.meta.total ?? 0]),
+        statusOptions.map((option, index) => [option, responses[index]?.meta.total ?? 0]),
       ),
     );
-  }, [companyId, mode]);
+  }, [companyId, mode, statusOptions]);
 
   useEffect(() => {
     void loadReviews();
@@ -318,9 +329,6 @@ export function ReviewsManagementPanel({ mode, companyId }: ReviewsManagementPan
   const resolutionDeadlinePassed = selectedReview
     ? isResolutionDeadlinePassed(selectedReview)
     : false;
-  const resolutionWindowActive = Boolean(
-    selectedReview?.resolutionDeadlineAt && !resolutionDeadlinePassed,
-  );
   const adminCanModerate = selectedReview
     ? ADMIN_MODERATABLE_STATUSES.includes(selectedReview.status)
     : false;
@@ -346,7 +354,7 @@ export function ReviewsManagementPanel({ mode, companyId }: ReviewsManagementPan
               }}
               className="select-field sm:col-span-2"
             >
-              {STATUS_OPTIONS.map((option) => (
+              {statusOptions.map((option) => (
                 <option key={option} value={option}>
                   {option === 'all' ? t('allStatuses') : t(`status.${option}`)} (
                   {statusCounts[option] ?? '—'})
@@ -528,6 +536,17 @@ export function ReviewsManagementPanel({ mode, companyId }: ReviewsManagementPan
                 ) : null}
               </div>
             </div>
+
+            {mode === 'admin' && (selectedReview.resolutionSentCount ?? 0) > 0 ? (
+              <div className="rounded-xl border border-amber-200 bg-amber-50/70 p-4 dark:border-amber-900/60 dark:bg-amber-950/20">
+                <p className="text-xs font-medium text-secondary">
+                  {t('resolutionSentCountLabel')}
+                </p>
+                <p className="mt-1 text-sm font-semibold text-primary">
+                  {t('resolutionSentCount', { count: selectedReview.resolutionSentCount ?? 0 })}
+                </p>
+              </div>
+            ) : null}
 
             {RESOLUTION_RELATED_STATUSES.includes(selectedReview.status) ? (
               <div className="grid gap-3 rounded-xl border border-sky-200 bg-sky-50/60 p-4 dark:border-sky-900/60 dark:bg-sky-950/20 sm:grid-cols-2">
@@ -788,7 +807,7 @@ export function ReviewsManagementPanel({ mode, companyId }: ReviewsManagementPan
                         })}
                 </p>
 
-                {resolutionWindowActive && editing ? (
+                {selectedReview.resolutionDeadlineAt && editing ? (
                   <div className="space-y-3 rounded-xl border border-subtle p-4">
                     <div>
                       <label className="mb-1 block text-sm font-medium text-primary">
@@ -833,37 +852,35 @@ export function ReviewsManagementPanel({ mode, companyId }: ReviewsManagementPan
                   </div>
                 ) : null}
 
-                <div className="flex flex-wrap gap-2">
-                  {resolutionWindowActive ? (
-                    <>
-                      <Button
-                        type="button"
-                        variant="outline-brand"
-                        disabled={acting || editing}
-                        onClick={() => setEditing(true)}
-                      >
-                        {t('editReview')}
-                      </Button>
-                      <Button
-                        type="button"
-                        variant="outline"
-                        disabled={acting}
-                        onClick={() => void handleWithdraw(selectedReview.id)}
-                      >
-                        {t('withdraw')}
-                      </Button>
-                    </>
-                  ) : null}
-                  {resolutionDeadlinePassed ? (
+                {selectedReview.resolutionDeadlineAt ? (
+                  <div className="flex flex-wrap gap-2">
                     <Button
                       type="button"
-                      disabled={acting}
-                      onClick={() => void handleProceed(selectedReview.id)}
+                      variant="outline-brand"
+                      disabled={acting || editing}
+                      onClick={() => setEditing(true)}
                     >
-                      {t('proceed')}
+                      {t('editReview')}
                     </Button>
-                  ) : null}
-                </div>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      disabled={acting}
+                      onClick={() => void handleWithdraw(selectedReview.id)}
+                    >
+                      {t('withdraw')}
+                    </Button>
+                    {resolutionDeadlinePassed ? (
+                      <Button
+                        type="button"
+                        disabled={acting}
+                        onClick={() => void handleProceed(selectedReview.id)}
+                      >
+                        {t('proceed')}
+                      </Button>
+                    ) : null}
+                  </div>
+                ) : null}
               </div>
             ) : null}
           </div>

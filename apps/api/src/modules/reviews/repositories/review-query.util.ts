@@ -4,6 +4,7 @@ export interface ListReviewsFilters {
   userId?: string;
   companyId?: string;
   status?: ReviewStatus;
+  includeStatuses?: ReviewStatus[];
   excludeStatuses?: ReviewStatus[];
   categoryId?: string;
   search?: string;
@@ -54,9 +55,11 @@ export function buildReviewWhere(
     ...(filters.companyId ? { companyId: filters.companyId } : {}),
     ...(filters.status
       ? { status: filters.status }
-      : filters.excludeStatuses?.length
-        ? { status: { notIn: filters.excludeStatuses } }
-        : {}),
+      : filters.includeStatuses?.length
+        ? { status: { in: filters.includeStatuses } }
+        : filters.excludeStatuses?.length
+          ? { status: { notIn: filters.excludeStatuses } }
+          : {}),
     ...(filters.categoryId
       ? {
           company: {

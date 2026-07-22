@@ -44,6 +44,13 @@ export interface ReviewOutcomeEmailContent {
   reviewTitle: string;
 }
 
+export interface ReviewResolutionDecisionCompanyEmailContent {
+  companyEmail: string | null;
+  companyName: string;
+  reviewTitle: string;
+  decision: 'proceeded' | 'modified';
+}
+
 export interface ReviewReplyDecisionEmailContent {
   companyEmail: string;
   companyName: string;
@@ -309,11 +316,11 @@ export function buildReviewPublishedEmailHtml(content: {
   isCompany: boolean;
 }): string {
   const bodyHtml = content.isCompany
-    ? `${emailParagraph(`The reviewer chose to publish their review "${content.reviewTitle}" for ${content.companyName}. It is now visible on your RateQ profile.`)}`
+    ? `${emailParagraph(`A review titled "${content.reviewTitle}" for ${content.companyName} has been approved and is now visible on your RateQ profile.`)}`
     : `${emailParagraph(`Your review "${content.reviewTitle}" for ${content.companyName} is now published on RateQ.`)}`;
 
   const bodyHtmlAr = content.isCompany
-    ? `${emailParagraphRtl(`اختار المقيّم نشر تقييمه "${content.reviewTitle}" لـ ${content.companyName}. أصبح مرئيًا الآن على ملفكم في RateQ.`)}`
+    ? `${emailParagraphRtl(`تمت الموافقة على تقييم بعنوان "${content.reviewTitle}" لـ ${content.companyName} وأصبح مرئيًا الآن على ملفكم في RateQ.`)}`
     : `${emailParagraphRtl(`تقييمكم "${content.reviewTitle}" لـ ${content.companyName} منشور الآن على RateQ.`)}`;
 
   return renderBilingualEmailLayout({
@@ -384,6 +391,84 @@ export function buildReviewWithdrawnEmailText(content: ReviewOutcomeEmailContent
     `التقييم: ${content.reviewTitle}`,
     `الشركة: ${content.companyName}`,
   ].join('\n');
+
+  return appendBilingualText(english, arabic);
+}
+
+export function buildReviewResolutionDecisionCompanyEmailHtml(content: {
+  appUrl: string;
+  companyName: string;
+  reviewTitle: string;
+  decision: 'proceeded' | 'modified';
+}): string {
+  const proceeded =
+    content.decision === 'proceeded'
+      ? {
+          body: `The reviewer decided to proceed with their review "${content.reviewTitle}" for ${content.companyName} after the resolution period. It has been sent to RateQ admin for final review and is not visible on your public profile until approved.`,
+          bodyAr: `قرر المقيّم المتابعة بتقييمه "${content.reviewTitle}" لـ ${content.companyName} بعد فترة الحل. أُرسل إلى إدارة RateQ للمراجعة النهائية ولن يظهر على ملفكم العام حتى تتم الموافقة عليه.`,
+          title: 'Reviewer proceeded to admin',
+          titleAr: 'تابع المقيّم إلى الإدارة',
+          preheader: `Reviewer proceeded after resolution for ${content.companyName}.`,
+        }
+      : {
+          body: `The reviewer edited their review "${content.reviewTitle}" for ${content.companyName} and submitted it to RateQ admin. The updated review is not visible on your public profile until approved.`,
+          bodyAr: `عدّل المقيّم تقييمه "${content.reviewTitle}" لـ ${content.companyName} وأرسله إلى إدارة RateQ. لن يظهر التقييم المحدّث على ملفكم العام حتى تتم الموافقة عليه.`,
+          title: 'Reviewer edited their review',
+          titleAr: 'عدّل المقيّم تقييمه',
+          preheader: `Reviewer modified a review for ${content.companyName}.`,
+        };
+
+  return renderBilingualEmailLayout({
+    appUrl: content.appUrl,
+    preheader: `${proceeded.preheader} | تحديث قرار المقيّم لـ ${content.companyName}.`,
+    eyebrow: 'Reviewer decision | قرار المقيّم',
+    title: proceeded.title,
+    titleAr: proceeded.titleAr,
+    bodyHtml: emailParagraph(proceeded.body),
+    bodyHtmlAr: emailParagraphRtl(proceeded.bodyAr),
+  });
+}
+
+export function buildReviewResolutionDecisionCompanyEmailText(
+  content: ReviewResolutionDecisionCompanyEmailContent,
+): string {
+  const english =
+    content.decision === 'proceeded'
+      ? [
+          'Reviewer proceeded to admin',
+          '',
+          `Review: ${content.reviewTitle}`,
+          `Company: ${content.companyName}`,
+          '',
+          'The review is with RateQ admin for final review and is not public until approved.',
+        ].join('\n')
+      : [
+          'Reviewer edited their review',
+          '',
+          `Review: ${content.reviewTitle}`,
+          `Company: ${content.companyName}`,
+          '',
+          'The updated review is with RateQ admin and is not public until approved.',
+        ].join('\n');
+
+  const arabic =
+    content.decision === 'proceeded'
+      ? [
+          'تابع المقيّم إلى الإدارة',
+          '',
+          `التقييم: ${content.reviewTitle}`,
+          `الشركة: ${content.companyName}`,
+          '',
+          'التقييم لدى إدارة RateQ للمراجعة النهائية ولن يُنشر حتى تتم الموافقة عليه.',
+        ].join('\n')
+      : [
+          'عدّل المقيّم تقييمه',
+          '',
+          `التقييم: ${content.reviewTitle}`,
+          `الشركة: ${content.companyName}`,
+          '',
+          'التقييم المحدّث لدى إدارة RateQ ولن يُنشر حتى تتم الموافقة عليه.',
+        ].join('\n');
 
   return appendBilingualText(english, arabic);
 }

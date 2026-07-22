@@ -119,7 +119,7 @@ export class ReviewsController {
   @Patch(':reviewId/resolution/modify')
   @HttpCode(HttpStatus.OK)
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Edit review during resolution window' })
+  @ApiOperation({ summary: 'Edit review during or after the resolution window' })
   @ApiResponse({ status: 200, type: ReviewPublicDto })
   modifyResolution(
     @CurrentUser() user: AuthenticatedUser,
@@ -132,7 +132,7 @@ export class ReviewsController {
   @Patch(':reviewId/resolution/withdraw')
   @HttpCode(HttpStatus.OK)
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Withdraw a review during the resolution window' })
+  @ApiOperation({ summary: 'Withdraw a review during or after the resolution window' })
   @ApiResponse({ status: 200, type: ReviewPublicDto })
   withdrawResolution(@CurrentUser() user: AuthenticatedUser, @Param('reviewId') reviewId: string) {
     return this.reviewsService.withdrawResolution(user, reviewId);

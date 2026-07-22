@@ -104,6 +104,7 @@ export function toReviewPublic(
     resolutionWindowDays: review.resolutionWindowDays,
     resolutionDeadlineAt: review.resolutionDeadlineAt?.toISOString() ?? null,
     resolutionRequestedAt: review.resolutionRequestedAt?.toISOString() ?? null,
+    resolutionSentCount: review.resolutionSentCount,
     createdAt: review.createdAt.toISOString(),
     updatedAt: review.updatedAt.toISOString(),
     ...(serviceRatings && { serviceRatings }),

@@ -151,6 +151,7 @@ export class ModerationService {
   async manualApprove(reviewId: string, adminId: string): Promise<void> {
     await this.setManualStatus(reviewId, 'APPROVED', ModerationAction.MANUAL_APPROVED, adminId);
     await this.notifyReviewerDecision(reviewId, 'approved');
+    await this.notifyCompanyReviewPublished(reviewId);
   }
 
   async manualReject(reviewId: string, adminId: string): Promise<void> {
@@ -267,6 +268,7 @@ export class ModerationService {
       resolutionRequestedAt: new Date(),
       resolutionWindowDays: null,
       resolutionDeadlineAt: null,
+      incrementResolutionSentCount: true,
     });
 
     await this.moderationRepository.createLog({
@@ -405,6 +407,21 @@ export class ModerationService {
       reviewerEmail: review.user.email,
       reviewTitle: review.title,
       companyName,
+    });
+  }
+
+  private async notifyCompanyReviewPublished(reviewId: string): Promise<void> {
+    const review = await this.reviewsRepository.findById(reviewId);
+    if (!review) return;
+
+    const companyEmail = resolveCompanyOwnerEmail(review);
+    if (!companyEmail) return;
+
+    await this.emailService.sendReviewPublishedEmails({
+      reviewerEmail: '',
+      companyEmail,
+      companyName: review.company?.name ?? 'Company',
+      reviewTitle: review.title,
     });
   }
 

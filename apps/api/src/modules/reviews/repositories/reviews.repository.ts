@@ -181,6 +181,7 @@ export class ReviewsRepository {
       resolutionRequestedAt?: Date | null;
       resolutionWindowDays?: number | null;
       resolutionDeadlineAt?: Date | null;
+      incrementResolutionSentCount?: boolean;
     },
   ): Promise<Review> {
     return this.prisma.review.update({
@@ -198,6 +199,7 @@ export class ReviewsRepository {
         ...(data.resolutionDeadlineAt !== undefined && {
           resolutionDeadlineAt: data.resolutionDeadlineAt,
         }),
+        ...(data.incrementResolutionSentCount ? { resolutionSentCount: { increment: 1 } } : {}),
       },
     });
   }

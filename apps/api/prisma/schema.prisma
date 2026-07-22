@@ -473,6 +473,8 @@ model Review {
   resolutionDeadlineAt DateTime? @map("resolution_deadline_at")
   /** When admin sent the review to resolution; company must pick 7/10 days within 24h. */
   resolutionRequestedAt DateTime? @map("resolution_requested_at")
+  /** How many times admin sent this review to company resolution (survives 24h timeouts). */
+  resolutionSentCount Int         @default(0) @map("resolution_sent_count")
   createdAt         DateTime     @default(now()) @map("created_at")
   updatedAt         DateTime     @updatedAt @map("updated_at")
 

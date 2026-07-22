@@ -53,6 +53,8 @@ import {
   buildReviewResolutionReviewerEmailText,
   buildReviewWithdrawnEmailHtml,
   buildReviewWithdrawnEmailText,
+  buildReviewResolutionDecisionCompanyEmailHtml,
+  buildReviewResolutionDecisionCompanyEmailText,
   buildReviewReplyApprovedEmailHtml,
   buildReviewReplyApprovedEmailText,
   buildReviewReplyRejectedEmailHtml,
@@ -66,6 +68,7 @@ import {
   type ReviewReplyDecisionEmailContent,
   type CompanyProjectDecisionEmailContent,
   type ReviewResolutionCompanyEmailContent,
+  type ReviewResolutionDecisionCompanyEmailContent,
   type ReviewResolutionReviewerEmailContent,
 } from '../email/email-review-templates';
 
@@ -361,20 +364,22 @@ export class EmailService {
   async sendReviewPublishedEmails(content: ReviewOutcomeEmailContent): Promise<void> {
     const appUrl = this.configService.get('APP_URL', { infer: true });
 
-    await this.send({
-      to: content.reviewerEmail,
-      subject: bilingualSubject(
-        `Your review for ${content.companyName} is now published`,
-        `تقييمكم لـ ${content.companyName} منشور الآن`,
-      ),
-      text: buildReviewPublishedEmailText(content),
-      html: buildReviewPublishedEmailHtml({
-        appUrl,
-        companyName: content.companyName,
-        reviewTitle: content.reviewTitle,
-        isCompany: false,
-      }),
-    });
+    if (content.reviewerEmail) {
+      await this.send({
+        to: content.reviewerEmail,
+        subject: bilingualSubject(
+          `Your review for ${content.companyName} is now published`,
+          `تقييمكم لـ ${content.companyName} منشور الآن`,
+        ),
+        text: buildReviewPublishedEmailText(content),
+        html: buildReviewPublishedEmailHtml({
+          appUrl,
+          companyName: content.companyName,
+          reviewTitle: content.reviewTitle,
+          isCompany: false,
+        }),
+      });
+    }
 
     if (content.companyEmail) {
       await this.send({
@@ -428,6 +433,36 @@ export class EmailService {
         }),
       });
     }
+  }
+
+  async sendReviewResolutionDecisionToCompanyEmail(
+    content: ReviewResolutionDecisionCompanyEmailContent,
+  ): Promise<void> {
+    if (!content.companyEmail) return;
+
+    const appUrl = this.configService.get('APP_URL', { infer: true });
+    const subject =
+      content.decision === 'proceeded'
+        ? bilingualSubject(
+            `Reviewer proceeded after resolution — ${content.companyName}`,
+            `تابع المقيّم بعد فترة الحل — ${content.companyName}`,
+          )
+        : bilingualSubject(
+            `Reviewer edited a review — ${content.companyName}`,
+            `عدّل المقيّم تقييمًا — ${content.companyName}`,
+          );
+
+    await this.send({
+      to: content.companyEmail,
+      subject,
+      text: buildReviewResolutionDecisionCompanyEmailText(content),
+      html: buildReviewResolutionDecisionCompanyEmailHtml({
+        appUrl,
+        companyName: content.companyName,
+        reviewTitle: content.reviewTitle,
+        decision: content.decision,
+      }),
+    });
   }
 
   async sendAccountDeactivatedEmail(content: AccountStatusEmailContent): Promise<void> {

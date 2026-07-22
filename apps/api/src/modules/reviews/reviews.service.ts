@@ -191,7 +191,25 @@ export class ReviewsService {
       };
     }
 
-    return this.listCompanyReviews(companyId, query, query.status, true);
+    const companyVisibleStatuses: ReviewStatus[] = [
+      ReviewStatus.APPROVED,
+      ReviewStatus.RESOLUTION_PENDING,
+    ];
+
+    if (query.status && !companyVisibleStatuses.includes(query.status)) {
+      return {
+        data: [],
+        meta: buildPaginationMeta(query.page, query.limit, 0),
+      };
+    }
+
+    return this.listCompanyReviews(
+      companyId,
+      query,
+      query.status,
+      true,
+      query.status ? undefined : companyVisibleStatuses,
+    );
   }
 
   private async listCompanyReviews(
@@ -199,6 +217,7 @@ export class ReviewsService {
     query: ListReviewsQueryDto,
     status?: ReviewStatus,
     includeUnpublishedReply = false,
+    includeStatuses?: ReviewStatus[],
   ): Promise<PaginatedReviewsResponse> {
     const company = await this.companiesRepository.findById(companyId);
 
@@ -209,7 +228,8 @@ export class ReviewsService {
     const filters = {
       companyId,
       status,
-      ...(includeUnpublishedReply
+      ...(includeStatuses?.length ? { includeStatuses } : {}),
+      ...(includeUnpublishedReply && !includeStatuses?.length && !status
         ? { excludeStatuses: [ReviewStatus.REJECTED, ReviewStatus.DELETED] }
         : {}),
       categoryId: query.categoryId,
@@ -315,6 +335,15 @@ export class ReviewsService {
       action: ModerationAction.RESOLUTION_PROCEEDED,
     });
 
+    const companyName = review.company?.name ?? 'Company';
+    const companyEmail = resolveCompanyOwnerEmail(review);
+    await this.emailService.sendReviewResolutionDecisionToCompanyEmail({
+      companyEmail,
+      companyName,
+      reviewTitle: review.title,
+      decision: 'proceeded',
+    });
+
     const updated = await this.reviewsRepository.findById(reviewId);
     return toReviewPublic(updated!);
   }
@@ -334,7 +363,7 @@ export class ReviewsService {
       throw new BadRequestException('This review is not awaiting your resolution decision');
     }
 
-    this.assertResolutionWindowActive(review);
+    this.assertResolutionWindowStarted(review);
 
     await this.reviewsRepository.updateModerationResult(reviewId, {
       status: 'WITHDRAWN',
@@ -382,7 +411,7 @@ export class ReviewsService {
       throw new BadRequestException('This review is not in the resolution process');
     }
 
-    this.assertResolutionWindowActive(review);
+    this.assertResolutionWindowStarted(review);
 
     const normalizedTitle = dto.title.trim().replace(/\s+/g, ' ');
     const normalizedContent = dto.content.trim().replace(/\s+/g, ' ');
@@ -402,6 +431,15 @@ export class ReviewsService {
       reason: `resolution_modified_by_reviewer:${user.id}`,
       score: review.moderationScore,
       action: ModerationAction.RESOLUTION_MODIFIED,
+    });
+
+    const companyName = review.company?.name ?? 'Company';
+    const companyEmail = resolveCompanyOwnerEmail(review);
+    await this.emailService.sendReviewResolutionDecisionToCompanyEmail({
+      companyEmail,
+      companyName,
+      reviewTitle: normalizedTitle,
+      decision: 'modified',
     });
 
     const updated = await this.reviewsRepository.findById(reviewId);
@@ -642,13 +680,10 @@ export class ReviewsService {
     }
   }
 
-  private assertResolutionWindowActive(review: { resolutionDeadlineAt: Date | null }): void {
+  /** Edit/withdraw allowed once the company has set a window (during or after the deadline). */
+  private assertResolutionWindowStarted(review: { resolutionDeadlineAt: Date | null }): void {
     if (!review.resolutionDeadlineAt) {
       throw new BadRequestException('The company has not set a resolution window yet');
-    }
-
-    if (new Date() >= review.resolutionDeadlineAt) {
-      throw new BadRequestException('The resolution window has ended');
     }
   }
 
