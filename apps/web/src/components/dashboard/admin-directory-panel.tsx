@@ -214,15 +214,19 @@ export function AdminDirectoryPanel() {
   const [acting, setActing] = useState(false);
   const [stats, setStats] = useState<AdminPlatformStats | null>(null);
 
-  useEffect(() => {
-    void ensureValidAccessToken().then((token) => {
+  const loadStats = useCallback(async () => {
+    try {
+      const token = await ensureValidAccessToken();
       if (!token) return;
-      void adminApi
-        .getStats(token)
-        .then(setStats)
-        .catch(() => undefined);
-    });
+      setStats(await adminApi.getStats(token));
+    } catch {
+      // keep previous stats on refresh failure
+    }
   }, []);
+
+  useEffect(() => {
+    void loadStats();
+  }, [loadStats]);
 
   const loadReviewers = useCallback(async () => {
     setListLoading(true);
@@ -359,6 +363,7 @@ export function AdminDirectoryPanel() {
           }
         }
       }
+      await loadStats();
     } catch (err) {
       toast.error(err instanceof ApiError ? err.message : tr('actionError'));
     } finally {

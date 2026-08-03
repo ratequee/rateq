@@ -14,7 +14,7 @@ export class CategoriesRepository {
 
   findAll(): Promise<CategoryWithRelations[]> {
     return this.prisma.category.findMany({
-      orderBy: { nameEn: 'asc' },
+      orderBy: { createdAt: 'asc' },
       include: {
         _count: { select: { companies: true } },
         services: { orderBy: [{ sortOrder: 'asc' }, { name: 'asc' }] },
