@@ -19,10 +19,7 @@ export class HealthService {
   ) {}
 
   async check(): Promise<HealthCheckResult> {
-    const [database, redis] = await Promise.all([
-      this.pingDatabase(),
-      this.pingRedis(),
-    ]);
+    const [database, redis] = await Promise.all([this.pingDatabase(), this.pingRedis()]);
 
     const allUp = database === 'up' && redis === 'up';
 
@@ -44,7 +41,12 @@ export class HealthService {
 
   private async pingRedis(): Promise<'up' | 'down'> {
     try {
-      const result = await this.redis.getClient().ping();
+      const result = await Promise.race([
+        this.redis.getClient().ping(),
+        new Promise<never>((_, reject) => {
+          setTimeout(() => reject(new Error('redis ping timeout')), 3000);
+        }),
+      ]);
       return result === 'PONG' ? 'up' : 'down';
     } catch {
       return 'down';

@@ -19,7 +19,7 @@ import { ReviewReplyForm } from '@/components/review/review-reply-form';
 import { ReviewReplyStatusBadge } from '@/components/review/review-reply-status-badge';
 import { useLocale, useTranslations } from 'next-intl';
 import { useSearchParams } from 'next/navigation';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { toast } from 'sonner';
 
 type ReviewsPanelMode = 'admin' | 'reviewer' | 'company';
@@ -122,6 +122,7 @@ export function ReviewsManagementPanel({ mode, companyId }: ReviewsManagementPan
     {},
   );
   const limit = 10;
+  const loadSeq = useRef(0);
 
   const statusOptions = useMemo(
     () => (mode === 'company' ? COMPANY_STATUS_OPTIONS : STATUS_OPTIONS),
@@ -153,44 +154,57 @@ export function ReviewsManagementPanel({ mode, companyId }: ReviewsManagementPan
     setEditing(false);
   }, [selectedReview?.id]);
 
-  const loadReviews = useCallback(async () => {
-    setLoading(true);
-    try {
-      const token = await ensureValidAccessToken();
-      if (!token) throw new Error(t('sessionExpired'));
+  const loadReviews = useCallback(
+    async (options?: { silent?: boolean }) => {
+      const seq = ++loadSeq.current;
+      if (!options?.silent) setLoading(true);
+      try {
+        const token = await ensureValidAccessToken();
+        if (!token) throw new Error(t('sessionExpired'));
 
-      const params = buildParams({ page, limit, status, categoryId, search });
-      let response: PaginatedReviewsResponse;
+        const params = buildParams({ page, limit, status, categoryId, search });
+        let response: PaginatedReviewsResponse;
 
-      if (mode === 'admin') {
-        response = await reviewsApi.listAdmin(token, params);
-      } else if (mode === 'reviewer') {
-        response = await reviewsApi.listMine(token, params);
-      } else {
-        if (!companyId) {
-          setReviews([]);
-          setMeta(null);
+        if (mode === 'admin') {
+          response = await reviewsApi.listAdmin(token, params);
+        } else if (mode === 'reviewer') {
+          response = await reviewsApi.listMine(token, params);
+        } else {
+          if (!companyId) {
+            if (seq !== loadSeq.current) return;
+            setReviews([]);
+            setMeta(null);
+            return;
+          }
+          response = await reviewsApi.listByCompanyManage(token, companyId, params);
+        }
+
+        if (seq !== loadSeq.current) return;
+
+        if (response.data.length === 0 && page > 1) {
+          setPage(1);
           return;
         }
-        response = await reviewsApi.listByCompanyManage(token, companyId, params);
-      }
 
-      setReviews(response.data);
-      setMeta(response.meta);
-      setSelectedId((current) => {
-        if (response.data.length === 0) return null;
-        if (current && response.data.some((item) => item.id === current)) return current;
-        return response.data[0]?.id ?? null;
-      });
-    } catch (err) {
-      const message = err instanceof ApiError ? err.message : t('loadError');
-      toast.error(message);
-      setReviews([]);
-      setMeta(null);
-    } finally {
-      setLoading(false);
-    }
-  }, [mode, companyId, page, status, categoryId, search, t]);
+        setReviews(response.data);
+        setMeta(response.meta);
+        setSelectedId((current) => {
+          if (response.data.length === 0) return null;
+          if (current && response.data.some((item) => item.id === current)) return current;
+          return response.data[0]?.id ?? null;
+        });
+      } catch (err) {
+        if (seq !== loadSeq.current) return;
+        const message = err instanceof ApiError ? err.message : t('loadError');
+        toast.error(message);
+        setReviews([]);
+        setMeta(null);
+      } finally {
+        if (seq === loadSeq.current && !options?.silent) setLoading(false);
+      }
+    },
+    [mode, companyId, page, status, categoryId, search, t],
+  );
 
   const loadStatusCounts = useCallback(async () => {
     const token = await ensureValidAccessToken();
@@ -225,17 +239,31 @@ export function ReviewsManagementPanel({ mode, companyId }: ReviewsManagementPan
     void loadStatusCounts();
   }, [loadStatusCounts]);
 
-  const runAction = async (action: () => Promise<unknown>, successMessage: string) => {
+  const runAction = async (
+    action: () => Promise<unknown>,
+    successMessage: string,
+    reviewId?: string,
+  ) => {
     setActing(true);
     try {
       await action();
       toast.success(successMessage);
-      await loadReviews();
+      if (reviewId && status !== 'all') {
+        setReviews((current) => current.filter((review) => review.id !== reviewId));
+        setSelectedId((current) =>
+          current === reviewId
+            ? (reviews.find((review) => review.id !== reviewId)?.id ?? null)
+            : current,
+        );
+      }
+      await loadReviews({ silent: true });
       await loadStatusCounts();
       router.refresh();
     } catch (err) {
       const message = err instanceof ApiError ? err.message : t('actionError');
       toast.error(message);
+      await loadReviews({ silent: true });
+      await loadStatusCounts();
     } finally {
       setActing(false);
     }
@@ -244,19 +272,19 @@ export function ReviewsManagementPanel({ mode, companyId }: ReviewsManagementPan
   const handleAdminApprove = async (reviewId: string) => {
     const token = await ensureValidAccessToken();
     if (!token) return;
-    await runAction(() => reviewsApi.approve(token, reviewId), t('approvedSuccess'));
+    await runAction(() => reviewsApi.approve(token, reviewId), t('approvedSuccess'), reviewId);
   };
 
   const handleAdminReject = async (reviewId: string) => {
     const token = await ensureValidAccessToken();
     if (!token) return;
-    await runAction(() => reviewsApi.reject(token, reviewId), t('rejectedSuccess'));
+    await runAction(() => reviewsApi.reject(token, reviewId), t('rejectedSuccess'), reviewId);
   };
 
   const handleAdminResolve = async (reviewId: string) => {
     const token = await ensureValidAccessToken();
     if (!token) return;
-    await runAction(() => reviewsApi.resolve(token, reviewId), t('resolveSuccess'));
+    await runAction(() => reviewsApi.resolve(token, reviewId), t('resolveSuccess'), reviewId);
   };
 
   const handleAdminDelete = async (reviewId: string) => {
@@ -264,7 +292,7 @@ export function ReviewsManagementPanel({ mode, companyId }: ReviewsManagementPan
 
     const token = await ensureValidAccessToken();
     if (!token) return;
-    await runAction(() => reviewsApi.deleteReview(token, reviewId), t('deleteSuccess'));
+    await runAction(() => reviewsApi.deleteReview(token, reviewId), t('deleteSuccess'), reviewId);
   };
 
   const handleAdminDeleteReply = async (reviewId: string) => {
@@ -293,13 +321,21 @@ export function ReviewsManagementPanel({ mode, companyId }: ReviewsManagementPan
   const handleProceed = async (reviewId: string) => {
     const token = await ensureValidAccessToken();
     if (!token) return;
-    await runAction(() => reviewsApi.proceedResolution(token, reviewId), t('proceedSuccess'));
+    await runAction(
+      () => reviewsApi.proceedResolution(token, reviewId),
+      t('proceedSuccess'),
+      reviewId,
+    );
   };
 
   const handleWithdraw = async (reviewId: string) => {
     const token = await ensureValidAccessToken();
     if (!token) return;
-    await runAction(() => reviewsApi.withdrawResolution(token, reviewId), t('withdrawSuccess'));
+    await runAction(
+      () => reviewsApi.withdrawResolution(token, reviewId),
+      t('withdrawSuccess'),
+      reviewId,
+    );
   };
 
   const handleModify = async (reviewId: string) => {
@@ -313,6 +349,7 @@ export function ReviewsManagementPanel({ mode, companyId }: ReviewsManagementPan
           content: editContent,
         }),
       t('modifySuccess'),
+      reviewId,
     );
     setEditing(false);
   };

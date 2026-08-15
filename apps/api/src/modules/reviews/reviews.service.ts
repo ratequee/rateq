@@ -3,6 +3,7 @@ import {
   ConflictException,
   ForbiddenException,
   Injectable,
+  Logger,
   NotFoundException,
 } from '@nestjs/common';
 import type { Request } from 'express';
@@ -18,6 +19,7 @@ import { hashIp } from '../../common/utils/ip-hash.util';
 import { ConfigService } from '@nestjs/config';
 import type { AppConfig } from '../../common/config/env.validation';
 import { buildPaginationMeta } from '../../common/utils/pagination.util';
+import { withTimeout } from '../../common/utils/with-timeout.util';
 import { PrismaService } from '../../infrastructure/database/prisma.service';
 import { CompaniesRepository } from '../companies/repositories/companies.repository';
 import { EmailService } from '../auth/services/email.service';
@@ -41,6 +43,8 @@ import { ModerationAction } from '@prisma/client';
 
 @Injectable()
 export class ReviewsService {
+  private readonly logger = new Logger(ReviewsService.name);
+
   constructor(
     private readonly reviewsRepository: ReviewsRepository,
     private readonly companiesRepository: CompaniesRepository,
@@ -128,16 +132,28 @@ export class ReviewsService {
       proofUrls: input.proofUrls,
     });
 
-    await this.moderationQueue.add(
-      'process-review',
-      { reviewId: review.id },
-      {
-        attempts: 3,
-        backoff: { type: 'exponential', delay: 2000 },
-        removeOnComplete: 100,
-        removeOnFail: 500,
-      },
-    );
+    try {
+      await withTimeout(
+        this.moderationQueue.add(
+          'process-review',
+          { reviewId: review.id },
+          {
+            attempts: 3,
+            backoff: { type: 'exponential', delay: 2000 },
+            removeOnComplete: 100,
+            removeOnFail: 500,
+          },
+        ),
+        4000,
+        'enqueue review moderation',
+      );
+    } catch (error) {
+      this.logger.error(
+        `Could not enqueue moderation for review ${review.id}: ${
+          error instanceof Error ? error.message : 'unknown error'
+        }`,
+      );
+    }
 
     const full = await this.reviewsRepository.findById(review.id);
 

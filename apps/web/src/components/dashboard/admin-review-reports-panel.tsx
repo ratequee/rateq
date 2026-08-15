@@ -7,7 +7,7 @@ import { ensureValidAccessToken } from '@/lib/auth-session';
 import type { ReviewReportPublic } from '@rateq/types';
 import { Loader2 } from 'lucide-react';
 import { useLocale, useTranslations } from 'next-intl';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
 
 const statusStyles: Record<string, string> = {
@@ -24,22 +24,29 @@ export function AdminReviewReportsPanel() {
   const [actingId, setActingId] = useState<string | null>(null);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const loadSeq = useRef(0);
 
-  const load = useCallback(async () => {
-    setLoading(true);
-    try {
-      const token = await ensureValidAccessToken();
-      if (!token) return;
-      const response = await reviewsApi.listReviewReports(token, page, 20);
-      setReports(response.data);
-      setTotalPages(response.meta.totalPages);
-    } catch {
-      toast.error(t('loadError'));
-      setReports([]);
-    } finally {
-      setLoading(false);
-    }
-  }, [page, t]);
+  const load = useCallback(
+    async (options?: { silent?: boolean }) => {
+      const seq = ++loadSeq.current;
+      if (!options?.silent) setLoading(true);
+      try {
+        const token = await ensureValidAccessToken();
+        if (!token) return;
+        const response = await reviewsApi.listReviewReports(token, page, 20);
+        if (seq !== loadSeq.current) return;
+        setReports(response.data);
+        setTotalPages(response.meta.totalPages);
+      } catch {
+        if (seq !== loadSeq.current) return;
+        toast.error(t('loadError'));
+        setReports([]);
+      } finally {
+        if (seq === loadSeq.current && !options?.silent) setLoading(false);
+      }
+    },
+    [page, t],
+  );
 
   useEffect(() => {
     void load();
@@ -57,7 +64,8 @@ export function AdminReviewReportsPanel() {
         await reviewsApi.rejectReviewReport(token, id);
         toast.success(t('rejected'));
       }
-      await load();
+      setReports((current) => current.filter((report) => report.id !== id));
+      await load({ silent: true });
     } catch {
       toast.error(t('actionError'));
     } finally {

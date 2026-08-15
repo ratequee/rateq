@@ -1,5 +1,6 @@
 import { Injectable, Logger, ServiceUnavailableException } from '@nestjs/common';
 import sharp from 'sharp';
+import { withTimeout } from '../../../common/utils/with-timeout.util';
 import { FirebaseAdminService } from '../../auth/services/firebase-admin.service';
 
 export const PROJECT_WATERMARK_TEXT = 'https://www.rateq.qa/';
@@ -29,21 +30,19 @@ export class ProjectImageWatermarkService {
       'cover',
     );
 
-    const demoImages: string[] = [];
-    for (let index = 0; index < input.demoImages.length; index += 1) {
-      const sourceUrl = input.demoImages[index];
-      if (!sourceUrl) continue;
-      demoImages.push(
-        await this.watermarkAndUpload(
+    const demoImages = await Promise.all(
+      input.demoImages.map((sourceUrl, index) => {
+        if (!sourceUrl) return Promise.resolve('');
+        return this.watermarkAndUpload(
           sourceUrl,
           input.companyId,
           input.projectId,
           `demo-${index + 1}`,
-        ),
-      );
-    }
+        );
+      }),
+    );
 
-    return { imageUrl, demoImages };
+    return { imageUrl, demoImages: demoImages.filter(Boolean) };
   }
 
   private async watermarkAndUpload(
@@ -57,10 +56,18 @@ export class ProjectImageWatermarkService {
         return sourceUrl;
       }
 
-      const source = await this.firebaseAdmin.downloadFileFromUrl(sourceUrl);
+      const source = await withTimeout(
+        this.firebaseAdmin.downloadFileFromUrl(sourceUrl),
+        20_000,
+        `download ${label}`,
+      );
       const watermarked = await this.applyWatermark(source);
       const path = `users/system/company-projects/${companyId}/${projectId}/watermarked/${Date.now()}-${label}.jpg`;
-      return await this.firebaseAdmin.uploadPublicFile(path, watermarked, 'image/jpeg');
+      return await withTimeout(
+        this.firebaseAdmin.uploadPublicFile(path, watermarked, 'image/jpeg'),
+        20_000,
+        `upload ${label}`,
+      );
     } catch (error) {
       this.logger.error(
         `Failed to watermark image for project ${projectId} (${label}): ${
@@ -72,8 +79,10 @@ export class ProjectImageWatermarkService {
   }
 
   private async applyWatermark(source: Buffer): Promise<Buffer> {
-    const image = sharp(source).rotate();
-    const metadata = await image.metadata();
+    const image = sharp(source)
+      .rotate()
+      .resize({ width: 2000, height: 2000, fit: 'inside', withoutEnlargement: true });
+    const metadata = await image.clone().metadata();
     const width = metadata.width ?? 1200;
     const height = metadata.height ?? 800;
     const fontSize = Math.max(28, Math.round(Math.min(width, height) * 0.055));
@@ -103,7 +112,7 @@ export class ProjectImageWatermarkService {
 
     return image
       .composite([{ input: svg, top: 0, left: 0 }])
-      .jpeg({ quality: 90, mozjpeg: true })
+      .jpeg({ quality: 82, mozjpeg: true })
       .toBuffer();
   }
 }

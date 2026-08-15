@@ -17,6 +17,7 @@ import type {
   UpdateCategoryInput,
   UpdateCategorySubcategoryInput,
 } from '@rateq/types';
+import { Prisma } from '@prisma/client';
 import { slugify, withSlugSuffix } from '@rateq/utils';
 import { CategoriesRepository } from './repositories/categories.repository';
 import { CategoryServicesRepository } from './repositories/category-services.repository';
@@ -86,13 +87,25 @@ export class CategoriesService {
     const slug =
       nameEn && nameEn !== category.nameEn ? await this.generateUniqueSlug(nameEn, id) : undefined;
 
-    const updated = await this.categoriesRepository.update(id, {
-      ...(nameEn !== undefined && { nameEn, ...(slug ? { slug } : {}) }),
-      ...(nameAr !== undefined && { nameAr }),
-      ...(input.iconUrl !== undefined && { iconUrl: input.iconUrl?.trim() || null }),
-    });
+    try {
+      const updated = await this.categoriesRepository.update(id, {
+        ...(nameEn !== undefined && { nameEn, ...(slug ? { slug } : {}) }),
+        ...(nameAr !== undefined && { nameAr }),
+        ...(input.iconUrl !== undefined && { iconUrl: input.iconUrl?.trim() || null }),
+      });
 
-    return toCategoryPublic(updated);
+      return toCategoryPublic(updated);
+    } catch (error) {
+      if (error instanceof Prisma.PrismaClientKnownRequestError) {
+        if (error.code === 'P2025') {
+          throw new NotFoundException('Category not found');
+        }
+        if (error.code === 'P2002') {
+          throw new ConflictException('A category with this name already exists');
+        }
+      }
+      throw error;
+    }
   }
 
   async resolveSubcategoryLabelMap(

@@ -117,8 +117,7 @@ export class ReviewReportsService {
     const report = await this.getPendingReport(reportId);
     const reporterEmail = report.reporter.email;
     const companyName = report.review.company.name;
-
-    await this.moderationService.manualDelete(report.reviewId, adminId);
+    const reviewId = report.reviewId;
 
     const updated = await this.prisma.reviewReport.update({
       where: { id: reportId },
@@ -128,6 +127,14 @@ export class ReviewReportsService {
         resolvedById: adminId,
       },
     });
+
+    try {
+      await this.moderationService.manualDelete(reviewId, adminId);
+    } catch (error) {
+      if (!(error instanceof NotFoundException) && !(error instanceof BadRequestException)) {
+        throw error;
+      }
+    }
 
     try {
       await this.emailService.sendReviewReportApprovedEmail({

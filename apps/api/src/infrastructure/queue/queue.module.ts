@@ -2,6 +2,7 @@ import { BullModule } from '@nestjs/bullmq';
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import type { AppConfig } from '../../common/config/env.validation';
+import { createRedisConnectionOptions, parseRedisUrl } from '../redis/redis-connection';
 import { REVIEW_MODERATION_QUEUE } from './queue.constants';
 
 @Module({
@@ -9,11 +10,15 @@ import { REVIEW_MODERATION_QUEUE } from './queue.constants';
     BullModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
-      useFactory: (configService: ConfigService<AppConfig, true>) => ({
-        connection: {
-          url: configService.get('REDIS_URL', { infer: true }),
-        },
-      }),
+      useFactory: (configService: ConfigService<AppConfig, true>) => {
+        const url = configService.get('REDIS_URL', { infer: true });
+        return {
+          connection: {
+            ...parseRedisUrl(url),
+            ...createRedisConnectionOptions(),
+          },
+        };
+      },
     }),
     BullModule.registerQueue({
       name: REVIEW_MODERATION_QUEUE,

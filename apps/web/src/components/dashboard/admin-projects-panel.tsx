@@ -9,7 +9,7 @@ import type { AdminCompanyProjectListItem, PaginatedAdminProjectsResponse } from
 import { CompanyProjectStatus } from '@rateq/types';
 import { Loader2 } from 'lucide-react';
 import { useLocale, useTranslations } from 'next-intl';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
 
 const statusStyles: Record<CompanyProjectStatus, string> = {
@@ -40,33 +40,46 @@ export function AdminProjectsPanel() {
   >({});
 
   const selectedProject = projects.find((project) => project.id === selectedId) ?? null;
+  const loadSeq = useRef(0);
 
-  const loadProjects = useCallback(async () => {
-    setLoading(true);
-    try {
-      const token = await ensureValidAccessToken();
-      if (!token) return;
+  const loadProjects = useCallback(
+    async (options?: { silent?: boolean }) => {
+      const seq = ++loadSeq.current;
+      if (!options?.silent) setLoading(true);
+      try {
+        const token = await ensureValidAccessToken();
+        if (!token) return;
 
-      const params = new URLSearchParams();
-      params.set('page', String(page));
-      params.set('limit', '20');
-      if (status !== 'all') params.set('status', status);
+        const params = new URLSearchParams();
+        params.set('page', String(page));
+        params.set('limit', '20');
+        if (status !== 'all') params.set('status', status);
 
-      const response = await reviewsApi.listAdminProjects(token, params);
-      setProjects(response.data);
-      setMeta(response.meta);
-      setSelectedId((current) =>
-        current && response.data.some((item) => item.id === current)
-          ? current
-          : (response.data[0]?.id ?? null),
-      );
-    } catch (err) {
-      const message = err instanceof ApiError ? err.message : t('loadError');
-      toast.error(message);
-    } finally {
-      setLoading(false);
-    }
-  }, [page, status, t]);
+        const response = await reviewsApi.listAdminProjects(token, params);
+        if (seq !== loadSeq.current) return;
+
+        if (response.data.length === 0 && page > 1) {
+          setPage(1);
+          return;
+        }
+
+        setProjects(response.data);
+        setMeta(response.meta);
+        setSelectedId((current) =>
+          current && response.data.some((item) => item.id === current)
+            ? current
+            : (response.data[0]?.id ?? null),
+        );
+      } catch (err) {
+        if (seq !== loadSeq.current) return;
+        const message = err instanceof ApiError ? err.message : t('loadError');
+        toast.error(message);
+      } finally {
+        if (seq === loadSeq.current && !options?.silent) setLoading(false);
+      }
+    },
+    [page, status, t],
+  );
 
   const loadStatusCounts = useCallback(async () => {
     const token = await ensureValidAccessToken();
@@ -93,15 +106,40 @@ export function AdminProjectsPanel() {
     void loadStatusCounts();
   }, [loadStatusCounts]);
 
-  const runAction = async (action: () => Promise<void>) => {
+  const applyLocalChange = (projectId: string, nextStatus: CompanyProjectStatus | 'DELETED') => {
+    const shouldRemove = nextStatus === 'DELETED' || (status !== 'all' && status !== nextStatus);
+
+    setProjects((current) =>
+      shouldRemove
+        ? current.filter((project) => project.id !== projectId)
+        : current.map((project) =>
+            project.id === projectId ? { ...project, status: nextStatus } : project,
+          ),
+    );
+
+    setSelectedId((selected) => {
+      if (selected !== projectId) return selected;
+      if (!shouldRemove) return selected;
+      return projects.find((project) => project.id !== projectId)?.id ?? null;
+    });
+  };
+
+  const runAction = async (
+    projectId: string,
+    nextStatus: CompanyProjectStatus | 'DELETED',
+    action: () => Promise<void>,
+  ) => {
     setActing(true);
     try {
       await action();
-      await loadProjects();
+      applyLocalChange(projectId, nextStatus);
+      await loadProjects({ silent: true });
       await loadStatusCounts();
     } catch (err) {
       const message = err instanceof ApiError ? err.message : t('actionError');
       toast.error(message);
+      await loadProjects({ silent: true });
+      await loadStatusCounts();
     } finally {
       setActing(false);
     }
@@ -110,7 +148,7 @@ export function AdminProjectsPanel() {
   const handleApprove = async (projectId: string) => {
     const token = await ensureValidAccessToken();
     if (!token) return;
-    await runAction(async () => {
+    await runAction(projectId, CompanyProjectStatus.APPROVED, async () => {
       await reviewsApi.approveProject(token, projectId);
       toast.success(t('approveSuccess'));
     });
@@ -119,7 +157,7 @@ export function AdminProjectsPanel() {
   const handleReject = async (projectId: string) => {
     const token = await ensureValidAccessToken();
     if (!token) return;
-    await runAction(async () => {
+    await runAction(projectId, CompanyProjectStatus.REJECTED, async () => {
       await reviewsApi.rejectProject(token, projectId);
       toast.success(t('rejectSuccess'));
     });
@@ -129,7 +167,7 @@ export function AdminProjectsPanel() {
     if (!window.confirm(t('deleteConfirm'))) return;
     const token = await ensureValidAccessToken();
     if (!token) return;
-    await runAction(async () => {
+    await runAction(projectId, 'DELETED', async () => {
       await reviewsApi.deleteProject(token, projectId);
       toast.success(t('deleteSuccess'));
     });

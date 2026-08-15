@@ -12,6 +12,7 @@ import { resolveCompanyOwnerEmail, resolveReviewerContact } from '../reviews/map
 import { CompaniesRepository } from '../companies/repositories/companies.repository';
 import { toAdminCompanyProjectListItem } from '../companies/mappers/company.mapper';
 import { buildPaginationMeta } from '../../common/utils/pagination.util';
+import { withTimeout } from '../../common/utils/with-timeout.util';
 import { REVIEW_MODERATION_QUEUE } from '../../infrastructure/queue/queue.constants';
 import { ModerationRepository } from './repositories/moderation.repository';
 import {
@@ -123,7 +124,7 @@ export class ModerationService {
       action: AdminActivityAction.APPROVED,
     });
 
-    await this.notifyCompanyReplyDecision(reviewId, 'approved');
+    void this.notifyCompanyReplyDecision(reviewId, 'approved');
   }
 
   async manualRejectReply(reviewId: string, adminId: string): Promise<void> {
@@ -145,18 +146,18 @@ export class ModerationService {
       action: AdminActivityAction.REJECTED,
     });
 
-    await this.notifyCompanyReplyDecision(reviewId, 'rejected');
+    void this.notifyCompanyReplyDecision(reviewId, 'rejected');
   }
 
   async manualApprove(reviewId: string, adminId: string): Promise<void> {
     await this.setManualStatus(reviewId, 'APPROVED', ModerationAction.MANUAL_APPROVED, adminId);
-    await this.notifyReviewerDecision(reviewId, 'approved');
-    await this.notifyCompanyReviewPublished(reviewId);
+    void this.notifyReviewerDecision(reviewId, 'approved');
+    void this.notifyCompanyReviewPublished(reviewId);
   }
 
   async manualReject(reviewId: string, adminId: string): Promise<void> {
     await this.setManualStatus(reviewId, 'REJECTED', ModerationAction.MANUAL_REJECTED, adminId);
-    await this.notifyReviewerDecision(reviewId, 'rejected');
+    void this.notifyReviewerDecision(reviewId, 'rejected');
   }
 
   async manualDelete(reviewId: string, adminId: string): Promise<void> {
@@ -283,22 +284,38 @@ export class ModerationService {
     const reviewer = resolveReviewerContact(review);
     const companyName = review.company?.name ?? 'Company';
 
-    await this.emailService.sendReviewResolutionToCompanyEmail({
-      companyEmail,
-      companyName,
-      reviewTitle: review.title,
-      reviewContent: review.content,
-      reviewRating: review.rating,
-      reviewerName: reviewer.name,
-      reviewerEmail: reviewer.email,
-      reviewerPhone: reviewer.phone,
-    });
+    void this.emailService
+      .sendReviewResolutionToCompanyEmail({
+        companyEmail,
+        companyName,
+        reviewTitle: review.title,
+        reviewContent: review.content,
+        reviewRating: review.rating,
+        reviewerName: reviewer.name,
+        reviewerEmail: reviewer.email,
+        reviewerPhone: reviewer.phone,
+      })
+      .catch((error: unknown) => {
+        this.logger.warn(
+          `Failed to send resolution email to company: ${
+            error instanceof Error ? error.message : 'unknown error'
+          }`,
+        );
+      });
 
-    await this.emailService.sendReviewResolutionToReviewerEmail({
-      reviewerEmail: reviewer.email,
-      companyName,
-      reviewTitle: review.title,
-    });
+    void this.emailService
+      .sendReviewResolutionToReviewerEmail({
+        reviewerEmail: reviewer.email,
+        companyName,
+        reviewTitle: review.title,
+      })
+      .catch((error: unknown) => {
+        this.logger.warn(
+          `Failed to send resolution email to reviewer: ${
+            error instanceof Error ? error.message : 'unknown error'
+          }`,
+        );
+      });
 
     await this.adminActivity.log({
       adminId,
@@ -367,62 +384,94 @@ export class ModerationService {
   ): Promise<void> {
     const jobId = `resolution-choice-${reviewId}`;
     try {
-      const existing = await this.moderationQueue.getJob(jobId);
+      const existing = await withTimeout(
+        this.moderationQueue.getJob(jobId),
+        4000,
+        'lookup resolution timeout job',
+      );
       if (existing) await existing.remove();
     } catch {
       // ignore
     }
 
-    await this.moderationQueue.add(
-      RESOLUTION_CHOICE_TIMEOUT_JOB,
-      { reviewId },
-      {
-        jobId,
-        delay: Math.max(delayMs, 1000),
-        removeOnComplete: true,
-        removeOnFail: true,
-      },
-    );
+    try {
+      await withTimeout(
+        this.moderationQueue.add(
+          RESOLUTION_CHOICE_TIMEOUT_JOB,
+          { reviewId },
+          {
+            jobId,
+            delay: Math.max(delayMs, 1000),
+            removeOnComplete: true,
+            removeOnFail: true,
+          },
+        ),
+        4000,
+        'schedule resolution timeout',
+      );
+    } catch (error) {
+      this.logger.warn(
+        `Could not schedule resolution timeout for ${reviewId}: ${
+          error instanceof Error ? error.message : 'unknown error'
+        }`,
+      );
+    }
   }
 
   private async notifyReviewerDecision(
     reviewId: string,
     decision: 'approved' | 'rejected',
   ): Promise<void> {
-    const review = await this.reviewsRepository.findById(reviewId);
-    if (!review?.user?.email) return;
+    try {
+      const review = await this.reviewsRepository.findById(reviewId);
+      if (!review?.user?.email) return;
 
-    const companyName = review.company?.name ?? 'the company';
+      const companyName = review.company?.name ?? 'the company';
 
-    if (decision === 'approved') {
-      await this.emailService.sendReviewApprovedEmail({
+      if (decision === 'approved') {
+        await this.emailService.sendReviewApprovedEmail({
+          reviewerEmail: review.user.email,
+          reviewTitle: review.title,
+          companyName,
+        });
+        return;
+      }
+
+      await this.emailService.sendReviewRejectedEmail({
         reviewerEmail: review.user.email,
         reviewTitle: review.title,
         companyName,
       });
-      return;
+    } catch (error) {
+      this.logger.warn(
+        `Failed to send review ${decision} email: ${
+          error instanceof Error ? error.message : 'unknown error'
+        }`,
+      );
     }
-
-    await this.emailService.sendReviewRejectedEmail({
-      reviewerEmail: review.user.email,
-      reviewTitle: review.title,
-      companyName,
-    });
   }
 
   private async notifyCompanyReviewPublished(reviewId: string): Promise<void> {
-    const review = await this.reviewsRepository.findById(reviewId);
-    if (!review) return;
+    try {
+      const review = await this.reviewsRepository.findById(reviewId);
+      if (!review) return;
 
-    const companyEmail = resolveCompanyOwnerEmail(review);
-    if (!companyEmail) return;
+      const companyEmail = resolveCompanyOwnerEmail(review);
+      if (!companyEmail) return;
 
-    await this.emailService.sendReviewPublishedEmails({
-      reviewerEmail: '',
-      companyEmail,
-      companyName: review.company?.name ?? 'Company',
-      reviewTitle: review.title,
-    });
+      await this.emailService.sendReviewPublishedEmails({
+        reviewerEmail: '',
+        companyEmail,
+        companyName: review.company?.name ?? 'Company',
+        reviewTitle: review.title,
+      });
+    } catch (error) {
+      this.logger.warn(
+        `Failed to send company published-review email: ${
+          error instanceof Error ? error.message : 'unknown error'
+        }`,
+      );
+    }
   }
 
   private async notifyCompanyReplyDecision(
@@ -547,6 +596,10 @@ export class ModerationService {
       throw new NotFoundException('Project not found');
     }
 
+    if (project.status === 'APPROVED') {
+      return;
+    }
+
     if (project.status !== 'PENDING') {
       throw new BadRequestException('This project can no longer be moderated');
     }
@@ -576,7 +629,7 @@ export class ModerationService {
       action: AdminActivityAction.APPROVED,
     });
 
-    await this.notifyCompanyProjectDecision(projectId, 'approved');
+    void this.notifyCompanyProjectDecision(projectId, 'approved');
   }
 
   async manualRejectProject(projectId: string, adminId: string): Promise<void> {
@@ -600,7 +653,7 @@ export class ModerationService {
       action: AdminActivityAction.REJECTED,
     });
 
-    await this.notifyCompanyProjectDecision(projectId, 'rejected');
+    void this.notifyCompanyProjectDecision(projectId, 'rejected');
   }
 
   async manualDeleteProject(projectId: string, adminId: string): Promise<void> {
