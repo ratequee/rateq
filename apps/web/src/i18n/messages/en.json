@@ -220,6 +220,8 @@
     "register": "Register",
     "helpSupport": "Help & Support",
     "contactUs": "Contact Us",
+    "privacy": "Privacy Policy",
+    "terms": "Terms & Conditions",
     "rights": "All rights reserved.",
     "broughtToLifeBy": "Brought to life by"
   },
@@ -1721,5 +1723,276 @@
     "approve": "Approve",
     "reject": "Reject",
     "pendingSince": "Awaiting review"
+  },
+  "legalPrivacy": {
+    "metaTitle": "Privacy Policy",
+    "metaDescription": "How RateQ collects, uses, and protects personal data for reviewers and companies in Qatar.",
+    "eyebrow": "Legal",
+    "title": "Privacy Policy",
+    "subtitle": "This policy explains what information RateQ collects, why we collect it, and the choices you have. It applies to rateq.qa and related RateQ services.",
+    "breadcrumbAria": "Breadcrumb",
+    "breadcrumbs": [
+      { "label": "Home", "href": "/" },
+      { "label": "Privacy Policy", "href": "/privacy" }
+    ],
+    "lastUpdated": "Last updated {date}",
+    "lastUpdatedDate": "16 August 2026",
+    "tocLabel": "On this page",
+    "relatedText": "Using RateQ is also governed by our terms.",
+    "relatedLabel": "Read Terms & Conditions",
+    "sections": [
+      {
+        "id": "who-we-are",
+        "title": "Who we are",
+        "paragraphs": [
+          "RateQ is a bilingual company review platform operated in Qatar. We help customers find and rate businesses, and we help companies present their profiles, projects, and replies to reviews.",
+          "For privacy questions, contact us at support@rateq.qa or through the Contact page on this website."
+        ]
+      },
+      {
+        "id": "data-we-collect",
+        "title": "Information we collect",
+        "paragraphs": [
+          "We collect information you provide and information generated when you use RateQ."
+        ],
+        "bullets": [
+          "Account details: name, email, phone number, password or Firebase sign-in data, language preference, and profile photo.",
+          "Company profiles: business name, description, categories, address, map location, contact details, logo, cover image, documents, social links, services, and projects (including photos).",
+          "Reviews and replies: ratings, titles, review text, proof files, company replies, and reports about reviews.",
+          "Resolution details: when a negative review is sent for resolution, the company may receive reviewer contact details so they can try to resolve the issue.",
+          "Technical data: IP address (stored in hashed form where used for abuse prevention), device or browser information, and similar security signals.",
+          "Support messages: name, email, phone, subject, and message when you contact us."
+        ]
+      },
+      {
+        "id": "how-we-use",
+        "title": "How we use information",
+        "paragraphs": [
+          "We use personal data to operate RateQ, keep it trustworthy, and communicate with you."
+        ],
+        "bullets": [
+          "Create and manage reviewer and company accounts, including email and phone verification.",
+          "Publish approved company listings, projects, reviews, and replies on public pages.",
+          "Moderate content, detect abuse, and handle review reports.",
+          "Run the review resolution process for negative reviews, including notifying companies and reviewers.",
+          "Send service emails (verification, password reset, moderation decisions, resolution updates).",
+          "Respond to contact requests and provide customer support.",
+          "Improve safety, prevent fraud, and comply with applicable law in Qatar."
+        ]
+      },
+      {
+        "id": "reviews-public",
+        "title": "Reviews, profiles, and what is public",
+        "paragraphs": [
+          "Approved reviews, approved company profiles, and approved project images can appear on public RateQ pages and may be indexed by search engines.",
+          "Pending, rejected, withdrawn, or deleted reviews are not shown on public company pages. Company dashboards may still show active resolution requests so the business can respond.",
+          "Display names and avatars associated with published reviews may be visible to other users. Do not include sensitive personal data in review text or proof files that you do not want published."
+        ]
+      },
+      {
+        "id": "sharing",
+        "title": "Who we share information with",
+        "paragraphs": [
+          "We do not sell your personal data. We share it only as needed to run the platform."
+        ],
+        "bullets": [
+          "Service providers that host RateQ, send email, store files (including Firebase Authentication and Storage), and operate infrastructure such as databases and job queues.",
+          "Companies, when a review is published or when resolution requires contacting the reviewer.",
+          "Our administrators, for verification, moderation, and support.",
+          "Authorities, if required by Qatar law or to protect rights, safety, or the integrity of RateQ."
+        ]
+      },
+      {
+        "id": "cookies",
+        "title": "Cookies and similar technologies",
+        "paragraphs": [
+          "RateQ uses cookies and similar technologies that are needed to keep you signed in, remember language and theme preferences, and protect the service.",
+          "If we use optional analytics in the future, we will update this policy. You can control cookies through your browser settings; disabling some cookies may affect login or other features."
+        ]
+      },
+      {
+        "id": "retention",
+        "title": "How long we keep data",
+        "paragraphs": [
+          "We keep account, company, and review records for as long as needed to provide RateQ, handle disputes, and meet legal or security requirements.",
+          "Withdrawn or rejected reviews may remain in our records even when they are hidden from public pages. You may ask us to delete an account; some information may be retained where we must keep it for law, moderation history, or fraud prevention."
+        ]
+      },
+      {
+        "id": "rights",
+        "title": "Your rights",
+        "paragraphs": [
+          "Depending on Qatar’s Personal Data Privacy Protection Law and other applicable rules, you may request access to your personal data, correction of inaccurate data, or deletion where that is legally available.",
+          "You can update much of your profile information from your RateQ dashboard. For other requests, email support@rateq.qa. We may need to verify your identity before fulfilling a request."
+        ]
+      },
+      {
+        "id": "children",
+        "title": "Children",
+        "paragraphs": [
+          "RateQ is intended for adults and businesses. We do not knowingly collect personal data from children. If you believe a child has created an account, contact us and we will take appropriate action."
+        ]
+      },
+      {
+        "id": "security",
+        "title": "Security",
+        "paragraphs": [
+          "We use reasonable technical and organisational measures to protect personal data, including access controls, hashed identifiers where appropriate, and moderation of user-generated content.",
+          "No online service is completely secure. Please keep your login details confidential and tell us promptly if you suspect unauthorised use of your account."
+        ]
+      },
+      {
+        "id": "changes",
+        "title": "Changes to this policy",
+        "paragraphs": [
+          "We may update this Privacy Policy from time to time. The “Last updated” date at the top of this page will change when we do. Continued use of RateQ after an update means you accept the revised policy."
+        ]
+      },
+      {
+        "id": "contact",
+        "title": "Contact",
+        "paragraphs": [
+          "If you have questions about privacy, contact RateQ at support@rateq.qa, by phone using the number listed in the website footer, or through the Contact page."
+        ]
+      }
+    ]
+  },
+  "legalTerms": {
+    "metaTitle": "Terms & Conditions",
+    "metaDescription": "Terms governing use of RateQ, including reviews, company listings, moderation, and resolution in Qatar.",
+    "eyebrow": "Legal",
+    "title": "Terms & Conditions",
+    "subtitle": "These terms govern your use of RateQ. By creating an account or using rateq.qa, you agree to them.",
+    "breadcrumbAria": "Breadcrumb",
+    "breadcrumbs": [
+      { "label": "Home", "href": "/" },
+      { "label": "Terms & Conditions", "href": "/terms" }
+    ],
+    "lastUpdated": "Last updated {date}",
+    "lastUpdatedDate": "16 August 2026",
+    "tocLabel": "On this page",
+    "relatedText": "We also explain how we handle personal data.",
+    "relatedLabel": "Read Privacy Policy",
+    "sections": [
+      {
+        "id": "agreement",
+        "title": "Agreement to these terms",
+        "paragraphs": [
+          "These Terms & Conditions (“Terms”) are an agreement between you and RateQ for use of the website, dashboards, and related services.",
+          "If you use RateQ on behalf of a company, you confirm that you are authorised to bind that company. If you do not agree, do not use RateQ."
+        ]
+      },
+      {
+        "id": "the-service",
+        "title": "The RateQ service",
+        "paragraphs": [
+          "RateQ is a platform for company listings and customer reviews in Qatar. We provide tools for reviewers, companies, and administrators. We are not a party to disputes between customers and businesses, except as described in the resolution process.",
+          "We may change, suspend, or discontinue features. Listings, ratings, and reviews reflect user and company submissions plus our moderation rules; they are not an official government rating."
+        ]
+      },
+      {
+        "id": "accounts",
+        "title": "Accounts",
+        "paragraphs": [
+          "You must provide accurate information and keep it up to date. You are responsible for activity under your account.",
+          "Reviewers and companies have different capabilities. Company accounts cannot submit customer reviews. We may require email or phone verification before certain actions, such as posting a review."
+        ]
+      },
+      {
+        "id": "companies",
+        "title": "Company listings and projects",
+        "paragraphs": [
+          "Companies must submit truthful profile information. Some changes and legal documents may require admin approval before they appear publicly.",
+          "Project images may be watermarked by RateQ when approved. You grant RateQ a licence to host, display, watermark, and distribute the content you upload in connection with your listing.",
+          "You must have the rights to any photos, logos, and text you submit. Do not impersonate another business."
+        ]
+      },
+      {
+        "id": "reviews",
+        "title": "Reviews",
+        "paragraphs": [
+          "Reviews must be based on a genuine experience with the company. You agree not to post fake, paid-for-without-disclosure, defamatory, abusive, or unlawful content, and not to include others’ private information without a lawful basis.",
+          "RateQ may require proof files. Submitting a review does not guarantee publication. Reviews typically remain pending until moderated or until the resolution process is complete.",
+          "You grant RateQ a non-exclusive, worldwide licence to use, display, translate, and moderate your review on the platform. You remain responsible for what you write."
+        ]
+      },
+      {
+        "id": "moderation",
+        "title": "Moderation",
+        "paragraphs": [
+          "RateQ may approve, reject, hold, edit-request, or delete reviews, replies, reports, projects, and profile content that violate these Terms or our policies.",
+          "We may remove published content later if we receive a valid report, legal request, or find a policy breach. Admin decisions are made to protect users and the integrity of ratings."
+        ]
+      },
+      {
+        "id": "resolution",
+        "title": "Resolution of negative reviews",
+        "paragraphs": [
+          "For some negative reviews, an administrator may send the review to a company–reviewer resolution process. The company may need to choose a 7- or 14-day window within 24 hours. If it does not, the review can return to admin.",
+          "During or after that window, the reviewer may edit, withdraw, or (after the deadline) proceed to admin. The company is informed of the reviewer’s decision. Only approved reviews appear on the public company page.",
+          "Resolution does not guarantee a private settlement. RateQ does not mediate commercial claims, refunds, or legal disputes."
+        ]
+      },
+      {
+        "id": "replies-reports",
+        "title": "Company replies and reports",
+        "paragraphs": [
+          "Companies may reply to published reviews. Replies are subject to moderation and must remain professional.",
+          "Anyone may report a published review they believe is fake or policy-breaking. False or abusive reports may lead to action against the reporter’s account."
+        ]
+      },
+      {
+        "id": "prohibited",
+        "title": "Prohibited use",
+        "paragraphs": [
+          "You must not misuse RateQ, including by attempting unauthorised access, scraping at a volume that harms the service, manipulating ratings, harassing others, or using the platform for spam or unlawful advertising."
+        ]
+      },
+      {
+        "id": "ip",
+        "title": "Intellectual property",
+        "paragraphs": [
+          "RateQ’s name, logo, design, and software are owned by RateQ or its licensors. You may not copy the platform or use our marks without permission, except for ordinary use of the public site.",
+          "User content remains owned by the person or company that submitted it, subject to the licences in these Terms."
+        ]
+      },
+      {
+        "id": "disclaimers",
+        "title": "Disclaimers",
+        "paragraphs": [
+          "Reviews are opinions of users, not statements of fact by RateQ. We do not guarantee that any company, review, rating, or project description is accurate, complete, or fit for a particular purpose.",
+          "RateQ is provided “as is”. To the fullest extent permitted by Qatar law, we disclaim implied warranties of merchantability, fitness, and non-infringement."
+        ]
+      },
+      {
+        "id": "liability",
+        "title": "Limitation of liability",
+        "paragraphs": [
+          "To the fullest extent permitted by law, RateQ is not liable for indirect, incidental, or consequential losses, or for losses arising from user content, business decisions based on reviews, or downtime.",
+          "Nothing in these Terms excludes liability that cannot be excluded under Qatar law."
+        ]
+      },
+      {
+        "id": "termination",
+        "title": "Suspension and termination",
+        "paragraphs": [
+          "We may suspend or close accounts that violate these Terms, harm other users, or create legal or security risk. You may stop using RateQ at any time. Provisions that should survive (including licences already granted for published content, liability limits, and governing law) will continue to apply."
+        ]
+      },
+      {
+        "id": "law",
+        "title": "Governing law",
+        "paragraphs": [
+          "These Terms are governed by the laws of the State of Qatar. Courts in Qatar have exclusive jurisdiction, without prejudice to any mandatory consumer protections that apply to you."
+        ]
+      },
+      {
+        "id": "contact",
+        "title": "Contact",
+        "paragraphs": [
+          "Questions about these Terms can be sent to support@rateq.qa or through the Contact page on RateQ."
+        ]
+      }
+    ]
   }
 }

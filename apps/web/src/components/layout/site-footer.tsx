@@ -38,7 +38,11 @@ export async function SiteFooter(): Promise<JSX.Element> {
     { href: '/register', label: t('register') },
   ];
 
-  const supportLinks = [{ href: '/contact', label: t('contactUs') }];
+  const supportLinks = [
+    { href: '/contact', label: t('contactUs') },
+    { href: '/privacy', label: t('privacy') },
+    { href: '/terms', label: t('terms') },
+  ];
 
   const social = [
     {
@@ -164,10 +168,18 @@ export async function SiteFooter(): Promise<JSX.Element> {
         </div>
 
         <div className="mt-12 border-t border-white/15 pt-6">
-          <div className="flex flex-col items-center justify-between gap-4 text-sm">
+          <div className="flex flex-col items-center justify-between gap-4 text-sm sm:flex-row">
             <p>
               © {year} {tc('appName')}. {t('rights')}
             </p>
+            <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-2 text-white/80">
+              <Link href="/privacy" className="transition-colors hover:text-gold-300">
+                {t('privacy')}
+              </Link>
+              <Link href="/terms" className="transition-colors hover:text-gold-300">
+                {t('terms')}
+              </Link>
+            </div>
             <p className="text-white/70">
               {t('broughtToLifeBy')}{' '}
               <a
