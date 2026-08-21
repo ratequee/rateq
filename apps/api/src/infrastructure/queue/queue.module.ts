@@ -2,7 +2,7 @@ import { BullModule } from '@nestjs/bullmq';
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import type { AppConfig } from '../../common/config/env.validation';
-import { createRedisConnectionOptions, parseRedisUrl } from '../redis/redis-connection';
+import { createBullRedisConnectionOptions, parseRedisUrl } from '../redis/redis-connection';
 import { REVIEW_MODERATION_QUEUE } from './queue.constants';
 
 @Module({
@@ -15,7 +15,7 @@ import { REVIEW_MODERATION_QUEUE } from './queue.constants';
         return {
           connection: {
             ...parseRedisUrl(url),
-            ...createRedisConnectionOptions(),
+            ...createBullRedisConnectionOptions(),
           },
         };
       },

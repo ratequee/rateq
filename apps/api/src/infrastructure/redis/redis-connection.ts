@@ -1,8 +1,8 @@
 import type { RedisOptions } from 'ioredis';
 
 /**
- * Shared Redis options so a down Redis instance fails fast instead of hanging
- * HTTP requests (ioredis otherwise retries forever and queues commands offline).
+ * Options for short request/response Redis usage (OTP, rate limits, health).
+ * Fail fast so a down Redis does not hang HTTP requests.
  */
 export function createRedisConnectionOptions(): RedisOptions {
   return {
@@ -10,7 +10,23 @@ export function createRedisConnectionOptions(): RedisOptions {
     enableOfflineQueue: false,
     connectTimeout: 4000,
     commandTimeout: 4000,
+    maxRetriesPerRequest: 1,
+    retryStrategy(times) {
+      return Math.min(times * 200, 2000);
+    },
+  };
+}
+
+/**
+ * Options for BullMQ. Must not set commandTimeout — workers use blocking
+ * commands (e.g. BZPOPMIN) that intentionally wait longer than a few seconds.
+ * maxRetriesPerRequest must be null for workers.
+ */
+export function createBullRedisConnectionOptions(): RedisOptions {
+  return {
     maxRetriesPerRequest: null,
+    enableReadyCheck: false,
+    connectTimeout: 10000,
     retryStrategy(times) {
       return Math.min(times * 200, 2000);
     },

@@ -11,10 +11,7 @@ export class RedisService implements OnModuleDestroy {
 
   constructor(private readonly configService: ConfigService<AppConfig, true>) {
     const redisUrl = this.configService.get('REDIS_URL', { infer: true });
-    this.client = new Redis(redisUrl, {
-      ...createRedisConnectionOptions(),
-      maxRetriesPerRequest: 1,
-    });
+    this.client = new Redis(redisUrl, createRedisConnectionOptions());
     this.client.on('error', (error) => {
       this.logger.warn(`Redis connection error: ${error.message}`);
     });
