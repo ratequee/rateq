@@ -14,10 +14,14 @@ export async function generateMetadata(): Promise<Metadata> {
 export default async function TermsPage(): Promise<JSX.Element> {
   const locale = await getLocale();
   const settings = await fetchSiteSettings();
-  const cmsContent =
+  const cmsPoints =
     locale === 'ar'
-      ? settings.termsOfServiceAr?.trim() || settings.termsOfServiceEn?.trim() || null
-      : settings.termsOfServiceEn?.trim() || settings.termsOfServiceAr?.trim() || null;
+      ? settings.termsOfServiceAr?.length
+        ? settings.termsOfServiceAr
+        : settings.termsOfServiceEn
+      : settings.termsOfServiceEn?.length
+        ? settings.termsOfServiceEn
+        : settings.termsOfServiceAr;
 
-  return <LegalDocument namespace="legalTerms" cmsContent={cmsContent} />;
+  return <LegalDocument namespace="legalTerms" cmsPoints={cmsPoints} />;
 }

@@ -14,10 +14,14 @@ export async function generateMetadata(): Promise<Metadata> {
 export default async function PrivacyPolicyPage(): Promise<JSX.Element> {
   const locale = await getLocale();
   const settings = await fetchSiteSettings();
-  const cmsContent =
+  const cmsPoints =
     locale === 'ar'
-      ? settings.privacyPolicyAr?.trim() || settings.privacyPolicyEn?.trim() || null
-      : settings.privacyPolicyEn?.trim() || settings.privacyPolicyAr?.trim() || null;
+      ? settings.privacyPolicyAr?.length
+        ? settings.privacyPolicyAr
+        : settings.privacyPolicyEn
+      : settings.privacyPolicyEn?.length
+        ? settings.privacyPolicyEn
+        : settings.privacyPolicyAr;
 
-  return <LegalDocument namespace="legalPrivacy" cmsContent={cmsContent} />;
+  return <LegalDocument namespace="legalPrivacy" cmsPoints={cmsPoints} />;
 }

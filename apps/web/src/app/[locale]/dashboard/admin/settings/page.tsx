@@ -1,5 +1,6 @@
 'use client';
 
+import { LegalPointsEditor } from '@/components/dashboard/legal-points-editor';
 import { DashboardPageHeader } from '@/components/dashboard/dashboard-page-header';
 import { DashboardShell } from '@/components/dashboard/dashboard-shell';
 import { Button } from '@/components/ui/button';
@@ -9,6 +10,7 @@ import { adminApi } from '@/lib/admin-api';
 import { ApiError } from '@/lib/api';
 import {
   AdminPermission,
+  type LegalDocumentPoint,
   type SiteSettingsPublic,
   type UpdateSiteSettingsInput,
 } from '@rateq/types';
@@ -17,7 +19,17 @@ import { useTranslations } from 'next-intl';
 import { useCallback, useEffect, useState } from 'react';
 import { toast } from 'sonner';
 
-const EMPTY_FORM: UpdateSiteSettingsInput = {
+type SettingsForm = Omit<
+  UpdateSiteSettingsInput,
+  'privacyPolicyEn' | 'privacyPolicyAr' | 'termsOfServiceEn' | 'termsOfServiceAr'
+> & {
+  privacyPolicyEn: LegalDocumentPoint[];
+  privacyPolicyAr: LegalDocumentPoint[];
+  termsOfServiceEn: LegalDocumentPoint[];
+  termsOfServiceAr: LegalDocumentPoint[];
+};
+
+const EMPTY_FORM: SettingsForm = {
   address: '',
   phone: '',
   email: '',
@@ -29,13 +41,13 @@ const EMPTY_FORM: UpdateSiteSettingsInput = {
   linkedinUrl: '',
   aboutTextEn: '',
   aboutTextAr: '',
-  privacyPolicyEn: '',
-  privacyPolicyAr: '',
-  termsOfServiceEn: '',
-  termsOfServiceAr: '',
+  privacyPolicyEn: [],
+  privacyPolicyAr: [],
+  termsOfServiceEn: [],
+  termsOfServiceAr: [],
 };
 
-function toForm(settings: SiteSettingsPublic): UpdateSiteSettingsInput {
+function toForm(settings: SiteSettingsPublic): SettingsForm {
   return {
     address: settings.address ?? '',
     phone: settings.phone ?? '',
@@ -48,18 +60,31 @@ function toForm(settings: SiteSettingsPublic): UpdateSiteSettingsInput {
     linkedinUrl: settings.linkedinUrl ?? '',
     aboutTextEn: settings.aboutTextEn ?? '',
     aboutTextAr: settings.aboutTextAr ?? '',
-    privacyPolicyEn: settings.privacyPolicyEn ?? '',
-    privacyPolicyAr: settings.privacyPolicyAr ?? '',
-    termsOfServiceEn: settings.termsOfServiceEn ?? '',
-    termsOfServiceAr: settings.termsOfServiceAr ?? '',
+    privacyPolicyEn: settings.privacyPolicyEn ?? [],
+    privacyPolicyAr: settings.privacyPolicyAr ?? [],
+    termsOfServiceEn: settings.termsOfServiceEn ?? [],
+    termsOfServiceAr: settings.termsOfServiceAr ?? [],
   };
 }
 
-function toPayload(form: UpdateSiteSettingsInput): UpdateSiteSettingsInput {
+function toPayload(form: SettingsForm): UpdateSiteSettingsInput {
   const normalize = (value: string | null | undefined) => {
     const trimmed = value?.trim() ?? '';
     return trimmed.length ? trimmed : null;
   };
+
+  const normalizePoints = (points: LegalDocumentPoint[]): LegalDocumentPoint[] | null => {
+    const next = points
+      .map((point, index) => ({
+        ...point,
+        title: point.title.trim(),
+        description: point.description.trim(),
+        sortOrder: index,
+      }))
+      .filter((point) => point.title.length > 0);
+    return next.length > 0 ? next : null;
+  };
+
   return {
     address: normalize(form.address),
     phone: normalize(form.phone),
@@ -72,10 +97,10 @@ function toPayload(form: UpdateSiteSettingsInput): UpdateSiteSettingsInput {
     linkedinUrl: normalize(form.linkedinUrl),
     aboutTextEn: normalize(form.aboutTextEn),
     aboutTextAr: normalize(form.aboutTextAr),
-    privacyPolicyEn: normalize(form.privacyPolicyEn),
-    privacyPolicyAr: normalize(form.privacyPolicyAr),
-    termsOfServiceEn: normalize(form.termsOfServiceEn),
-    termsOfServiceAr: normalize(form.termsOfServiceAr),
+    privacyPolicyEn: normalizePoints(form.privacyPolicyEn),
+    privacyPolicyAr: normalizePoints(form.privacyPolicyAr),
+    termsOfServiceEn: normalizePoints(form.termsOfServiceEn),
+    termsOfServiceAr: normalizePoints(form.termsOfServiceAr),
   };
 }
 
@@ -85,7 +110,7 @@ export default function AdminSiteSettingsPage() {
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [form, setForm] = useState<UpdateSiteSettingsInput>(EMPTY_FORM);
+  const [form, setForm] = useState<SettingsForm>(EMPTY_FORM);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -104,8 +129,15 @@ export default function AdminSiteSettingsPage() {
     void load();
   }, [load]);
 
-  const updateField = (key: keyof UpdateSiteSettingsInput, value: string) => {
+  const updateField = (key: keyof SettingsForm, value: string) => {
     setForm((prev) => ({ ...prev, [key]: value }));
+  };
+
+  const updatePoints = (
+    key: 'privacyPolicyEn' | 'privacyPolicyAr' | 'termsOfServiceEn' | 'termsOfServiceAr',
+    points: LegalDocumentPoint[],
+  ) => {
+    setForm((prev) => ({ ...prev, [key]: points }));
   };
 
   const handleSubmit = async (event: React.FormEvent) => {
@@ -233,45 +265,34 @@ export default function AdminSiteSettingsPage() {
             </Field>
           </section>
 
-          <section className="surface-card space-y-4 rounded-2xl border p-5 sm:p-6">
+          <section className="surface-card space-y-8 rounded-2xl border p-5 sm:p-6">
             <div>
               <h2 className="text-base font-semibold text-primary">{t('sections.legal')}</h2>
               <p className="mt-1 text-sm text-secondary">{t('legalHint')}</p>
             </div>
-            <Field label={t('fields.privacyPolicyEn')}>
-              <textarea
-                value={form.privacyPolicyEn ?? ''}
-                onChange={(e) => updateField('privacyPolicyEn', e.target.value)}
-                rows={12}
-                className="select-field w-full py-2 font-mono text-sm"
-              />
-            </Field>
-            <Field label={t('fields.privacyPolicyAr')}>
-              <textarea
-                value={form.privacyPolicyAr ?? ''}
-                onChange={(e) => updateField('privacyPolicyAr', e.target.value)}
-                rows={12}
-                dir="rtl"
-                className="select-field w-full py-2 font-mono text-sm"
-              />
-            </Field>
-            <Field label={t('fields.termsOfServiceEn')}>
-              <textarea
-                value={form.termsOfServiceEn ?? ''}
-                onChange={(e) => updateField('termsOfServiceEn', e.target.value)}
-                rows={12}
-                className="select-field w-full py-2 font-mono text-sm"
-              />
-            </Field>
-            <Field label={t('fields.termsOfServiceAr')}>
-              <textarea
-                value={form.termsOfServiceAr ?? ''}
-                onChange={(e) => updateField('termsOfServiceAr', e.target.value)}
-                rows={12}
-                dir="rtl"
-                className="select-field w-full py-2 font-mono text-sm"
-              />
-            </Field>
+
+            <LegalPointsEditor
+              label={t('fields.privacyPolicyEn')}
+              points={form.privacyPolicyEn}
+              onChange={(points) => updatePoints('privacyPolicyEn', points)}
+            />
+            <LegalPointsEditor
+              label={t('fields.privacyPolicyAr')}
+              points={form.privacyPolicyAr}
+              onChange={(points) => updatePoints('privacyPolicyAr', points)}
+              dir="rtl"
+            />
+            <LegalPointsEditor
+              label={t('fields.termsOfServiceEn')}
+              points={form.termsOfServiceEn}
+              onChange={(points) => updatePoints('termsOfServiceEn', points)}
+            />
+            <LegalPointsEditor
+              label={t('fields.termsOfServiceAr')}
+              points={form.termsOfServiceAr}
+              onChange={(points) => updatePoints('termsOfServiceAr', points)}
+              dir="rtl"
+            />
           </section>
 
           <Button type="submit" disabled={saving} className="min-w-40">

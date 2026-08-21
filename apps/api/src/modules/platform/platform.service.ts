@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
-import type { SiteSettingsPublic, UpdateSiteSettingsInput } from '@rateq/types';
+import type { LegalDocumentPoint, SiteSettingsPublic, UpdateSiteSettingsInput } from '@rateq/types';
+import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../infrastructure/database/prisma.service';
 
 const DEFAULT_SETTINGS: SiteSettingsPublic = {
@@ -21,6 +22,60 @@ const DEFAULT_SETTINGS: SiteSettingsPublic = {
   termsOfServiceEn: null,
   termsOfServiceAr: null,
 };
+
+function parseLegalPoints(value: unknown): LegalDocumentPoint[] | null {
+  if (value == null) return null;
+  let raw: unknown = value;
+  if (typeof value === 'string') {
+    const trimmed = value.trim();
+    if (!trimmed) return null;
+    try {
+      raw = JSON.parse(trimmed);
+    } catch {
+      return null;
+    }
+  }
+  if (!Array.isArray(raw)) return null;
+
+  const points: LegalDocumentPoint[] = [];
+  for (const [index, item] of raw.entries()) {
+    if (!item || typeof item !== 'object') continue;
+    const record = item as Record<string, unknown>;
+    const title = typeof record.title === 'string' ? record.title.trim() : '';
+    const description = typeof record.description === 'string' ? record.description.trim() : '';
+    if (!title && !description) continue;
+    const id =
+      typeof record.id === 'string' && record.id.trim() ? record.id.trim() : `point-${index + 1}`;
+    const sortOrder =
+      typeof record.sortOrder === 'number' && Number.isFinite(record.sortOrder)
+        ? record.sortOrder
+        : index;
+    points.push({ id, title, description, sortOrder });
+  }
+
+  if (points.length === 0) return null;
+  return points.sort((a, b) => a.sortOrder - b.sortOrder || a.title.localeCompare(b.title));
+}
+
+function serializeLegalPoints(
+  points: LegalDocumentPoint[] | null | undefined,
+): Prisma.InputJsonValue | typeof Prisma.JsonNull | undefined {
+  if (points === undefined) return undefined;
+  if (points === null || points.length === 0) return Prisma.JsonNull;
+
+  const normalized = points
+    .map((point, index) => ({
+      id: point.id?.trim() || `point-${index + 1}`,
+      title: point.title.trim(),
+      description: point.description.trim(),
+      sortOrder: typeof point.sortOrder === 'number' ? point.sortOrder : index,
+    }))
+    .filter((point) => point.title.length > 0)
+    .sort((a, b) => a.sortOrder - b.sortOrder)
+    .map((point, index) => ({ ...point, sortOrder: index }));
+
+  return normalized.length > 0 ? normalized : Prisma.JsonNull;
+}
 
 @Injectable()
 export class PlatformService {
@@ -54,15 +109,20 @@ export class PlatformService {
       linkedinUrl: row.linkedinUrl,
       aboutTextEn: row.aboutTextEn ?? DEFAULT_SETTINGS.aboutTextEn,
       aboutTextAr: row.aboutTextAr ?? DEFAULT_SETTINGS.aboutTextAr,
-      privacyPolicyEn: row.privacyPolicyEn,
-      privacyPolicyAr: row.privacyPolicyAr,
-      termsOfServiceEn: row.termsOfServiceEn,
-      termsOfServiceAr: row.termsOfServiceAr,
+      privacyPolicyEn: parseLegalPoints(row.privacyPolicyEn),
+      privacyPolicyAr: parseLegalPoints(row.privacyPolicyAr),
+      termsOfServiceEn: parseLegalPoints(row.termsOfServiceEn),
+      termsOfServiceAr: parseLegalPoints(row.termsOfServiceAr),
     };
   }
 
   async updateSiteSettings(input: UpdateSiteSettingsInput): Promise<SiteSettingsPublic> {
-    const data = {
+    const privacyPolicyEn = serializeLegalPoints(input.privacyPolicyEn);
+    const privacyPolicyAr = serializeLegalPoints(input.privacyPolicyAr);
+    const termsOfServiceEn = serializeLegalPoints(input.termsOfServiceEn);
+    const termsOfServiceAr = serializeLegalPoints(input.termsOfServiceAr);
+
+    const data: Prisma.SiteSettingsUpdateInput = {
       ...(input.address !== undefined && { address: input.address?.trim() || null }),
       ...(input.phone !== undefined && { phone: input.phone?.trim() || null }),
       ...(input.email !== undefined && { email: input.email?.trim() || null }),
@@ -76,23 +136,15 @@ export class PlatformService {
       ...(input.linkedinUrl !== undefined && { linkedinUrl: input.linkedinUrl?.trim() || null }),
       ...(input.aboutTextEn !== undefined && { aboutTextEn: input.aboutTextEn?.trim() || null }),
       ...(input.aboutTextAr !== undefined && { aboutTextAr: input.aboutTextAr?.trim() || null }),
-      ...(input.privacyPolicyEn !== undefined && {
-        privacyPolicyEn: input.privacyPolicyEn?.trim() || null,
-      }),
-      ...(input.privacyPolicyAr !== undefined && {
-        privacyPolicyAr: input.privacyPolicyAr?.trim() || null,
-      }),
-      ...(input.termsOfServiceEn !== undefined && {
-        termsOfServiceEn: input.termsOfServiceEn?.trim() || null,
-      }),
-      ...(input.termsOfServiceAr !== undefined && {
-        termsOfServiceAr: input.termsOfServiceAr?.trim() || null,
-      }),
+      ...(privacyPolicyEn !== undefined && { privacyPolicyEn }),
+      ...(privacyPolicyAr !== undefined && { privacyPolicyAr }),
+      ...(termsOfServiceEn !== undefined && { termsOfServiceEn }),
+      ...(termsOfServiceAr !== undefined && { termsOfServiceAr }),
     };
 
     await this.prisma.siteSettings.upsert({
       where: { id: 'default' },
-      create: { id: 'default', ...data },
+      create: { id: 'default', ...(data as Prisma.SiteSettingsCreateInput) },
       update: data,
     });
 

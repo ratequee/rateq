@@ -1,5 +1,45 @@
-import { IsEmail, IsOptional, IsString, IsUrl, MaxLength, ValidateIf } from 'class-validator';
+import {
+  IsArray,
+  IsEmail,
+  IsInt,
+  IsOptional,
+  IsString,
+  IsUrl,
+  Max,
+  MaxLength,
+  Min,
+  MinLength,
+  ValidateIf,
+  ValidateNested,
+} from 'class-validator';
 import { ApiPropertyOptional } from '@nestjs/swagger';
+import { Type } from 'class-transformer';
+
+export class LegalDocumentPointDto {
+  @ApiPropertyOptional()
+  @IsString()
+  @MinLength(1)
+  @MaxLength(64)
+  id!: string;
+
+  @ApiPropertyOptional()
+  @IsString()
+  @MinLength(1)
+  @MaxLength(200)
+  title!: string;
+
+  @ApiPropertyOptional()
+  @IsString()
+  @MaxLength(20000)
+  description!: string;
+
+  @ApiPropertyOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(0)
+  @Max(10000)
+  sortOrder!: number;
+}
 
 export class UpdateSiteSettingsDto {
   @ApiPropertyOptional()
@@ -79,31 +119,35 @@ export class UpdateSiteSettingsDto {
   @MaxLength(2000)
   aboutTextAr?: string | null;
 
-  @ApiPropertyOptional()
+  @ApiPropertyOptional({ type: [LegalDocumentPointDto], nullable: true })
   @IsOptional()
   @ValidateIf((_, v) => v !== null)
-  @IsString()
-  @MaxLength(100000)
-  privacyPolicyEn?: string | null;
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => LegalDocumentPointDto)
+  privacyPolicyEn?: LegalDocumentPointDto[] | null;
 
-  @ApiPropertyOptional()
+  @ApiPropertyOptional({ type: [LegalDocumentPointDto], nullable: true })
   @IsOptional()
   @ValidateIf((_, v) => v !== null)
-  @IsString()
-  @MaxLength(100000)
-  privacyPolicyAr?: string | null;
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => LegalDocumentPointDto)
+  privacyPolicyAr?: LegalDocumentPointDto[] | null;
 
-  @ApiPropertyOptional()
+  @ApiPropertyOptional({ type: [LegalDocumentPointDto], nullable: true })
   @IsOptional()
   @ValidateIf((_, v) => v !== null)
-  @IsString()
-  @MaxLength(100000)
-  termsOfServiceEn?: string | null;
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => LegalDocumentPointDto)
+  termsOfServiceEn?: LegalDocumentPointDto[] | null;
 
-  @ApiPropertyOptional()
+  @ApiPropertyOptional({ type: [LegalDocumentPointDto], nullable: true })
   @IsOptional()
   @ValidateIf((_, v) => v !== null)
-  @IsString()
-  @MaxLength(100000)
-  termsOfServiceAr?: string | null;
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => LegalDocumentPointDto)
+  termsOfServiceAr?: LegalDocumentPointDto[] | null;
 }

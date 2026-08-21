@@ -1,3 +1,10 @@
+export interface LegalDocumentPoint {
+  id: string;
+  title: string;
+  description: string;
+  sortOrder: number;
+}
+
 export interface SiteSettingsPublic {
   address: string | null;
   phone: string | null;
@@ -10,10 +17,10 @@ export interface SiteSettingsPublic {
   linkedinUrl: string | null;
   aboutTextEn: string | null;
   aboutTextAr: string | null;
-  privacyPolicyEn: string | null;
-  privacyPolicyAr: string | null;
-  termsOfServiceEn: string | null;
-  termsOfServiceAr: string | null;
+  privacyPolicyEn: LegalDocumentPoint[] | null;
+  privacyPolicyAr: LegalDocumentPoint[] | null;
+  termsOfServiceEn: LegalDocumentPoint[] | null;
+  termsOfServiceAr: LegalDocumentPoint[] | null;
 }
 
 export interface UpdateSiteSettingsInput {
@@ -28,10 +35,10 @@ export interface UpdateSiteSettingsInput {
   linkedinUrl?: string | null;
   aboutTextEn?: string | null;
   aboutTextAr?: string | null;
-  privacyPolicyEn?: string | null;
-  privacyPolicyAr?: string | null;
-  termsOfServiceEn?: string | null;
-  termsOfServiceAr?: string | null;
+  privacyPolicyEn?: LegalDocumentPoint[] | null;
+  privacyPolicyAr?: LegalDocumentPoint[] | null;
+  termsOfServiceEn?: LegalDocumentPoint[] | null;
+  termsOfServiceAr?: LegalDocumentPoint[] | null;
 }
 
 export interface PlatformStats {

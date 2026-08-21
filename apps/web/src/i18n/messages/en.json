@@ -1402,7 +1402,16 @@
     "saveSuccess": "Site settings saved.",
     "saveError": "Could not save settings.",
     "loadError": "Could not load settings.",
-    "legalHint": "Leave a field empty to keep the built-in default page content. Use blank lines between paragraphs. Start a line with ## for a heading, or - for a bullet.",
+    "legalHint": "Add numbered points with a title and short description. Order here matches the public page sidebar and content. Leave a language empty to keep the built-in default for that language.",
+    "legalAddPoint": "Add point",
+    "legalRemovePoint": "Remove point",
+    "legalMoveUp": "Move up",
+    "legalMoveDown": "Move down",
+    "legalEmpty": "No points yet. Add one to replace the built-in content for this language.",
+    "legalPointTitle": "Title",
+    "legalPointTitlePlaceholder": "e.g. Agreement to these terms",
+    "legalPointDescription": "Short description",
+    "legalPointDescriptionPlaceholder": "Explain this point. Use a blank line between paragraphs.",
     "sections": {
       "contact": "Contact details",
       "social": "Social links",
@@ -1421,10 +1430,10 @@
       "linkedinUrl": "LinkedIn URL",
       "aboutTextEn": "About text (English)",
       "aboutTextAr": "About text (Arabic)",
-      "privacyPolicyEn": "Privacy Policy (English)",
-      "privacyPolicyAr": "Privacy Policy (Arabic)",
-      "termsOfServiceEn": "Terms & Conditions (English)",
-      "termsOfServiceAr": "Terms & Conditions (Arabic)"
+      "privacyPolicyEn": "Privacy Policy points (English)",
+      "privacyPolicyAr": "Privacy Policy points (Arabic)",
+      "termsOfServiceEn": "Terms & Conditions points (English)",
+      "termsOfServiceAr": "Terms & Conditions points (Arabic)"
     }
   },
   "adminCategories": {

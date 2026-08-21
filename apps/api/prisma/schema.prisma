@@ -656,10 +656,10 @@ model SiteSettings {
   linkedinUrl       String?  @map("linkedin_url")
   aboutTextEn       String?  @map("about_text_en") @db.Text
   aboutTextAr       String?  @map("about_text_ar") @db.Text
-  privacyPolicyEn   String?  @map("privacy_policy_en") @db.Text
-  privacyPolicyAr   String?  @map("privacy_policy_ar") @db.Text
-  termsOfServiceEn  String?  @map("terms_of_service_en") @db.Text
-  termsOfServiceAr  String?  @map("terms_of_service_ar") @db.Text
+  privacyPolicyEn   Json?    @map("privacy_policy_en")
+  privacyPolicyAr   Json?    @map("privacy_policy_ar")
+  termsOfServiceEn  Json?    @map("terms_of_service_en")
+  termsOfServiceAr  Json?    @map("terms_of_service_ar")
   updatedAt         DateTime @updatedAt @map("updated_at")
 
   @@map("site_settings")
