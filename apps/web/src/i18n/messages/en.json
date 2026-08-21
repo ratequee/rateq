@@ -593,6 +593,7 @@
     "checkEmailTitle": "Verify your email",
     "checkEmailSubtitle": "We sent a confirmation link to your inbox.",
     "checkEmailInstructions": "Open the email from Firebase and click the verification link. After verifying, return here and sign in to continue.",
+    "checkEmailSpamHint": "Can't find the email? Check your spam or junk folder, and mark it as Not spam so future messages arrive in your inbox.",
     "resendVerificationTitle": "Didn't receive the email?",
     "resendVerificationButton": "Resend verification email",
     "sendingVerificationEmail": "Sending...",
@@ -786,6 +787,7 @@
     "existingFile": "Current file",
     "viewExistingFile": "View current file",
     "saveReviewerProfile": "Save Profile",
+    "legalConsent": "I agree to the <privacy>Privacy Policy</privacy> and <terms>Terms & Conditions</terms>.",
     "submitCompanyProfile": "Submit for Verification",
     "reviewerSaved": "Profile saved. Welcome to your dashboard!",
     "companySubmitted": "Company profile submitted for admin review.",
@@ -802,6 +804,9 @@
     "accountTypeLocked": "This account type is already set and cannot be changed.",
     "resubmitCompanyProfile": "Resubmit for Verification",
     "companyPendingBanner": "Your company verification is pending. An admin will review your submission soon.",
+    "missingCategoriesTitle": "Category update required",
+    "missingCategoriesMessage": "Your company no longer has a valid category. Please add at least one category and subcategory on your profile so customers can find you.",
+    "missingCategoriesCta": "Update categories on profile",
     "companyRejectedBanner": "Your company verification was rejected. Please update your profile and submit again.",
     "companyLocked": "Your company profile cannot be edited while verification is pending.",
     "editProfile": "Edit profile",
@@ -820,6 +825,7 @@
       "companyNameInvalid": "Company name contains invalid characters",
       "crNumberInvalid": "Enter a valid CR number",
       "fixForm": "Please fix the highlighted fields before continuing.",
+      "legalRequired": "Please accept the Privacy Policy and Terms & Conditions to continue.",
       "phoneNotVerified": "Verify your phone number via SMS before continuing.",
       "uploadPermissionDenied": "File upload was denied. In Firebase Console → Storage → Rules, publish the rules from docs/firebase-storage.rules in this repo.",
       "locationRequired": "Search your address or pin a location on the map to set city and country.",
@@ -1389,17 +1395,19 @@
   },
   "adminSettings": {
     "title": "Site settings",
-    "subtitle": "Update footer contact details, social links, and about text shown on the public site.",
+    "subtitle": "Update footer contact details, social links, about text, and legal pages shown on the public site.",
     "loading": "Loading settings…",
     "save": "Save settings",
     "saving": "Saving…",
     "saveSuccess": "Site settings saved.",
     "saveError": "Could not save settings.",
     "loadError": "Could not load settings.",
+    "legalHint": "Leave a field empty to keep the built-in default page content. Use blank lines between paragraphs. Start a line with ## for a heading, or - for a bullet.",
     "sections": {
       "contact": "Contact details",
       "social": "Social links",
-      "about": "About text"
+      "about": "About text",
+      "legal": "Privacy & terms"
     },
     "fields": {
       "address": "Address",
@@ -1412,7 +1420,11 @@
       "youtubeUrl": "YouTube URL",
       "linkedinUrl": "LinkedIn URL",
       "aboutTextEn": "About text (English)",
-      "aboutTextAr": "About text (Arabic)"
+      "aboutTextAr": "About text (Arabic)",
+      "privacyPolicyEn": "Privacy Policy (English)",
+      "privacyPolicyAr": "Privacy Policy (Arabic)",
+      "termsOfServiceEn": "Terms & Conditions (English)",
+      "termsOfServiceAr": "Terms & Conditions (Arabic)"
     }
   },
   "adminCategories": {
@@ -1471,7 +1483,11 @@
     "subcategoryCreateError": "Could not add subcategory.",
     "subcategoryUpdateError": "Could not update subcategory.",
     "subcategoryDeleteError": "Could not remove subcategory.",
-    "subcategoryDeleteConfirm": "Delete this subcategory? Companies linked to it will keep the ID until updated."
+    "subcategoryDeleteConfirm": "Delete this subcategory? Companies linked to it will keep the ID until updated.",
+    "moveUp": "Move up",
+    "moveDown": "Move down",
+    "orderUpdated": "Category order updated.",
+    "orderError": "Could not update category order."
   },
   "adminTeam": {
     "title": "Admin team",

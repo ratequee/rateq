@@ -452,7 +452,7 @@ export function AdminDirectoryPanel() {
   const tabs: Array<{ id: DirectoryTab; label: string; icon: typeof Users; count?: number }> = [
     { id: 'reviewers', label: t('tabs.reviewers'), icon: Users, count: stats?.totalReviewers },
     { id: 'companies', label: t('tabs.companies'), icon: Building2, count: stats?.totalCompanies },
-    { id: 'reviews', label: t('tabs.reviews'), icon: Star, count: stats?.totalReviews },
+    { id: 'reviews', label: t('tabs.reviews'), icon: Star, count: stats?.pendingReviews },
     {
       id: 'projects',
       label: t('tabs.projects'),

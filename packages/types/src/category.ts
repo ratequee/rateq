@@ -21,6 +21,7 @@ export interface CategoryPublic {
   nameAr: string;
   slug: string;
   iconUrl?: string | null;
+  sortOrder?: number;
   companyCount?: number;
   services?: CategoryServicePublic[];
   subcategories?: CategorySubcategoryPublic[];
@@ -37,6 +38,7 @@ export interface UpdateCategoryInput {
   nameEn?: string;
   nameAr?: string;
   iconUrl?: string | null;
+  sortOrder?: number;
 }
 
 export interface CreateCategorySubcategoryInput {

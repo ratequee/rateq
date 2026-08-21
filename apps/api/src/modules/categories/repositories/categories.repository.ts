@@ -14,13 +14,17 @@ export class CategoriesRepository {
 
   findAll(): Promise<CategoryWithRelations[]> {
     return this.prisma.category.findMany({
-      orderBy: { createdAt: 'asc' },
+      orderBy: [{ sortOrder: 'asc' }, { createdAt: 'asc' }],
       include: {
         _count: { select: { companies: true } },
         services: { orderBy: [{ sortOrder: 'asc' }, { name: 'asc' }] },
         subcategories: { orderBy: [{ sortOrder: 'asc' }, { nameEn: 'asc' }] },
       },
     });
+  }
+
+  count(): Promise<number> {
+    return this.prisma.category.count();
   }
 
   findById(id: string): Promise<Category | null> {

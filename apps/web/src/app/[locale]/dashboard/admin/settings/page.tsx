@@ -29,6 +29,10 @@ const EMPTY_FORM: UpdateSiteSettingsInput = {
   linkedinUrl: '',
   aboutTextEn: '',
   aboutTextAr: '',
+  privacyPolicyEn: '',
+  privacyPolicyAr: '',
+  termsOfServiceEn: '',
+  termsOfServiceAr: '',
 };
 
 function toForm(settings: SiteSettingsPublic): UpdateSiteSettingsInput {
@@ -44,6 +48,10 @@ function toForm(settings: SiteSettingsPublic): UpdateSiteSettingsInput {
     linkedinUrl: settings.linkedinUrl ?? '',
     aboutTextEn: settings.aboutTextEn ?? '',
     aboutTextAr: settings.aboutTextAr ?? '',
+    privacyPolicyEn: settings.privacyPolicyEn ?? '',
+    privacyPolicyAr: settings.privacyPolicyAr ?? '',
+    termsOfServiceEn: settings.termsOfServiceEn ?? '',
+    termsOfServiceAr: settings.termsOfServiceAr ?? '',
   };
 }
 
@@ -64,6 +72,10 @@ function toPayload(form: UpdateSiteSettingsInput): UpdateSiteSettingsInput {
     linkedinUrl: normalize(form.linkedinUrl),
     aboutTextEn: normalize(form.aboutTextEn),
     aboutTextAr: normalize(form.aboutTextAr),
+    privacyPolicyEn: normalize(form.privacyPolicyEn),
+    privacyPolicyAr: normalize(form.privacyPolicyAr),
+    termsOfServiceEn: normalize(form.termsOfServiceEn),
+    termsOfServiceAr: normalize(form.termsOfServiceAr),
   };
 }
 
@@ -217,6 +229,47 @@ export default function AdminSiteSettingsPage() {
                 rows={4}
                 dir="rtl"
                 className="select-field w-full py-2"
+              />
+            </Field>
+          </section>
+
+          <section className="surface-card space-y-4 rounded-2xl border p-5 sm:p-6">
+            <div>
+              <h2 className="text-base font-semibold text-primary">{t('sections.legal')}</h2>
+              <p className="mt-1 text-sm text-secondary">{t('legalHint')}</p>
+            </div>
+            <Field label={t('fields.privacyPolicyEn')}>
+              <textarea
+                value={form.privacyPolicyEn ?? ''}
+                onChange={(e) => updateField('privacyPolicyEn', e.target.value)}
+                rows={12}
+                className="select-field w-full py-2 font-mono text-sm"
+              />
+            </Field>
+            <Field label={t('fields.privacyPolicyAr')}>
+              <textarea
+                value={form.privacyPolicyAr ?? ''}
+                onChange={(e) => updateField('privacyPolicyAr', e.target.value)}
+                rows={12}
+                dir="rtl"
+                className="select-field w-full py-2 font-mono text-sm"
+              />
+            </Field>
+            <Field label={t('fields.termsOfServiceEn')}>
+              <textarea
+                value={form.termsOfServiceEn ?? ''}
+                onChange={(e) => updateField('termsOfServiceEn', e.target.value)}
+                rows={12}
+                className="select-field w-full py-2 font-mono text-sm"
+              />
+            </Field>
+            <Field label={t('fields.termsOfServiceAr')}>
+              <textarea
+                value={form.termsOfServiceAr ?? ''}
+                onChange={(e) => updateField('termsOfServiceAr', e.target.value)}
+                rows={12}
+                dir="rtl"
+                className="select-field w-full py-2 font-mono text-sm"
               />
             </Field>
           </section>

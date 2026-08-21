@@ -17,7 +17,6 @@ import { ApiError } from '@/lib/api';
 import { getFirebaseStorageErrorMessage } from '@/lib/firebase/errors';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { useRouter } from '@/i18n/routing';
 import {
   canAccessDashboard,
   getLockedAccountType,
@@ -45,6 +44,7 @@ import { CompanyProfileMultiStepFields } from '@/components/profile/company-prof
 import type { CompanyMapLocation } from '@/lib/company-location';
 import { Building2, ExternalLink, FileText, Upload, UserRound, X } from 'lucide-react';
 import type { CategoryPublic, CompanyCatalogItemPublic } from '@rateq/types';
+import { Link, useRouter } from '@/i18n/routing';
 import { useTranslations } from 'next-intl';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { toast } from 'sonner';
@@ -73,6 +73,7 @@ export default function CompleteProfilePage() {
 
   const [accountType, setAccountType] = useState<AccountType>('reviewer');
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [acceptedLegal, setAcceptedLegal] = useState(false);
 
   const [fullName, setFullName] = useState('');
   const [phone, setPhone] = useState('');
@@ -439,6 +440,12 @@ export default function CompleteProfilePage() {
 
     if (companyPending) return;
 
+    if (!acceptedLegal) {
+      setErrors((current) => ({ ...current, acceptedLegal: t('errors.legalRequired') }));
+      toast.error(t('errors.legalRequired'));
+      return;
+    }
+
     if (lockedAccountType && accountType !== lockedAccountType) {
       toast.error(t('accountTypeLocked'));
       return;
@@ -792,20 +799,66 @@ export default function CompleteProfilePage() {
               )}
 
               {(accountType === 'reviewer' || companyStep === 3) && (
-                <Button
-                  type="submit"
-                  size="lg"
-                  className="mt-4 w-full bg-gold-400 text-white hover:bg-gold-500"
-                  disabled={submitting}
-                >
-                  {submitting
-                    ? t('saving')
-                    : accountType === 'reviewer'
-                      ? t('saveReviewerProfile')
-                      : companyRevisionRequested
-                        ? t('resubmitCompanyProfile')
-                        : t('submitCompanyProfile')}
-                </Button>
+                <>
+                  <label
+                    data-field="acceptedLegal"
+                    className="mt-4 flex items-start gap-3 rounded-xl border border-subtle bg-slate-50/80 p-4 text-sm leading-relaxed text-ink dark:bg-dm-elevated dark:text-white"
+                  >
+                    <input
+                      type="checkbox"
+                      checked={acceptedLegal}
+                      onChange={(e) => {
+                        setAcceptedLegal(e.target.checked);
+                        setErrors((current) => {
+                          const next = { ...current };
+                          delete next.acceptedLegal;
+                          return next;
+                        });
+                      }}
+                      className="mt-1 h-4 w-4 shrink-0 rounded border-slate-300 text-brand-500 focus:ring-brand-500"
+                    />
+                    <span>
+                      {t.rich('legalConsent', {
+                        privacy: (chunks) => (
+                          <Link
+                            href="/privacy"
+                            target="_blank"
+                            className="font-semibold text-brand-500 underline-offset-2 hover:underline"
+                          >
+                            {chunks}
+                          </Link>
+                        ),
+                        terms: (chunks) => (
+                          <Link
+                            href="/terms"
+                            target="_blank"
+                            className="font-semibold text-brand-500 underline-offset-2 hover:underline"
+                          >
+                            {chunks}
+                          </Link>
+                        ),
+                      })}
+                      <span className="text-red-500"> *</span>
+                    </span>
+                  </label>
+                  {errors.acceptedLegal ? (
+                    <p className="text-xs text-red-500">{errors.acceptedLegal}</p>
+                  ) : null}
+                  <Button
+                    type="submit"
+                    size="lg"
+                    className="mt-4 w-full bg-gold-400 text-white hover:bg-gold-500"
+                    disabled={submitting}
+                  >
+                    {submitting
+                      ? t('saving')
+                      : accountType === 'reviewer'
+                        ? t('saveReviewerProfile')
+                        : companyRevisionRequested
+                          ? t('resubmitCompanyProfile')
+                          : t('submitCompanyProfile')}
+                  </Button>
+                </>
               )}
             </form>
           )}

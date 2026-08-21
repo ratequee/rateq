@@ -25,6 +25,19 @@ import { CategorySubcategoriesRepository } from './repositories/category-subcate
 import { toCategoryPublic } from './mappers/category.mapper';
 import { toCategoryServicePublic } from './mappers/category-service.mapper';
 import { toCategorySubcategoryPublic } from './mappers/category-subcategory.mapper';
+import { PrismaService } from '../../infrastructure/database/prisma.service';
+
+function parseCompanyIdList(value: unknown): string[] {
+  if (typeof value === 'string') {
+    const trimmed = value.trim();
+    return trimmed ? [trimmed] : [];
+  }
+  if (!Array.isArray(value)) return [];
+  return value
+    .filter((item): item is string => typeof item === 'string')
+    .map((item) => item.trim())
+    .filter(Boolean);
+}
 
 @Injectable()
 export class CategoriesService {
@@ -32,6 +45,7 @@ export class CategoriesService {
     private readonly categoriesRepository: CategoriesRepository,
     private readonly categoryServicesRepository: CategoryServicesRepository,
     private readonly categorySubcategoriesRepository: CategorySubcategoriesRepository,
+    private readonly prisma: PrismaService,
   ) {}
 
   async listPublic(): Promise<CategoriesListResponse> {
@@ -58,10 +72,12 @@ export class CategoriesService {
     }
 
     const slug = await this.generateUniqueSlug(nameEn);
+    const sortOrder = await this.categoriesRepository.count();
     const category = await this.categoriesRepository.create({
       nameEn,
       nameAr,
       slug,
+      sortOrder,
       ...(input.iconUrl !== undefined ? { iconUrl: input.iconUrl?.trim() || null } : {}),
     });
     return toCategoryPublic(category);
@@ -92,6 +108,7 @@ export class CategoriesService {
         ...(nameEn !== undefined && { nameEn, ...(slug ? { slug } : {}) }),
         ...(nameAr !== undefined && { nameAr }),
         ...(input.iconUrl !== undefined && { iconUrl: input.iconUrl?.trim() || null }),
+        ...(input.sortOrder !== undefined && { sortOrder: input.sortOrder }),
       });
 
       return toCategoryPublic(updated);
@@ -229,7 +246,25 @@ export class CategoriesService {
       throw new NotFoundException('Subcategory not found for this category');
     }
 
-    await this.categorySubcategoriesRepository.delete(subcategoryId);
+    await this.prisma.$transaction(async (tx) => {
+      const companies = await tx.company.findMany({
+        where: { subcategoryIds: { array_contains: [subcategoryId] } },
+        select: { id: true, subcategoryIds: true },
+      });
+
+      for (const company of companies) {
+        const nextSubcategoryIds = parseCompanyIdList(company.subcategoryIds).filter(
+          (id) => id !== subcategoryId,
+        );
+        await tx.company.update({
+          where: { id: company.id },
+          data: { subcategoryIds: nextSubcategoryIds },
+        });
+      }
+
+      await tx.categorySubcategory.delete({ where: { id: subcategoryId } });
+    });
+
     return { message: 'Subcategory deleted successfully' };
   }
 
@@ -286,8 +321,63 @@ export class CategoriesService {
       throw new NotFoundException('Category not found');
     }
 
-    await this.categoriesRepository.delete(id);
+    const subcategoryIds = (await this.categorySubcategoriesRepository.findByCategoryId(id)).map(
+      (item) => item.id,
+    );
+
+    await this.prisma.$transaction(async (tx) => {
+      await this.scrubCompaniesAfterCategoryRemoval(tx, id, subcategoryIds);
+      await tx.category.delete({ where: { id } });
+    });
+
     return { message: 'Category deleted successfully' };
+  }
+
+  private async scrubCompaniesAfterCategoryRemoval(
+    tx: Prisma.TransactionClient,
+    categoryId: string,
+    removedSubcategoryIds: string[],
+  ): Promise<void> {
+    const removedSubSet = new Set(removedSubcategoryIds);
+    const companies = await tx.company.findMany({
+      where: {
+        OR: [
+          { categoryId },
+          { categoryIds: { array_contains: [categoryId] } },
+          ...(removedSubcategoryIds.length > 0
+            ? removedSubcategoryIds.map((subcategoryId) => ({
+                subcategoryIds: { array_contains: [subcategoryId] },
+              }))
+            : []),
+        ],
+      },
+      select: {
+        id: true,
+        categoryId: true,
+        categoryIds: true,
+        subcategoryIds: true,
+      },
+    });
+
+    for (const company of companies) {
+      const nextCategoryIds = parseCompanyIdList(company.categoryIds).filter(
+        (id) => id !== categoryId,
+      );
+      const nextSubcategoryIds = parseCompanyIdList(company.subcategoryIds).filter(
+        (id) => !removedSubSet.has(id),
+      );
+      const nextPrimary =
+        company.categoryId === categoryId ? (nextCategoryIds[0] ?? null) : company.categoryId;
+
+      await tx.company.update({
+        where: { id: company.id },
+        data: {
+          categoryId: nextPrimary,
+          categoryIds: nextCategoryIds,
+          subcategoryIds: nextSubcategoryIds,
+        },
+      });
+    }
   }
 
   async assertExists(id: string): Promise<void> {

@@ -83,6 +83,26 @@ export function validateSubcategorySelection(
   return undefined;
 }
 
+/** True when the company has no live categories, or is missing a required subcategory. */
+export function companyNeedsCategorySelection(
+  categories: CategoryPublic[],
+  categoryIds: string[],
+  subcategoryIds: string[],
+  categoryItemsLength?: number,
+): boolean {
+  if (categories.length === 0) {
+    return (categoryItemsLength ?? categoryIds.length) === 0;
+  }
+
+  const liveIds = new Set(categories.map((category) => category.id));
+  const validCategoryIds = categoryIds.filter((id) => liveIds.has(id));
+  if (validCategoryIds.length === 0) return true;
+
+  return Boolean(
+    validateSubcategorySelection(categories, validCategoryIds, subcategoryIds, 'required'),
+  );
+}
+
 export function validateReviewerProfileFields(
   fields: {
     fullName: string;

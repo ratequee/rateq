@@ -2,6 +2,7 @@
 
 import { CompanyOverview } from '@/components/dashboard/company-overview';
 import { DashboardShell } from '@/components/dashboard/dashboard-shell';
+import { MissingCategoriesBanner } from '@/components/dashboard/missing-categories-banner';
 import { useAuth } from '@/components/providers/auth-provider';
 import { useProfile } from '@/components/providers/profile-provider';
 import {
@@ -11,10 +12,12 @@ import {
 import { isCompanyPendingApproval, isCompanyRevisionRequested } from '@/lib/profile-routing';
 import { companiesApi } from '@/lib/api';
 import { ensureValidAccessToken } from '@/lib/auth-session';
-import type { CompanyDashboard } from '@rateq/types';
+import { fetchCategoriesClient } from '@/lib/categories-api';
+import { companyNeedsCategorySelection } from '@/lib/validation/profile-fields';
+import type { CategoryPublic, CompanyDashboard } from '@rateq/types';
 import { useRouter } from '@/i18n/routing';
 import { useTranslations } from 'next-intl';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
 export default function CompanyDashboardPage() {
   const t = useTranslations('dashboardShell');
@@ -33,6 +36,13 @@ export default function CompanyDashboardPage() {
   }, [onboarding, profileLoading, router, user]);
 
   const [dashboard, setDashboard] = useState<CompanyDashboard | null>(null);
+  const [categories, setCategories] = useState<CategoryPublic[]>([]);
+
+  useEffect(() => {
+    void fetchCategoriesClient()
+      .then(setCategories)
+      .catch(() => setCategories([]));
+  }, []);
 
   useEffect(() => {
     if (authLoading || !user) return;
@@ -54,6 +64,22 @@ export default function CompanyDashboardPage() {
 
   const companyName = dashboard?.company.name ?? onboarding?.company?.name ?? t('companyFallback');
 
+  const showMissingCategoriesWarning = useMemo(() => {
+    const company = onboarding?.company;
+    if (!company) return false;
+    const categoryIds = company.categoryIds?.length
+      ? company.categoryIds
+      : company.categoryId
+        ? [company.categoryId]
+        : [];
+    return companyNeedsCategorySelection(
+      categories,
+      categoryIds,
+      company.subcategoryIds ?? [],
+      company.categoryItems?.length,
+    );
+  }, [categories, onboarding?.company]);
+
   return (
     <DashboardShell role="company">
       {status === 'pending' && (
@@ -61,6 +87,8 @@ export default function CompanyDashboardPage() {
           {tp('companyPendingBanner')}
         </div>
       )}
+
+      {showMissingCategoriesWarning ? <MissingCategoriesBanner linkToProfile /> : null}
 
       <CompanyOverview title={t('companyTitle', { name: companyName })} dashboard={dashboard} />
     </DashboardShell>

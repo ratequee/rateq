@@ -91,6 +91,7 @@ function CheckEmailContent() {
 
         <div className="mt-8 space-y-4 rounded-xl border border-brand-100 bg-brand-50/40 p-4 text-sm leading-relaxed text-ink-muted dark:border-brand-900/60 dark:bg-brand-950/30 dark:text-slate-200">
           <p>{tp('checkEmailInstructions')}</p>
+          <p>{tp('checkEmailSpamHint')}</p>
         </div>
 
         <form onSubmit={handleResend} className="mt-6 space-y-4">

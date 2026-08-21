@@ -10,6 +10,10 @@ export interface SiteSettingsPublic {
   linkedinUrl: string | null;
   aboutTextEn: string | null;
   aboutTextAr: string | null;
+  privacyPolicyEn: string | null;
+  privacyPolicyAr: string | null;
+  termsOfServiceEn: string | null;
+  termsOfServiceAr: string | null;
 }
 
 export interface UpdateSiteSettingsInput {
@@ -24,6 +28,10 @@ export interface UpdateSiteSettingsInput {
   linkedinUrl?: string | null;
   aboutTextEn?: string | null;
   aboutTextAr?: string | null;
+  privacyPolicyEn?: string | null;
+  privacyPolicyAr?: string | null;
+  termsOfServiceEn?: string | null;
+  termsOfServiceAr?: string | null;
 }
 
 export interface PlatformStats {

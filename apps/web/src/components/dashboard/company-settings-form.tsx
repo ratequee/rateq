@@ -6,6 +6,7 @@ import {
   ProfileChangesPendingBanner,
   profileUpdateSuccessMessage,
 } from '@/components/dashboard/profile-changes-pending-banner';
+import { MissingCategoriesBanner } from '@/components/dashboard/missing-categories-banner';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { QatarPhoneInput } from '@/components/ui/qatar-phone-input';
@@ -16,6 +17,7 @@ import { fetchCategoriesClient } from '@/lib/categories-api';
 import { ApiError } from '@/lib/api';
 import { ensureValidAccessToken } from '@/lib/auth-session';
 import {
+  companyNeedsCategorySelection,
   filterSubcategoryIdsForCategories,
   hasValidationErrors,
   validateCompanySettingsFields,
@@ -23,7 +25,7 @@ import {
 import type { CompanyMapLocation } from '@/lib/company-location';
 import type { CategoryPublic, CompanyProfileDetail } from '@rateq/types';
 import { useTranslations } from 'next-intl';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 
 function buildCompanyLocation(company: CompanyProfileDetail): CompanyMapLocation | null {
@@ -64,6 +66,27 @@ function CompanySettingsForm({ company }: { company: CompanyProfileDetail }) {
   useEffect(() => {
     void fetchCategoriesClient().then(setCategories);
   }, []);
+
+  useEffect(() => {
+    if (categories.length === 0) return;
+    const liveIds = new Set(categories.map((category) => category.id));
+    setCategoryIds((current) => {
+      const next = current.filter((id) => liveIds.has(id));
+      setSubcategoryIds((subs) => filterSubcategoryIdsForCategories(categories, next, subs));
+      return next.length === current.length ? current : next;
+    });
+  }, [categories]);
+
+  const showMissingCategoriesWarning = useMemo(
+    () =>
+      companyNeedsCategorySelection(
+        categories,
+        categoryIds,
+        subcategoryIds,
+        company.categoryItems?.length,
+      ),
+    [categories, categoryIds, subcategoryIds, company.categoryItems?.length],
+  );
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -126,64 +149,67 @@ function CompanySettingsForm({ company }: { company: CompanyProfileDetail }) {
   };
 
   return (
-    <form
-      onSubmit={handleSubmit}
-      className="mb-6 space-y-4 rounded-2xl surface-card border p-6 shadow-sm"
-    >
-      <div>
-        <h2 className="text-lg font-semibold text-primary">{t('companyDetailsTitle')}</h2>
-        <p className="mt-1 text-sm text-secondary">{t('companyDetailsSubtitle')}</p>
-        {pendingApproval ? <ProfileChangesPendingBanner /> : null}
-      </div>
+    <>
+      {showMissingCategoriesWarning ? <MissingCategoriesBanner /> : null}
+      <form
+        onSubmit={handleSubmit}
+        className="mb-6 space-y-4 rounded-2xl surface-card border p-6 shadow-sm"
+      >
+        <div>
+          <h2 className="text-lg font-semibold text-primary">{t('companyDetailsTitle')}</h2>
+          <p className="mt-1 text-sm text-secondary">{t('companyDetailsSubtitle')}</p>
+          {pendingApproval ? <ProfileChangesPendingBanner /> : null}
+        </div>
 
-      <Field label={t('companyName')} error={errors.companyName} required>
-        <Input
-          value={companyName}
-          onChange={(e) => setCompanyName(e.target.value)}
-          className="h-11"
+        <Field label={t('companyName')} error={errors.companyName} required>
+          <Input
+            value={companyName}
+            onChange={(e) => setCompanyName(e.target.value)}
+            className="h-11"
+          />
+        </Field>
+        <CompanyAddressMapField
+          address={companyAddress}
+          city={companyCity}
+          country={companyCountry}
+          location={companyLocation}
+          onAddressChange={setCompanyAddress}
+          onCityChange={setCompanyCity}
+          onCountryChange={setCompanyCountry}
+          onLocationChange={setCompanyLocation}
+          addressError={errors.companyAddress}
+          locationError={errors.companyLocation}
+          fieldKey="companyAddress"
         />
-      </Field>
-      <CompanyAddressMapField
-        address={companyAddress}
-        city={companyCity}
-        country={companyCountry}
-        location={companyLocation}
-        onAddressChange={setCompanyAddress}
-        onCityChange={setCompanyCity}
-        onCountryChange={setCompanyCountry}
-        onLocationChange={setCompanyLocation}
-        addressError={errors.companyAddress}
-        locationError={errors.companyLocation}
-        fieldKey="companyAddress"
-      />
-      <Field label={t('phone')} error={errors.companyPhone} required>
-        <QatarPhoneInput
-          value={companyPhone}
-          readOnly
-          disabled
-          className="bg-slate-50 dark:bg-dm-elevated"
+        <Field label={t('phone')} error={errors.companyPhone} required>
+          <QatarPhoneInput
+            value={companyPhone}
+            readOnly
+            disabled
+            className="bg-slate-50 dark:bg-dm-elevated"
+          />
+        </Field>
+        <CategorySubcategoryPicker
+          label={t('category')}
+          hint={t('categoriesSubcategoriesHint')}
+          categories={categories}
+          selectedCategoryIds={categoryIds}
+          selectedSubcategoryIds={subcategoryIds}
+          onCategoryChange={(ids) => {
+            setCategoryIds(ids);
+            setSubcategoryIds((current) =>
+              filterSubcategoryIdsForCategories(categories, ids, current),
+            );
+          }}
+          onSubcategoryChange={setSubcategoryIds}
+          categoryError={errors.categoryId}
+          subcategoryError={errors.subcategoryIds}
         />
-      </Field>
-      <CategorySubcategoryPicker
-        label={t('category')}
-        hint={t('categoriesSubcategoriesHint')}
-        categories={categories}
-        selectedCategoryIds={categoryIds}
-        selectedSubcategoryIds={subcategoryIds}
-        onCategoryChange={(ids) => {
-          setCategoryIds(ids);
-          setSubcategoryIds((current) =>
-            filterSubcategoryIdsForCategories(categories, ids, current),
-          );
-        }}
-        onSubcategoryChange={setSubcategoryIds}
-        categoryError={errors.categoryId}
-        subcategoryError={errors.subcategoryIds}
-      />
-      <Button type="submit" disabled={submitting} className="w-full">
-        {submitting ? t('saving') : t('saveChanges')}
-      </Button>
-    </form>
+        <Button type="submit" disabled={submitting} className="w-full">
+          {submitting ? t('saving') : t('saveChanges')}
+        </Button>
+      </form>
+    </>
   );
 }
 

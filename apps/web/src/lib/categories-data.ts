@@ -24,9 +24,8 @@ export function getFeaturedCategories(
   categories: CategoriesListResponse,
   limit = 6,
 ): CategoryPublic[] {
-  return [...categories]
-    .sort((a, b) => (b.companyCount ?? 0) - (a.companyCount ?? 0))
-    .slice(0, limit);
+  // Preserve admin-managed sort order from the API.
+  return categories.slice(0, limit);
 }
 
 export function getRelatedCategories(

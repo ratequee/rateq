@@ -226,6 +226,7 @@ model Category {
   nameAr    String   @map("name_ar")
   slug      String   @unique
   iconUrl   String?  @map("icon_url")
+  sortOrder Int      @default(0) @map("sort_order")
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
@@ -233,6 +234,7 @@ model Category {
   services      CategoryService[]
   subcategories CategorySubcategory[]
 
+  @@index([sortOrder])
   @@map("categories")
 }
 
@@ -642,19 +644,23 @@ model BlogPostTranslation {
 // ---------------------------------------------------------------------------
 
 model SiteSettings {
-  id           String   @id @default("default")
-  address      String?
-  phone        String?
-  email        String?
-  website      String?
-  instagramUrl String?  @map("instagram_url")
-  facebookUrl  String?  @map("facebook_url")
-  twitterUrl   String?  @map("twitter_url")
-  youtubeUrl   String?  @map("youtube_url")
-  linkedinUrl  String?  @map("linkedin_url")
-  aboutTextEn  String?  @map("about_text_en") @db.Text
-  aboutTextAr  String?  @map("about_text_ar") @db.Text
-  updatedAt    DateTime @updatedAt @map("updated_at")
+  id                String   @id @default("default")
+  address           String?
+  phone             String?
+  email             String?
+  website           String?
+  instagramUrl      String?  @map("instagram_url")
+  facebookUrl       String?  @map("facebook_url")
+  twitterUrl        String?  @map("twitter_url")
+  youtubeUrl        String?  @map("youtube_url")
+  linkedinUrl       String?  @map("linkedin_url")
+  aboutTextEn       String?  @map("about_text_en") @db.Text
+  aboutTextAr       String?  @map("about_text_ar") @db.Text
+  privacyPolicyEn   String?  @map("privacy_policy_en") @db.Text
+  privacyPolicyAr   String?  @map("privacy_policy_ar") @db.Text
+  termsOfServiceEn  String?  @map("terms_of_service_en") @db.Text
+  termsOfServiceAr  String?  @map("terms_of_service_ar") @db.Text
+  updatedAt         DateTime @updatedAt @map("updated_at")
 
   @@map("site_settings")
 }

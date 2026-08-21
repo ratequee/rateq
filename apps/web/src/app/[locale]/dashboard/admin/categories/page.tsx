@@ -12,7 +12,7 @@ import { ApiError } from '@/lib/api';
 import { AdminPermission } from '@rateq/types';
 import type { CategoryPublic, CompanyCatalogType } from '@rateq/types';
 import { cn } from '@/lib/utils';
-import { Loader2, Pencil, Plus, Trash2, X } from 'lucide-react';
+import { Loader2, Pencil, Plus, Trash2, X, ChevronUp, ChevronDown } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { useCallback, useEffect, useState } from 'react';
 import { toast } from 'sonner';
@@ -85,6 +85,36 @@ export default function AdminCategoriesPage() {
   const handleCatalogCountChange = useCallback((type: CompanyCatalogType, count: number) => {
     setCatalogCounts((current) => ({ ...current, [type]: count }));
   }, []);
+
+  const handleMoveCategory = async (categoryId: string, direction: 'up' | 'down') => {
+    const index = categories.findIndex((item) => item.id === categoryId);
+    if (index < 0) return;
+    const swapIndex = direction === 'up' ? index - 1 : index + 1;
+    if (swapIndex < 0 || swapIndex >= categories.length) return;
+
+    const current = categories[index]!;
+    const neighbor = categories[swapIndex]!;
+    const currentOrder = current.sortOrder ?? index;
+    const neighborOrder = neighbor.sortOrder ?? swapIndex;
+
+    setCategories((prev) => {
+      const next = [...prev];
+      next[index] = { ...neighbor, sortOrder: currentOrder };
+      next[swapIndex] = { ...current, sortOrder: neighborOrder };
+      return next;
+    });
+
+    try {
+      await Promise.all([
+        adminApi.updateCategory(current.id, { sortOrder: neighborOrder }),
+        adminApi.updateCategory(neighbor.id, { sortOrder: currentOrder }),
+      ]);
+      toast.success(t('orderUpdated'));
+    } catch (err) {
+      toast.error(err instanceof ApiError ? err.message : t('orderError'));
+      await loadCategories();
+    }
+  };
 
   const handleCreate = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -373,6 +403,26 @@ export default function AdminCategoriesPage() {
                             </div>
                           </div>
                           <div className="flex shrink-0 gap-1">
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              disabled={categories[0]?.id === category.id}
+                              onClick={() => void handleMoveCategory(category.id, 'up')}
+                              aria-label={t('moveUp')}
+                            >
+                              <ChevronUp className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              disabled={categories[categories.length - 1]?.id === category.id}
+                              onClick={() => void handleMoveCategory(category.id, 'down')}
+                              aria-label={t('moveDown')}
+                            >
+                              <ChevronDown className="h-4 w-4" />
+                            </Button>
                             <Button
                               type="button"
                               variant="ghost"

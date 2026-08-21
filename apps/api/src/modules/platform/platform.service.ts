@@ -16,6 +16,10 @@ const DEFAULT_SETTINGS: SiteSettingsPublic = {
     'Modern lifestyles call for protected consumption habits. RateQ offers the most objective company reviews in Qatar.',
   aboutTextAr:
     'أنماط الحياة الحديثة تتطلب عادات استهلاك محمية. تقدم RateQ أكثر مراجعات الشركات موضوعية في قطر.',
+  privacyPolicyEn: null,
+  privacyPolicyAr: null,
+  termsOfServiceEn: null,
+  termsOfServiceAr: null,
 };
 
 @Injectable()
@@ -50,6 +54,10 @@ export class PlatformService {
       linkedinUrl: row.linkedinUrl,
       aboutTextEn: row.aboutTextEn ?? DEFAULT_SETTINGS.aboutTextEn,
       aboutTextAr: row.aboutTextAr ?? DEFAULT_SETTINGS.aboutTextAr,
+      privacyPolicyEn: row.privacyPolicyEn,
+      privacyPolicyAr: row.privacyPolicyAr,
+      termsOfServiceEn: row.termsOfServiceEn,
+      termsOfServiceAr: row.termsOfServiceAr,
     };
   }
 
@@ -68,6 +76,18 @@ export class PlatformService {
       ...(input.linkedinUrl !== undefined && { linkedinUrl: input.linkedinUrl?.trim() || null }),
       ...(input.aboutTextEn !== undefined && { aboutTextEn: input.aboutTextEn?.trim() || null }),
       ...(input.aboutTextAr !== undefined && { aboutTextAr: input.aboutTextAr?.trim() || null }),
+      ...(input.privacyPolicyEn !== undefined && {
+        privacyPolicyEn: input.privacyPolicyEn?.trim() || null,
+      }),
+      ...(input.privacyPolicyAr !== undefined && {
+        privacyPolicyAr: input.privacyPolicyAr?.trim() || null,
+      }),
+      ...(input.termsOfServiceEn !== undefined && {
+        termsOfServiceEn: input.termsOfServiceEn?.trim() || null,
+      }),
+      ...(input.termsOfServiceAr !== undefined && {
+        termsOfServiceAr: input.termsOfServiceAr?.trim() || null,
+      }),
     };
 
     await this.prisma.siteSettings.upsert({

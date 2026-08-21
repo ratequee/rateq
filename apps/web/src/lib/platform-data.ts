@@ -19,6 +19,10 @@ const EMPTY_SETTINGS: SiteSettingsPublic = {
   linkedinUrl: null,
   aboutTextEn: null,
   aboutTextAr: null,
+  privacyPolicyEn: null,
+  privacyPolicyAr: null,
+  termsOfServiceEn: null,
+  termsOfServiceAr: null,
 };
 
 export async function fetchPlatformStats(): Promise<PlatformStats> {

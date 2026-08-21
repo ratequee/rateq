@@ -78,4 +78,32 @@ export class UpdateSiteSettingsDto {
   @IsString()
   @MaxLength(2000)
   aboutTextAr?: string | null;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @ValidateIf((_, v) => v !== null)
+  @IsString()
+  @MaxLength(100000)
+  privacyPolicyEn?: string | null;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @ValidateIf((_, v) => v !== null)
+  @IsString()
+  @MaxLength(100000)
+  privacyPolicyAr?: string | null;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @ValidateIf((_, v) => v !== null)
+  @IsString()
+  @MaxLength(100000)
+  termsOfServiceEn?: string | null;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @ValidateIf((_, v) => v !== null)
+  @IsString()
+  @MaxLength(100000)
+  termsOfServiceAr?: string | null;
 }

@@ -16,6 +16,7 @@ export function toCategoryPublic(
     nameAr: category.nameAr,
     slug: category.slug,
     iconUrl: category.iconUrl ?? null,
+    sortOrder: category.sortOrder,
     companyCount: category._count?.companies,
     services: category.services?.map(toCategoryServicePublic),
     subcategories: category.subcategories?.map(toCategorySubcategoryPublic),
