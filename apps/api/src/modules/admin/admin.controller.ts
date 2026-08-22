@@ -35,7 +35,11 @@ export class AdminController {
   ) {}
 
   @Get('stats')
-  @RequireAdminPermission(AdminPermission.STATS)
+  @RequireAdminPermission(
+    AdminPermission.STATS,
+    AdminPermission.DIRECTORY,
+    AdminPermission.MODERATION,
+  )
   @ApiOperation({ summary: 'Platform-wide admin analytics' })
   getStats() {
     return this.adminService.getPlatformStats();

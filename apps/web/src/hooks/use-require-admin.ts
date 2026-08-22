@@ -3,12 +3,11 @@
 import { useAuth } from '@/components/providers/auth-provider';
 import { useRouter } from '@/i18n/routing';
 import { useRequireVerifiedAuth } from '@/hooks/use-require-verified-auth';
-import { canAccessAdminRoute, getFirstAllowedAdminRoute } from '@/lib/admin-permissions';
-import type { AdminPermission } from '@rateq/types';
-import { UserRole } from '@rateq/types';
+import { getFirstAllowedAdminRoute } from '@/lib/admin-permissions';
+import { hasAdminPermission, UserRole, type AdminPermission } from '@rateq/types';
 import { useEffect } from 'react';
 
-export function useRequireAdmin(permission?: AdminPermission): void {
+export function useRequireAdmin(permission?: AdminPermission | AdminPermission[]): void {
   const { user, isLoading, adminAccess, adminAccessLoading } = useAuth();
   const router = useRouter();
   useRequireVerifiedAuth();
@@ -21,7 +20,13 @@ export function useRequireAdmin(permission?: AdminPermission): void {
       return;
     }
 
-    if (permission && !canAccessAdminRoute(adminAccess, '', permission)) {
+    const required =
+      permission == null ? [] : Array.isArray(permission) ? permission : [permission];
+    const allowed =
+      required.length === 0 ||
+      required.some((item) => hasAdminPermission(adminAccess.permissions, item));
+
+    if (!allowed) {
       const fallback = getFirstAllowedAdminRoute(adminAccess);
       router.replace(fallback ?? '/');
     }

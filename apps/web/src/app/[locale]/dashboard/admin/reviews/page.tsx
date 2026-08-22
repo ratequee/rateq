@@ -1,17 +1,20 @@
 'use client';
 
+import { ReviewsManagementPanel } from '@/components/dashboard/reviews-management-panel';
+import { DashboardPageHeader } from '@/components/dashboard/dashboard-page-header';
+import { DashboardShell } from '@/components/dashboard/dashboard-shell';
 import { useRequireAdmin } from '@/hooks/use-require-admin';
 import { AdminPermission } from '@rateq/types';
-import { useRouter } from '@/i18n/routing';
-import { useEffect } from 'react';
+import { useTranslations } from 'next-intl';
 
-export default function AdminReviewsRedirectPage() {
-  const router = useRouter();
-  useRequireAdmin(AdminPermission.DIRECTORY);
+export default function AdminReviewsPage() {
+  const t = useTranslations('dashboardReviews');
+  useRequireAdmin(AdminPermission.MODERATION);
 
-  useEffect(() => {
-    router.replace('/dashboard/admin/directory');
-  }, [router]);
-
-  return null;
+  return (
+    <DashboardShell role="admin">
+      <DashboardPageHeader title={t('adminTitle')} subtitle={t('adminSubtitle')} />
+      <ReviewsManagementPanel mode="admin" />
+    </DashboardShell>
+  );
 }

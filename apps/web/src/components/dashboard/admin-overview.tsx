@@ -16,6 +16,7 @@ import { mapReviewToDashboardRow } from '@/lib/dashboard-review-rows';
 import { ensureValidAccessToken } from '@/lib/auth-session';
 import { useAuth } from '@/components/providers/auth-provider';
 import type { AdminPlatformStats } from '@rateq/types';
+import { AdminPermission, hasAdminPermission } from '@rateq/types';
 import {
   ArrowRight,
   Building2,
@@ -33,17 +34,48 @@ import { useLocale, useTranslations } from 'next-intl';
 import { useEffect, useMemo, useState } from 'react';
 
 const PENDING_ACTION_ITEMS = [
-  { key: 'companyApprovals', href: '/dashboard/admin/companies?filter=pending', icon: Building2 },
+  {
+    key: 'companyApprovals',
+    href: '/dashboard/admin/companies?filter=pending',
+    icon: Building2,
+    permission: AdminPermission.COMPANIES,
+  },
   {
     key: 'profileChanges',
     href: '/dashboard/admin/companies?filter=profile_changes',
     icon: PencilRuler,
+    permission: AdminPermission.COMPANIES,
   },
-  { key: 'reviewModeration', href: '/dashboard/admin/reviews', icon: ClipboardList },
-  { key: 'replyModeration', href: '/dashboard/admin/reviews', icon: MessageSquareText },
-  { key: 'projectModeration', href: '/dashboard/admin/projects', icon: FolderKanban },
-  { key: 'reviewReports', href: '/dashboard/admin/directory', icon: Flag },
-  { key: 'reviewerInvitationRequests', href: '/dashboard/admin/directory', icon: UserPlus },
+  {
+    key: 'reviewModeration',
+    href: '/dashboard/admin/reviews',
+    icon: ClipboardList,
+    permission: AdminPermission.MODERATION,
+  },
+  {
+    key: 'replyModeration',
+    href: '/dashboard/admin/reviews',
+    icon: MessageSquareText,
+    permission: AdminPermission.MODERATION,
+  },
+  {
+    key: 'projectModeration',
+    href: '/dashboard/admin/projects',
+    icon: FolderKanban,
+    permission: AdminPermission.DIRECTORY,
+  },
+  {
+    key: 'reviewReports',
+    href: '/dashboard/admin/directory',
+    icon: Flag,
+    permission: AdminPermission.MODERATION,
+  },
+  {
+    key: 'reviewerInvitationRequests',
+    href: '/dashboard/admin/directory',
+    icon: UserPlus,
+    permission: [AdminPermission.INVITATIONS, AdminPermission.MODERATION],
+  },
 ] as const;
 
 interface AdminOverviewProps {
@@ -56,7 +88,7 @@ export function AdminOverview({ title }: AdminOverviewProps) {
   const t = useTranslations('dashboardShell');
   const ta = useTranslations('adminOverview');
   const locale = useLocale();
-  const { isLoading: authLoading } = useAuth();
+  const { isLoading: authLoading, adminAccess } = useAuth();
   const [stats, setStats] = useState<AdminPlatformStats | null>(null);
 
   useEffect(() => {
@@ -134,7 +166,7 @@ export function AdminOverview({ title }: AdminOverviewProps) {
         ))}
       </div>
 
-      <PendingActionsPanel stats={stats} ta={ta} />
+      <PendingActionsPanel stats={stats} ta={ta} permissions={adminAccess?.permissions} />
 
       <div className="grid gap-6 xl:grid-cols-[1.4fr_1fr]">
         <div className="rounded-2xl border border-subtle surface-card p-5 shadow-sm">
@@ -197,21 +229,25 @@ export function AdminOverview({ title }: AdminOverviewProps) {
       </div>
 
       <div className="grid gap-6 lg:grid-cols-2">
-        <AdminInviteCompanyPanel />
-        <div className="rounded-2xl border border-subtle surface-card p-6 shadow-sm">
-          <h3 className="text-lg font-semibold text-primary dark:text-white">
-            {t('nav.companyVerifications')}
-          </h3>
-          <p className="mt-1 text-sm text-secondary dark:text-slate-300">
-            Review pending profile updates submitted by verified companies.
-          </p>
-          <Link
-            href="/dashboard/admin/companies?filter=profile_changes"
-            className="mt-4 inline-flex text-sm font-semibold text-brand-600 hover:text-brand-700 dark:text-brand-300"
-          >
-            View pending profile changes →
-          </Link>
-        </div>
+        {hasAdminPermission(adminAccess?.permissions, AdminPermission.INVITATIONS) ? (
+          <AdminInviteCompanyPanel />
+        ) : null}
+        {hasAdminPermission(adminAccess?.permissions, AdminPermission.COMPANIES) ? (
+          <div className="rounded-2xl border border-subtle surface-card p-6 shadow-sm">
+            <h3 className="text-lg font-semibold text-primary dark:text-white">
+              {t('nav.companyVerifications')}
+            </h3>
+            <p className="mt-1 text-sm text-secondary dark:text-slate-300">
+              Review pending profile updates submitted by verified companies.
+            </p>
+            <Link
+              href="/dashboard/admin/companies?filter=profile_changes"
+              className="mt-4 inline-flex text-sm font-semibold text-brand-600 hover:text-brand-700 dark:text-brand-300"
+            >
+              View pending profile changes →
+            </Link>
+          </div>
+        ) : null}
       </div>
     </div>
   );
@@ -220,12 +256,19 @@ export function AdminOverview({ title }: AdminOverviewProps) {
 function PendingActionsPanel({
   stats,
   ta,
+  permissions,
 }: {
   stats: AdminPlatformStats | null;
   ta: ReturnType<typeof useTranslations<'adminOverview'>>;
+  permissions: AdminPermission[] | undefined;
 }) {
   const pending = stats?.pendingActions;
-  const total = pending?.total ?? 0;
+  const visibleItems = PENDING_ACTION_ITEMS.filter((item) => {
+    const required = Array.isArray(item.permission) ? item.permission : [item.permission];
+    const allowed = required.some((permission) => hasAdminPermission(permissions, permission));
+    return allowed && (pending?.[item.key] ?? 0) > 0;
+  });
+  const total = visibleItems.reduce((sum, item) => sum + (pending?.[item.key] ?? 0), 0);
 
   return (
     <div className="rounded-2xl border border-subtle surface-card p-5 shadow-sm">
@@ -253,7 +296,7 @@ function PendingActionsPanel({
         </p>
       ) : (
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {PENDING_ACTION_ITEMS.filter((item) => (pending?.[item.key] ?? 0) > 0).map((item) => {
+          {visibleItems.map((item) => {
             const count = pending?.[item.key] ?? 0;
             const Icon = item.icon;
             return (

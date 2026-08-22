@@ -56,6 +56,13 @@ export const DASHBOARD_NAV_ITEMS: {
     adminPermission: AdminPermission.DIRECTORY,
   },
   {
+    href: '/dashboard/admin/reviews',
+    key: 'reviews',
+    icon: Star,
+    roles: ['admin'],
+    adminPermission: AdminPermission.MODERATION,
+  },
+  {
     href: '/dashboard/reviewer/reviews',
     key: 'reviews',
     icon: Star,
@@ -78,7 +85,7 @@ export const DASHBOARD_NAV_ITEMS: {
     key: 'projects',
     icon: FolderKanban,
     roles: ['admin'],
-    adminPermission: AdminPermission.MODERATION,
+    adminPermission: AdminPermission.DIRECTORY,
   },
   {
     href: '/dashboard/company/projects',
@@ -113,6 +120,13 @@ export const DASHBOARD_NAV_ITEMS: {
     icon: Shield,
     roles: ['admin'],
     adminPermission: AdminPermission.TEAM,
+  },
+  {
+    href: '/dashboard/admin/directory',
+    key: 'reviewerInvitations',
+    icon: Mail,
+    roles: ['admin'],
+    adminPermission: AdminPermission.INVITATIONS,
   },
   { href: '/dashboard/admin/payments', key: 'payments', icon: Wallet, roles: ['admin'] },
   { href: '#', key: 'payments', icon: Wallet, roles: ['company'] },

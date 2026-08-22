@@ -1,20 +1,22 @@
 import { AdminPermission, hasAdminPermission, type AdminAccess } from '@rateq/types';
 
-export const ADMIN_ROUTE_PERMISSIONS: Record<string, AdminPermission> = {
-  '/dashboard/admin': AdminPermission.STATS,
-  '/dashboard/admin/companies': AdminPermission.COMPANIES,
-  '/dashboard/admin/directory': AdminPermission.DIRECTORY,
-  '/dashboard/admin/projects': AdminPermission.MODERATION,
-  '/dashboard/admin/categories': AdminPermission.CONTENT,
-  '/dashboard/admin/blog': AdminPermission.CONTENT,
-  '/dashboard/admin/settings': AdminPermission.CONTENT,
-  '/dashboard/admin/team': AdminPermission.TEAM,
-};
+export const ADMIN_ROUTE_PERMISSIONS: { route: string; permission: AdminPermission }[] = [
+  { route: '/dashboard/admin', permission: AdminPermission.STATS },
+  { route: '/dashboard/admin/companies', permission: AdminPermission.COMPANIES },
+  { route: '/dashboard/admin/directory', permission: AdminPermission.DIRECTORY },
+  { route: '/dashboard/admin/reviews', permission: AdminPermission.MODERATION },
+  { route: '/dashboard/admin/projects', permission: AdminPermission.DIRECTORY },
+  { route: '/dashboard/admin/directory', permission: AdminPermission.INVITATIONS },
+  { route: '/dashboard/admin/categories', permission: AdminPermission.CONTENT },
+  { route: '/dashboard/admin/blog', permission: AdminPermission.CONTENT },
+  { route: '/dashboard/admin/settings', permission: AdminPermission.CONTENT },
+  { route: '/dashboard/admin/team', permission: AdminPermission.TEAM },
+];
 
 export function getFirstAllowedAdminRoute(access: AdminAccess | null): string | null {
   if (!access?.allowed) return null;
 
-  for (const [route, permission] of Object.entries(ADMIN_ROUTE_PERMISSIONS)) {
+  for (const { route, permission } of ADMIN_ROUTE_PERMISSIONS) {
     if (hasAdminPermission(access.permissions, permission)) {
       return route;
     }
@@ -30,8 +32,12 @@ export function canAccessAdminRoute(
 ): boolean {
   if (!access?.allowed) return false;
 
-  const permission = required ?? ADMIN_ROUTE_PERMISSIONS[pathname];
-  if (!permission) return true;
+  if (required) {
+    return hasAdminPermission(access.permissions, required);
+  }
 
-  return hasAdminPermission(access.permissions, permission);
+  const matches = ADMIN_ROUTE_PERMISSIONS.filter((item) => item.route === pathname);
+  if (matches.length === 0) return true;
+
+  return matches.some((item) => hasAdminPermission(access.permissions, item.permission));
 }

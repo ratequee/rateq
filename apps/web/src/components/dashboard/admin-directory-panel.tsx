@@ -12,6 +12,7 @@ import { StarRating } from '@/components/ui/star-rating';
 import { adminApi } from '@/lib/admin-platform-api';
 import { ApiError, reviewsApi, usersApi } from '@/lib/api';
 import { ensureValidAccessToken } from '@/lib/auth-session';
+import { useAuth } from '@/components/providers/auth-provider';
 import { cn } from '@/lib/utils';
 import { ReviewReplyStatusBadge } from '@/components/review/review-reply-status-badge';
 import type {
@@ -22,6 +23,7 @@ import type {
   ReviewPublic,
   UserProfile,
 } from '@rateq/types';
+import { AdminPermission, hasAdminPermission } from '@rateq/types';
 import {
   Building2,
   Flag,
@@ -35,11 +37,20 @@ import {
   Users,
 } from 'lucide-react';
 import { useLocale, useTranslations } from 'next-intl';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import { Link } from '@/i18n/routing';
 
 type DirectoryTab = 'reviewers' | 'companies' | 'reviews' | 'projects' | 'reports' | 'invitations';
+
+const DIRECTORY_TAB_PERMISSIONS: Record<DirectoryTab, AdminPermission[]> = {
+  reviewers: [AdminPermission.DIRECTORY],
+  companies: [AdminPermission.DIRECTORY],
+  reviews: [AdminPermission.MODERATION],
+  projects: [AdminPermission.DIRECTORY],
+  reports: [AdminPermission.MODERATION],
+  invitations: [AdminPermission.INVITATIONS, AdminPermission.MODERATION],
+};
 
 const reviewStatusStyles: Record<string, string> = {
   PENDING: 'bg-amber-50 text-amber-700 dark:bg-amber-950/50 dark:text-amber-300',
@@ -96,11 +107,13 @@ function AdminCompanyContactDetails({
 function EntityReviewsList({
   reviews,
   acting,
+  canModerate,
   onDeleteReview,
   onDeleteReply,
 }: {
   reviews: ReviewPublic[];
   acting: boolean;
+  canModerate: boolean;
   onDeleteReview: (reviewId: string) => void;
   onDeleteReply: (reviewId: string) => void;
 }) {
@@ -154,33 +167,37 @@ function EntityReviewsList({
                   </span>
                   <ReviewReplyStatusBadge status={review.reply.status} />
                 </div>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  disabled={acting}
-                  onClick={() => onDeleteReply(review.id)}
-                >
-                  {tr('deleteReply')}
-                </Button>
+                {canModerate ? (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    disabled={acting}
+                    onClick={() => onDeleteReply(review.id)}
+                  >
+                    {tr('deleteReply')}
+                  </Button>
+                ) : null}
               </div>
               <p className="text-sm leading-relaxed text-ink dark:text-slate-200">
                 {review.reply.content}
               </p>
             </div>
           ) : null}
-          <div className="mt-3">
-            <Button
-              type="button"
-              variant="destructive"
-              size="sm"
-              disabled={acting}
-              onClick={() => onDeleteReview(review.id)}
-            >
-              <Trash2 className="me-1.5 h-3.5 w-3.5" />
-              {tr('delete')}
-            </Button>
-          </div>
+          {canModerate ? (
+            <div className="mt-3">
+              <Button
+                type="button"
+                variant="destructive"
+                size="sm"
+                disabled={acting}
+                onClick={() => onDeleteReview(review.id)}
+              >
+                <Trash2 className="me-1.5 h-3.5 w-3.5" />
+                {tr('delete')}
+              </Button>
+            </div>
+          ) : null}
         </div>
       ))}
     </div>
@@ -191,7 +208,19 @@ export function AdminDirectoryPanel() {
   const t = useTranslations('adminDirectory');
   const tr = useTranslations('dashboardReviews');
   const tc = useTranslations('adminCompanies');
-  const [tab, setTab] = useState<DirectoryTab>('reviewers');
+  const { adminAccess } = useAuth();
+  const permissions = adminAccess?.permissions ?? [];
+  const canModerateReviews = hasAdminPermission(permissions, AdminPermission.MODERATION);
+  const allowedTabs = useMemo(
+    () =>
+      (Object.keys(DIRECTORY_TAB_PERMISSIONS) as DirectoryTab[]).filter((id) =>
+        DIRECTORY_TAB_PERMISSIONS[id].some((permission) =>
+          hasAdminPermission(permissions, permission),
+        ),
+      ),
+    [permissions],
+  );
+  const [tab, setTab] = useState<DirectoryTab>(allowedTabs[0] ?? 'reviewers');
 
   const [reviewers, setReviewers] = useState<UserProfile[]>([]);
   const [reviewerPage, setReviewerPage] = useState(1);
@@ -471,7 +500,13 @@ export function AdminDirectoryPanel() {
       icon: Mail,
       count: stats?.pendingActions.reviewerInvitationRequests,
     },
-  ];
+  ].filter((item) => allowedTabs.includes(item.id));
+
+  useEffect(() => {
+    if (!allowedTabs.includes(tab) && allowedTabs[0]) {
+      setTab(allowedTabs[0]);
+    }
+  }, [allowedTabs, tab]);
 
   return (
     <div className="space-y-6">
@@ -652,6 +687,7 @@ export function AdminDirectoryPanel() {
                   <EntityReviewsList
                     reviews={reviewerDetail.reviews}
                     acting={acting}
+                    canModerate={canModerateReviews}
                     onDeleteReview={(id) => void handleDeleteReview(id)}
                     onDeleteReply={(id) => void handleDeleteReply(id)}
                   />
@@ -860,6 +896,7 @@ export function AdminDirectoryPanel() {
                   <EntityReviewsList
                     reviews={companyDetail.reviews}
                     acting={acting}
+                    canModerate={canModerateReviews}
                     onDeleteReview={(id) => void handleDeleteReview(id)}
                     onDeleteReply={(id) => void handleDeleteReply(id)}
                   />

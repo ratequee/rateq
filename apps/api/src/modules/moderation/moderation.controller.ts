@@ -122,12 +122,14 @@ export class ModerationController {
   }
 
   @Get('projects')
+  @RequireAdminPermission(AdminPermission.DIRECTORY)
   @ApiOperation({ summary: 'List company projects for admin moderation' })
   listProjects(@Query() query: ListProjectsQueryDto) {
     return this.moderationService.listProjects(query);
   }
 
   @Patch('projects/:id/approve')
+  @RequireAdminPermission(AdminPermission.DIRECTORY)
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Approve a pending company project' })
   @ApiResponse({ status: 200, type: MessageResponseDto })
@@ -137,6 +139,7 @@ export class ModerationController {
   }
 
   @Patch('projects/:id/reject')
+  @RequireAdminPermission(AdminPermission.DIRECTORY)
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Reject a pending company project' })
   @ApiResponse({ status: 200, type: MessageResponseDto })
@@ -146,6 +149,7 @@ export class ModerationController {
   }
 
   @Delete('projects/:id')
+  @RequireAdminPermission(AdminPermission.DIRECTORY)
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Delete a company project' })
   @ApiResponse({ status: 200, type: MessageResponseDto })
