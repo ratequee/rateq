@@ -6,6 +6,7 @@ import { CompaniesModule } from '../companies/companies.module';
 import { EmailModule } from '../auth/email.module';
 import { ReviewsModule } from '../reviews/reviews.module';
 import { ModerationController } from './moderation.controller';
+import { ModerationProjectsController } from './moderation-projects.controller';
 import { ModerationService } from './moderation.service';
 import { ModerationRepository } from './repositories/moderation.repository';
 import { ModerationEngineService } from './services/moderation-engine.service';
@@ -21,7 +22,7 @@ import { ReviewReportsService } from './review-reports.service';
     AdminActivityModule,
     BullModule.registerQueue({ name: REVIEW_MODERATION_QUEUE }),
   ],
-  controllers: [ModerationController],
+  controllers: [ModerationController, ModerationProjectsController],
   providers: [
     ModerationService,
     ModerationRepository,

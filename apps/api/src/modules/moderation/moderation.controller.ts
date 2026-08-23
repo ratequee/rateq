@@ -20,7 +20,6 @@ import { PaginationDto } from '../../common/dto/pagination.dto';
 import { MessageResponseDto } from '../auth/dto/auth-response.dto';
 import { ListReviewsQueryDto } from '../reviews/dto/list-reviews-query.dto';
 import { ReviewsService } from '../reviews/reviews.service';
-import { ListProjectsQueryDto } from './dto/list-projects-query.dto';
 import { ModerationRepository } from './repositories/moderation.repository';
 import { ModerationService } from './moderation.service';
 
@@ -119,43 +118,6 @@ export class ModerationController {
   @ApiOperation({ summary: 'Get moderation logs for a review' })
   getLogs(@Param('id') id: string) {
     return this.moderationRepository.findLogsByReviewId(id);
-  }
-
-  @Get('projects')
-  @RequireAdminPermission(AdminPermission.DIRECTORY)
-  @ApiOperation({ summary: 'List company projects for admin moderation' })
-  listProjects(@Query() query: ListProjectsQueryDto) {
-    return this.moderationService.listProjects(query);
-  }
-
-  @Patch('projects/:id/approve')
-  @RequireAdminPermission(AdminPermission.DIRECTORY)
-  @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Approve a pending company project' })
-  @ApiResponse({ status: 200, type: MessageResponseDto })
-  async approveProject(@Param('id') id: string, @CurrentUser() admin: AuthenticatedUser) {
-    await this.moderationService.manualApproveProject(id, admin.id);
-    return { message: 'Project approved' };
-  }
-
-  @Patch('projects/:id/reject')
-  @RequireAdminPermission(AdminPermission.DIRECTORY)
-  @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Reject a pending company project' })
-  @ApiResponse({ status: 200, type: MessageResponseDto })
-  async rejectProject(@Param('id') id: string, @CurrentUser() admin: AuthenticatedUser) {
-    await this.moderationService.manualRejectProject(id, admin.id);
-    return { message: 'Project rejected' };
-  }
-
-  @Delete('projects/:id')
-  @RequireAdminPermission(AdminPermission.DIRECTORY)
-  @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Delete a company project' })
-  @ApiResponse({ status: 200, type: MessageResponseDto })
-  async deleteProject(@Param('id') id: string, @CurrentUser() admin: AuthenticatedUser) {
-    await this.moderationService.manualDeleteProject(id, admin.id);
-    return { message: 'Project deleted' };
   }
 
   @Get('reports')

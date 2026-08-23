@@ -9,7 +9,15 @@ import { useTranslations } from 'next-intl';
 
 export default function AdminProjectsPage() {
   const t = useTranslations('adminProjects');
-  useRequireAdmin(AdminPermission.DIRECTORY);
+  const { ready, allowed } = useRequireAdmin(AdminPermission.DIRECTORY);
+
+  if (!ready || !allowed) {
+    return (
+      <DashboardShell role="admin">
+        <DashboardPageHeader title={t('title')} subtitle={t('subtitle')} />
+      </DashboardShell>
+    );
+  }
 
   return (
     <DashboardShell role="admin">

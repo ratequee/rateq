@@ -865,6 +865,7 @@
       "shipping": "Shipping",
       "payments": "Payments",
       "reviews": "Reviews & ratings",
+      "adminReviews": "Reviews",
       "customers": "Customer management",
       "settings": "System settings",
       "companyVerifications": "Company verifications",
@@ -1525,7 +1526,7 @@
       "stats": "Dashboard overview",
       "companies": "Company verifications",
       "directory": "User & company directory",
-      "moderation": "Review moderation",
+      "moderation": "Reviews",
       "content": "Categories, catalog & blog",
       "invitations": "Invitations",
       "team": "Manage admin team"

@@ -57,7 +57,7 @@ export const DASHBOARD_NAV_ITEMS: {
   },
   {
     href: '/dashboard/admin/reviews',
-    key: 'reviews',
+    key: 'adminReviews',
     icon: Star,
     roles: ['admin'],
     adminPermission: AdminPermission.MODERATION,
@@ -188,8 +188,11 @@ export function DashboardNav({ role, onNavigate, showClose, onClose }: Dashboard
   const t = useTranslations('dashboardShell');
   const tNav = useTranslations('nav');
   const pathname = usePathname();
-  const { adminAccess } = useAuth();
-  const navItems = getDashboardNavItems(role, adminAccess?.permissions ?? []);
+  const { adminAccess, user } = useAuth();
+  const navItems = getDashboardNavItems(
+    role,
+    adminAccess?.permissions?.length ? adminAccess.permissions : (user?.adminPermissions ?? []),
+  );
 
   return (
     <>
