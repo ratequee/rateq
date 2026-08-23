@@ -478,29 +478,36 @@ export function AdminDirectoryPanel() {
     await runAction(() => reviewsApi.deleteReviewReply(token, reviewId), tr('deleteReplySuccess'));
   };
 
-  const tabs: Array<{ id: DirectoryTab; label: string; icon: typeof Users; count?: number }> = [
-    { id: 'reviewers', label: t('tabs.reviewers'), icon: Users, count: stats?.totalReviewers },
-    { id: 'companies', label: t('tabs.companies'), icon: Building2, count: stats?.totalCompanies },
-    { id: 'reviews', label: t('tabs.reviews'), icon: Star, count: stats?.pendingReviews },
-    {
-      id: 'projects',
-      label: t('tabs.projects'),
-      icon: FolderKanban,
-      count: stats?.pendingActions.projectModeration,
-    },
-    {
-      id: 'reports',
-      label: t('tabs.reports'),
-      icon: Flag,
-      count: stats?.pendingActions.reviewReports,
-    },
-    {
-      id: 'invitations',
-      label: t('tabs.invitations'),
-      icon: Mail,
-      count: stats?.pendingActions.reviewerInvitationRequests,
-    },
-  ].filter((item) => allowedTabs.includes(item.id));
+  const tabs = (
+    [
+      { id: 'reviewers', label: t('tabs.reviewers'), icon: Users, count: stats?.totalReviewers },
+      {
+        id: 'companies',
+        label: t('tabs.companies'),
+        icon: Building2,
+        count: stats?.totalCompanies,
+      },
+      { id: 'reviews', label: t('tabs.reviews'), icon: Star, count: stats?.pendingReviews },
+      {
+        id: 'projects',
+        label: t('tabs.projects'),
+        icon: FolderKanban,
+        count: stats?.pendingActions.projectModeration,
+      },
+      {
+        id: 'reports',
+        label: t('tabs.reports'),
+        icon: Flag,
+        count: stats?.pendingActions.reviewReports,
+      },
+      {
+        id: 'invitations',
+        label: t('tabs.invitations'),
+        icon: Mail,
+        count: stats?.pendingActions.reviewerInvitationRequests,
+      },
+    ] satisfies Array<{ id: DirectoryTab; label: string; icon: typeof Users; count?: number }>
+  ).filter((item) => allowedTabs.includes(item.id));
 
   useEffect(() => {
     if (!allowedTabs.includes(tab) && allowedTabs[0]) {
