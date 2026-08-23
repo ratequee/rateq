@@ -12,6 +12,7 @@ export interface CategorySubcategoryPublic {
   nameEn: string;
   nameAr: string;
   slug: string;
+  iconUrl?: string | null;
   sortOrder: number;
 }
 
@@ -44,11 +45,14 @@ export interface UpdateCategoryInput {
 export interface CreateCategorySubcategoryInput {
   nameEn: string;
   nameAr: string;
+  iconUrl?: string | null;
 }
 
 export interface UpdateCategorySubcategoryInput {
   nameEn?: string;
   nameAr?: string;
+  iconUrl?: string | null;
+  sortOrder?: number;
 }
 
 export interface CreateCategoryServiceInput {

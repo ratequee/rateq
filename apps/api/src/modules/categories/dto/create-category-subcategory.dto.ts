@@ -1,5 +1,5 @@
-import { ApiProperty } from '@nestjs/swagger';
-import { IsString, MaxLength, MinLength } from 'class-validator';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { IsOptional, IsString, MaxLength, MinLength, ValidateIf } from 'class-validator';
 
 export class CreateCategorySubcategoryDto {
   @ApiProperty({ example: 'Fine dining' })
@@ -13,4 +13,11 @@ export class CreateCategorySubcategoryDto {
   @MinLength(2)
   @MaxLength(100)
   nameAr!: string;
+
+  @ApiPropertyOptional({ nullable: true })
+  @IsOptional()
+  @ValidateIf((_, value) => value !== null)
+  @IsString()
+  @MaxLength(2048)
+  iconUrl?: string | null;
 }

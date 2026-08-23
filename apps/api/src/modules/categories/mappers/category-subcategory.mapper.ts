@@ -10,6 +10,7 @@ export function toCategorySubcategoryPublic(
     nameEn: subcategory.nameEn,
     nameAr: subcategory.nameAr,
     slug: subcategory.slug,
+    iconUrl: subcategory.iconUrl ?? null,
     sortOrder: subcategory.sortOrder,
   };
 }

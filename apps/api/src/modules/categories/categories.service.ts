@@ -199,6 +199,7 @@ export class CategoriesService {
       nameAr,
       slug,
       sortOrder,
+      ...(input.iconUrl !== undefined ? { iconUrl: input.iconUrl?.trim() || null } : {}),
       category: { connect: { id: categoryId } },
     });
 
@@ -234,6 +235,8 @@ export class CategoriesService {
     const updated = await this.categorySubcategoriesRepository.update(subcategoryId, {
       ...(nameEn !== undefined && { nameEn, ...(slug ? { slug } : {}) }),
       ...(nameAr !== undefined && { nameAr }),
+      ...(input.iconUrl !== undefined && { iconUrl: input.iconUrl?.trim() || null }),
+      ...(input.sortOrder !== undefined && { sortOrder: input.sortOrder }),
     });
 
     return toCategorySubcategoryPublic(updated);

@@ -38,11 +38,13 @@ export default function AdminCategoriesPage() {
   const [expandedCategoryId, setExpandedCategoryId] = useState<string | null>(null);
   const [subNameEn, setSubNameEn] = useState('');
   const [subNameAr, setSubNameAr] = useState('');
+  const [subIconUrl, setSubIconUrl] = useState('');
   const [subSubmitting, setSubSubmitting] = useState(false);
   const [subDeletingId, setSubDeletingId] = useState<string | null>(null);
   const [editingSubcategoryId, setEditingSubcategoryId] = useState<string | null>(null);
   const [editSubNameEn, setEditSubNameEn] = useState('');
   const [editSubNameAr, setEditSubNameAr] = useState('');
+  const [editSubIconUrl, setEditSubIconUrl] = useState('');
   const [subEditSaving, setSubEditSaving] = useState(false);
   const [catalogCounts, setCatalogCounts] = useState<Partial<Record<CompanyCatalogType, number>>>(
     {},
@@ -209,9 +211,11 @@ export default function AdminCategoriesPage() {
       await adminApi.addSubcategory(categoryId, {
         nameEn: subNameEn.trim(),
         nameAr: subNameAr.trim(),
+        iconUrl: subIconUrl.trim() || null,
       });
       setSubNameEn('');
       setSubNameAr('');
+      setSubIconUrl('');
       await loadCategories();
       toast.success(t('subcategoryCreated'));
     } catch (err) {
@@ -238,16 +242,23 @@ export default function AdminCategoriesPage() {
     }
   };
 
-  const startSubcategoryEdit = (subcategory: { id: string; nameEn: string; nameAr: string }) => {
+  const startSubcategoryEdit = (subcategory: {
+    id: string;
+    nameEn: string;
+    nameAr: string;
+    iconUrl?: string | null;
+  }) => {
     setEditingSubcategoryId(subcategory.id);
     setEditSubNameEn(subcategory.nameEn);
     setEditSubNameAr(subcategory.nameAr);
+    setEditSubIconUrl(subcategory.iconUrl ?? '');
   };
 
   const cancelSubcategoryEdit = () => {
     setEditingSubcategoryId(null);
     setEditSubNameEn('');
     setEditSubNameAr('');
+    setEditSubIconUrl('');
   };
 
   const handleUpdateSubcategory = async (categoryId: string, subcategoryId: string) => {
@@ -261,6 +272,7 @@ export default function AdminCategoriesPage() {
       await adminApi.updateSubcategory(categoryId, subcategoryId, {
         nameEn: editSubNameEn.trim(),
         nameAr: editSubNameAr.trim(),
+        iconUrl: editSubIconUrl.trim() || null,
       });
       cancelSubcategoryEdit();
       await loadCategories();
@@ -490,6 +502,11 @@ export default function AdminCategoriesPage() {
                                             dir="rtl"
                                           />
                                         </div>
+                                        <CategoryIconUpload
+                                          value={editSubIconUrl}
+                                          onChange={setEditSubIconUrl}
+                                          labels={iconUploadLabels}
+                                        />
                                         <div className="flex gap-2">
                                           <Button
                                             type="button"
@@ -520,13 +537,22 @@ export default function AdminCategoriesPage() {
                                       </div>
                                     ) : (
                                       <div className="flex items-center justify-between gap-2">
-                                        <div>
-                                          <p className="text-sm font-medium text-primary">
-                                            {subcategory.nameEn}
-                                          </p>
-                                          <p className="text-sm text-secondary" dir="rtl">
-                                            {subcategory.nameAr}
-                                          </p>
+                                        <div className="flex min-w-0 items-center gap-3">
+                                          {subcategory.iconUrl ? (
+                                            <img
+                                              src={subcategory.iconUrl}
+                                              alt=""
+                                              className="h-8 w-8 shrink-0 rounded-lg object-contain"
+                                            />
+                                          ) : null}
+                                          <div>
+                                            <p className="text-sm font-medium text-primary">
+                                              {subcategory.nameEn}
+                                            </p>
+                                            <p className="text-sm text-secondary" dir="rtl">
+                                              {subcategory.nameAr}
+                                            </p>
+                                          </div>
                                         </div>
                                         <div className="flex shrink-0 gap-1">
                                           <Button
@@ -567,32 +593,39 @@ export default function AdminCategoriesPage() {
                             ) : (
                               <p className="mt-2 text-sm text-secondary">{t('noSubcategories')}</p>
                             )}
-                            <div className="mt-4 grid gap-2 sm:grid-cols-[1fr_1fr_auto]">
-                              <Input
-                                value={subNameEn}
-                                onChange={(e) => setSubNameEn(e.target.value)}
-                                placeholder={t('subNameEnPlaceholder')}
-                                className="h-10"
+                            <div className="mt-4 space-y-3">
+                              <div className="grid gap-2 sm:grid-cols-[1fr_1fr_auto]">
+                                <Input
+                                  value={subNameEn}
+                                  onChange={(e) => setSubNameEn(e.target.value)}
+                                  placeholder={t('subNameEnPlaceholder')}
+                                  className="h-10"
+                                />
+                                <Input
+                                  value={subNameAr}
+                                  onChange={(e) => setSubNameAr(e.target.value)}
+                                  placeholder={t('subNameArPlaceholder')}
+                                  className="h-10"
+                                  dir="rtl"
+                                />
+                                <Button
+                                  type="button"
+                                  size="sm"
+                                  disabled={subSubmitting}
+                                  onClick={() => void handleAddSubcategory(category.id)}
+                                >
+                                  {subSubmitting ? (
+                                    <Loader2 className="h-4 w-4 animate-spin" />
+                                  ) : (
+                                    t('addSubcategory')
+                                  )}
+                                </Button>
+                              </div>
+                              <CategoryIconUpload
+                                value={subIconUrl}
+                                onChange={setSubIconUrl}
+                                labels={iconUploadLabels}
                               />
-                              <Input
-                                value={subNameAr}
-                                onChange={(e) => setSubNameAr(e.target.value)}
-                                placeholder={t('subNameArPlaceholder')}
-                                className="h-10"
-                                dir="rtl"
-                              />
-                              <Button
-                                type="button"
-                                size="sm"
-                                disabled={subSubmitting}
-                                onClick={() => void handleAddSubcategory(category.id)}
-                              >
-                                {subSubmitting ? (
-                                  <Loader2 className="h-4 w-4 animate-spin" />
-                                ) : (
-                                  t('addSubcategory')
-                                )}
-                              </Button>
                             </div>
                           </div>
                         ) : null}
