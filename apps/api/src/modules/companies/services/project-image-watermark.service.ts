@@ -1,4 +1,4 @@
-import { Injectable, Logger, ServiceUnavailableException } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import sharp from 'sharp';
 import { withTimeout } from '../../../common/utils/with-timeout.util';
 import { FirebaseAdminService } from '../../auth/services/firebase-admin.service';
@@ -18,9 +18,8 @@ export class ProjectImageWatermarkService {
     demoImages: string[];
   }): Promise<{ imageUrl: string; demoImages: string[] }> {
     if (!this.firebaseAdmin.isConfigured()) {
-      throw new ServiceUnavailableException(
-        'Cannot watermark project images: Firebase Storage is not configured',
-      );
+      this.logger.warn('Skipping project watermarks: Firebase Storage is not configured');
+      return { imageUrl: input.imageUrl, demoImages: input.demoImages };
     }
 
     const imageUrl = await this.watermarkAndUpload(
@@ -74,7 +73,7 @@ export class ProjectImageWatermarkService {
           error instanceof Error ? error.message : 'unknown error'
         }`,
       );
-      throw error;
+      return sourceUrl;
     }
   }
 

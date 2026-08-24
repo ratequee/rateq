@@ -7,9 +7,6 @@ type LabelResolver = (ids: string[]) => Promise<Map<string, string>>;
 type CategoryLabelResolver = (
   ids: string[],
 ) => Promise<Map<string, { en: string; ar: string | null }>>;
-type SubcategoryLabelResolver = (
-  ids: string[],
-) => Promise<Map<string, { en: string; ar: string | null }>>;
 
 function formatValue(value: unknown): string {
   if (value === null || value === undefined || value === '') return '—';
@@ -32,14 +29,10 @@ function resolveCurrentCategoryIds(company: Company): string[] {
   return company.categoryId ? [company.categoryId] : [];
 }
 
-function normalizeIdList(value: unknown): string[] {
-  return parseCompanyIdList(value);
-}
-
 function formatCategoryDisplay(
   ids: string[],
   labelMap: Map<string, { en: string; ar: string | null }>,
-  missingLabel = 'Removed subcategory',
+  missingLabel = 'Removed category',
 ): string {
   if (ids.length === 0) return '—';
   return ids
@@ -153,13 +146,12 @@ export async function buildProfileChangeFields(
   pending: UpdateCompanyInput,
   resolveCatalogLabels: LabelResolver,
   resolveCategoryLabels: CategoryLabelResolver,
-  resolveSubcategoryLabels: SubcategoryLabelResolver,
 ): Promise<AdminProfileChangeField[]> {
   const fields: AdminProfileChangeField[] = [];
 
   for (const [rawKey, proposed] of Object.entries(pending)) {
     const key = rawKey as keyof UpdateCompanyInput;
-    if (proposed === undefined) continue;
+    if (proposed === undefined || key === 'subcategoryIds') continue;
 
     const current = currentFieldValue(company, key);
     let currentDisplay = formatValue(current);
@@ -195,15 +187,6 @@ export async function buildProfileChangeFields(
             : [];
       const allIds = [...new Set([...currentIds, ...proposedIds])];
       const labelMap = await resolveCategoryLabels(allIds);
-      currentDisplay = formatCategoryDisplay(currentIds, labelMap);
-      proposedDisplay = formatCategoryDisplay(proposedIds, labelMap);
-    }
-
-    if (key === 'subcategoryIds') {
-      const currentIds = normalizeIdList(current);
-      const proposedIds = normalizeIdList(proposed);
-      const allIds = [...new Set([...currentIds, ...proposedIds])];
-      const labelMap = await resolveSubcategoryLabels(allIds);
       currentDisplay = formatCategoryDisplay(currentIds, labelMap);
       proposedDisplay = formatCategoryDisplay(proposedIds, labelMap);
     }

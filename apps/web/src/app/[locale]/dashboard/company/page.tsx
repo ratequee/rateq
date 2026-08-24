@@ -72,12 +72,7 @@ export default function CompanyDashboardPage() {
       : company.categoryId
         ? [company.categoryId]
         : [];
-    return companyNeedsCategorySelection(
-      categories,
-      categoryIds,
-      company.subcategoryIds ?? [],
-      company.categoryItems?.length,
-    );
+    return companyNeedsCategorySelection(categories, categoryIds, company.categoryItems?.length);
   }, [categories, onboarding?.company]);
 
   return (

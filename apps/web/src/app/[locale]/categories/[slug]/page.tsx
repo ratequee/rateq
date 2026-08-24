@@ -1,7 +1,6 @@
 import { CategoryCompaniesSection } from '@/components/categories/category-companies-section';
 import { CategoryDetailHero } from '@/components/categories/category-detail-hero';
 import { CategoryFilters } from '@/components/categories/category-filters';
-import { CategorySubcategoriesSection } from '@/components/categories/category-subcategories-section';
 import { RelatedCategoriesSection } from '@/components/categories/related-categories-section';
 import { fetchCompanies } from '@/lib/companies-data';
 import { fetchCategoryBySlug } from '@/lib/categories-data';
@@ -16,8 +15,6 @@ interface CategoryDetailPageProps {
   params: Promise<{ locale: string; slug: string }>;
   searchParams: Promise<{
     query?: string;
-    subcategoryId?: string;
-    view?: string;
     city?: string;
     minRating?: string;
     sort?: string;
@@ -53,26 +50,6 @@ export default async function CategoryDetailPage({
     notFound();
   }
 
-  const subcategories = category.subcategories ?? [];
-  const showSubcategories =
-    subcategories.length > 0 &&
-    !filters.subcategoryId &&
-    filters.view !== 'all' &&
-    !filters.query?.trim() &&
-    !filters.minRating &&
-    !filters.sort &&
-    !filters.page;
-
-  if (showSubcategories) {
-    return (
-      <>
-        <CategoryDetailHero category={category} />
-        <CategorySubcategoriesSection category={category} />
-        <RelatedCategoriesSection category={category} />
-      </>
-    );
-  }
-
   const query = new URLSearchParams({
     sort: filters.sort ?? 'rating',
     page: filters.page ?? '1',
@@ -80,7 +57,6 @@ export default async function CategoryDetailPage({
     categoryId: category.id,
   });
   if (filters.query?.trim()) query.set('query', filters.query.trim());
-  if (filters.subcategoryId) query.set('subcategoryId', filters.subcategoryId);
   if (filters.minRating) query.set('minRating', filters.minRating);
 
   const result = await fetchCompanies(query);
@@ -94,10 +70,8 @@ export default async function CategoryDetailPage({
         category={category}
         params={{
           query: filters.query,
-          subcategoryId: filters.subcategoryId,
           minRating: filters.minRating,
           sort: filters.sort,
-          view: filters.view,
         }}
       />
       <CategoryCompaniesSection companies={companies} total={total} />

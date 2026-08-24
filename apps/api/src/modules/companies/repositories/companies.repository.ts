@@ -215,23 +215,42 @@ export class CompaniesRepository {
 
       if (projects.length === 0) return;
 
+      const usedSlugs = new Set<string>();
+      const uniqueSlug = (title: string, index: number, requested?: string) => {
+        const trimmed = requested?.trim();
+        const base = (trimmed || slugify(title, index)).slice(0, 80) || `project-${index + 1}`;
+        let candidate = base;
+        let suffix = 2;
+        while (usedSlugs.has(candidate)) {
+          candidate = `${base.slice(0, 70)}-${suffix}`.slice(0, 80);
+          suffix += 1;
+        }
+        usedSlugs.add(candidate);
+        return candidate;
+      };
+
       await tx.companyProject.createMany({
-        data: projects.map((project, index) => ({
-          companyId,
-          slug: project.slug ?? slugify(project.title, index),
-          title: project.title,
-          description: project.description ?? null,
-          imageUrl: project.imageUrl,
-          projectUrl: project.projectUrl ?? '',
-          demoImages: project.demoImages ?? [],
-          clientName: project.clientName ?? null,
-          location: project.location ?? null,
-          projectDate: project.projectDate ? new Date(project.projectDate) : null,
-          serviceIds: project.serviceIds ?? [],
-          customServices: project.customServices ?? [],
-          status: defaultStatus,
-          sortOrder: index,
-        })),
+        data: projects.map((project, index) => {
+          const parsedDate = project.projectDate ? new Date(project.projectDate) : null;
+          const projectDate = parsedDate && !Number.isNaN(parsedDate.getTime()) ? parsedDate : null;
+
+          return {
+            companyId,
+            slug: uniqueSlug(project.title, index, project.slug),
+            title: project.title,
+            description: project.description ?? null,
+            imageUrl: project.imageUrl,
+            projectUrl: project.projectUrl ?? '',
+            demoImages: project.demoImages ?? [],
+            clientName: project.clientName ?? null,
+            location: project.location ?? null,
+            projectDate,
+            serviceIds: project.serviceIds ?? [],
+            customServices: project.customServices ?? [],
+            status: defaultStatus,
+            sortOrder: index,
+          };
+        }),
       });
     });
   }
@@ -373,12 +392,6 @@ export class CompaniesRepository {
           { categoryId: filters.categoryId },
           { categoryIds: { array_contains: [filters.categoryId] } },
         ],
-      });
-    }
-
-    if (filters.subcategoryId) {
-      andConditions.push({
-        subcategoryIds: { array_contains: [filters.subcategoryId] },
       });
     }
 

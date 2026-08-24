@@ -43,7 +43,6 @@ export function CategoryCard({ category, variant = 'default', className }: Categ
   const descriptionName = label;
   const href = `/categories/${category.slug}`;
   const count = category.companyCount ?? 0;
-  const subcategoryCount = category.subcategories?.length ?? 0;
 
   if (variant === 'compact') {
     return (
@@ -134,9 +133,7 @@ export function CategoryCard({ category, variant = 'default', className }: Categ
           secondaryClassName="text-sm font-medium text-secondary dark:text-white/80"
         />
         <p className="mt-2 text-xs text-ink-muted dark:text-white/70">
-          {subcategoryCount > 0
-            ? t('subcategoryCount', { count: subcategoryCount })
-            : t('companyCount', { count })}
+          {t('companyCount', { count })}
         </p>
       </div>
 

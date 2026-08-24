@@ -1,7 +1,6 @@
 import { Module } from '@nestjs/common';
 import { DatabaseModule } from '../../infrastructure/database/database.module';
 import { FirebaseAdminModule } from '../auth/firebase-admin.module';
-import { CategorySubcategoriesRepository } from './repositories/category-subcategories.repository';
 import { AdminCategoriesController } from './admin-categories.controller';
 import { CategoriesController } from './categories.controller';
 import { CategoriesService } from './categories.service';
@@ -11,17 +10,7 @@ import { CategoryServicesRepository } from './repositories/category-services.rep
 @Module({
   imports: [DatabaseModule, FirebaseAdminModule],
   controllers: [CategoriesController, AdminCategoriesController],
-  providers: [
-    CategoriesService,
-    CategoriesRepository,
-    CategoryServicesRepository,
-    CategorySubcategoriesRepository,
-  ],
-  exports: [
-    CategoriesService,
-    CategoriesRepository,
-    CategoryServicesRepository,
-    CategorySubcategoriesRepository,
-  ],
+  providers: [CategoriesService, CategoriesRepository, CategoryServicesRepository],
+  exports: [CategoriesService, CategoriesRepository, CategoryServicesRepository],
 })
 export class CategoriesModule {}

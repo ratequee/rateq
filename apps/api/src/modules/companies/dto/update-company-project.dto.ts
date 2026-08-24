@@ -31,7 +31,8 @@ export class UpdateCompanyProjectDto {
   description?: string;
 
   @ApiProperty()
-  @IsUrl()
+  @IsString()
+  @MinLength(8)
   @MaxLength(2048)
   imageUrl!: string;
 
@@ -46,7 +47,7 @@ export class UpdateCompanyProjectDto {
   @IsOptional()
   @IsArray()
   @ArrayMaxSize(8)
-  @IsUrl({}, { each: true })
+  @IsString({ each: true })
   @MaxLength(2048, { each: true })
   demoImages?: string[];
 

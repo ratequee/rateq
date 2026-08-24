@@ -51,7 +51,6 @@ export default function AdminEditCompanyPage() {
             country: detail.country,
             categoryIds: detail.categoryIds,
             categoryId: detail.categoryId,
-            subcategoryIds: detail.subcategoryIds,
             serviceItems: detail.serviceItems,
             activityItems: detail.activityItems,
             crNumber: detail.crNumber,

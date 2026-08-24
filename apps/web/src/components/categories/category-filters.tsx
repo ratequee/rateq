@@ -9,10 +9,8 @@ interface CategoryFiltersProps {
   category: CategoryPublic;
   params: {
     query?: string;
-    subcategoryId?: string;
     minRating?: string;
     sort?: string;
-    view?: string;
   };
 }
 
@@ -23,7 +21,6 @@ export async function CategoryFilters({
   const locale = await getLocale();
   const t = await getTranslations('categoryPage');
   const ts = await getTranslations('search');
-  const subcategories = category.subcategories ?? [];
 
   return (
     <section
@@ -33,9 +30,8 @@ export async function CategoryFilters({
       <div className="mx-auto max-w-page px-4 sm:px-6 lg:px-8">
         <form
           action={`/${locale}/categories/${category.slug}`}
-          className="grid gap-3 rounded-2xl border border-slate-100 bg-slate-50/50 p-4 dark:border-dm-border dark:bg-dm-elevated/60 sm:grid-cols-2 lg:grid-cols-5 lg:items-end"
+          className="grid gap-3 rounded-2xl border border-slate-100 bg-slate-50/50 p-4 dark:border-dm-border dark:bg-dm-elevated/60 sm:grid-cols-2 lg:grid-cols-4 lg:items-end"
         >
-          {params.view === 'all' ? <input type="hidden" name="view" value="all" /> : null}
           <div className="lg:col-span-2">
             <label
               htmlFor="query"
@@ -49,28 +45,6 @@ export async function CategoryFilters({
               defaultValue={params.query}
               placeholder={t('searchPlaceholder')}
             />
-          </div>
-          <div>
-            <label
-              htmlFor="subcategoryId"
-              className="mb-1.5 block text-xs font-medium text-ink-muted dark:text-white/85"
-            >
-              {ts('subcategory')}
-            </label>
-            <select
-              id="subcategoryId"
-              name="subcategoryId"
-              defaultValue={params.subcategoryId ?? ''}
-              className="select-field"
-              disabled={subcategories.length === 0}
-            >
-              <option value="">{ts('allSubcategories')}</option>
-              {subcategories.map((subcategory) => (
-                <option key={subcategory.id} value={subcategory.id}>
-                  {locale === 'ar' ? subcategory.nameAr : subcategory.nameEn}
-                </option>
-              ))}
-            </select>
           </div>
           <div>
             <label
@@ -109,7 +83,7 @@ export async function CategoryFilters({
               <option value="name">{ts('sortName')}</option>
             </select>
           </div>
-          <div className="sm:col-span-2 lg:col-span-5">
+          <div className="sm:col-span-2 lg:col-span-4">
             <Button type="submit">{t('applyFilters')}</Button>
           </div>
         </form>

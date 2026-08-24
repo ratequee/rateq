@@ -18,7 +18,6 @@ import { ApiError } from '@/lib/api';
 import { ensureValidAccessToken } from '@/lib/auth-session';
 import {
   companyNeedsCategorySelection,
-  filterSubcategoryIdsForCategories,
   hasValidationErrors,
   validateCompanySettingsFields,
 } from '@/lib/validation/profile-fields';
@@ -51,9 +50,6 @@ function CompanySettingsForm({ company }: { company: CompanyProfileDetail }) {
         ? [company.categoryId]
         : [],
   );
-  const [subcategoryIds, setSubcategoryIds] = useState<string[]>(
-    () => company.subcategoryIds ?? [],
-  );
   const [companyAddress, setCompanyAddress] = useState(() => company.address ?? '');
   const [companyLocation, setCompanyLocation] = useState<CompanyMapLocation | null>(() =>
     buildCompanyLocation(company),
@@ -72,20 +68,13 @@ function CompanySettingsForm({ company }: { company: CompanyProfileDetail }) {
     const liveIds = new Set(categories.map((category) => category.id));
     setCategoryIds((current) => {
       const next = current.filter((id) => liveIds.has(id));
-      setSubcategoryIds((subs) => filterSubcategoryIdsForCategories(categories, next, subs));
       return next.length === current.length ? current : next;
     });
   }, [categories]);
 
   const showMissingCategoriesWarning = useMemo(
-    () =>
-      companyNeedsCategorySelection(
-        categories,
-        categoryIds,
-        subcategoryIds,
-        company.categoryItems?.length,
-      ),
-    [categories, categoryIds, subcategoryIds, company.categoryItems?.length],
+    () => companyNeedsCategorySelection(categories, categoryIds, company.categoryItems?.length),
+    [categories, categoryIds, company.categoryItems?.length],
   );
 
   const handleSubmit = async (event: React.FormEvent) => {
@@ -97,7 +86,6 @@ function CompanySettingsForm({ company }: { company: CompanyProfileDetail }) {
         companyAddress,
         companyLocation,
         categoryIds,
-        subcategoryIds,
         categories,
         city: companyCity,
         country: companyCountry,
@@ -106,7 +94,6 @@ function CompanySettingsForm({ company }: { company: CompanyProfileDetail }) {
         required: t('errors.required'),
         companyName: { min: t('errors.companyNameMin'), max: t('errors.companyNameMax') },
         locationRequired: t('errors.locationRequired'),
-        subcategoryRequired: t('errors.subcategoryRequired'),
       },
     );
 
@@ -127,7 +114,6 @@ function CompanySettingsForm({ company }: { company: CompanyProfileDetail }) {
         latitude: companyLocation?.latitude,
         longitude: companyLocation?.longitude,
         categoryIds,
-        subcategoryIds,
         country: companyCountry.trim(),
         city: companyCity.trim(),
       });
@@ -194,16 +180,8 @@ function CompanySettingsForm({ company }: { company: CompanyProfileDetail }) {
           hint={t('categoriesSubcategoriesHint')}
           categories={categories}
           selectedCategoryIds={categoryIds}
-          selectedSubcategoryIds={subcategoryIds}
-          onCategoryChange={(ids) => {
-            setCategoryIds(ids);
-            setSubcategoryIds((current) =>
-              filterSubcategoryIdsForCategories(categories, ids, current),
-            );
-          }}
-          onSubcategoryChange={setSubcategoryIds}
+          onCategoryChange={setCategoryIds}
           categoryError={errors.categoryId}
-          subcategoryError={errors.subcategoryIds}
         />
         <Button type="submit" disabled={submitting} className="w-full">
           {submitting ? t('saving') : t('saveChanges')}

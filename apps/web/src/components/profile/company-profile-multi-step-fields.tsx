@@ -53,8 +53,6 @@ interface CompanyProfileMultiStepFieldsProps {
   setCompanyPhoneVerified: (value: boolean) => void;
   categoryIds: string[];
   setCategoryIds: (value: string[]) => void;
-  subcategoryIds: string[];
-  setSubcategoryIds: (value: string[]) => void;
   categories: CategoryPublic[];
   crNumber: string;
   setCrNumber: (value: string) => void;
@@ -143,8 +141,6 @@ export function CompanyProfileMultiStepFields({
   setCompanyPhoneVerified,
   categoryIds,
   setCategoryIds,
-  subcategoryIds,
-  setSubcategoryIds,
   categories,
   crNumber,
   setCrNumber,
@@ -293,11 +289,8 @@ export function CompanyProfileMultiStepFields({
             hint={t('categoriesSubcategoriesHint')}
             categories={categories}
             selectedCategoryIds={categoryIds}
-            selectedSubcategoryIds={subcategoryIds}
             onCategoryChange={setCategoryIds}
-            onSubcategoryChange={setSubcategoryIds}
             categoryError={errors.categoryId}
-            subcategoryError={errors.subcategoryIds}
           />
         </>
       ) : null}

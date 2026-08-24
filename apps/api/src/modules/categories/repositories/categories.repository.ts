@@ -1,11 +1,10 @@
 import { Injectable } from '@nestjs/common';
-import type { Category, CategorySubcategory, Prisma } from '@prisma/client';
+import type { Category, Prisma } from '@prisma/client';
 import { PrismaService } from '../../../infrastructure/database/prisma.service';
 
 type CategoryWithRelations = Category & {
   _count: { companies: number };
   services: import('@prisma/client').CategoryService[];
-  subcategories: CategorySubcategory[];
 };
 
 @Injectable()
@@ -18,7 +17,6 @@ export class CategoriesRepository {
       include: {
         _count: { select: { companies: true } },
         services: { orderBy: [{ sortOrder: 'asc' }, { name: 'asc' }] },
-        subcategories: { orderBy: [{ sortOrder: 'asc' }, { nameEn: 'asc' }] },
       },
     });
   }
@@ -42,7 +40,6 @@ export class CategoriesRepository {
       include: {
         _count: { select: { companies: true } },
         services: { orderBy: [{ sortOrder: 'asc' }, { name: 'asc' }] },
-        subcategories: { orderBy: [{ sortOrder: 'asc' }, { nameEn: 'asc' }] },
       },
     });
   }

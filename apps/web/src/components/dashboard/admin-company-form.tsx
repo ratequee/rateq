@@ -29,7 +29,6 @@ import {
 } from '@/lib/qatar-phone';
 import { cn } from '@/lib/utils';
 import {
-  filterSubcategoryIdsForCategories,
   hasValidationErrors,
   MAX_PROFILE_FILE_BYTES,
   sanitizeCompanyName,
@@ -61,7 +60,6 @@ export interface AdminCompanyFormInitialValues {
   country?: string | null;
   categoryIds?: string[];
   categoryId?: string | null;
-  subcategoryIds?: string[];
   serviceItems?: Array<{ id: string }>;
   activityItems?: Array<{ id: string }>;
   crNumber?: string | null;
@@ -141,9 +139,6 @@ export function AdminCompanyForm({ mode, companyId, initialValues }: AdminCompan
       : initialValues?.categoryId
         ? [initialValues.categoryId]
         : [],
-  );
-  const [subcategoryIds, setSubcategoryIds] = useState<string[]>(
-    () => initialValues?.subcategoryIds ?? [],
   );
   const [companyAddress, setCompanyAddress] = useState(initialValues?.address ?? '');
   const [companyLocation, setCompanyLocation] = useState<CompanyMapLocation | null>(() => {
@@ -306,7 +301,6 @@ export function AdminCompanyForm({ mode, companyId, initialValues }: AdminCompan
       city: companyCity.trim() || undefined,
       country: companyCountry.trim() || undefined,
       categoryIds: categoryIds.length ? categoryIds : undefined,
-      subcategoryIds: subcategoryIds.length ? subcategoryIds : undefined,
       serviceIds: serviceIds.length ? serviceIds : undefined,
       activityIds: activityIds.length ? activityIds : undefined,
       crNumber: crNumber.trim() || undefined,
@@ -487,14 +481,7 @@ export function AdminCompanyForm({ mode, companyId, initialValues }: AdminCompan
           hint={tp('categoriesSubcategoriesHint')}
           categories={categories}
           selectedCategoryIds={categoryIds}
-          selectedSubcategoryIds={subcategoryIds}
-          onCategoryChange={(ids) => {
-            setCategoryIds(ids);
-            setSubcategoryIds((current) =>
-              filterSubcategoryIdsForCategories(categories, ids, current),
-            );
-          }}
-          onSubcategoryChange={setSubcategoryIds}
+          onCategoryChange={setCategoryIds}
         />
       </section>
 

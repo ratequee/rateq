@@ -42,7 +42,6 @@ export type CompanyProfileErrors = {
   companyPhoneVerification?: string;
   categoryId?: string;
   categoryIds?: string;
-  subcategoryIds?: string;
   crNumber?: string;
   validationDate?: string;
   city?: string;
@@ -54,40 +53,10 @@ export type CompanyProfileErrors = {
   coverFile?: string;
 };
 
-export function filterSubcategoryIdsForCategories(
-  categories: CategoryPublic[],
-  categoryIds: string[],
-  subcategoryIds: string[],
-): string[] {
-  const validIds = new Set(
-    categories
-      .filter((category) => categoryIds.includes(category.id))
-      .flatMap((category) => (category.subcategories ?? []).map((item) => item.id)),
-  );
-  return subcategoryIds.filter((id) => validIds.has(id));
-}
-
-export function validateSubcategorySelection(
-  categories: CategoryPublic[],
-  categoryIds: string[],
-  subcategoryIds: string[],
-  message: string,
-): string | undefined {
-  for (const categoryId of categoryIds) {
-    const category = categories.find((item) => item.id === categoryId);
-    const subcategories = category?.subcategories ?? [];
-    if (subcategories.length === 0) continue;
-    const hasSelection = subcategories.some((item) => subcategoryIds.includes(item.id));
-    if (!hasSelection) return message;
-  }
-  return undefined;
-}
-
-/** True when the company has no live categories, or is missing a required subcategory. */
+/** True when the company has no live categories. */
 export function companyNeedsCategorySelection(
   categories: CategoryPublic[],
   categoryIds: string[],
-  subcategoryIds: string[],
   categoryItemsLength?: number,
 ): boolean {
   if (categories.length === 0) {
@@ -95,12 +64,7 @@ export function companyNeedsCategorySelection(
   }
 
   const liveIds = new Set(categories.map((category) => category.id));
-  const validCategoryIds = categoryIds.filter((id) => liveIds.has(id));
-  if (validCategoryIds.length === 0) return true;
-
-  return Boolean(
-    validateSubcategorySelection(categories, validCategoryIds, subcategoryIds, 'required'),
-  );
+  return categoryIds.filter((id) => liveIds.has(id)).length === 0;
 }
 
 export function validateReviewerProfileFields(
@@ -199,7 +163,6 @@ export function validateCompanyProfileFields(
     companyLocation: CompanyMapLocation | null;
     companyPhone: string;
     categoryIds: string[];
-    subcategoryIds?: string[];
     categories?: CategoryPublic[];
     crNumber: string;
     validationDate: string;
@@ -225,7 +188,6 @@ export function validateCompanyProfileFields(
     phone: { required: string; invalid: string };
     phoneVerification: { required: string };
     locationRequired: string;
-    subcategoryRequired?: string;
   },
 ): CompanyProfileErrors {
   const errors: CompanyProfileErrors = {};
@@ -253,16 +215,6 @@ export function validateCompanyProfileFields(
   }
 
   if (fields.categoryIds.length === 0) errors.categoryId = messages.required;
-
-  if (fields.categories?.length && messages.subcategoryRequired) {
-    const subcategoryError = validateSubcategorySelection(
-      fields.categories,
-      fields.categoryIds,
-      fields.subcategoryIds ?? [],
-      messages.subcategoryRequired,
-    );
-    if (subcategoryError) errors.subcategoryIds = subcategoryError;
-  }
 
   if (!fields.crNumber.trim()) {
     errors.crNumber = messages.required;
@@ -321,7 +273,6 @@ export function validateCompanySettingsFields(
     companyAddress: string;
     companyLocation: CompanyMapLocation | null;
     categoryIds: string[];
-    subcategoryIds?: string[];
     categories?: CategoryPublic[];
     city: string;
     country: string;
@@ -330,15 +281,11 @@ export function validateCompanySettingsFields(
     required: string;
     companyName: { min: string; max: string };
     locationRequired: string;
-    subcategoryRequired?: string;
   },
-): Pick<
-  CompanyProfileErrors,
-  'companyName' | 'companyAddress' | 'companyLocation' | 'categoryId' | 'subcategoryIds'
-> {
+): Pick<CompanyProfileErrors, 'companyName' | 'companyAddress' | 'companyLocation' | 'categoryId'> {
   const errors: Pick<
     CompanyProfileErrors,
-    'companyName' | 'companyAddress' | 'companyLocation' | 'categoryId' | 'subcategoryIds'
+    'companyName' | 'companyAddress' | 'companyLocation' | 'categoryId'
   > = {};
 
   const name = fields.companyName.trim();
@@ -352,16 +299,6 @@ export function validateCompanySettingsFields(
 
   if (!fields.companyAddress.trim()) errors.companyAddress = messages.required;
   if (fields.categoryIds.length === 0) errors.categoryId = messages.required;
-
-  if (fields.categories?.length && messages.subcategoryRequired) {
-    const subcategoryError = validateSubcategorySelection(
-      fields.categories,
-      fields.categoryIds,
-      fields.subcategoryIds ?? [],
-      messages.subcategoryRequired,
-    );
-    if (subcategoryError) errors.subcategoryIds = subcategoryError;
-  }
 
   if (
     !isValidMapLocation(fields.companyLocation) ||

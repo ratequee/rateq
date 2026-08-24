@@ -26,7 +26,6 @@ export default async function SearchPage({ searchParams }: SearchPageProps): Pro
   const query = new URLSearchParams();
   if (params.query) query.set('query', params.query);
   if (params.categoryId) query.set('categoryId', params.categoryId);
-  if (params.subcategoryId) query.set('subcategoryId', params.subcategoryId);
   query.set('sort', params.sort ?? 'rating');
   query.set('page', params.page ?? '1');
   query.set('limit', '12');
@@ -47,7 +46,6 @@ export default async function SearchPage({ searchParams }: SearchPageProps): Pro
             categories={categories}
             initialQuery={params.query}
             initialCategoryId={params.categoryId}
-            initialSubcategoryId={params.subcategoryId}
             initialSort={params.sort}
           />
         </div>
