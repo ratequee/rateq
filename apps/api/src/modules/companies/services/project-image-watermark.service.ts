@@ -78,13 +78,14 @@ export class ProjectImageWatermarkService {
   }
 
   private async applyWatermark(source: Buffer): Promise<Buffer> {
-    const image = sharp(source)
+    const base = await sharp(source)
       .rotate()
-      .resize({ width: 2000, height: 2000, fit: 'inside', withoutEnlargement: true });
-    const metadata = await image.clone().metadata();
+      .resize({ width: 2000, height: 2000, fit: 'inside', withoutEnlargement: true })
+      .toBuffer();
+    const metadata = await sharp(base).metadata();
     const width = metadata.width ?? 1200;
     const height = metadata.height ?? 800;
-    const fontSize = Math.max(28, Math.round(Math.min(width, height) * 0.055));
+    const fontSize = Math.max(22, Math.round(Math.min(width, height) * 0.045));
     const opacity = 0.38;
     const angle = -30;
     const escaped = PROJECT_WATERMARK_TEXT.replace(/&/g, '&amp;')
@@ -92,7 +93,7 @@ export class ProjectImageWatermarkService {
       .replace(/>/g, '&gt;');
 
     const svg = Buffer.from(
-      `<svg width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg">
+      `<svg width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" xmlns="http://www.w3.org/2000/svg">
         <text
           x="50%"
           y="50%"
@@ -109,8 +110,10 @@ export class ProjectImageWatermarkService {
       </svg>`,
     );
 
-    return image
-      .composite([{ input: svg, top: 0, left: 0 }])
+    const overlay = await sharp(svg).resize(width, height, { fit: 'fill' }).png().toBuffer();
+
+    return sharp(base)
+      .composite([{ input: overlay, top: 0, left: 0 }])
       .jpeg({ quality: 82, mozjpeg: true })
       .toBuffer();
   }
