@@ -59,3 +59,4 @@ apps/mobile/android
 *.pem
 .cache
 .vercel
+rateq-theme-export/

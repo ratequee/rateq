@@ -1,63 +1,130 @@
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { PasswordInput } from '@/components/ui/input';
+import { AuthDivider } from '@/components/auth/auth-divider';
+import { AuthFieldGroup } from '@/components/auth/auth-field-group';
+import { AuthScreenLayout } from '@/components/auth/auth-screen-layout';
+import { GoogleSignInButton } from '@/components/auth/google-sign-in-button';
 import { useAuth } from '@/context/auth-context';
+import { isEmailNotVerifiedError } from '@/lib/auth-flow-errors';
 import { ApiError } from '@/lib/api';
+import { getFirebaseAuthErrorMessage } from '@/lib/firebase/errors';
+import { validateAuthFields, type AuthFieldErrors } from '@/lib/validation/auth-fields';
+import { useRedirectAfterAuth } from '@/hooks/use-redirect-after-auth';
+import { getFontFamily } from '@/i18n';
 import { Link, useRouter } from 'expo-router';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Alert, KeyboardAvoidingView, Platform, Text, View } from 'react-native';
+import { Alert, Text, View } from 'react-native';
 
 export default function LoginScreen() {
   const { t } = useTranslation();
   const { login } = useAuth();
+  const redirectAfterAuth = useRedirectAfterAuth();
   const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [fieldErrors, setFieldErrors] = useState<AuthFieldErrors>({});
+
+  const validationMessages = useMemo(
+    () => ({
+      emailRequired: t('auth.validationEmailRequired'),
+      emailInvalid: t('auth.validationEmailInvalid'),
+      passwordRequired: t('auth.validationPasswordRequired'),
+      passwordMin: t('auth.validationPasswordMin'),
+    }),
+    [t],
+  );
 
   const handleSubmit = async () => {
+    const errors = validateAuthFields({ email, password }, validationMessages);
+    if (Object.keys(errors).length > 0) {
+      setFieldErrors(errors);
+      return;
+    }
+
+    setFieldErrors({});
     setLoading(true);
     try {
-      await login(email.trim(), password);
-      router.back();
+      const sessionUser = await login(email.trim(), password);
+      await redirectAfterAuth(sessionUser);
     } catch (err) {
-      Alert.alert(t('common.error'), err instanceof ApiError ? err.message : 'Error');
+      if (isEmailNotVerifiedError(err)) {
+        router.replace(`/(auth)/check-email?email=${encodeURIComponent(err.email)}`);
+        return;
+      }
+      Alert.alert(
+        t('common.error'),
+        err instanceof ApiError
+          ? err.message
+          : getFirebaseAuthErrorMessage(err, t('auth.loginError')),
+      );
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <KeyboardAvoidingView
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-      className="flex-1 bg-white px-6 justify-center"
+    <AuthScreenLayout
+      title={t('auth.loginTitle')}
+      subtitle={t('auth.loginSubtitle')}
+      footer={
+        <Text
+          className="text-center text-sm text-ink-muted dark:text-white/75"
+          style={{ fontFamily: getFontFamily('regular') }}
+        >
+          {t('auth.noAccount')}{' '}
+          <Link href="/(auth)/register" asChild>
+            <Text
+              className="font-semibold text-brand-500 dark:text-gold-300"
+              style={{ fontFamily: getFontFamily('semibold') }}
+            >
+              {t('auth.register')}
+            </Text>
+          </Link>
+        </Text>
+      }
     >
-      <Text className="text-2xl font-bold text-slate-900 mb-6">{t('auth.loginTitle')}</Text>
-      <View className="gap-4">
-        <View>
-          <Text className="mb-1 text-sm font-medium text-slate-700">{t('auth.email')}</Text>
+      <View className="gap-5">
+        <AuthFieldGroup label={t('auth.email')} required error={fieldErrors.email}>
           <Input
             value={email}
             onChangeText={setEmail}
             keyboardType="email-address"
             autoCapitalize="none"
             autoComplete="email"
+            placeholder={t('auth.emailPlaceholder')}
+            className="h-12 rounded-2xl border-slate-200 bg-slate-50 dark:border-dm-border dark:bg-dm-elevated"
           />
-        </View>
-        <View>
-          <Text className="mb-1 text-sm font-medium text-slate-700">{t('auth.password')}</Text>
-          <Input
+        </AuthFieldGroup>
+
+        <AuthFieldGroup label={t('auth.password')} required error={fieldErrors.password}>
+          <PasswordInput
             value={password}
             onChangeText={setPassword}
-            secureTextEntry
             autoComplete="password"
+            placeholder={t('auth.passwordPlaceholder')}
+            className="h-12 rounded-2xl border-slate-200 bg-slate-50 dark:border-dm-border dark:bg-dm-elevated"
+            toggleLabels={{
+              show: t('auth.showPassword'),
+              hide: t('auth.hidePassword'),
+            }}
           />
-        </View>
-        <Button title={t('auth.login')} onPress={handleSubmit} loading={loading} />
-        <Link href="/(auth)/register" asChild>
-          <Button title={t('auth.register')} variant="outline" />
-        </Link>
+        </AuthFieldGroup>
+
+        <Button
+          title={loading ? t('auth.signingIn') : t('auth.login')}
+          variant="gold"
+          size="lg"
+          className="mt-1 w-full rounded-2xl"
+          onPress={handleSubmit}
+          loading={loading}
+        />
+
+        <AuthDivider />
+        <GoogleSignInButton />
       </View>
-    </KeyboardAvoidingView>
+    </AuthScreenLayout>
   );
 }

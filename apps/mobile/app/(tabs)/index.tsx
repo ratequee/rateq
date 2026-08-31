@@ -1,35 +1,53 @@
-import { CompanyCard } from '@/components/company/company-card';
+import { Logo } from '@/components/brand/logo';
+import { FeaturedCompanyCard } from '@/components/home/featured-company-card';
+import { HomeCategoryCard } from '@/components/home/home-category-card';
+import { HomeTestimonialCard } from '@/components/home/home-testimonial-card';
+import { ScreenHeaderControls } from '@/components/layout/screen-header-controls';
 import { Input } from '@/components/ui/input';
 import { LoadingView } from '@/components/ui/loading-view';
-import { ApiError, companiesApi } from '@/lib/api';
-import type { CompanyPublic } from '@rateq/types';
+import { useAppDirection } from '@/hooks/use-app-direction';
+import { getFontFamily } from '@/i18n';
+import { cn } from '@/lib/cn';
+import { ApiError, categoriesApi, companiesApi, reviewsApi } from '@/lib/api';
+import type { CategoryPublic, CompanyPublic, ReviewPublic } from '@rateq/types';
+import { Ionicons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
-  FlatList,
+  ImageBackground,
+  Keyboard,
+  Pressable,
   RefreshControl,
+  ScrollView,
   Text,
   View,
-  Pressable,
-  Keyboard,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function HomeScreen() {
   const { t } = useTranslation();
+  const router = useRouter();
+  const { textStyle, textAlignClass, labelContainerStyle } = useAppDirection();
   const [query, setQuery] = useState('');
-  const [search, setSearch] = useState('');
+  const [categories, setCategories] = useState<CategoryPublic[]>([]);
   const [companies, setCompanies] = useState<CompanyPublic[]>([]);
+  const [reviews, setReviews] = useState<ReviewPublic[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const load = useCallback(async (q?: string) => {
+  const load = useCallback(async () => {
     try {
       setError(null);
-      const params = new URLSearchParams({ sort: 'rating', limit: '20' });
-      if (q) params.set('query', q);
-      const result = await companiesApi.search(params);
-      setCompanies(result.data);
+      const [cats, companiesResult, featuredReviews] = await Promise.all([
+        categoriesApi.list(),
+        companiesApi.search(new URLSearchParams({ sort: 'rating', limit: '6' })),
+        reviewsApi.listFeatured(),
+      ]);
+      setCategories(cats);
+      setCompanies(companiesResult.data);
+      setReviews(featuredReviews.data);
     } catch (err) {
       setError(err instanceof ApiError ? err.message : t('common.error'));
     }
@@ -41,55 +59,185 @@ export default function HomeScreen() {
 
   const onRefresh = async () => {
     setRefreshing(true);
-    await load(search);
+    await load();
     setRefreshing(false);
   };
 
   const onSearch = () => {
     Keyboard.dismiss();
-    setSearch(query);
-    setLoading(true);
-    void load(query).finally(() => setLoading(false));
+    router.push({
+      pathname: '/(tabs)/companies',
+      params: query.trim() ? { q: query.trim() } : undefined,
+    });
   };
 
-  if (loading && companies.length === 0) return <LoadingView />;
+  if (loading) return <LoadingView />;
+
+  const heroImage = companies.find((company) => company.coverUrl)?.coverUrl;
+  const gridCategories = categories.slice(0, 6);
 
   return (
-    <View className="flex-1 bg-slate-50">
-      <View className="border-b border-slate-200 bg-white px-4 pb-4 pt-2">
-        <Text className="text-2xl font-bold text-brand-700">{t('common.appName')}</Text>
-        <View className="mt-3 flex-row gap-2">
-          <Input
-            className="flex-1"
-            placeholder={t('common.searchPlaceholder')}
-            value={query}
-            onChangeText={setQuery}
-            onSubmitEditing={onSearch}
-            returnKeyType="search"
-          />
-          <Pressable
-            onPress={onSearch}
-            className="h-11 items-center justify-center rounded-lg bg-brand-600 px-4"
-          >
-            <Text className="font-semibold text-white">{t('common.search')}</Text>
-          </Pressable>
-        </View>
-      </View>
-
-      {error && (
-        <Text className="px-4 py-3 text-center text-sm text-red-600">{error}</Text>
-      )}
-
-      <FlatList
-        data={companies}
-        keyExtractor={(item) => item.id}
-        contentContainerStyle={{ padding: 16, flexGrow: 1 }}
+    <SafeAreaView className="flex-1 bg-white dark:bg-dm-bg" edges={['top']}>
+      <ScrollView
+        className="flex-1"
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
-        ListEmptyComponent={
-          <Text className="py-12 text-center text-slate-500">{t('common.noResults')}</Text>
-        }
-        renderItem={({ item }) => <CompanyCard company={item} />}
-      />
-    </View>
+        keyboardShouldPersistTaps="handled"
+      >
+        <View className="px-4 pb-2 pt-2">
+          <View className="flex-row items-center justify-between">
+            <Logo width={92} height={22} />
+            <ScreenHeaderControls />
+          </View>
+
+          <View className="mt-4 flex-row items-center gap-2">
+            <Input
+              className="flex-1 rounded-full border-slate-200"
+              placeholder={t('home.searchPlaceholder')}
+              value={query}
+              onChangeText={setQuery}
+              onSubmitEditing={onSearch}
+              returnKeyType="search"
+            />
+            <Pressable
+              onPress={onSearch}
+              className="h-12 w-12 items-center justify-center rounded-full bg-brand-500"
+            >
+              <Ionicons name="search" size={20} color="#ffffff" />
+            </Pressable>
+          </View>
+        </View>
+
+        {error ? <Text className="px-4 py-2 text-center text-sm text-red-600">{error}</Text> : null}
+
+        <View className="px-4">
+          {heroImage ? (
+            <ImageBackground
+              source={{ uri: heroImage }}
+              className="mt-2 overflow-hidden rounded-3xl"
+              imageStyle={{ borderRadius: 24 }}
+            >
+              <View className="min-h-[160px] justify-end bg-black/35 p-5">
+                <Text
+                  className={cn('text-2xl font-bold leading-8 text-white', textAlignClass)}
+                  style={[{ fontFamily: getFontFamily('bold') }, textStyle]}
+                >
+                  {t('home.heroTitlePrefix')}{' '}
+                  <Text className="text-gold-300">{t('home.heroTitleHighlight')}</Text>{' '}
+                  {t('home.heroTitleSuffix')}
+                </Text>
+              </View>
+            </ImageBackground>
+          ) : (
+            <View className="mt-2 min-h-[160px] justify-end rounded-3xl bg-brand-600 p-5">
+              <Text
+                className={cn('text-2xl font-bold leading-8 text-white', textAlignClass)}
+                style={[{ fontFamily: getFontFamily('bold') }, textStyle]}
+              >
+                {t('home.heroTitlePrefix')}{' '}
+                <Text className="text-gold-300">{t('home.heroTitleHighlight')}</Text>{' '}
+                {t('home.heroTitleSuffix')}
+              </Text>
+            </View>
+          )}
+        </View>
+
+        <View className="mt-8 px-3">
+          <View className="mb-3 flex-row items-center justify-between px-1">
+            <Text
+              className={cn('text-lg font-bold text-ink dark:text-white', textAlignClass)}
+              style={[{ fontFamily: getFontFamily('bold') }, textStyle]}
+            >
+              {t('home.categoriesTitle')}
+            </Text>
+            <Pressable onPress={() => router.push('/categories')}>
+              <Text
+                className={cn('text-sm font-medium text-brand-500', textAlignClass)}
+                style={[{ fontFamily: getFontFamily('medium') }, textStyle]}
+              >
+                {t('home.viewAllCategories')}
+              </Text>
+            </Pressable>
+          </View>
+
+          {gridCategories.length === 0 ? (
+            <Text className="py-6 text-center text-sm text-ink-muted dark:text-white/70">
+              {t('home.noCategories')}
+            </Text>
+          ) : (
+            <View className="flex-row flex-wrap">
+              {gridCategories.map((category) => (
+                <HomeCategoryCard
+                  key={category.id}
+                  category={category}
+                  onPress={() =>
+                    router.push({
+                      pathname: '/(tabs)/companies',
+                      params: { categoryId: category.id },
+                    })
+                  }
+                />
+              ))}
+            </View>
+          )}
+        </View>
+
+        <View className="mt-6">
+          <View className="mb-3 flex-row items-center justify-between px-4">
+            <Text
+              className={cn('text-lg font-bold text-ink dark:text-white', textAlignClass)}
+              style={[{ fontFamily: getFontFamily('bold') }, textStyle]}
+            >
+              {t('home.featuredTitle')}
+            </Text>
+            <Pressable onPress={() => router.push('/(tabs)/companies')}>
+              <Text
+                className={cn('text-sm font-medium text-brand-500', textAlignClass)}
+                style={[{ fontFamily: getFontFamily('medium') }, textStyle]}
+              >
+                {t('home.viewAllCompanies')}
+              </Text>
+            </Pressable>
+          </View>
+
+          {companies.length === 0 ? (
+            <Text className="px-4 py-6 text-center text-sm text-ink-muted dark:text-white/70">
+              {t('common.noResults')}
+            </Text>
+          ) : (
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 4 }}
+            >
+              {companies.map((company) => (
+                <FeaturedCompanyCard key={company.id} company={company} />
+              ))}
+            </ScrollView>
+          )}
+        </View>
+
+        {reviews.length > 0 ? (
+          <View className="mt-8 pb-8">
+            <View className="mb-3 px-4" style={labelContainerStyle}>
+              <Text
+                className="text-lg font-bold text-ink dark:text-white"
+                style={[{ fontFamily: getFontFamily('bold') }, textStyle]}
+              >
+                {t('home.testimonialsTitle')}
+              </Text>
+            </View>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 8 }}
+            >
+              {reviews.map((review) => (
+                <HomeTestimonialCard key={review.id} review={review} />
+              ))}
+            </ScrollView>
+          </View>
+        ) : null}
+      </ScrollView>
+    </SafeAreaView>
   );
 }
