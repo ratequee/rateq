@@ -42,10 +42,10 @@ export function BilingualText({
 
   const weightFamily =
     primaryWeight === 'bold'
-      ? getFontFamily('bold')
+      ? getFontFamily('bold', primary)
       : primaryWeight === 'medium'
-        ? getFontFamily('medium')
-        : getFontFamily('semibold');
+        ? getFontFamily('medium', primary)
+        : getFontFamily('semibold', primary);
 
   return (
     <View className={className}>
@@ -63,7 +63,7 @@ export function BilingualText({
         <Text
           className={`mt-2 text-ink-muted dark:text-white/75 ${alignClass}`}
           style={{
-            fontFamily: getFontFamily('regular'),
+            fontFamily: getFontFamily('regular', secondary ?? ''),
             fontSize: primarySize === 'xl' ? 15 : 13,
             lineHeight: primarySize === 'xl' ? 24 : 20,
             writingDirection: secondaryWritingDirection,

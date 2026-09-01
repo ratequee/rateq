@@ -65,14 +65,14 @@ function BilingualChipLabel({
     <View>
       <Text
         className={`text-sm leading-snug ${active ? 'text-white' : 'text-ink dark:text-white'}`}
-        style={{ fontFamily: getFontFamily('medium') }}
+        style={{ fontFamily: getFontFamily('medium', nameEn) }}
       >
         {nameEn}
       </Text>
       {showBoth ? (
         <Text
           className={`mt-0.5 text-xs leading-snug ${active ? 'text-white/85' : 'text-ink-muted dark:text-white/70'}`}
-          style={{ fontFamily: getFontFamily('regular'), writingDirection: 'rtl' }}
+          style={{ fontFamily: getFontFamily('regular', nameAr), writingDirection: 'rtl' }}
         >
           {nameAr}
         </Text>

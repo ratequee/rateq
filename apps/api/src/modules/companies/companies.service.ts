@@ -146,6 +146,81 @@ export class CompaniesService {
     };
   }
 
+  async getTrustedBanner(): Promise<import('@rateq/types').TrustedBannerItem[]> {
+    const companies = await this.companiesRepository.findTrustedApproved(5);
+    if (companies.length === 0) return [];
+
+    const items = await Promise.all(
+      companies.map(async (company) => {
+        const reviewWhere = { companyId: company.id, status: 'APPROVED' as const };
+        const reviewCount = await this.prisma.review.count({ where: reviewWhere });
+        let review = null;
+
+        if (reviewCount > 0) {
+          review = await this.prisma.review.findFirst({
+            where: reviewWhere,
+            orderBy: [{ rating: 'desc' }, { createdAt: 'desc' }],
+            include: {
+              user: {
+                select: {
+                  id: true,
+                  email: true,
+                  displayName: true,
+                  phone: true,
+                  phoneVerified: true,
+                  createdAt: true,
+                  profile: { select: { fullName: true, avatarUrl: true, phone: true } },
+                },
+              },
+              company: {
+                select: {
+                  id: true,
+                  name: true,
+                  slug: true,
+                  logo: true,
+                  categoryId: true,
+                  email: true,
+                  owner: { select: { id: true, email: true } },
+                  category: { select: { id: true, nameEn: true, nameAr: true } },
+                },
+              },
+              replies: true,
+              attachments: true,
+              serviceRatings: {
+                include: {
+                  companyCatalogItem: { select: { id: true, nameEn: true, nameAr: true } },
+                },
+              },
+            },
+          });
+        }
+
+        const serviceIds = parseCompanyIdList(company.serviceIds);
+        const activityIds = parseCompanyIdList(company.activityIds);
+        const categoryIds = normalizeCategoryIdsInput(
+          parseCompanyIdList(company.categoryIds),
+          company.categoryId ?? undefined,
+        );
+        const [serviceItems, activityItems, categoryItems] = await Promise.all([
+          this.catalogService.resolveLabels(serviceIds, 'en'),
+          this.catalogService.resolveLabels(activityIds, 'en'),
+          this.categoriesService.resolveLabels(categoryIds, 'en'),
+        ]);
+        const publicCompany = toCompanyPublic(company, {
+          serviceItems,
+          activityItems,
+          categoryItems,
+        });
+        return {
+          company: publicCompany,
+          review: review ? toReviewPublic(review) : null,
+        };
+      }),
+    );
+
+    return items;
+  }
+
   async getPublicProfile(slug: string, viewerId?: string): Promise<CompanyPublic> {
     const company = await this.companiesRepository.findBySlug(slug);
 
@@ -894,7 +969,24 @@ export class CompaniesService {
       throw new NotFoundException('Company not found');
     }
 
-    const base = toAdminCompanyVerificationDetail(company);
+    const serviceIds = parseCompanyIdList(company.serviceIds);
+    const activityIds = parseCompanyIdList(company.activityIds);
+    const categoryIds = normalizeCategoryIdsInput(
+      parseCompanyIdList(company.categoryIds),
+      company.categoryId ?? undefined,
+    );
+    const [serviceItems, activityItems, categoryItems] = await Promise.all([
+      this.catalogService.resolveLabels(serviceIds, 'en'),
+      this.catalogService.resolveLabels(activityIds, 'en'),
+      this.categoriesService.resolveLabels(categoryIds, 'en'),
+    ]);
+
+    const base: AdminCompanyVerificationDetail = {
+      ...toAdminCompanyVerificationDetail(company),
+      categoryItems,
+      serviceItems,
+      activityItems,
+    };
 
     if (company.profileChangeStatus !== 'PENDING' || !company.pendingProfileChanges) {
       return base;

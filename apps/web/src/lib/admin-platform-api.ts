@@ -68,6 +68,13 @@ export const adminApi = {
       token,
     }),
 
+  updateCompanyTrusted: (token: string, companyId: string, isTrusted: boolean) =>
+    apiClient<AdminCompanyDetail>(`/admin/companies/${companyId}/trusted`, {
+      method: 'PATCH',
+      body: JSON.stringify({ isTrusted }),
+      token,
+    }),
+
   deleteReviewReply: (token: string, reviewId: string) =>
     apiClient<MessageResponse>(`/moderation/reviews/${reviewId}/reply`, {
       method: 'DELETE',

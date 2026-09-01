@@ -283,6 +283,7 @@ model Company {
   categoryIds        Json?                     @map("category_ids")
   subcategoryIds     Json?                     @map("subcategory_ids")
   showVerifiedStamp  Boolean                   @default(false) @map("show_verified_stamp")
+  isTrusted          Boolean                   @default(false) @map("is_trusted")
   name               String
   nameAr             String?                   @map("name_ar")
   slug               String                    @unique

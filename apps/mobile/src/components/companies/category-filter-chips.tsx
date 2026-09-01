@@ -24,7 +24,7 @@ function BilingualChipLabel({
     <View>
       <Text
         className={`text-sm ${active ? 'text-white' : 'text-ink dark:text-white'}`}
-        style={{ fontFamily: getFontFamily('medium'), lineHeight: 20 }}
+        style={{ fontFamily: getFontFamily('medium', nameEn), lineHeight: 20 }}
       >
         {nameEn}
       </Text>
@@ -32,7 +32,7 @@ function BilingualChipLabel({
         <Text
           className={`mt-1 ${active ? 'text-white/85' : 'text-ink-muted dark:text-white/70'}`}
           style={{
-            fontFamily: getFontFamily('regular'),
+            fontFamily: getFontFamily('regular', nameAr),
             writingDirection: 'rtl',
             fontSize: 11,
             lineHeight: 18,
@@ -74,14 +74,17 @@ export function CategoryFilterChips({
       >
         <Text
           className={`text-sm ${selectedId === null ? 'text-white' : 'text-ink dark:text-white'}`}
-          style={{ fontFamily: getFontFamily('medium'), lineHeight: 20 }}
+          style={{
+            fontFamily: getFontFamily('medium', t('companies.allCategories')),
+            lineHeight: 20,
+          }}
         >
           {t('companies.allCategories')}
         </Text>
         <Text
           className={`mt-1 ${selectedId === null ? 'text-white/85' : 'text-ink-muted dark:text-white/70'}`}
           style={{
-            fontFamily: getFontFamily('regular'),
+            fontFamily: getFontFamily('regular', t('companies.allCategoriesAr')),
             writingDirection: 'rtl',
             fontSize: 11,
             lineHeight: 18,

@@ -120,6 +120,21 @@ export class CompaniesRepository {
     });
   }
 
+  findTrustedApproved(limit: number) {
+    return this.prisma.company.findMany({
+      where: {
+        isTrusted: true,
+        verificationStatus: 'APPROVED',
+        OR: [{ ownerId: null }, { owner: { isActive: true } }],
+      },
+      take: limit,
+      orderBy: [{ ratingAverage: 'desc' }, { reviewCount: 'desc' }],
+      include: {
+        category: { select: { id: true, nameEn: true, nameAr: true, slug: true } },
+      },
+    });
+  }
+
   findManyForAdminVerification(input: {
     status?: CompanyVerificationStatus | 'profile_changes';
     page: number;

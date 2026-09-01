@@ -1179,6 +1179,10 @@
     "removeStamp": "Remove verified stamp",
     "stampEnabled": "Verified stamp enabled on company profile.",
     "stampRemoved": "Verified stamp removed from company profile.",
+    "markTrusted": "Mark as trusted",
+    "removeTrusted": "Remove trusted mark",
+    "trustedEnabled": "Company marked as trusted for homepage spotlight.",
+    "trustedRemoved": "Trusted mark removed from company.",
     "editCompany": "Edit company"
   },
   "adminProjects": {
@@ -1352,6 +1356,10 @@
     "profileChangeRejected": "Profile changes rejected.",
     "profileChangeBadge": "Profile update",
     "viewProfileChanges": "View pending profile changes",
+    "profileSelections": "Categories, services & activities",
+    "categories": "Categories",
+    "services": "Services",
+    "activities": "Activities",
     "registerCompany": "Register company",
     "status": {
       "pending": "Pending",

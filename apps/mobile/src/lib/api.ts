@@ -13,6 +13,7 @@ import type {
   PaginatedCompaniesResponse,
   PaginatedReviewsResponse,
   ReviewPublic,
+  TrustedBannerItem,
   UpdateCompanyInput,
   UserProfile,
 } from '@rateq/types';
@@ -132,6 +133,8 @@ export const authApi = {
 export const companiesApi = {
   search: (params: URLSearchParams) =>
     apiClient<PaginatedCompaniesResponse>(`/companies?${params}`, { auth: false }),
+  getTrustedBanner: () =>
+    apiClient<TrustedBannerItem[]>('/companies/trusted-banner', { auth: false }),
   getBySlug: (slug: string) => apiClient<CompanyPublic>(`/companies/${slug}`),
   listFavorites: () => apiClient<CompanyPublic[]>('/companies/me/favorites'),
   addFavorite: (companyId: string) =>

@@ -53,14 +53,14 @@ function BilingualStatusChip({
       <View>
         <Text
           className={cn('text-sm font-medium', active ? 'text-white' : 'text-ink dark:text-white')}
-          style={{ fontFamily: getFontFamily('medium'), lineHeight: 20 }}
+          style={{ fontFamily: getFontFamily('medium', labelEn), lineHeight: 20 }}
         >
           {showCount ? `${labelEn} (${count})` : labelEn}
         </Text>
         <Text
           className={cn('mt-1', active ? 'text-white/85' : 'text-ink-muted dark:text-white/70')}
           style={{
-            fontFamily: getFontFamily('regular'),
+            fontFamily: getFontFamily('regular', labelAr),
             writingDirection: 'rtl',
             fontSize: 11,
             lineHeight: 18,

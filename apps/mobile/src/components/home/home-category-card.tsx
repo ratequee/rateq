@@ -14,6 +14,9 @@ export function HomeCategoryCard({ category, onPress }: HomeCategoryCardProps) {
   const count = category.companyCount ?? 0;
   const showBoth = category.nameEn.trim() !== category.nameAr.trim();
 
+  const primaryName = locale === 'ar' ? category.nameAr : category.nameEn;
+  const secondaryName = locale === 'ar' ? category.nameEn : category.nameAr;
+
   return (
     <Pressable
       onPress={onPress}
@@ -42,23 +45,23 @@ export function HomeCategoryCard({ category, onPress }: HomeCategoryCardProps) {
       <View className="mt-3 min-h-[52px] justify-center px-0.5">
         <Text
           className="text-center text-xs font-semibold text-ink dark:text-white"
-          style={{ fontFamily: getFontFamily('semibold'), lineHeight: 18 }}
+          style={{ fontFamily: getFontFamily('semibold', primaryName), lineHeight: 18 }}
           numberOfLines={3}
         >
-          {locale === 'ar' ? category.nameAr : category.nameEn}
+          {primaryName}
         </Text>
         {showBoth ? (
           <Text
             className="mt-1 text-center text-ink-muted dark:text-white/70"
             style={{
-              fontFamily: getFontFamily('regular'),
+              fontFamily: getFontFamily('regular', secondaryName),
               writingDirection: 'rtl',
               fontSize: 10,
               lineHeight: 16,
             }}
             numberOfLines={3}
           >
-            {locale === 'ar' ? category.nameEn : category.nameAr}
+            {secondaryName}
           </Text>
         ) : null}
       </View>

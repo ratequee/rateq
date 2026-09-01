@@ -464,6 +464,15 @@ export function AdminDirectoryPanel() {
     );
   };
 
+  const handleToggleCompanyTrusted = async (companyId: string, enabled: boolean) => {
+    const token = await ensureValidAccessToken();
+    if (!token) return;
+    await runAction(
+      () => adminApi.updateCompanyTrusted(token, companyId, !enabled),
+      enabled ? t('trustedRemoved') : t('trustedEnabled'),
+    );
+  };
+
   const handleDeleteReview = async (reviewId: string) => {
     if (!window.confirm(tr('deleteConfirm'))) return;
     const token = await ensureValidAccessToken();
@@ -871,6 +880,19 @@ export function AdminDirectoryPanel() {
                     }
                   >
                     {companyDetail.showVerifiedStamp ? t('removeStamp') : t('enableStamp')}
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    disabled={acting}
+                    onClick={() =>
+                      void handleToggleCompanyTrusted(
+                        companyDetail.id,
+                        companyDetail.isTrusted ?? false,
+                      )
+                    }
+                  >
+                    {companyDetail.isTrusted ? t('removeTrusted') : t('markTrusted')}
                   </Button>
                   <Button
                     type="button"

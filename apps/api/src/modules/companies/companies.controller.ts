@@ -129,6 +129,13 @@ export class CompaniesController {
   }
 
   @Public()
+  @Get('trusted-banner')
+  @ApiOperation({ summary: 'Trusted companies for mobile homepage banner (max 5)' })
+  getTrustedBanner() {
+    return this.companiesService.getTrustedBanner();
+  }
+
+  @Public()
   @Post(':slug/view')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Record a public company profile page view' })

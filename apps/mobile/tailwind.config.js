@@ -8,7 +8,8 @@ module.exports = {
   theme: {
     extend: {
       fontFamily: {
-        sans: ['system-ui', 'sans-serif'],
+        sans: ['Nunito_400Regular', 'system-ui', 'sans-serif'],
+        arabic: ['NotoSansArabic_400Regular', 'system-ui', 'sans-serif'],
       },
     },
   },

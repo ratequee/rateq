@@ -1,3 +1,9 @@
+import {
+  getFontFamilyForLocale,
+  getFontFamilyForText,
+  isArabicLocale,
+  type AppFontWeight,
+} from '@/lib/fonts';
 import en from './locales/en.json';
 import ar from './locales/ar.json';
 import i18n from 'i18next';
@@ -70,15 +76,11 @@ export function isRtlLocale(): boolean {
   return checkRtl(i18n.language);
 }
 
-export function getFontFamily(weight: 'regular' | 'medium' | 'semibold' | 'bold' = 'regular') {
-  const isArabic = isRtlLocale();
-  const map = {
-    regular: isArabic ? 'NotoSansArabic_400Regular' : 'Nunito_400Regular',
-    medium: isArabic ? 'NotoSansArabic_500Medium' : 'Nunito_500Medium',
-    semibold: isArabic ? 'NotoSansArabic_600SemiBold' : 'Nunito_600SemiBold',
-    bold: isArabic ? 'NotoSansArabic_700Bold' : 'Nunito_700Bold',
-  };
-  return map[weight];
+export function getFontFamily(weight: AppFontWeight = 'regular', text?: string) {
+  if (text) return getFontFamilyForText(text, weight, i18n.language);
+  return getFontFamilyForLocale(i18n.language, weight);
 }
+
+export { getFontFamilyForText, isArabicLocale };
 
 export { applyRtl } from '@/lib/rtl';

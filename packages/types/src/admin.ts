@@ -1,4 +1,5 @@
 import type { CompanyPublic, UpdateCompanyInput } from './company';
+import type { CompanyCatalogLabel, CompanyCategoryLabel } from './company';
 import type { CompanyVerificationStatus } from './onboarding';
 import type { PaginatedResponse } from './pagination';
 import type { ReviewPublic } from './review';
@@ -102,6 +103,9 @@ export interface AdminCompanyVerificationDetail {
   createdAt: string;
   updatedAt: string;
   owner: AdminCompanyOwner | null;
+  categoryItems: CompanyCategoryLabel[];
+  serviceItems: CompanyCatalogLabel[];
+  activityItems: CompanyCatalogLabel[];
 }
 
 export type PaginatedAdminCompanyVerifications = PaginatedResponse<AdminCompanyVerificationSummary>;
@@ -117,6 +121,7 @@ export interface AdminCompanyListItem extends CompanyPublic {
   ownerId: string | null;
   ownerIsActive: boolean | null;
   pageVisitCount: number;
+  isTrusted: boolean;
 }
 
 export interface AdminUserDetail extends UserProfile {

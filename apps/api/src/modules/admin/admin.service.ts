@@ -175,6 +175,7 @@ export class AdminService {
         ownerId: company.ownerId ?? null,
         ownerIsActive: company.owner?.isActive ?? null,
         showVerifiedStamp: company.showVerifiedStamp ?? false,
+        isTrusted: company.isTrusted ?? false,
         pageVisitCount: company._count.pageViews,
       })),
       meta: buildPaginationMeta(input.page, input.limit, total),
@@ -236,6 +237,7 @@ export class AdminService {
       ownerId: company.ownerId ?? null,
       ownerIsActive: company.owner?.isActive ?? null,
       showVerifiedStamp: company.showVerifiedStamp ?? false,
+      isTrusted: company.isTrusted ?? false,
       pageVisitCount,
       crNumber: company.crNumber,
       address: company.address,
@@ -284,6 +286,17 @@ export class AdminService {
     }
 
     await this.companiesRepository.update(companyId, { showVerifiedStamp });
+    return this.getCompanyDetail(companyId);
+  }
+
+  async setCompanyTrusted(companyId: string, isTrusted: boolean): Promise<AdminCompanyDetail> {
+    const company = await this.companiesRepository.findById(companyId);
+
+    if (!company) {
+      throw new NotFoundException('Company not found');
+    }
+
+    await this.companiesRepository.update(companyId, { isTrusted });
     return this.getCompanyDetail(companyId);
   }
 

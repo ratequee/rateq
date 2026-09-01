@@ -297,3 +297,8 @@ export interface HeroSpotlightResponse {
   company: CompanyPublic;
   review: ReviewPublic | null;
 }
+
+export interface TrustedBannerItem {
+  company: CompanyPublic;
+  review: ReviewPublic | null;
+}

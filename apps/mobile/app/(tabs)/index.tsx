@@ -1,5 +1,6 @@
 import { Logo } from '@/components/brand/logo';
 import { FeaturedCompanyCard } from '@/components/home/featured-company-card';
+import { TrustedHomeBanner } from '@/components/home/trusted-home-banner';
 import { HomeCategoryCard } from '@/components/home/home-category-card';
 import { HomeTestimonialCard } from '@/components/home/home-testimonial-card';
 import { ScreenHeaderControls } from '@/components/layout/screen-header-controls';
@@ -9,7 +10,7 @@ import { useAppDirection } from '@/hooks/use-app-direction';
 import { getFontFamily } from '@/i18n';
 import { cn } from '@/lib/cn';
 import { ApiError, categoriesApi, companiesApi, reviewsApi } from '@/lib/api';
-import type { CategoryPublic, CompanyPublic, ReviewPublic } from '@rateq/types';
+import type { CategoryPublic, CompanyPublic, ReviewPublic, TrustedBannerItem } from '@rateq/types';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
@@ -32,6 +33,7 @@ export default function HomeScreen() {
   const [query, setQuery] = useState('');
   const [categories, setCategories] = useState<CategoryPublic[]>([]);
   const [companies, setCompanies] = useState<CompanyPublic[]>([]);
+  const [trustedBanner, setTrustedBanner] = useState<TrustedBannerItem[]>([]);
   const [reviews, setReviews] = useState<ReviewPublic[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -40,14 +42,16 @@ export default function HomeScreen() {
   const load = useCallback(async () => {
     try {
       setError(null);
-      const [cats, companiesResult, featuredReviews] = await Promise.all([
+      const [cats, companiesResult, featuredReviews, trusted] = await Promise.all([
         categoriesApi.list(),
         companiesApi.search(new URLSearchParams({ sort: 'rating', limit: '6' })),
         reviewsApi.listFeatured(),
+        companiesApi.getTrustedBanner(),
       ]);
       setCategories(cats);
       setCompanies(companiesResult.data);
       setReviews(featuredReviews.data);
+      setTrustedBanner(trusted);
     } catch (err) {
       setError(err instanceof ApiError ? err.message : t('common.error'));
     }
@@ -110,7 +114,9 @@ export default function HomeScreen() {
         {error ? <Text className="px-4 py-2 text-center text-sm text-red-600">{error}</Text> : null}
 
         <View className="px-4">
-          {heroImage ? (
+          {trustedBanner.length > 0 ? (
+            <TrustedHomeBanner items={trustedBanner} />
+          ) : heroImage ? (
             <ImageBackground
               source={{ uri: heroImage }}
               className="mt-2 overflow-hidden rounded-3xl"

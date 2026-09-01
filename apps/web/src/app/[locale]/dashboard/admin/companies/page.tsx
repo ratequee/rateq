@@ -13,6 +13,8 @@ import type {
   AdminCompanyVerificationDetail,
   AdminCompanyVerificationSummary,
   AdminProfileChangeField,
+  CompanyCatalogLabel,
+  CompanyCategoryLabel,
   CompanyVerificationStatus,
   UpdateCompanyVerificationInput,
 } from '@rateq/types';
@@ -599,6 +601,8 @@ function CompanyDetailPanel({
         />
       </dl>
 
+      <CatalogSelectionsSection detail={detail} t={t} />
+
       <section>
         <h3 className="mb-3 text-sm font-semibold text-ink dark:text-white">{t('documents')}</h3>
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -632,6 +636,63 @@ function CompanyDetailPanel({
         </div>
       </section>
     </div>
+  );
+}
+
+function CatalogSelectionsSection({
+  detail,
+  t,
+}: {
+  detail: AdminCompanyVerificationDetail;
+  t: ReturnType<typeof useTranslations<'adminCompanies'>>;
+}) {
+  const groups: Array<{ label: string; items: Array<CompanyCategoryLabel | CompanyCatalogLabel> }> =
+    [
+      { label: t('categories'), items: detail.categoryItems ?? [] },
+      { label: t('services'), items: detail.serviceItems ?? [] },
+      { label: t('activities'), items: detail.activityItems ?? [] },
+    ];
+
+  const hasAny = groups.some((group) => group.items.length > 0);
+  if (!hasAny) return null;
+
+  return (
+    <section>
+      <h3 className="mb-3 text-sm font-semibold text-ink dark:text-white">
+        {t('profileSelections')}
+      </h3>
+      <div className="space-y-4 rounded-xl border border-subtle bg-slate-50/80 p-4 dark:bg-dm-elevated/40">
+        {groups.map((group) => (
+          <div key={group.label}>
+            <p className="text-xs font-medium uppercase tracking-wide text-ink-muted dark:text-slate-400">
+              {group.label}
+            </p>
+            {group.items.length === 0 ? (
+              <p className="mt-2 text-sm text-secondary">{t('notProvided')}</p>
+            ) : (
+              <div className="mt-2 flex flex-wrap gap-2">
+                {group.items.map((item) => (
+                  <span
+                    key={item.id}
+                    className="rounded-full border border-slate-200 bg-white px-3 py-1.5 text-sm text-ink dark:border-dm-border dark:bg-dm-surface dark:text-white"
+                  >
+                    {item.label}
+                    {item.labelAr && item.labelAr.trim() !== item.label.trim() ? (
+                      <span
+                        className="mt-0.5 block text-xs text-ink-muted dark:text-slate-300"
+                        dir="rtl"
+                      >
+                        {item.labelAr}
+                      </span>
+                    ) : null}
+                  </span>
+                ))}
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+    </section>
   );
 }
 

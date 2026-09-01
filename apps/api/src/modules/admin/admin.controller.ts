@@ -23,6 +23,11 @@ class UpdateCompanyStampDto {
   showVerifiedStamp!: boolean;
 }
 
+class UpdateCompanyTrustedDto {
+  @IsBoolean()
+  isTrusted!: boolean;
+}
+
 @ApiTags('admin')
 @ApiBearerAuth()
 @Roles(UserRole.ADMIN)
@@ -75,6 +80,13 @@ export class AdminController {
   @ApiOperation({ summary: 'Toggle verified stamp visibility on company profile' })
   setCompanyStamp(@Param('id') id: string, @Body() dto: UpdateCompanyStampDto) {
     return this.adminService.setCompanyVerifiedStamp(id, dto.showVerifiedStamp);
+  }
+
+  @Patch('companies/:id/trusted')
+  @RequireAdminPermission(AdminPermission.DIRECTORY)
+  @ApiOperation({ summary: 'Mark or unmark company as trusted for homepage spotlight' })
+  setCompanyTrusted(@Param('id') id: string, @Body() dto: UpdateCompanyTrustedDto) {
+    return this.adminService.setCompanyTrusted(id, dto.isTrusted);
   }
 
   @Delete('companies/:id')

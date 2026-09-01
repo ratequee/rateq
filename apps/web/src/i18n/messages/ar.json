@@ -1179,6 +1179,10 @@
     "removeStamp": "إزالة ختم التوثيق",
     "stampEnabled": "تم تفعيل ختم التوثيق على ملف الشركة.",
     "stampRemoved": "تمت إزالة ختم التوثيق من ملف الشركة.",
+    "markTrusted": "تعيين كموثوق",
+    "removeTrusted": "إزالة علامة الموثوق",
+    "trustedEnabled": "تم تعيين الشركة كموثوقة للظهور في الصفحة الرئيسية.",
+    "trustedRemoved": "تمت إزالة علامة الموثوق من الشركة.",
     "editCompany": "تعديل الشركة"
   },
   "adminProjects": {
@@ -1352,6 +1356,10 @@
     "profileChangeRejected": "تم رفض تغييرات الملف.",
     "profileChangeBadge": "تحديث الملف",
     "viewProfileChanges": "عرض تغييرات الملف المعلقة",
+    "profileSelections": "التصنيفات والخدمات والأنشطة",
+    "categories": "التصنيفات",
+    "services": "الخدمات",
+    "activities": "الأنشطة",
     "registerCompany": "تسجيل شركة",
     "status": {
       "pending": "قيد الانتظار",

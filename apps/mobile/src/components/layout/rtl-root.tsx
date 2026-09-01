@@ -11,7 +11,7 @@ export function RtlRoot({ children, style, ...props }: RtlRootProps) {
   const { i18n } = useTranslation();
 
   return (
-    <View style={[getLayoutDirectionStyle(i18n.language), style]} {...props}>
+    <View key={i18n.language} style={[getLayoutDirectionStyle(i18n.language), style]} {...props}>
       {children}
     </View>
   );

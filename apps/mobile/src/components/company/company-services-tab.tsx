@@ -18,7 +18,7 @@ function BilingualCatalogPill({ labelEn, labelAr }: { labelEn: string; labelAr?:
     <View className="rounded-full border border-slate-200 bg-slate-100 px-4 py-3 dark:border-dm-border dark:bg-dm-elevated">
       <Text
         className="text-sm font-medium text-ink dark:text-white"
-        style={{ fontFamily: getFontFamily('medium'), lineHeight: 20 }}
+        style={{ fontFamily: getFontFamily('medium', english), lineHeight: 20 }}
       >
         {english}
       </Text>
@@ -26,7 +26,7 @@ function BilingualCatalogPill({ labelEn, labelAr }: { labelEn: string; labelAr?:
         <Text
           className="mt-1.5 text-ink-muted dark:text-white/70"
           style={{
-            fontFamily: getFontFamily('regular'),
+            fontFamily: getFontFamily('regular', arabic!),
             writingDirection: 'rtl',
             fontSize: 11,
             lineHeight: 18,
