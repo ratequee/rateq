@@ -5,11 +5,13 @@ import {
 } from '@/components/activity/review-status-chips';
 import { LoadingView } from '@/components/ui/loading-view';
 import { useAuth } from '@/context/auth-context';
+import { useProfile } from '@/context/profile-context';
 import { getFontFamily } from '@/i18n';
+import { fetchAllCompanyReviews } from '@/lib/fetch-all-company-reviews';
 import { fetchAllMyReviews } from '@/lib/fetch-all-my-reviews';
 import { ApiError } from '@/lib/api';
 import type { ReviewPublic } from '@rateq/types';
-import { ReviewStatus } from '@rateq/types';
+import { ReviewStatus, UserRole } from '@rateq/types';
 import { useRouter } from 'expo-router';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -28,6 +30,9 @@ export default function ActivityScreen() {
   const { t } = useTranslation();
   const router = useRouter();
   const { user } = useAuth();
+  const { onboarding, isLoading: profileLoading } = useProfile();
+  const isCompany = user?.role === UserRole.COMPANY;
+  const companyId = onboarding?.company?.id;
   const [reviews, setReviews] = useState<ReviewPublic[]>([]);
   const [statusFilter, setStatusFilter] = useState<ReviewStatusFilter>('all');
   const [loading, setLoading] = useState(true);
@@ -42,16 +47,29 @@ export default function ActivityScreen() {
 
     try {
       setError(null);
+
+      if (isCompany) {
+        if (!companyId) {
+          setReviews([]);
+          return;
+        }
+        const data = await fetchAllCompanyReviews(companyId);
+        setReviews(data);
+        return;
+      }
+
       const data = await fetchAllMyReviews();
       setReviews(data);
     } catch (err) {
       setError(err instanceof ApiError ? err.message : t('common.error'));
     }
-  }, [t, user]);
+  }, [companyId, isCompany, t, user]);
 
   useEffect(() => {
+    if (user && isCompany && profileLoading) return;
+
     void load().finally(() => setLoading(false));
-  }, [load]);
+  }, [isCompany, load, profileLoading, user]);
 
   const onRefresh = async () => {
     setRefreshing(true);
@@ -66,7 +84,16 @@ export default function ActivityScreen() {
     return reviews.filter((review) => review.status === statusFilter);
   }, [reviews, statusFilter]);
 
-  if (loading) return <LoadingView />;
+  if (loading || (user && isCompany && profileLoading)) return <LoadingView />;
+
+  const emptyMessage =
+    reviews.length === 0
+      ? isCompany
+        ? companyId
+          ? t('home.activityEmptyCompany')
+          : t('profile.companyReviews.noCompany')
+        : t('home.activityEmpty')
+      : t('myReviews.emptyFiltered');
 
   return (
     <SafeAreaView className="flex-1 bg-slate-50 dark:bg-dm-bg" edges={['top']}>
@@ -125,10 +152,12 @@ export default function ActivityScreen() {
           }
           ListEmptyComponent={
             <Text className="py-12 text-center text-sm text-ink-muted dark:text-white/70">
-              {reviews.length === 0 ? t('home.activityEmpty') : t('myReviews.emptyFiltered')}
+              {emptyMessage}
             </Text>
           }
-          renderItem={({ item }) => <ActivityReviewCard review={item} />}
+          renderItem={({ item }) => (
+            <ActivityReviewCard review={item} viewMode={isCompany ? 'received' : 'submitted'} />
+          )}
         />
       )}
     </SafeAreaView>

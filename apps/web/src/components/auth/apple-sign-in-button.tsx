@@ -11,20 +11,20 @@ import Image from 'next/image';
 import { useState } from 'react';
 import { toast } from 'sonner';
 
-interface GoogleSignInButtonProps {
+interface AppleSignInButtonProps {
   onSuccess: (user: AuthenticatedUser) => void | Promise<void>;
 }
 
-export function GoogleSignInButton({ onSuccess }: GoogleSignInButtonProps) {
+export function AppleSignInButton({ onSuccess }: AppleSignInButtonProps) {
   const tp = useTranslations('authPage');
-  const { loginWithGoogle, linkOAuthWithPassword } = useAuth();
+  const { loginWithApple, linkOAuthWithPassword } = useAuth();
   const [loading, setLoading] = useState(false);
   const [linkingRequest, setLinkingRequest] = useState<AccountLinkingRequiredError | null>(null);
 
   const handleClick = async () => {
     setLoading(true);
     try {
-      const user = await loginWithGoogle();
+      const user = await loginWithApple();
       toast.success(tp('loginSuccess'));
       await onSuccess(user);
     } catch (error) {
@@ -68,10 +68,10 @@ export function GoogleSignInButton({ onSuccess }: GoogleSignInButtonProps) {
         type="button"
         onClick={() => void handleClick()}
         disabled={loading}
-        aria-label={tp('continueWithGoogle')}
-        className="inline-flex items-center justify-center rounded-full transition-opacity hover:opacity-80 disabled:opacity-50"
+        aria-label={tp('continueWithApple')}
+        className="inline-flex items-center justify-center rounded-full text-ink transition-opacity hover:opacity-80 disabled:opacity-50 dark:text-white"
       >
-        <Image src="/images/google.svg" alt="" width={22} height={22} />
+        <Image src="/images/apple.svg" alt="" width={22} height={22} className="dark:invert" />
       </button>
 
       <AccountLinkingDialog

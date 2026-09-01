@@ -46,7 +46,7 @@ export const PROFILE_MENU_ITEMS: ProfileMenuItem[] = [
     icon: 'star-outline',
     titleKey: 'profile.menu.companyReviews',
     subtitleKey: 'profile.menu.companyReviewsSubtitle',
-    action: { type: 'route', href: '/profile/company-reviews' },
+    action: { type: 'tab', href: '/(tabs)/activity' },
     roles: [UserRole.COMPANY],
   },
   {

@@ -1,73 +1,67 @@
-import GoogleIcon from '../../../assets/images/google.svg';
+import AppleIcon from '../../../assets/images/apple.svg';
 import { AccountLinkingDialog } from '@/components/auth/account-linking-dialog';
 import { SocialSignInButton } from '@/components/auth/social-sign-in-button';
 import { useAuth } from '@/context/auth-context';
+import { useTheme } from '@/context/theme-context';
 import { useRedirectAfterAuth } from '@/hooks/use-redirect-after-auth';
 import { useAppToast } from '@/hooks/use-app-toast';
 import { AccountLinkingRequiredError, isAccountLinkingRequiredError } from '@/lib/auth-flow-errors';
+import { firebaseSignInWithApple } from '@/lib/firebase/apple-auth';
 import { getFirebaseAuthErrorMessage } from '@/lib/firebase/errors';
 import { isFirebaseConfigured } from '@/lib/firebase/client';
 import { ApiError } from '@/lib/api';
 import type { AuthenticatedUser } from '@rateq/types';
-import * as Google from 'expo-auth-session/providers/google';
-import * as WebBrowser from 'expo-web-browser';
-import Constants from 'expo-constants';
+import * as AppleAuthentication from 'expo-apple-authentication';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { Platform } from 'react-native';
 
-WebBrowser.maybeCompleteAuthSession();
-
-function readGoogleClientId(): string | undefined {
-  return (
-    process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID ?? Constants.expoConfig?.extra?.googleWebClientId
-  );
-}
-
-interface GoogleSignInButtonProps {
+interface AppleSignInButtonProps {
   onSuccess?: (user: AuthenticatedUser) => void | Promise<void>;
 }
 
-export function GoogleSignInButton({ onSuccess }: GoogleSignInButtonProps) {
+export function AppleSignInButton({ onSuccess }: AppleSignInButtonProps) {
   const { t } = useTranslation();
-  const { loginWithGoogleIdToken, linkOAuthWithPassword } = useAuth();
+  const { resolved } = useTheme();
+  const { completeOAuthSession, linkOAuthWithPassword } = useAuth();
   const redirectAfterAuth = useRedirectAfterAuth();
   const toast = useAppToast();
   const [loading, setLoading] = useState(false);
+  const [available, setAvailable] = useState(false);
   const [linkingRequest, setLinkingRequest] = useState<AccountLinkingRequiredError | null>(null);
 
-  const clientId = readGoogleClientId();
-  const [request, response, promptAsync] = Google.useIdTokenAuthRequest({
-    clientId,
-    iosClientId: process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID,
-    androidClientId: process.env.EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID,
-  });
-
   useEffect(() => {
-    if (response?.type !== 'success') return;
+    if (Platform.OS !== 'ios') return;
+    void AppleAuthentication.isAvailableAsync().then(setAvailable);
+  }, []);
 
-    const idToken = response.params.id_token;
-    if (!idToken) return;
-
-    void (async () => {
-      setLoading(true);
-      try {
-        const sessionUser = await loginWithGoogleIdToken(idToken);
-        await (onSuccess ? onSuccess(sessionUser) : redirectAfterAuth(sessionUser));
-      } catch (err) {
-        if (isAccountLinkingRequiredError(err)) {
-          setLinkingRequest(err);
-          return;
-        }
-        toast.error(
-          err instanceof ApiError
-            ? err.message
-            : getFirebaseAuthErrorMessage(err, t('auth.loginError')),
-        );
-      } finally {
-        setLoading(false);
+  const handlePress = async () => {
+    setLoading(true);
+    try {
+      await firebaseSignInWithApple();
+      const sessionUser = await completeOAuthSession();
+      await (onSuccess ? onSuccess(sessionUser) : redirectAfterAuth(sessionUser));
+    } catch (err) {
+      if (isAccountLinkingRequiredError(err)) {
+        setLinkingRequest(err);
+        return;
       }
-    })();
-  }, [response, loginWithGoogleIdToken, redirectAfterAuth, toast, t, onSuccess]);
+      if (
+        err instanceof Error &&
+        'code' in err &&
+        (err as { code?: string }).code === 'ERR_REQUEST_CANCELED'
+      ) {
+        return;
+      }
+      toast.error(
+        err instanceof ApiError
+          ? err.message
+          : getFirebaseAuthErrorMessage(err, t('auth.loginError')),
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleLink = async (password: string) => {
     if (!linkingRequest) return;
@@ -89,19 +83,18 @@ export function GoogleSignInButton({ onSuccess }: GoogleSignInButtonProps) {
     }
   };
 
-  if (!isFirebaseConfigured() || !clientId) {
+  if (!isFirebaseConfigured() || Platform.OS !== 'ios' || !available) {
     return null;
   }
 
   return (
     <>
       <SocialSignInButton
-        accessibilityLabel={t('auth.continueWithGoogle')}
-        disabled={!request}
+        accessibilityLabel={t('auth.continueWithApple')}
         loading={loading}
-        onPress={() => void promptAsync()}
+        onPress={() => void handlePress()}
       >
-        <GoogleIcon width={22} height={22} />
+        <AppleIcon width={22} height={22} color={resolved === 'dark' ? '#FFFFFF' : '#000000'} />
       </SocialSignInButton>
 
       <AccountLinkingDialog

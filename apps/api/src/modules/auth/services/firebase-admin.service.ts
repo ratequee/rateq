@@ -84,17 +84,36 @@ export class FirebaseAdminService implements OnModuleInit {
     }
 
     const decoded = await admin.auth().verifyIdToken(idToken);
-    const email = decoded.email;
+    let email = decoded.email?.toLowerCase();
+    let name = decoded.name;
+    const signInProvider = decoded.firebase?.sign_in_provider;
+    const isOAuthProvider =
+      signInProvider === 'apple.com' ||
+      signInProvider === 'google.com' ||
+      signInProvider === 'oauth';
 
     if (!email) {
-      throw new ServiceUnavailableException('Firebase account is missing an email address');
+      try {
+        const record = await admin.auth().getUser(decoded.uid);
+        email = record.email?.toLowerCase();
+        name = name ?? record.displayName ?? undefined;
+      } catch {
+        // Fall through to synthetic email for rare Apple hide-email edge cases.
+      }
+    }
+
+    if (!email) {
+      if (!isOAuthProvider) {
+        throw new ServiceUnavailableException('Firebase account is missing an email address');
+      }
+      email = `${decoded.uid}@oauth.rateq.local`;
     }
 
     return {
       uid: decoded.uid,
-      email: email.toLowerCase(),
-      emailVerified: decoded.email_verified ?? false,
-      name: decoded.name,
+      email,
+      emailVerified: decoded.email_verified ?? isOAuthProvider,
+      name,
     };
   }
 

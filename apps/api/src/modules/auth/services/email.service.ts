@@ -71,6 +71,10 @@ import {
   type ReviewResolutionDecisionCompanyEmailContent,
   type ReviewResolutionReviewerEmailContent,
 } from '../email/email-review-templates';
+import {
+  buildMarketingEmailHtml,
+  buildMarketingEmailText,
+} from '../email/email-marketing-templates';
 
 @Injectable()
 export class EmailService {
@@ -584,6 +588,31 @@ export class EmailService {
       ),
       text: buildContactFormEmailText(content),
       html: buildContactFormEmailHtml(content),
+    });
+  }
+
+  async sendMarketingEmail(content: {
+    to: string;
+    subject: string;
+    heading: string;
+    message: string;
+    ctaLabel?: string;
+    ctaUrl?: string;
+  }): Promise<void> {
+    const appUrl = this.configService.get('APP_URL', { infer: true });
+    const payload = {
+      appUrl,
+      heading: content.heading,
+      message: content.message,
+      ctaLabel: content.ctaLabel,
+      ctaUrl: content.ctaUrl,
+    };
+
+    await this.send({
+      to: content.to,
+      subject: content.subject,
+      text: buildMarketingEmailText(payload),
+      html: buildMarketingEmailHtml(payload),
     });
   }
 

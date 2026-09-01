@@ -19,12 +19,17 @@ import {
   firebaseSendPasswordReset,
   firebaseSignIn,
   firebaseSignInWithGoogle,
+  firebaseSignInWithApple,
   firebaseSignOut,
   firebaseSignUp,
   reloadFirebaseUser,
 } from '@/lib/firebase/auth';
 import { isFirebaseConfigured } from '@/lib/firebase/client';
 import { syncFirebaseDisplayNameToClient } from '@/lib/firebase/sync-display-name';
+import {
+  linkPendingCredentialWithPassword,
+  takePendingLinkCredential,
+} from '@/lib/firebase/account-linking';
 import type { AuthResponse } from '@rateq/types';
 
 interface AuthContextValue {
@@ -39,6 +44,8 @@ interface AuthContextValue {
   login: (email: string, password: string) => Promise<AuthenticatedUser>;
   register: (data: { email: string; password: string; name?: string }) => Promise<void>;
   loginWithGoogle: () => Promise<AuthenticatedUser>;
+  loginWithApple: () => Promise<AuthenticatedUser>;
+  linkOAuthWithPassword: (email: string, password: string) => Promise<AuthenticatedUser>;
   resetPassword: (email: string) => Promise<void>;
   resendVerificationEmail: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
@@ -228,6 +235,35 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return sessionUser;
   }, [refreshAdminAccess]);
 
+  const loginWithApple = useCallback(async () => {
+    if (!isFirebaseConfigured()) {
+      throw new Error('Firebase is not configured');
+    }
+
+    await firebaseSignInWithApple();
+    const sessionUser = await exchangeFirebaseSession();
+    setUser(sessionUser);
+    await refreshAdminAccess();
+    return sessionUser;
+  }, [refreshAdminAccess]);
+
+  const linkOAuthWithPassword = useCallback(
+    async (email: string, password: string) => {
+      const pendingCredential = takePendingLinkCredential();
+
+      if (!pendingCredential) {
+        throw new Error('No pending sign-in method to link');
+      }
+
+      await linkPendingCredentialWithPassword(email, password, pendingCredential);
+      const sessionUser = await exchangeFirebaseSession();
+      setUser(sessionUser);
+      await refreshAdminAccess();
+      return sessionUser;
+    },
+    [refreshAdminAccess],
+  );
+
   const refreshSession = useCallback(async () => {
     const token = await ensureValidAccessToken();
     if (!token) {
@@ -306,6 +342,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       login,
       register,
       loginWithGoogle,
+      loginWithApple,
+      linkOAuthWithPassword,
       resetPassword,
       resendVerificationEmail,
       logout,
@@ -320,6 +358,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       login,
       register,
       loginWithGoogle,
+      loginWithApple,
+      linkOAuthWithPassword,
       resetPassword,
       resendVerificationEmail,
       logout,

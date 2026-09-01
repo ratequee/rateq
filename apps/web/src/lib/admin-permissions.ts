@@ -9,6 +9,7 @@ export const ADMIN_ROUTE_PERMISSIONS: { route: string; permission: AdminPermissi
   { route: '/dashboard/admin/directory', permission: AdminPermission.INVITATIONS },
   { route: '/dashboard/admin/categories', permission: AdminPermission.CONTENT },
   { route: '/dashboard/admin/blog', permission: AdminPermission.CONTENT },
+  { route: '/dashboard/admin/email-marketing', permission: AdminPermission.CONTENT },
   { route: '/dashboard/admin/settings', permission: AdminPermission.CONTENT },
   { route: '/dashboard/admin/team', permission: AdminPermission.TEAM },
 ];

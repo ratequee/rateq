@@ -1,13 +1,14 @@
 'use client';
 
 import { AuthLayout } from '@/components/auth/auth-layout';
+import { AppleSignInButton } from '@/components/auth/apple-sign-in-button';
 import { GoogleSignInButton } from '@/components/auth/google-sign-in-button';
 import { useAuth } from '@/components/providers/auth-provider';
 import { useProfile } from '@/components/providers/profile-provider';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Link, useRouter } from '@/i18n/routing';
-import { isEmailVerificationPendingError } from '@/lib/auth-flow-errors';
+import { isEmailVerificationPendingError, isOAuthOnlyAccountError } from '@/lib/auth-flow-errors';
 import { authApi } from '@/lib/api';
 import { getAccessToken } from '@/lib/auth-storage';
 import { getPostAuthRedirect } from '@/lib/profile-routing';
@@ -112,6 +113,16 @@ export default function RegisterPage() {
       if (isEmailVerificationPendingError(err)) {
         toast.success(tp('registerVerificationSent'));
         router.push(`/check-email?email=${encodeURIComponent(err.email)}`);
+        return;
+      }
+
+      if (isOAuthOnlyAccountError(err)) {
+        toast.error(
+          tp('oauthOnlyAccountMessage', {
+            provider:
+              err.providerLabel === 'Apple' ? tp('continueWithApple') : tp('continueWithGoogle'),
+          }),
+        );
         return;
       }
 
@@ -244,6 +255,11 @@ export default function RegisterPage() {
         </div>
         <div className="flex items-center justify-center gap-6">
           <GoogleSignInButton
+            onSuccess={async (sessionUser) => {
+              await redirectAfterAuth(sessionUser);
+            }}
+          />
+          <AppleSignInButton
             onSuccess={async (sessionUser) => {
               await redirectAfterAuth(sessionUser);
             }}

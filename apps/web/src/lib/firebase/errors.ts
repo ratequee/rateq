@@ -1,5 +1,10 @@
 import { FirebaseError } from 'firebase/app';
-import { isEmailNotVerifiedError, isEmailVerificationPendingError } from '@/lib/auth-flow-errors';
+import {
+  isAccountLinkingRequiredError,
+  isEmailNotVerifiedError,
+  isEmailVerificationPendingError,
+  isOAuthOnlyAccountError,
+} from '@/lib/auth-flow-errors';
 
 const ERROR_MESSAGES: Record<string, string> = {
   'auth/email-already-in-use': 'This email is already registered.',
@@ -74,6 +79,14 @@ export function getFirebaseStorageErrorMessage(error: unknown, fallback: string)
 
 export function getFirebaseAuthErrorMessage(error: unknown, fallback: string): string {
   if (isEmailVerificationPendingError(error) || isEmailNotVerifiedError(error)) {
+    return fallback;
+  }
+
+  if (isAccountLinkingRequiredError(error)) {
+    return fallback;
+  }
+
+  if (isOAuthOnlyAccountError(error)) {
     return fallback;
   }
 

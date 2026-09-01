@@ -22,6 +22,10 @@ import {
 } from '@/lib/firebase/auth';
 import { clearAuth, getStoredUser, saveAuth } from '@/lib/storage';
 import { ensureValidAccessToken } from '@/lib/auth-session';
+import {
+  linkPendingCredentialWithPassword,
+  takePendingLinkCredential,
+} from '@/lib/firebase/account-linking';
 
 interface AuthContextValue {
   user: AuthenticatedUser | null;
@@ -29,6 +33,8 @@ interface AuthContextValue {
   login: (email: string, password: string) => Promise<AuthenticatedUser>;
   register: (data: { email: string; password: string; name?: string }) => Promise<void>;
   loginWithGoogleIdToken: (idToken: string) => Promise<AuthenticatedUser>;
+  completeOAuthSession: () => Promise<AuthenticatedUser>;
+  linkOAuthWithPassword: (email: string, password: string) => Promise<AuthenticatedUser>;
   resendVerificationEmail: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
   refreshSession: () => Promise<AuthenticatedUser | null>;
@@ -177,6 +183,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return sessionUser;
   }, []);
 
+  const completeOAuthSession = useCallback(async () => {
+    const sessionUser = await exchangeFirebaseSession();
+    setUser(sessionUser);
+    return sessionUser;
+  }, []);
+
+  const linkOAuthWithPassword = useCallback(async (email: string, password: string) => {
+    const pendingCredential = takePendingLinkCredential();
+
+    if (!pendingCredential) {
+      throw new Error('No pending sign-in method to link');
+    }
+
+    await linkPendingCredentialWithPassword(email, password, pendingCredential);
+    const sessionUser = await exchangeFirebaseSession();
+    setUser(sessionUser);
+    return sessionUser;
+  }, []);
+
   const refreshSession = useCallback(async () => {
     const token = await ensureValidAccessToken();
     if (!token) {
@@ -231,6 +256,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       login,
       register,
       loginWithGoogleIdToken,
+      completeOAuthSession,
+      linkOAuthWithPassword,
       resendVerificationEmail,
       logout,
       refreshSession,
@@ -241,6 +268,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       login,
       register,
       loginWithGoogleIdToken,
+      completeOAuthSession,
+      linkOAuthWithPassword,
       resendVerificationEmail,
       logout,
       refreshSession,

@@ -2,11 +2,15 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { PasswordInput } from '@/components/ui/input';
 import { AuthDivider } from '@/components/auth/auth-divider';
+import { SocialSignInRow } from '@/components/auth/social-sign-in-row';
 import { AuthFieldGroup } from '@/components/auth/auth-field-group';
 import { AuthScreenLayout } from '@/components/auth/auth-screen-layout';
-import { GoogleSignInButton } from '@/components/auth/google-sign-in-button';
 import { useAuth } from '@/context/auth-context';
-import { isEmailVerificationPendingError } from '@/lib/auth-flow-errors';
+import {
+  isEmailNotVerifiedError,
+  isEmailVerificationPendingError,
+  isOAuthOnlyAccountError,
+} from '@/lib/auth-flow-errors';
 import { ApiError } from '@/lib/api';
 import { getFirebaseAuthErrorMessage } from '@/lib/firebase/errors';
 import { validateAuthFields, type AuthFieldErrors } from '@/lib/validation/auth-fields';
@@ -59,6 +63,19 @@ export default function RegisterScreen() {
         router.replace(`/(auth)/check-email?email=${encodeURIComponent(err.email)}`);
         return;
       }
+
+      if (isOAuthOnlyAccountError(err)) {
+        toast.error(
+          t('auth.oauthOnlyAccountMessage', {
+            provider:
+              err.providerLabel === 'Apple'
+                ? t('auth.continueWithApple')
+                : t('auth.continueWithGoogle'),
+          }),
+        );
+        return;
+      }
+
       toast.error(
         err instanceof ApiError
           ? err.message
@@ -138,7 +155,7 @@ export default function RegisterScreen() {
         />
 
         <AuthDivider />
-        <GoogleSignInButton />
+        <SocialSignInRow />
       </View>
     </AuthScreenLayout>
   );

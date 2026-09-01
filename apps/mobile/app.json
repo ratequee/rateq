@@ -15,7 +15,8 @@
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.rateq.app"
+      "bundleIdentifier": "com.rateq.app",
+      "usesAppleSignIn": true
     },
     "android": {
       "package": "com.rateq.app",
@@ -49,7 +50,8 @@
           "locationWhenInUsePermission": "Allow RateQ to access your location to set your business address on the map."
         }
       ],
-      "@react-native-community/datetimepicker"
+      "@react-native-community/datetimepicker",
+      "expo-apple-authentication"
     ],
     "experiments": {
       "typedRoutes": true

@@ -1,6 +1,7 @@
 import { StarRating } from '@/components/ui/star-rating';
 import { getFontFamily } from '@/i18n';
 import { cn } from '@/lib/cn';
+import { getReviewAuthorName } from '@/lib/review-author';
 import { REVIEW_STATUS_BADGE_STYLES } from '@/lib/review-status-badge-styles';
 import type { ReviewPublic } from '@rateq/types';
 import { Link } from 'expo-router';
@@ -9,12 +10,15 @@ import { Pressable, Text, View } from 'react-native';
 
 interface ActivityReviewCardProps {
   review: ReviewPublic;
+  viewMode?: 'submitted' | 'received';
 }
 
-export function ActivityReviewCard({ review }: ActivityReviewCardProps) {
+export function ActivityReviewCard({ review, viewMode = 'submitted' }: ActivityReviewCardProps) {
   const { t } = useTranslation();
   const companyName = review.company?.name ?? t('home.testimonialCompany');
   const companySlug = review.company?.slug;
+  const reviewerName = getReviewAuthorName(review.author, t('company.anonymousReviewer'));
+  const headerLabel = viewMode === 'received' ? reviewerName : companyName;
   const statusLabel = t(`myReviews.status.${review.status}`);
   const badgeStyle = REVIEW_STATUS_BADGE_STYLES[review.status];
   const dateLabel = new Date(review.createdAt).toLocaleDateString();
@@ -23,25 +27,25 @@ export function ActivityReviewCard({ review }: ActivityReviewCardProps) {
     <View className="mb-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-dm-border dark:bg-dm-elevated">
       <View className="flex-row items-start justify-between gap-3">
         <View className="min-w-0 flex-1">
-          {companySlug ? (
+          {viewMode === 'submitted' && companySlug ? (
             <Link href={`/company/${companySlug}`} asChild>
               <Pressable>
                 <Text
                   className="text-sm font-semibold text-brand-500"
-                  style={{ fontFamily: getFontFamily('semibold', companyName), lineHeight: 20 }}
+                  style={{ fontFamily: getFontFamily('semibold', headerLabel), lineHeight: 20 }}
                   numberOfLines={2}
                 >
-                  {companyName}
+                  {headerLabel}
                 </Text>
               </Pressable>
             </Link>
           ) : (
             <Text
-              className="text-sm font-semibold text-ink dark:text-white"
-              style={{ fontFamily: getFontFamily('semibold', companyName), lineHeight: 20 }}
+              className={`text-sm font-semibold ${viewMode === 'received' ? 'text-ink dark:text-white' : 'text-brand-500'}`}
+              style={{ fontFamily: getFontFamily('semibold', headerLabel), lineHeight: 20 }}
               numberOfLines={2}
             >
-              {companyName}
+              {headerLabel}
             </Text>
           )}
           <Text

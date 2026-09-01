@@ -48,7 +48,8 @@
     "mapComingSoonSubtitle": "Browse companies on the map from here soon. For now, explore the full company directory.",
     "browseCompanies": "Browse companies",
     "activitySignIn": "Sign in to see your review activity.",
-    "activityEmpty": "You have not submitted any reviews yet."
+    "activityEmpty": "You have not submitted any reviews yet.",
+    "activityEmptyCompany": "No reviews for your company yet."
   },
   "map": {
     "viewMap": "Map",
@@ -106,6 +107,13 @@
     "name": "Name",
     "namePlaceholder": "Enter your name",
     "continueWithGoogle": "Continue with Google",
+    "continueWithApple": "Continue with Apple",
+    "linkAccountTitle": "Link your account",
+    "linkAccountMessage": "An account already exists for {email}. Enter your password to link {provider} to the same account.",
+    "linkAccountSubmit": "Link account",
+    "linkAccountCancel": "Cancel",
+    "linkAccountSuccess": "Account linked successfully.",
+    "oauthOnlyAccountMessage": "This email is already registered with {provider}. Please sign in with {provider} instead.",
     "loginError": "Invalid email or password.",
     "registerError": "Could not create account. Please try again.",
     "checkEmailTitle": "Check your email",

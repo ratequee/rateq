@@ -100,6 +100,12 @@ export class AuthService {
         firebaseUid: firebaseUser.uid,
         isVerified: firebaseUser.emailVerified,
       });
+    } else if (user && user.firebaseUid && user.firebaseUid !== firebaseUser.uid) {
+      // Same email, updated Firebase identity (e.g. after linking Google/Apple to a password account).
+      user = await this.authRepository.linkFirebaseUser(user.id, {
+        firebaseUid: firebaseUser.uid,
+        isVerified: firebaseUser.emailVerified || user.isVerified,
+      });
     } else if (!user) {
       user = await this.authRepository.createUser({
         email: firebaseUser.email,

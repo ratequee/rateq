@@ -2,9 +2,9 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { PasswordInput } from '@/components/ui/input';
 import { AuthDivider } from '@/components/auth/auth-divider';
+import { SocialSignInRow } from '@/components/auth/social-sign-in-row';
 import { AuthFieldGroup } from '@/components/auth/auth-field-group';
 import { AuthScreenLayout } from '@/components/auth/auth-screen-layout';
-import { GoogleSignInButton } from '@/components/auth/google-sign-in-button';
 import { useAuth } from '@/context/auth-context';
 import { isEmailNotVerifiedError } from '@/lib/auth-flow-errors';
 import { ApiError } from '@/lib/api';
@@ -124,7 +124,7 @@ export default function LoginScreen() {
         />
 
         <AuthDivider />
-        <GoogleSignInButton />
+        <SocialSignInRow />
       </View>
     </AuthScreenLayout>
   );

@@ -1,6 +1,7 @@
 'use client';
 
 import { AuthLayout } from '@/components/auth/auth-layout';
+import { AppleSignInButton } from '@/components/auth/apple-sign-in-button';
 import { GoogleSignInButton } from '@/components/auth/google-sign-in-button';
 import { useAuth } from '@/components/providers/auth-provider';
 import { useProfile } from '@/components/providers/profile-provider';
@@ -250,6 +251,11 @@ export default function LoginPage() {
         </div>
         <div className="flex items-center justify-center gap-6">
           <GoogleSignInButton
+            onSuccess={async (sessionUser) => {
+              await redirectAfterAuth(sessionUser);
+            }}
+          />
+          <AppleSignInButton
             onSuccess={async (sessionUser) => {
               await redirectAfterAuth(sessionUser);
             }}

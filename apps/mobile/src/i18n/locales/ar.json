@@ -48,7 +48,8 @@
     "mapComingSoonSubtitle": "ستتمكن قريباً من استكشاف الشركات على الخريطة. في الوقت الحالي، تصفح دليل الشركات.",
     "browseCompanies": "تصفح الشركات",
     "activitySignIn": "سجّل الدخول لعرض نشاط تقييماتك.",
-    "activityEmpty": "لم تُرسل أي تقييمات بعد."
+    "activityEmpty": "لم تُرسل أي تقييمات بعد.",
+    "activityEmptyCompany": "لا توجد مراجعات لشركتك بعد."
   },
   "map": {
     "viewMap": "خريطة",
@@ -106,6 +107,13 @@
     "name": "الاسم",
     "namePlaceholder": "أدخل اسمك",
     "continueWithGoogle": "المتابعة مع Google",
+    "continueWithApple": "المتابعة مع Apple",
+    "linkAccountTitle": "ربط حسابك",
+    "linkAccountMessage": "يوجد حساب بالفعل لـ {email}. أدخل كلمة المرور لربط {provider} بنفس الحساب.",
+    "linkAccountSubmit": "ربط الحساب",
+    "linkAccountCancel": "إلغاء",
+    "linkAccountSuccess": "تم ربط الحساب بنجاح.",
+    "oauthOnlyAccountMessage": "هذا البريد مسجل بالفعل عبر {provider}. يرجى تسجيل الدخول باستخدام {provider}.",
     "loginError": "البريد الإلكتروني أو كلمة المرور غير صحيحة.",
     "registerError": "تعذر إنشاء الحساب. يرجى المحاولة مرة أخرى.",
     "checkEmailTitle": "تحقق من بريدك",
