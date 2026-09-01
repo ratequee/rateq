@@ -2,12 +2,13 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { ProfileFormSection } from '@/components/profile/profile-form-section';
+import { useAppToast } from '@/hooks/use-app-toast';
 import { useProfile } from '@/context/profile-context';
-import { ApiError, onboardingApi } from '@/lib/api';
+import { onboardingApi } from '@/lib/api';
 import type { CompanyProfileDetail, CompanySocialLinks } from '@rateq/types';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Alert, View } from 'react-native';
+import { View } from 'react-native';
 
 interface CompanySocialLinksEditFormProps {
   company: CompanyProfileDetail;
@@ -16,6 +17,7 @@ interface CompanySocialLinksEditFormProps {
 export function CompanySocialLinksEditForm({ company }: CompanySocialLinksEditFormProps) {
   const { t } = useTranslation();
   const { refreshOnboarding } = useProfile();
+  const toast = useAppToast();
   const [submitting, setSubmitting] = useState(false);
   const [socialLinks, setSocialLinks] = useState<CompanySocialLinks>(
     () =>
@@ -45,12 +47,9 @@ export function CompanySocialLinksEditForm({ company }: CompanySocialLinksEditFo
         twitterUrl: socialLinks.twitterUrl,
       });
       await refreshOnboarding();
-      Alert.alert(t('profile.edit.savedTitle'), t('profile.edit.socialLinksUpdated'));
+      toast.success(t('profile.edit.socialLinksUpdated'), t('profile.edit.savedTitle'));
     } catch (err) {
-      Alert.alert(
-        t('common.error'),
-        err instanceof ApiError ? err.message : t('profile.edit.saveError'),
-      );
+      toast.apiError(err, t('profile.edit.saveError'));
     } finally {
       setSubmitting(false);
     }

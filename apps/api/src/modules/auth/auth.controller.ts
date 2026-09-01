@@ -82,6 +82,13 @@ export class AuthController {
     return this.authService.getProfile(user);
   }
 
+  @Get('firebase-custom-token')
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Issue a Firebase custom token for Storage uploads on mobile clients' })
+  firebaseCustomToken(@CurrentUser() user: AuthenticatedUser) {
+    return this.authService.getFirebaseCustomToken(user.id);
+  }
+
   @Get('firebase-admin-access')
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Check if the current user may access admin features (legacy alias)' })

@@ -6,8 +6,9 @@ import { ProfileCatalogChips } from '@/components/profile/profile-catalog-chips'
 import { ProfileFormSection } from '@/components/profile/profile-form-section';
 import { ProfilePendingBanner } from '@/components/profile/profile-pending-banner';
 import { useProfile } from '@/context/profile-context';
+import { useAppToast } from '@/hooks/use-app-toast';
 import { getFontFamily } from '@/i18n';
-import { ApiError, categoriesApi, onboardingApi } from '@/lib/api';
+import { categoriesApi, onboardingApi } from '@/lib/api';
 import {
   DOHA_DEFAULT_LOCATION,
   formatMapCoordinates,
@@ -25,7 +26,7 @@ import type { CategoryPublic, CompanyProfileDetail } from '@rateq/types';
 import * as Location from 'expo-location';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Alert, Text, View } from 'react-native';
+import { Text, View } from 'react-native';
 
 function buildCompanyLocation(company: CompanyProfileDetail): CompanyMapLocation | null {
   if (company.latitude != null && company.longitude != null) {
@@ -41,6 +42,7 @@ interface CompanySettingsEditFormProps {
 export function CompanySettingsEditForm({ company }: CompanySettingsEditFormProps) {
   const { t } = useTranslation();
   const { refreshOnboarding } = useProfile();
+  const toast = useAppToast();
   const [categories, setCategories] = useState<CategoryPublic[]>([]);
   const [submitting, setSubmitting] = useState(false);
   const [locating, setLocating] = useState(false);
@@ -78,7 +80,7 @@ export function CompanySettingsEditForm({ company }: CompanySettingsEditFormProp
   const useCurrentLocation = async () => {
     const { status } = await Location.requestForegroundPermissionsAsync();
     if (status !== 'granted') {
-      Alert.alert(t('common.error'), t('onboarding.locationPermissionDenied'));
+      toast.error(t('onboarding.locationPermissionDenied'));
       return;
     }
 
@@ -94,7 +96,7 @@ export function CompanySettingsEditForm({ company }: CompanySettingsEditFormProp
         if (place.country) setCompanyCountry(place.country);
       }
     } catch {
-      Alert.alert(t('common.error'), t('onboarding.locationPermissionDenied'));
+      toast.error(t('onboarding.locationPermissionDenied'));
     } finally {
       setLocating(false);
     }
@@ -122,7 +124,7 @@ export function CompanySettingsEditForm({ company }: CompanySettingsEditFormProp
 
     setErrors(fieldErrors);
     if (hasValidationErrors(fieldErrors)) {
-      Alert.alert(t('common.error'), t('onboarding.fixForm'));
+      toast.error(t('onboarding.fixForm'));
       return;
     }
 
@@ -141,19 +143,16 @@ export function CompanySettingsEditForm({ company }: CompanySettingsEditFormProp
       });
 
       await refreshOnboarding();
-      Alert.alert(
-        t('profile.edit.savedTitle'),
+      toast.success(
         profileUpdateSuccessMessage(
           company.verificationStatus,
           t('profile.edit.pendingApproval'),
           t('profile.edit.profileUpdated'),
         ),
+        t('profile.edit.savedTitle'),
       );
     } catch (err) {
-      Alert.alert(
-        t('common.error'),
-        err instanceof ApiError ? err.message : t('profile.edit.saveError'),
-      );
+      toast.apiError(err, t('profile.edit.saveError'));
     } finally {
       setSubmitting(false);
     }

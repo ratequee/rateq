@@ -6,16 +6,18 @@ import { AuthScreenLayout } from '@/components/auth/auth-screen-layout';
 import { useAuth } from '@/context/auth-context';
 import { getFirebaseAuthErrorMessage } from '@/lib/firebase/errors';
 import { validateAuthFields } from '@/lib/validation/auth-fields';
+import { useAppToast } from '@/hooks/use-app-toast';
 import { Link, useLocalSearchParams } from 'expo-router';
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Alert, Text, View } from 'react-native';
+import { Text, View } from 'react-native';
 import { getFontFamily } from '@/i18n';
 
 export default function CheckEmailScreen() {
   const { t } = useTranslation();
   const { resendVerificationEmail } = useAuth();
   const { email: emailParam } = useLocalSearchParams<{ email?: string }>();
+  const toast = useAppToast();
   const [email, setEmail] = useState(emailParam ?? '');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -42,15 +44,12 @@ export default function CheckEmailScreen() {
     setLoading(true);
     try {
       await resendVerificationEmail(email.trim(), password);
-      Alert.alert(t('auth.verificationEmailResent'));
+      toast.success(t('auth.verificationEmailResent'));
     } catch (err) {
       if (err instanceof Error && err.message.includes('already verified')) {
-        Alert.alert(t('auth.emailAlreadyVerified'));
+        toast.info(t('auth.emailAlreadyVerified'));
       } else {
-        Alert.alert(
-          t('common.error'),
-          getFirebaseAuthErrorMessage(err, t('auth.verificationEmailResendError')),
-        );
+        toast.error(getFirebaseAuthErrorMessage(err, t('auth.verificationEmailResendError')));
       }
     } finally {
       setLoading(false);

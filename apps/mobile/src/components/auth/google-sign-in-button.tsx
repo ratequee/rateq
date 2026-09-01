@@ -1,6 +1,7 @@
 import GoogleIcon from '../../../assets/images/google.svg';
 import { useAuth } from '@/context/auth-context';
 import { useRedirectAfterAuth } from '@/hooks/use-redirect-after-auth';
+import { useAppToast } from '@/hooks/use-app-toast';
 import { getFontFamily } from '@/i18n';
 import { getFirebaseAuthErrorMessage } from '@/lib/firebase/errors';
 import { isFirebaseConfigured } from '@/lib/firebase/client';
@@ -10,7 +11,7 @@ import * as WebBrowser from 'expo-web-browser';
 import Constants from 'expo-constants';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ActivityIndicator, Alert, Pressable, Text } from 'react-native';
+import { ActivityIndicator, Pressable, Text } from 'react-native';
 
 WebBrowser.maybeCompleteAuthSession();
 
@@ -24,6 +25,7 @@ export function GoogleSignInButton() {
   const { t } = useTranslation();
   const { loginWithGoogleIdToken } = useAuth();
   const redirectAfterAuth = useRedirectAfterAuth();
+  const toast = useAppToast();
   const [loading, setLoading] = useState(false);
 
   const clientId = readGoogleClientId();
@@ -45,8 +47,7 @@ export function GoogleSignInButton() {
         const sessionUser = await loginWithGoogleIdToken(idToken);
         await redirectAfterAuth(sessionUser);
       } catch (err) {
-        Alert.alert(
-          t('common.error'),
+        toast.error(
           err instanceof ApiError
             ? err.message
             : getFirebaseAuthErrorMessage(err, t('auth.loginError')),
@@ -55,7 +56,7 @@ export function GoogleSignInButton() {
         setLoading(false);
       }
     })();
-  }, [response, loginWithGoogleIdToken, redirectAfterAuth, t]);
+  }, [response, loginWithGoogleIdToken, redirectAfterAuth, toast, t]);
 
   if (!isFirebaseConfigured() || !clientId) {
     return null;

@@ -10,16 +10,18 @@ import { isEmailVerificationPendingError } from '@/lib/auth-flow-errors';
 import { ApiError } from '@/lib/api';
 import { getFirebaseAuthErrorMessage } from '@/lib/firebase/errors';
 import { validateAuthFields, type AuthFieldErrors } from '@/lib/validation/auth-fields';
+import { useAppToast } from '@/hooks/use-app-toast';
 import { getFontFamily } from '@/i18n';
 import { Link, useRouter } from 'expo-router';
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Alert, Text, View } from 'react-native';
+import { Text, View } from 'react-native';
 
 export default function RegisterScreen() {
   const { t } = useTranslation();
   const { register } = useAuth();
   const router = useRouter();
+  const toast = useAppToast();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -57,8 +59,7 @@ export default function RegisterScreen() {
         router.replace(`/(auth)/check-email?email=${encodeURIComponent(err.email)}`);
         return;
       }
-      Alert.alert(
-        t('common.error'),
+      toast.error(
         err instanceof ApiError
           ? err.message
           : getFirebaseAuthErrorMessage(err, t('auth.registerError')),

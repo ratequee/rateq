@@ -3,7 +3,8 @@ import { DatePickerField } from '@/components/ui/date-picker-field';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { PhoneVerificationField } from '@/components/profile/phone-verification-field';
-import { ApiError, catalogApi, categoriesApi, onboardingApi } from '@/lib/api';
+import { useAppToast } from '@/hooks/use-app-toast';
+import { catalogApi, categoriesApi, onboardingApi } from '@/lib/api';
 import {
   DOHA_DEFAULT_LOCATION,
   formatMapCoordinates,
@@ -32,7 +33,7 @@ import * as ImagePicker from 'expo-image-picker';
 import * as Location from 'expo-location';
 import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Alert, Image, Pressable, ScrollView, Text, View } from 'react-native';
+import { Image, Pressable, ScrollView, Text, View } from 'react-native';
 import { getFontFamily } from '@/i18n';
 import { useAuth } from '@/context/auth-context';
 
@@ -151,6 +152,7 @@ function FilePickerField({
   mode: 'document' | 'image';
 }) {
   const { t } = useTranslation();
+  const toast = useAppToast();
 
   const pick = async () => {
     if (mode === 'image') {
@@ -167,7 +169,7 @@ function FilePickerField({
         size: asset.fileSize ?? 0,
       };
       if (!isProfileFileWithinLimit(picked.size)) {
-        Alert.alert(t('common.error'), t('onboarding.fileTooLarge'));
+        toast.error(t('onboarding.fileTooLarge'));
         return;
       }
       onPick(picked);
@@ -187,7 +189,7 @@ function FilePickerField({
       size: asset.size ?? 0,
     };
     if (!isProfileFileWithinLimit(picked.size)) {
-      Alert.alert(t('common.error'), t('onboarding.fileTooLarge'));
+      toast.error(t('onboarding.fileTooLarge'));
       return;
     }
     onPick(picked);
@@ -245,6 +247,7 @@ export function CompanyOnboardingWizard({
 }: CompanyOnboardingWizardProps) {
   const { t } = useTranslation();
   const { refreshSession } = useAuth();
+  const toast = useAppToast();
 
   const [step, setStep] = useState(1);
   const [submitting, setSubmitting] = useState(false);
@@ -402,7 +405,7 @@ export function CompanyOnboardingWizard({
   const useCurrentLocation = async () => {
     const { status } = await Location.requestForegroundPermissionsAsync();
     if (status !== 'granted') {
-      Alert.alert(t('common.error'), t('onboarding.locationPermissionDenied'));
+      toast.error(t('onboarding.locationPermissionDenied'));
       return;
     }
 
@@ -420,9 +423,9 @@ export function CompanyOnboardingWizard({
         return;
       }
 
-      Alert.alert(t('common.error'), t('onboarding.locationLookupFailed'));
+      toast.error(t('onboarding.locationLookupFailed'));
     } catch {
-      Alert.alert(t('common.error'), t('onboarding.locationPermissionDenied'));
+      toast.error(t('onboarding.locationPermissionDenied'));
     } finally {
       setLocating(false);
     }
@@ -430,7 +433,7 @@ export function CompanyOnboardingWizard({
 
   const submit = async () => {
     if (!validateAll()) {
-      Alert.alert(t('common.error'), t('onboarding.fixForm'));
+      toast.error(t('onboarding.fixForm'));
       return;
     }
     if (!companyLocation) return;
@@ -490,14 +493,14 @@ export function CompanyOnboardingWizard({
       }
 
       await onSubmitted();
-      Alert.alert(
-        t('onboarding.companySubmittedTitle'),
+      toast.success(
         isRevision
           ? t('onboarding.companyResubmittedMessage')
           : t('onboarding.companySubmittedMessage'),
+        t('onboarding.companySubmittedTitle'),
       );
     } catch (err) {
-      Alert.alert(t('common.error'), err instanceof ApiError ? err.message : t('common.error'));
+      toast.apiError(err, t('common.error'));
     } finally {
       setSubmitting(false);
     }
@@ -874,7 +877,7 @@ export function CompanyOnboardingWizard({
             className="flex-1"
             onPress={() => {
               if (step === 1 && !validateStep1()) {
-                Alert.alert(t('common.error'), t('onboarding.fixForm'));
+                toast.error(t('onboarding.fixForm'));
                 return;
               }
               setStep((current) => current + 1);

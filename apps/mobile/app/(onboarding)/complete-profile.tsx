@@ -8,7 +8,8 @@ import { LoadingView } from '@/components/ui/loading-view';
 import { useAuth } from '@/context/auth-context';
 import { useProfile } from '@/context/profile-context';
 import { useRedirectAfterAuth } from '@/hooks/use-redirect-after-auth';
-import { onboardingApi, ApiError } from '@/lib/api';
+import { useAppToast } from '@/hooks/use-app-toast';
+import { onboardingApi } from '@/lib/api';
 import { uploadUserImage } from '@/lib/firebase/storage';
 import { extractQatarPhoneDigits, formatQatarPhoneForSubmit } from '@/lib/qatar-phone';
 import {
@@ -26,7 +27,7 @@ import * as ImagePicker from 'expo-image-picker';
 import { useRouter } from 'expo-router';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Alert, Image, Pressable, ScrollView, Text, View } from 'react-native';
+import { Image, Pressable, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { getFontFamily } from '@/i18n';
 
@@ -93,6 +94,7 @@ export default function CompleteProfileScreen() {
   const { user, logout } = useAuth();
   const { onboarding, isLoading, refreshOnboarding } = useProfile();
   const redirectAfterAuth = useRedirectAfterAuth();
+  const toast = useAppToast();
 
   const lockedAccountType = getLockedAccountType(onboarding);
   const companyPending = isCompanyPendingApproval(onboarding);
@@ -200,7 +202,7 @@ export default function CompleteProfileScreen() {
 
     setFieldErrors(errors as Record<string, string>);
     if (hasValidationErrors(errors)) {
-      Alert.alert(t('common.error'), t('onboarding.fixForm'));
+      toast.error(t('onboarding.fixForm'));
       return;
     }
 
@@ -208,7 +210,7 @@ export default function CompleteProfileScreen() {
     try {
       let avatarUrl = avatarUri!;
       if (!avatarUri!.startsWith('http')) {
-        avatarUrl = await uploadUserImage('avatars', avatarUri!, 'avatar.jpg');
+        avatarUrl = await uploadUserImage('avatar', avatarUri!, 'avatar.jpg');
       }
 
       await onboardingApi.completeReviewer({
@@ -225,7 +227,7 @@ export default function CompleteProfileScreen() {
         await redirectAfterAuth(user);
       }
     } catch (err) {
-      Alert.alert(t('common.error'), err instanceof ApiError ? err.message : t('common.error'));
+      toast.apiError(err, t('common.error'));
     } finally {
       setSubmitting(false);
     }

@@ -2,7 +2,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { QatarPhoneInput } from '@/components/ui/qatar-phone-input';
-import { ApiError } from '@/lib/api';
+import { useAppToast } from '@/hooks/use-app-toast';
 import { onboardingApi } from '@/lib/api';
 import {
   confirmFirebasePhoneVerification,
@@ -24,7 +24,7 @@ import type { FirebaseRecaptchaVerifierModalHandle } from '@/components/firebase
 import { Ionicons } from '@expo/vector-icons';
 import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Alert, Text, View } from 'react-native';
+import { Text, View } from 'react-native';
 import { getFontFamily } from '@/i18n';
 import { onAuthStateChanged } from 'firebase/auth';
 import { getFirebaseAuth } from '@/lib/firebase/client';
@@ -55,6 +55,7 @@ export function PhoneVerificationField({
   label,
 }: PhoneVerificationFieldProps) {
   const { t } = useTranslation();
+  const toast = useAppToast();
   const recaptchaRef = useRef<FirebaseRecaptchaVerifierModalHandle>(null);
   const [otpCode, setOtpCode] = useState('');
   const [sending, setSending] = useState(false);
@@ -103,18 +104,18 @@ export function PhoneVerificationField({
     setAwaitingLinkedConfirm(false);
     setOtpCode('');
     setResendCooldown(0);
-    Alert.alert(t('onboarding.phoneVerifiedTitle'), t('onboarding.phoneVerifiedMessage'));
+    toast.success(t('onboarding.phoneVerifiedMessage'), t('onboarding.phoneVerifiedTitle'));
   };
 
   const handleSendOtp = async () => {
     if (!isValidQatarPhoneDigits(phone)) {
-      Alert.alert(t('common.error'), t('onboarding.phoneInvalid'));
+      toast.error(t('onboarding.phoneInvalid'));
       return;
     }
 
     const verifier = recaptchaRef.current;
     if (!verifier) {
-      Alert.alert(t('common.error'), t('onboarding.phoneRecaptchaUnavailable'));
+      toast.error(t('onboarding.phoneRecaptchaUnavailable'));
       return;
     }
 
@@ -132,10 +133,9 @@ export function PhoneVerificationField({
       setAwaitingLinkedConfirm(false);
       setOtpSent(true);
       setResendCooldown(RESEND_COOLDOWN_SECONDS);
-      Alert.alert(t('onboarding.phoneOtpSentTitle'), t('onboarding.phoneOtpSentMessage'));
+      toast.success(t('onboarding.phoneOtpSentMessage'), t('onboarding.phoneOtpSentTitle'));
     } catch (err) {
-      Alert.alert(
-        t('common.error'),
+      toast.error(
         getPhoneVerificationErrorMessage(
           err,
           t('onboarding.phoneOtpSendError'),
@@ -155,10 +155,7 @@ export function PhoneVerificationField({
       await completePhoneSync(normalizePhoneNumber(phone));
     } catch (err) {
       onVerifiedChange(false);
-      Alert.alert(
-        t('common.error'),
-        err instanceof ApiError ? err.message : t('onboarding.phoneOtpVerifyError'),
-      );
+      toast.apiError(err, t('onboarding.phoneOtpVerifyError'));
     } finally {
       setVerifying(false);
     }
@@ -166,7 +163,7 @@ export function PhoneVerificationField({
 
   const handleVerifyOtp = async () => {
     if (!/^\d{6}$/.test(otpCode.trim())) {
-      Alert.alert(t('common.error'), t('onboarding.phoneOtpInvalid'));
+      toast.error(t('onboarding.phoneOtpInvalid'));
       return;
     }
 
@@ -176,8 +173,7 @@ export function PhoneVerificationField({
       await completePhoneSync(normalizePhoneNumber(phone));
     } catch (err) {
       onVerifiedChange(false);
-      Alert.alert(
-        t('common.error'),
+      toast.error(
         getPhoneVerificationErrorMessage(
           err,
           t('onboarding.phoneOtpVerifyError'),

@@ -5,13 +5,14 @@ import { useAppDirection } from '@/hooks/use-app-direction';
 import { getCurrentLocale, getFontFamily } from '@/i18n';
 import { getLocalizedCompanyName } from '@/lib/company-display';
 import { containsArabic } from '@/lib/text-direction';
-import { ApiError, companiesApi } from '@/lib/api';
+import { useAppToast } from '@/hooks/use-app-toast';
+import { companiesApi } from '@/lib/api';
 import type { CompanyProjectPublic, CompanyPublic } from '@rateq/types';
 import { Ionicons } from '@expo/vector-icons';
 import { Link, useLocalSearchParams, useRouter } from 'expo-router';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Alert, Image, Linking, Pressable, ScrollView, Text, View } from 'react-native';
+import { Image, Linking, Pressable, ScrollView, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 function getProjectServiceLabels(company: CompanyPublic, project: CompanyProjectPublic) {
@@ -64,6 +65,7 @@ export default function CompanyProjectDetailScreen() {
   const insets = useSafeAreaInsets();
   const { isRtl, textStyle } = useAppDirection();
   const locale = getCurrentLocale();
+  const toast = useAppToast();
 
   const [company, setCompany] = useState<CompanyPublic | null>(null);
   const [loading, setLoading] = useState(true);
@@ -76,12 +78,12 @@ export default function CompanyProjectDetailScreen() {
       const c = await companiesApi.getBySlug(slug);
       setCompany(c);
     } catch (err) {
-      Alert.alert(t('common.error'), err instanceof ApiError ? err.message : 'Error');
+      toast.apiError(err, 'Error');
       router.back();
     } finally {
       setLoading(false);
     }
-  }, [slug, t, router]);
+  }, [slug, toast, router]);
 
   useEffect(() => {
     void load();
@@ -99,10 +101,10 @@ export default function CompanyProjectDetailScreen() {
 
   useEffect(() => {
     if (!loading && company && !project) {
-      Alert.alert(t('common.error'), t('company.projectNotFound'));
+      toast.error(t('company.projectNotFound'));
       router.back();
     }
-  }, [loading, company, project, t, router]);
+  }, [loading, company, project, t, router, toast]);
 
   const openGallery = (index: number) => {
     setViewerIndex(index);

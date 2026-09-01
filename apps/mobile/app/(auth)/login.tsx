@@ -11,17 +11,19 @@ import { ApiError } from '@/lib/api';
 import { getFirebaseAuthErrorMessage } from '@/lib/firebase/errors';
 import { validateAuthFields, type AuthFieldErrors } from '@/lib/validation/auth-fields';
 import { useRedirectAfterAuth } from '@/hooks/use-redirect-after-auth';
+import { useAppToast } from '@/hooks/use-app-toast';
 import { getFontFamily } from '@/i18n';
 import { Link, useRouter } from 'expo-router';
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Alert, Text, View } from 'react-native';
+import { Text, View } from 'react-native';
 
 export default function LoginScreen() {
   const { t } = useTranslation();
   const { login } = useAuth();
   const redirectAfterAuth = useRedirectAfterAuth();
   const router = useRouter();
+  const toast = useAppToast();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -54,8 +56,7 @@ export default function LoginScreen() {
         router.replace(`/(auth)/check-email?email=${encodeURIComponent(err.email)}`);
         return;
       }
-      Alert.alert(
-        t('common.error'),
+      toast.error(
         err instanceof ApiError
           ? err.message
           : getFirebaseAuthErrorMessage(err, t('auth.loginError')),

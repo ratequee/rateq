@@ -1,6 +1,6 @@
-import { getDownloadURL, ref, uploadBytes } from 'firebase/storage';
-import { getStorage } from 'firebase/storage';
-import { getFirebaseApp, getFirebaseAuth } from '@/lib/firebase/client';
+import { ensureFirebaseUserForUpload } from '@/lib/firebase/ensure-user';
+import { getFirebaseApp } from '@/lib/firebase/client';
+import { getDownloadURL, getStorage, ref, uploadBytes } from 'firebase/storage';
 
 function getFirebaseStorage() {
   return getStorage(getFirebaseApp());
@@ -21,10 +21,7 @@ export async function uploadUserFile(
   fileName: string,
   contentType: string,
 ): Promise<string> {
-  const firebaseUser = getFirebaseAuth().currentUser;
-  if (!firebaseUser) {
-    throw new Error('You must be signed in to upload files');
-  }
+  const firebaseUser = await ensureFirebaseUserForUpload();
 
   const response = await fetch(uri);
   const blob = await response.blob();

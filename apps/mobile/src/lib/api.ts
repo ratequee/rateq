@@ -126,13 +126,18 @@ export const authApi = {
       auth: false,
     }),
   me: () => apiClient<AuthenticatedUser>('/auth/me'),
+  getFirebaseCustomToken: () => apiClient<{ customToken: string }>('/auth/firebase-custom-token'),
 };
 
 export const companiesApi = {
   search: (params: URLSearchParams) =>
     apiClient<PaginatedCompaniesResponse>(`/companies?${params}`, { auth: false }),
-  getBySlug: (slug: string) => apiClient<CompanyPublic>(`/companies/${slug}`, { auth: false }),
+  getBySlug: (slug: string) => apiClient<CompanyPublic>(`/companies/${slug}`),
   listFavorites: () => apiClient<CompanyPublic[]>('/companies/me/favorites'),
+  addFavorite: (companyId: string) =>
+    apiClient<{ isFavorited: true }>(`/companies/${companyId}/favorite`, { method: 'POST' }),
+  removeFavorite: (companyId: string) =>
+    apiClient<{ isFavorited: false }>(`/companies/${companyId}/favorite`, { method: 'DELETE' }),
 };
 
 export const reviewsApi = {
@@ -144,6 +149,7 @@ export const reviewsApi = {
     rating: number;
     title: string;
     content: string;
+    proofUrls: string[];
     deviceFingerprint?: string;
   }) =>
     apiClient<ReviewPublic>('/reviews', {

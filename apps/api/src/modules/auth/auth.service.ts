@@ -1,6 +1,7 @@
 import {
   BadRequestException,
   ConflictException,
+  ForbiddenException,
   Injectable,
   UnauthorizedException,
 } from '@nestjs/common';
@@ -158,6 +159,17 @@ export class AuthService {
 
   getProfile(user: AuthenticatedUser): AuthenticatedUser {
     return user;
+  }
+
+  async getFirebaseCustomToken(userId: string): Promise<{ customToken: string }> {
+    const user = await this.authRepository.findUserById(userId);
+
+    if (!user?.firebaseUid) {
+      throw new ForbiddenException('Firebase account is not linked to this user');
+    }
+
+    const customToken = await this.firebaseAdmin.createCustomToken(user.firebaseUid);
+    return { customToken };
   }
 
   async getFirebaseAdminAccess(userId: string) {

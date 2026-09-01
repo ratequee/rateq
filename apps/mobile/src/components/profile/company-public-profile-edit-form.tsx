@@ -5,8 +5,9 @@ import { Label } from '@/components/ui/label';
 import { ProfileCatalogChips } from '@/components/profile/profile-catalog-chips';
 import { ProfileFormSection } from '@/components/profile/profile-form-section';
 import { ProfilePendingBanner } from '@/components/profile/profile-pending-banner';
+import { useAppToast } from '@/hooks/use-app-toast';
 import { useProfile } from '@/context/profile-context';
-import { ApiError, catalogApi, onboardingApi } from '@/lib/api';
+import { catalogApi, onboardingApi } from '@/lib/api';
 import {
   formatRegistrationDateInput,
   profileUpdateSuccessMessage,
@@ -18,7 +19,7 @@ import type {
 } from '@rateq/types';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Alert, Text, View } from 'react-native';
+import { View, Text } from 'react-native';
 
 function buildPublicProfileUpdates(
   company: CompanyProfileDetail,
@@ -90,6 +91,7 @@ interface CompanyPublicProfileEditFormProps {
 export function CompanyPublicProfileEditForm({ company }: CompanyPublicProfileEditFormProps) {
   const { t } = useTranslation();
   const { refreshOnboarding } = useProfile();
+  const toast = useAppToast();
   const [submitting, setSubmitting] = useState(false);
   const [nameEn, setNameEn] = useState(company.name ?? '');
   const [nameAr, setNameAr] = useState(company.nameAr ?? '');
@@ -142,7 +144,7 @@ export function CompanyPublicProfileEditForm({ company }: CompanyPublicProfileEd
     });
 
     if (Object.keys(updates).length === 0) {
-      Alert.alert(t('profile.edit.savedTitle'), t('profile.edit.noChanges'));
+      toast.info(t('profile.edit.noChanges'), t('profile.edit.savedTitle'));
       return;
     }
 
@@ -150,19 +152,16 @@ export function CompanyPublicProfileEditForm({ company }: CompanyPublicProfileEd
     try {
       await onboardingApi.updateCompany(updates);
       await refreshOnboarding();
-      Alert.alert(
-        t('profile.edit.savedTitle'),
+      toast.success(
         profileUpdateSuccessMessage(
           company.verificationStatus,
           t('profile.edit.pendingApproval'),
           t('profile.edit.publicProfileUpdated'),
         ),
+        t('profile.edit.savedTitle'),
       );
     } catch (err) {
-      Alert.alert(
-        t('common.error'),
-        err instanceof ApiError ? err.message : t('profile.edit.saveError'),
-      );
+      toast.apiError(err, t('profile.edit.saveError'));
     } finally {
       setSubmitting(false);
     }

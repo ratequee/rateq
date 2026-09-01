@@ -5,6 +5,7 @@ import { useAppFonts } from '@/hooks/use-app-fonts';
 import { RtlRoot } from '@/components/layout/rtl-root';
 import { ProfileProvider } from '@/context/profile-context';
 import { ThemeProvider, useTheme } from '@/context/theme-context';
+import { ToastProvider } from '@/context/toast-context';
 import { initI18n } from '@/i18n';
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
@@ -28,7 +29,7 @@ function RootNavigator() {
         <Stack.Screen name="profile" />
         <Stack.Screen name="company" />
         <Stack.Screen name="categories" />
-        <Stack.Screen name="review/[companyId]" options={{ headerShown: true, title: 'Review' }} />
+        <Stack.Screen name="review/[companyId]" options={{ headerShown: false }} />
       </Stack>
     </>
   );
@@ -55,13 +56,15 @@ export default function RootLayout() {
   return (
     <SafeAreaProvider>
       <ThemeProvider>
-        <AuthProvider>
-          <ProfileProvider>
-            <RtlRoot>
-              <RootNavigator />
-            </RtlRoot>
-          </ProfileProvider>
-        </AuthProvider>
+        <ToastProvider>
+          <AuthProvider>
+            <ProfileProvider>
+              <RtlRoot>
+                <RootNavigator />
+              </RtlRoot>
+            </ProfileProvider>
+          </AuthProvider>
+        </ToastProvider>
       </ThemeProvider>
     </SafeAreaProvider>
   );

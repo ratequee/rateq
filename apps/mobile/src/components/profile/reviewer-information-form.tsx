@@ -6,8 +6,9 @@ import { ProfileFormSection } from '@/components/profile/profile-form-section';
 import { ProfileMediaPickerField } from '@/components/profile/profile-media-picker-field';
 import { useAuth } from '@/context/auth-context';
 import { useProfile } from '@/context/profile-context';
+import { useAppToast } from '@/hooks/use-app-toast';
 import { getFontFamily } from '@/i18n';
-import { ApiError, onboardingApi } from '@/lib/api';
+import { onboardingApi } from '@/lib/api';
 import { uploadUserImage } from '@/lib/firebase/storage';
 import { extractQatarPhoneDigits } from '@/lib/qatar-phone';
 import {
@@ -17,7 +18,7 @@ import {
 import type { ReviewerProfile } from '@rateq/types';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Alert, Text, View } from 'react-native';
+import { Text, View } from 'react-native';
 
 interface ReviewerInformationFormProps {
   profile: ReviewerProfile;
@@ -27,6 +28,7 @@ export function ReviewerInformationForm({ profile }: ReviewerInformationFormProp
   const { t } = useTranslation();
   const { user } = useAuth();
   const { refreshOnboarding } = useProfile();
+  const toast = useAppToast();
 
   const [submitting, setSubmitting] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -71,7 +73,7 @@ export function ReviewerInformationForm({ profile }: ReviewerInformationFormProp
 
     setErrors(fieldErrors);
     if (hasValidationErrors(fieldErrors)) {
-      Alert.alert(t('common.error'), t('onboarding.fixForm'));
+      toast.error(t('onboarding.fixForm'));
       return;
     }
 
@@ -81,7 +83,12 @@ export function ReviewerInformationForm({ profile }: ReviewerInformationFormProp
     try {
       let nextAvatarUrl = avatarUri;
       if (pendingAvatar) {
-        nextAvatarUrl = await uploadUserImage('avatars', pendingAvatar.uri, pendingAvatar.name);
+        nextAvatarUrl = await uploadUserImage(
+          'avatar',
+          pendingAvatar.uri,
+          pendingAvatar.name,
+          pendingAvatar.mimeType,
+        );
       }
 
       await onboardingApi.completeReviewer({
@@ -96,12 +103,9 @@ export function ReviewerInformationForm({ profile }: ReviewerInformationFormProp
       setPendingAvatar(null);
       setAvatarUri(nextAvatarUrl);
       await refreshOnboarding();
-      Alert.alert(t('profile.edit.savedTitle'), t('profile.edit.profileUpdated'));
+      toast.success(t('profile.edit.profileUpdated'), t('profile.edit.savedTitle'));
     } catch (err) {
-      Alert.alert(
-        t('common.error'),
-        err instanceof ApiError ? err.message : t('profile.edit.saveError'),
-      );
+      toast.apiError(err, t('profile.edit.saveError'));
     } finally {
       setSubmitting(false);
     }

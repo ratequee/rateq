@@ -2,8 +2,9 @@ import { Button } from '@/components/ui/button';
 import { ProfileMediaPickerField } from '@/components/profile/profile-media-picker-field';
 import { ProfileFormSection } from '@/components/profile/profile-form-section';
 import { ProfilePendingBanner } from '@/components/profile/profile-pending-banner';
+import { useAppToast } from '@/hooks/use-app-toast';
 import { useProfile } from '@/context/profile-context';
-import { ApiError, onboardingApi } from '@/lib/api';
+import { onboardingApi } from '@/lib/api';
 import {
   resolveCompanyDocumentUrls,
   type CompanyExistingAssets,
@@ -12,7 +13,6 @@ import {
 import type { CompanyProfileDetail, UpdateCompanyInput } from '@rateq/types';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Alert } from 'react-native';
 
 interface CompanyDocumentsEditFormProps {
   company: CompanyProfileDetail;
@@ -21,6 +21,7 @@ interface CompanyDocumentsEditFormProps {
 export function CompanyDocumentsEditForm({ company }: CompanyDocumentsEditFormProps) {
   const { t } = useTranslation();
   const { refreshOnboarding } = useProfile();
+  const toast = useAppToast();
   const [submitting, setSubmitting] = useState(false);
   const [registration, setRegistration] = useState<PickedFile | null>(null);
   const [establishment, setEstablishment] = useState<PickedFile | null>(null);
@@ -41,7 +42,7 @@ export function CompanyDocumentsEditForm({ company }: CompanyDocumentsEditFormPr
 
   const handleSubmit = async () => {
     if (!hasChanges) {
-      Alert.alert(t('profile.edit.savedTitle'), t('profile.edit.noChanges'));
+      toast.info(t('profile.edit.noChanges'), t('profile.edit.savedTitle'));
       return;
     }
 
@@ -73,12 +74,9 @@ export function CompanyDocumentsEditForm({ company }: CompanyDocumentsEditFormPr
       setTradeLicense(null);
       setLogo(null);
       setCover(null);
-      Alert.alert(t('profile.edit.savedTitle'), t('profile.edit.documentsSubmitted'));
+      toast.success(t('profile.edit.documentsSubmitted'), t('profile.edit.savedTitle'));
     } catch (err) {
-      Alert.alert(
-        t('common.error'),
-        err instanceof ApiError ? err.message : t('profile.edit.saveError'),
-      );
+      toast.apiError(err, t('profile.edit.saveError'));
     } finally {
       setSubmitting(false);
     }

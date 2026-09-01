@@ -1,92 +1,103 @@
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import { ReviewerReviewStatusCard } from '@/components/review/reviewer-review-status-card';
+import { ReviewScreenLayout } from '@/components/review/review-screen-layout';
+import { WriteReviewForm } from '@/components/review/write-review-form';
 import { LoadingView } from '@/components/ui/loading-view';
-import { StarRating } from '@/components/ui/star-rating';
 import { useAuth } from '@/context/auth-context';
-import { ApiError, reviewsApi } from '@/lib/api';
+import { useProfile } from '@/context/profile-context';
+import { fetchMyCompanyReviewState } from '@/lib/fetch-my-company-review';
+import { truncateWords } from '@/lib/format-text';
+import { useAppToast } from '@/hooks/use-app-toast';
+import type { CompanyReviewState } from '@/lib/resolve-company-reviews';
+import { UserRole } from '@rateq/types';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import {
-  Alert,
-  KeyboardAvoidingView,
-  Platform,
-  ScrollView,
-  Text,
-  TextInput,
-  View,
-} from 'react-native';
 
 export default function SubmitReviewScreen() {
-  const { companyId, name } = useLocalSearchParams<{ companyId: string; name?: string }>();
+  const { companyId, name } = useLocalSearchParams<{
+    companyId: string;
+    name?: string;
+  }>();
   const { t } = useTranslation();
   const { user, isLoading } = useAuth();
+  const { onboarding } = useProfile();
   const router = useRouter();
-  const [rating, setRating] = useState(5);
-  const [title, setTitle] = useState('');
-  const [content, setContent] = useState('');
-  const [submitting, setSubmitting] = useState(false);
+  const toast = useAppToast();
+  const [reviewState, setReviewState] = useState<CompanyReviewState | null>(null);
+  const [loadingState, setLoadingState] = useState(true);
+
+  const loadReviewState = useCallback(async () => {
+    if (!companyId || !user) return;
+    setLoadingState(true);
+    try {
+      const state = await fetchMyCompanyReviewState(companyId);
+      setReviewState(state);
+    } finally {
+      setLoadingState(false);
+    }
+  }, [companyId, user]);
 
   useEffect(() => {
     if (!isLoading && !user) {
       router.replace('/(auth)/login');
+      return;
     }
-  }, [user, isLoading, router]);
 
-  const handleSubmit = async () => {
-    if (!companyId) return;
-    setSubmitting(true);
-    try {
-      await reviewsApi.submit({
-        companyId,
-        rating,
-        title: title.trim(),
-        content: content.trim(),
-      });
-      Alert.alert(t('review.success'), '', [
-        { text: 'OK', onPress: () => router.back() },
-      ]);
-    } catch (err) {
-      Alert.alert(t('common.error'), err instanceof ApiError ? err.message : 'Error');
-    } finally {
-      setSubmitting(false);
+    if (!isLoading && user) {
+      if (user.role === UserRole.COMPANY || onboarding?.company?.id === companyId) {
+        toast.error(t('review.cannotReviewOwn'));
+        router.back();
+        return;
+      }
+
+      if (!user.isVerified) {
+        toast.error(t('auth.verifyNotice'));
+        router.back();
+        return;
+      }
+
+      void loadReviewState();
     }
-  };
+  }, [user, isLoading, router, companyId, onboarding?.company?.id, loadReviewState, t, toast]);
 
-  if (isLoading || !user) return <LoadingView />;
+  if (isLoading || !user || loadingState || !companyId) {
+    return <LoadingView />;
+  }
+
+  const blockedReview = reviewState?.publishedReview ?? reviewState?.inFlightReview;
+  const bannerMessage = reviewState?.publishedReview
+    ? t('review.publishedReviewBlocksNew')
+    : reviewState?.inFlightReview
+      ? t('review.alreadyReviewed')
+      : null;
+
+  const companyName = name ?? t('review.submit');
+  const shortCompanyName = truncateWords(companyName, 3);
 
   return (
     <>
-      <Stack.Screen options={{ title: name ?? t('review.submit') }} />
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        className="flex-1 bg-slate-50"
+      <Stack.Screen options={{ headerShown: false }} />
+      <ReviewScreenLayout
+        title={blockedReview ? t('review.existingReviewTitle') : t('review.writeTitle')}
+        subtitle={
+          blockedReview
+            ? shortCompanyName
+            : t('review.writeSubtitle', { company: shortCompanyName })
+        }
       >
-        <ScrollView contentContainerStyle={{ padding: 16 }}>
-          <View className="gap-4">
-            <View>
-              <Text className="mb-2 text-sm font-medium">{t('review.rating')}</Text>
-              <StarRating value={rating} onChange={setRating} size={28} />
-            </View>
-            <View>
-              <Text className="mb-1 text-sm font-medium">{t('review.title')}</Text>
-              <Input value={title} onChangeText={setTitle} />
-            </View>
-            <View>
-              <Text className="mb-1 text-sm font-medium">{t('review.content')}</Text>
-              <TextInput
-                value={content}
-                onChangeText={setContent}
-                multiline
-                numberOfLines={5}
-                className="min-h-[120px] rounded-lg border border-slate-300 bg-white p-3 text-base text-slate-900"
-                textAlignVertical="top"
-              />
-            </View>
-            <Button title={t('review.submit')} onPress={handleSubmit} loading={submitting} />
-          </View>
-        </ScrollView>
-      </KeyboardAvoidingView>
+        {blockedReview ? (
+          <ReviewerReviewStatusCard
+            review={blockedReview}
+            bannerMessage={bannerMessage ?? undefined}
+          />
+        ) : (
+          <WriteReviewForm
+            companyId={companyId}
+            lastInactiveReview={reviewState?.lastInactiveReview}
+            onSubmitted={() => router.back()}
+          />
+        )}
+      </ReviewScreenLayout>
     </>
   );
 }

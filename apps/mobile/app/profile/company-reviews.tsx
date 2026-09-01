@@ -3,14 +3,16 @@ import { ProfileSubscreenLayout } from '@/components/profile/profile-subscreen-l
 import { LoadingView } from '@/components/ui/loading-view';
 import { useProfile } from '@/context/profile-context';
 import { getFontFamily } from '@/i18n';
-import { ApiError, reviewsApi } from '@/lib/api';
+import { useAppToast } from '@/hooks/use-app-toast';
+import { reviewsApi } from '@/lib/api';
 import type { ReviewPublic } from '@rateq/types';
 import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Alert, FlatList, Text } from 'react-native';
+import { FlatList, Text } from 'react-native';
 
 export default function ProfileCompanyReviewsScreen() {
   const { t } = useTranslation();
+  const toast = useAppToast();
   const { onboarding } = useProfile();
   const companyId = onboarding?.company?.id;
   const [reviews, setReviews] = useState<ReviewPublic[]>([]);
@@ -27,11 +29,11 @@ export default function ProfileCompanyReviewsScreen() {
       const result = await reviewsApi.listByCompanyManage(companyId, params);
       setReviews(result.data);
     } catch (err) {
-      Alert.alert(t('common.error'), err instanceof ApiError ? err.message : t('common.error'));
+      toast.apiError(err, t('common.error'));
     } finally {
       setLoading(false);
     }
-  }, [companyId, t]);
+  }, [companyId, t, toast]);
 
   useEffect(() => {
     void load();

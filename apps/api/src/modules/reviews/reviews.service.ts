@@ -111,8 +111,8 @@ export class ReviewsService {
       throw new BadRequestException('A proof file is required when submitting a review');
     }
 
-    if (input.proofUrls.length > 1) {
-      throw new BadRequestException('Only one proof file is allowed per review');
+    if (input.proofUrls.length > 8) {
+      throw new BadRequestException('You can upload up to 8 proof files per review');
     }
 
     const normalizedTitle = input.title.trim().replace(/\s+/g, ' ');

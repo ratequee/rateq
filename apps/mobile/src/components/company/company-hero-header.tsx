@@ -1,3 +1,4 @@
+import { CompanyFavoriteButton } from '@/components/company/company-favorite-button';
 import { getFontFamily } from '@/i18n';
 import { getLocalizedCategoryName } from '@/lib/category-label';
 import { useAppDirection } from '@/hooks/use-app-direction';
@@ -46,8 +47,8 @@ export function CompanyHeroHeader({ company, displayName }: CompanyHeroHeaderPro
       </Pressable>
 
       <View
-        className="absolute right-4 flex-row flex-wrap justify-end gap-2"
-        style={{ top: insets.top + 8 }}
+        className="absolute right-4 flex-row flex-wrap items-center justify-end gap-2"
+        style={{ top: insets.top + 8, maxWidth: '72%' }}
       >
         {company.showVerifiedStamp ? (
           <View className="rounded-md bg-gold-300 px-3 py-1.5">
@@ -69,6 +70,7 @@ export function CompanyHeroHeader({ company, displayName }: CompanyHeroHeaderPro
             </Text>
           </View>
         ) : null}
+        <CompanyFavoriteButton companyId={company.id} initialFavorited={company.isFavorited} />
       </View>
 
       <View className="-mt-10 items-center pb-2">

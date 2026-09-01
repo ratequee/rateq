@@ -6,23 +6,25 @@ import { useAuth } from '@/context/auth-context';
 import { useProfile } from '@/context/profile-context';
 import { getProfileAvatarUrl, getProfileDisplayName } from '@/lib/profile-display';
 import { getProfileMenuItems, type ProfileMenuItem } from '@/lib/profile-menu';
+import { useAppToast } from '@/hooks/use-app-toast';
 import { useRouter, type Href } from 'expo-router';
 import { useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Alert, ScrollView, View } from 'react-native';
+import { ScrollView, View } from 'react-native';
 
 export default function ProfileScreen() {
   const { t } = useTranslation();
   const router = useRouter();
   const { user, logout } = useAuth();
   const { onboarding, isLoading } = useProfile();
+  const toast = useAppToast();
 
   const handleMenuPress = useCallback(
     (item: ProfileMenuItem) => {
       const { action } = item;
 
       if (action.type === 'comingSoon') {
-        Alert.alert(t('profile.screenTitle'), t('profile.comingSoon'));
+        toast.info(t('profile.comingSoon'), t('profile.screenTitle'));
         return;
       }
 
@@ -36,7 +38,7 @@ export default function ProfileScreen() {
         return;
       }
     },
-    [router, t],
+    [router, t, toast],
   );
 
   const handleLogout = useCallback(async () => {

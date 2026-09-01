@@ -98,6 +98,16 @@ export class FirebaseAdminService implements OnModuleInit {
     };
   }
 
+  async createCustomToken(firebaseUid: string): Promise<string> {
+    if (!this.initialized) {
+      throw new ServiceUnavailableException(
+        'Firebase authentication is not configured on the server',
+      );
+    }
+
+    return admin.auth().createCustomToken(firebaseUid);
+  }
+
   async getVerifiedPhoneNumber(firebaseUid: string): Promise<string | null> {
     if (!this.initialized) {
       throw new ServiceUnavailableException(

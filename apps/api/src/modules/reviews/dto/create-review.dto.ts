@@ -46,10 +46,13 @@ export class CreateReviewDto {
   @MaxLength(255)
   deviceFingerprint?: string;
 
-  @ApiProperty({ type: [String], description: 'Firebase URL for one required proof attachment' })
+  @ApiProperty({
+    type: [String],
+    description: 'Firebase URLs for required proof attachments (1–8 files, 10 MB each)',
+  })
   @IsArray()
   @ArrayMinSize(1)
-  @ArrayMaxSize(1)
+  @ArrayMaxSize(8)
   @IsUrl({}, { each: true })
   proofUrls!: string[];
 }

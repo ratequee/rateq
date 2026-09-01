@@ -1,12 +1,13 @@
 import { Label } from '@/components/ui/label';
 import { getFontFamily } from '@/i18n';
+import { useAppToast } from '@/hooks/use-app-toast';
 import { isProfileFileWithinLimit } from '@/lib/validation/profile-fields';
 import type { PickedFile } from '@/lib/profile-company-assets';
 import { Ionicons } from '@expo/vector-icons';
 import * as DocumentPicker from 'expo-document-picker';
 import * as ImagePicker from 'expo-image-picker';
 import { useTranslation } from 'react-i18next';
-import { Alert, Image, Pressable, Text, View } from 'react-native';
+import { Image, Pressable, Text, View } from 'react-native';
 
 function isImageUrl(url?: string | null): boolean {
   if (!url) return false;
@@ -126,6 +127,7 @@ export function ProfileMediaPickerField({
   shape = mode === 'image' ? 'square' : 'wide',
 }: ProfileMediaPickerFieldProps) {
   const { t } = useTranslation();
+  const toast = useAppToast();
 
   const pick = async () => {
     if (mode === 'image') {
@@ -144,7 +146,7 @@ export function ProfileMediaPickerField({
         size: asset.fileSize ?? 0,
       };
       if (!isProfileFileWithinLimit(picked.size)) {
-        Alert.alert(t('common.error'), t('onboarding.fileTooLarge'));
+        toast.error(t('onboarding.fileTooLarge'));
         return;
       }
       onPick(picked);
@@ -164,7 +166,7 @@ export function ProfileMediaPickerField({
       size: asset.size ?? 0,
     };
     if (!isProfileFileWithinLimit(picked.size)) {
-      Alert.alert(t('common.error'), t('onboarding.fileTooLarge'));
+      toast.error(t('onboarding.fileTooLarge'));
       return;
     }
     onPick(picked);
