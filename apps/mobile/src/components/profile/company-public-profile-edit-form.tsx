@@ -174,8 +174,12 @@ export function CompanyPublicProfileEditForm({ company }: CompanyPublicProfileEd
       banner={pendingApproval ? <ProfilePendingBanner /> : null}
     >
       <View>
-        <Label>{t('onboarding.companyName')}</Label>
-        <Input value={nameEn} onChangeText={setNameEn} />
+        <Label>{t('onboarding.companyNameEn')}</Label>
+        <Input
+          value={nameEn}
+          onChangeText={setNameEn}
+          placeholder={t('onboarding.companyNameEnPlaceholder')}
+        />
       </View>
       <View>
         <Label>{t('onboarding.companyNameAr')}</Label>

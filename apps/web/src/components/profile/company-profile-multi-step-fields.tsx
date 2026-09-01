@@ -95,6 +95,7 @@ interface CompanyProfileMultiStepFieldsProps {
   Field: React.ComponentType<{
     label: string;
     error?: string;
+    hint?: string;
     children: React.ReactNode;
     fieldKey?: string;
     required?: boolean;
@@ -200,7 +201,8 @@ export function CompanyProfileMultiStepFields({
       {step === 1 ? (
         <>
           <Field
-            label={t('companyName')}
+            label={t('companyNameEn')}
+            hint={t('companyNameEnHint')}
             error={errors.companyName}
             fieldKey="companyName"
             required
@@ -210,9 +212,14 @@ export function CompanyProfileMultiStepFields({
               onChange={(e) => setCompanyName(sanitizeCompanyName(e.target.value))}
               onBlur={() => setCompanyName(companyName.trim())}
               className="h-11"
+              placeholder={t('companyNameEnPlaceholder')}
             />
           </Field>
-          <Field label={t('companyAboutEn')} fieldKey="descriptionEn">
+          <Field
+            label={t('companyAboutEn')}
+            hint={t('companyAboutEnHint')}
+            fieldKey="descriptionEn"
+          >
             <textarea
               value={descriptionEn}
               onChange={(e) => setDescriptionEn(e.target.value)}
@@ -297,16 +304,20 @@ export function CompanyProfileMultiStepFields({
 
       {step === 2 ? (
         <>
-          <Field label={t('companyNameAr')} fieldKey="companyNameAr">
+          <Field label={t('companyNameAr')} hint={t('companyNameArHint')} fieldKey="companyNameAr">
             <Input
               value={companyNameAr}
               onChange={(e) => setCompanyNameAr(e.target.value)}
               className="h-11"
               dir="rtl"
-              placeholder={t('companyNameArHint')}
+              placeholder={t('companyNameArPlaceholder')}
             />
           </Field>
-          <Field label={t('companyAboutAr')} fieldKey="descriptionAr">
+          <Field
+            label={t('companyAboutAr')}
+            hint={t('companyAboutArHint')}
+            fieldKey="descriptionAr"
+          >
             <textarea
               value={descriptionAr}
               onChange={(e) => setDescriptionAr(e.target.value)}

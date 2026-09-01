@@ -1,4 +1,5 @@
 import { useAppDirection } from '@/hooks/use-app-direction';
+import { getLocalizedCompanyName } from '@/lib/company-display';
 import { getFontFamily } from '@/i18n';
 import { formatDistanceMeters, type NearbyCompany } from '@/lib/nearby-locations';
 import { Ionicons } from '@expo/vector-icons';
@@ -14,7 +15,7 @@ export function NearbyCompanyListCard({ company }: NearbyCompanyListCardProps) {
   const { t, i18n } = useTranslation();
   const { isRtl } = useAppDirection();
   const locale = i18n.language === 'ar' ? 'ar' : 'en';
-  const displayName = locale === 'ar' && company.nameAr?.trim() ? company.nameAr : company.name;
+  const displayName = getLocalizedCompanyName(company, locale);
 
   const distance = formatDistanceMeters(
     company.distanceMeters,
@@ -35,16 +36,16 @@ export function NearbyCompanyListCard({ company }: NearbyCompanyListCardProps) {
           <View className="h-12 w-12 items-center justify-center rounded-full bg-brand-100">
             <Text
               className="text-sm font-bold text-brand-500"
-              style={{ fontFamily: getFontFamily('bold') }}
+              style={{ fontFamily: getFontFamily('bold', displayName) }}
             >
-              {company.name.charAt(0)}
+              {displayName.charAt(0)}
             </Text>
           </View>
         )}
 
         <Text
           className="min-w-0 flex-1 text-base font-semibold text-ink dark:text-white"
-          style={{ fontFamily: getFontFamily('semibold') }}
+          style={{ fontFamily: getFontFamily('semibold', displayName), lineHeight: 22 }}
           numberOfLines={2}
         >
           {displayName}
@@ -70,7 +71,7 @@ export function NearbyCompanyListCard({ company }: NearbyCompanyListCardProps) {
         <View className="h-4 w-px bg-slate-200 dark:bg-dm-border" />
         <Text
           className="flex-1 text-sm text-ink-muted dark:text-white/75"
-          style={{ fontFamily: getFontFamily('regular') }}
+          style={{ fontFamily: getFontFamily('regular', distance) }}
           numberOfLines={1}
         >
           {distance}

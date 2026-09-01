@@ -113,16 +113,29 @@ export default function HomeScreen() {
 
         {error ? <Text className="px-4 py-2 text-center text-sm text-red-600">{error}</Text> : null}
 
-        <View className="px-4">
-          {trustedBanner.length > 0 ? (
-            <TrustedHomeBanner items={trustedBanner} />
-          ) : heroImage ? (
-            <ImageBackground
-              source={{ uri: heroImage }}
-              className="mt-2 overflow-hidden rounded-3xl"
-              imageStyle={{ borderRadius: 24 }}
-            >
-              <View className="min-h-[160px] justify-end bg-black/35 p-5">
+        {trustedBanner.length > 0 ? (
+          <TrustedHomeBanner items={trustedBanner} />
+        ) : (
+          <View className="px-4">
+            {heroImage ? (
+              <ImageBackground
+                source={{ uri: heroImage }}
+                className="mt-2 overflow-hidden rounded-3xl"
+                imageStyle={{ borderRadius: 24 }}
+              >
+                <View className="min-h-[160px] justify-end bg-black/35 p-5">
+                  <Text
+                    className={cn('text-2xl font-bold leading-8 text-white', textAlignClass)}
+                    style={[{ fontFamily: getFontFamily('bold') }, textStyle]}
+                  >
+                    {t('home.heroTitlePrefix')}{' '}
+                    <Text className="text-gold-300">{t('home.heroTitleHighlight')}</Text>{' '}
+                    {t('home.heroTitleSuffix')}
+                  </Text>
+                </View>
+              </ImageBackground>
+            ) : (
+              <View className="mt-2 min-h-[160px] justify-end rounded-3xl bg-brand-600 p-5">
                 <Text
                   className={cn('text-2xl font-bold leading-8 text-white', textAlignClass)}
                   style={[{ fontFamily: getFontFamily('bold') }, textStyle]}
@@ -132,20 +145,9 @@ export default function HomeScreen() {
                   {t('home.heroTitleSuffix')}
                 </Text>
               </View>
-            </ImageBackground>
-          ) : (
-            <View className="mt-2 min-h-[160px] justify-end rounded-3xl bg-brand-600 p-5">
-              <Text
-                className={cn('text-2xl font-bold leading-8 text-white', textAlignClass)}
-                style={[{ fontFamily: getFontFamily('bold') }, textStyle]}
-              >
-                {t('home.heroTitlePrefix')}{' '}
-                <Text className="text-gold-300">{t('home.heroTitleHighlight')}</Text>{' '}
-                {t('home.heroTitleSuffix')}
-              </Text>
-            </View>
-          )}
-        </View>
+            )}
+          </View>
+        )}
 
         <View className="mt-8 px-3">
           <View className="mb-3 flex-row items-center justify-between px-1">

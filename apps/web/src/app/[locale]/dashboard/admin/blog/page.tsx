@@ -227,6 +227,8 @@ export default function AdminBlogPage() {
   };
 
   const current = translations[activeLocale] ?? EMPTY_TRANSLATION;
+  const activeLocaleLabel = activeLocale === 'en' ? t('englishTab') : t('arabicTab');
+  const localizedFieldLabel = (key: Parameters<typeof t>[0]) => `${t(key)} (${activeLocaleLabel})`;
 
   return (
     <DashboardShell role="admin">
@@ -301,7 +303,9 @@ export default function AdminBlogPage() {
 
           <div className="grid gap-4">
             <div>
-              <label className="mb-1.5 block text-sm font-medium text-ink">{t('titleLabel')}</label>
+              <label className="mb-1.5 block text-sm font-medium text-ink">
+                {localizedFieldLabel('titleLabel')}
+              </label>
               <Input
                 value={current.title}
                 onChange={(e) => updateTranslationField(activeLocale, 'title', e.target.value)}
@@ -310,7 +314,9 @@ export default function AdminBlogPage() {
               />
             </div>
             <div>
-              <label className="mb-1.5 block text-sm font-medium text-ink">{t('slugLabel')}</label>
+              <label className="mb-1.5 block text-sm font-medium text-ink">
+                {localizedFieldLabel('slugLabel')}
+              </label>
               <Input
                 value={current.slug}
                 onChange={(e) => updateTranslationField(activeLocale, 'slug', e.target.value)}
@@ -320,7 +326,7 @@ export default function AdminBlogPage() {
             </div>
             <div>
               <label className="mb-1.5 block text-sm font-medium text-ink">
-                {t('excerptLabel')}
+                {localizedFieldLabel('excerptLabel')}
               </label>
               <textarea
                 value={current.excerpt}
@@ -332,7 +338,7 @@ export default function AdminBlogPage() {
             </div>
             <div>
               <label className="mb-1.5 block text-sm font-medium text-ink">
-                {t('contentLabel')}
+                {localizedFieldLabel('contentLabel')}
               </label>
               <BlogRichTextEditor
                 key={activeLocale}
@@ -359,7 +365,7 @@ export default function AdminBlogPage() {
             <div className="grid gap-4 sm:grid-cols-2">
               <div>
                 <label className="mb-1.5 block text-sm font-medium text-ink">
-                  {t('metaTitleLabel')}
+                  {localizedFieldLabel('metaTitleLabel')}
                 </label>
                 <Input
                   value={current.metaTitle}
@@ -372,7 +378,7 @@ export default function AdminBlogPage() {
               </div>
               <div>
                 <label className="mb-1.5 block text-sm font-medium text-ink">
-                  {t('metaDescriptionLabel')}
+                  {localizedFieldLabel('metaDescriptionLabel')}
                 </label>
                 <Input
                   value={current.metaDescription}

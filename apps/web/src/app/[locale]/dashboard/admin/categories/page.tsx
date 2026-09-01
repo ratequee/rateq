@@ -224,19 +224,29 @@ export default function AdminCategoriesPage() {
           <div className="surface-card p-6">
             <form onSubmit={handleCreate} className="mb-6 space-y-3">
               <div className="grid gap-3 sm:grid-cols-[1fr_1fr]">
-                <Input
-                  value={nameEn}
-                  onChange={(e) => setNameEn(e.target.value)}
-                  placeholder={t('nameEnPlaceholder')}
-                  className="h-11"
-                />
-                <Input
-                  value={nameAr}
-                  onChange={(e) => setNameAr(e.target.value)}
-                  placeholder={t('nameArPlaceholder')}
-                  className="h-11"
-                  dir="rtl"
-                />
+                <div>
+                  <label className="mb-1.5 block text-sm font-medium text-primary">
+                    {t('nameEnLabel')}
+                  </label>
+                  <Input
+                    value={nameEn}
+                    onChange={(e) => setNameEn(e.target.value)}
+                    placeholder={t('nameEnPlaceholder')}
+                    className="h-11"
+                  />
+                </div>
+                <div>
+                  <label className="mb-1.5 block text-sm font-medium text-primary">
+                    {t('nameArLabel')}
+                  </label>
+                  <Input
+                    value={nameAr}
+                    onChange={(e) => setNameAr(e.target.value)}
+                    placeholder={t('nameArPlaceholder')}
+                    className="h-11"
+                    dir="rtl"
+                  />
+                </div>
               </div>
               <CategoryIconUpload value={iconUrl} onChange={setIconUrl} labels={iconUploadLabels} />
               <Button type="submit" disabled={submitting} className="h-11 gap-2">
@@ -262,17 +272,29 @@ export default function AdminCategoriesPage() {
                     {editingId === category.id ? (
                       <div className="space-y-3">
                         <div className="grid gap-3 sm:grid-cols-[1fr_1fr]">
-                          <Input
-                            value={editNameEn}
-                            onChange={(e) => setEditNameEn(e.target.value)}
-                            className="h-10"
-                          />
-                          <Input
-                            value={editNameAr}
-                            onChange={(e) => setEditNameAr(e.target.value)}
-                            className="h-10"
-                            dir="rtl"
-                          />
+                          <div>
+                            <label className="mb-1.5 block text-sm font-medium text-primary">
+                              {t('nameEnLabel')}
+                            </label>
+                            <Input
+                              value={editNameEn}
+                              onChange={(e) => setEditNameEn(e.target.value)}
+                              placeholder={t('nameEnPlaceholder')}
+                              className="h-10"
+                            />
+                          </div>
+                          <div>
+                            <label className="mb-1.5 block text-sm font-medium text-primary">
+                              {t('nameArLabel')}
+                            </label>
+                            <Input
+                              value={editNameAr}
+                              onChange={(e) => setEditNameAr(e.target.value)}
+                              placeholder={t('nameArPlaceholder')}
+                              className="h-10"
+                              dir="rtl"
+                            />
+                          </div>
                         </div>
                         <CategoryIconUpload
                           value={editIconUrl}

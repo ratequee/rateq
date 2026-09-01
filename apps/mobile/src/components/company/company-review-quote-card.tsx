@@ -19,7 +19,7 @@ export function CompanyReviewQuoteCard({ review }: CompanyReviewQuoteCardProps) 
 
       <Text
         className="mt-4 text-sm leading-6 text-ink dark:text-white"
-        style={{ fontFamily: getFontFamily('regular') }}
+        style={{ fontFamily: getFontFamily('regular', review.content) }}
       >
         &ldquo;{review.content}&rdquo;
       </Text>
@@ -35,7 +35,7 @@ export function CompanyReviewQuoteCard({ review }: CompanyReviewQuoteCardProps) 
           <View className="h-12 w-12 items-center justify-center rounded-full bg-brand-100">
             <Text
               className="text-sm font-bold text-brand-500"
-              style={{ fontFamily: getFontFamily('bold') }}
+              style={{ fontFamily: getFontFamily('bold', authorName) }}
             >
               {getReviewAuthorInitial(authorName)}
             </Text>
@@ -44,14 +44,14 @@ export function CompanyReviewQuoteCard({ review }: CompanyReviewQuoteCardProps) 
         <View className="min-w-0 flex-1">
           <Text
             className="font-semibold text-ink dark:text-white"
-            style={{ fontFamily: getFontFamily('semibold') }}
+            style={{ fontFamily: getFontFamily('semibold', authorName) }}
           >
             {authorName}
           </Text>
           {review.title ? (
             <Text
-              className="mt-0.5 text-sm text-ink-muted dark:text-white/70"
-              style={{ fontFamily: getFontFamily('regular') }}
+              className="mt-1 text-sm text-ink-muted dark:text-white/70"
+              style={{ fontFamily: getFontFamily('regular', review.title), lineHeight: 20 }}
               numberOfLines={2}
             >
               {review.title}
@@ -64,13 +64,13 @@ export function CompanyReviewQuoteCard({ review }: CompanyReviewQuoteCardProps) 
         <View className="mt-4 rounded-xl border border-brand-100 bg-brand-50/60 p-4 dark:border-brand-900/40 dark:bg-brand-950/20">
           <Text
             className="text-xs font-semibold uppercase tracking-wide text-brand-600"
-            style={{ fontFamily: getFontFamily('semibold') }}
+            style={{ fontFamily: getFontFamily('semibold', t('company.companyReply')) }}
           >
             {t('company.companyReply')}
           </Text>
           <Text
             className="mt-2 text-sm leading-5 text-ink dark:text-white/90"
-            style={{ fontFamily: getFontFamily('regular') }}
+            style={{ fontFamily: getFontFamily('regular', review.reply.content) }}
           >
             {review.reply.content}
           </Text>

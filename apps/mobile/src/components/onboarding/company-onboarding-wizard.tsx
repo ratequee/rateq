@@ -558,11 +558,12 @@ export function CompanyOnboardingWizard({
       {step === 1 ? (
         <View className="gap-4">
           <View>
-            <Label required>{t('onboarding.companyName')}</Label>
+            <Label required>{t('onboarding.companyNameEn')}</Label>
             <Input
               value={companyName}
               onChangeText={(text) => setCompanyName(sanitizeCompanyName(text))}
               onBlur={() => setCompanyName(companyName.trim())}
+              placeholder={t('onboarding.companyNameEnPlaceholder')}
             />
             {errors.companyName ? (
               <Text className="mt-1 text-sm text-red-500">{errors.companyName}</Text>

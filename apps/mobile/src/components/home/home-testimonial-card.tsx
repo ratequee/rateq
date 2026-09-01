@@ -25,14 +25,19 @@ export function HomeTestimonialCard({ review }: HomeTestimonialCardProps) {
           <Image source={{ uri: review.author.avatarUrl }} className="h-12 w-12 rounded-full" />
         ) : (
           <View className="h-12 w-12 items-center justify-center rounded-full bg-brand-100">
-            <Text className="font-semibold text-brand-500">{authorName.charAt(0)}</Text>
+            <Text
+              className="font-semibold text-brand-500"
+              style={{ fontFamily: getFontFamily('semibold', authorName) }}
+            >
+              {authorName.charAt(0)}
+            </Text>
           </View>
         )}
         <View className="flex-1 gap-0.5">
           <View style={labelContainerStyle}>
             <Text
               className="text-sm font-semibold text-ink dark:text-white"
-              style={[{ fontFamily: getFontFamily('semibold') }, textStyle]}
+              style={[{ fontFamily: getFontFamily('semibold', authorName) }, textStyle]}
               numberOfLines={1}
             >
               {authorName}
@@ -41,7 +46,7 @@ export function HomeTestimonialCard({ review }: HomeTestimonialCardProps) {
           <View style={labelContainerStyle}>
             <Text
               className="text-xs text-ink-muted dark:text-white/70"
-              style={[{ fontFamily: getFontFamily('regular') }, textStyle]}
+              style={[{ fontFamily: getFontFamily('regular', companyName) }, textStyle]}
               numberOfLines={1}
             >
               {companyName}
@@ -54,7 +59,10 @@ export function HomeTestimonialCard({ review }: HomeTestimonialCardProps) {
       </View>
       <Text
         className="mt-3 text-sm leading-5 text-ink-muted dark:text-white/80"
-        style={[{ fontFamily: getFontFamily('regular'), width: '100%' }, textStyle]}
+        style={[
+          { fontFamily: getFontFamily('regular', review.content), width: '100%', lineHeight: 22 },
+          textStyle,
+        ]}
         numberOfLines={4}
       >
         {review.content}

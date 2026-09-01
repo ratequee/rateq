@@ -203,7 +203,12 @@ function CompanyPublicProfileFormFields({ company }: { company: CompanyProfileDe
 
       <div className="grid gap-4 sm:grid-cols-2">
         <Field label={t('companyNameEn')} hint={t('companyNameEnHint')}>
-          <Input value={nameEn} onChange={(e) => setNameEn(e.target.value)} className="h-11" />
+          <Input
+            value={nameEn}
+            onChange={(e) => setNameEn(e.target.value)}
+            className="h-11"
+            placeholder={t('companyNameEnPlaceholder')}
+          />
         </Field>
         <Field label={t('companyNameAr')} hint={t('companyNameArHint')}>
           <Input
@@ -211,11 +216,12 @@ function CompanyPublicProfileFormFields({ company }: { company: CompanyProfileDe
             onChange={(e) => setNameAr(e.target.value)}
             className="h-11"
             dir="rtl"
+            placeholder={t('companyNameArPlaceholder')}
           />
         </Field>
       </div>
 
-      <Field label={t('companyAboutEn')} hint={t('companyAboutHint')}>
+      <Field label={t('companyAboutEn')} hint={t('companyAboutEnHint')}>
         <textarea
           value={descriptionEn}
           onChange={(e) => setDescriptionEn(e.target.value)}

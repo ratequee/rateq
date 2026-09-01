@@ -378,24 +378,35 @@ export function AdminCompanyForm({ mode, companyId, initialValues }: AdminCompan
 
       <section className="surface-card space-y-4 rounded-2xl border p-5 sm:p-6">
         <SectionHeading title={t('sections.basic')} />
-        <Field label={tp('companyName')} error={errors.companyName} fieldKey="companyName" required>
+        <Field
+          label={tp('companyNameEn')}
+          hint={tp('companyNameEnHint')}
+          error={errors.companyName}
+          fieldKey="companyName"
+          required
+        >
           <Input
             value={companyName}
             onChange={(e) => setCompanyName(sanitizeCompanyName(e.target.value))}
             onBlur={() => setCompanyName((prev) => prev.trim())}
             className="h-11"
+            placeholder={tp('companyNameEnPlaceholder')}
           />
         </Field>
-        <Field label={tp('companyNameAr')} fieldKey="companyNameAr">
+        <Field label={tp('companyNameAr')} hint={tp('companyNameArHint')} fieldKey="companyNameAr">
           <Input
             value={companyNameAr}
             onChange={(e) => setCompanyNameAr(e.target.value)}
             className="h-11"
             dir="rtl"
-            placeholder={tp('companyNameArHint')}
+            placeholder={tp('companyNameArPlaceholder')}
           />
         </Field>
-        <Field label={tp('companyAboutEn')} fieldKey="descriptionEn">
+        <Field
+          label={tp('companyAboutEn')}
+          hint={tp('companyAboutEnHint')}
+          fieldKey="descriptionEn"
+        >
           <textarea
             value={descriptionEn}
             onChange={(e) => setDescriptionEn(e.target.value)}
@@ -405,7 +416,11 @@ export function AdminCompanyForm({ mode, companyId, initialValues }: AdminCompan
             placeholder={tp('companyAboutPlaceholder')}
           />
         </Field>
-        <Field label={tp('companyAboutAr')} fieldKey="descriptionAr">
+        <Field
+          label={tp('companyAboutAr')}
+          hint={tp('companyAboutArHint')}
+          fieldKey="descriptionAr"
+        >
           <textarea
             value={descriptionAr}
             onChange={(e) => setDescriptionAr(e.target.value)}
@@ -621,12 +636,14 @@ function SectionHeading({ title, subtitle }: { title: string; subtitle?: string 
 function Field({
   label,
   error,
+  hint,
   children,
   fieldKey,
   required = false,
 }: {
   label: string;
   error?: string;
+  hint?: string;
   children: React.ReactNode;
   fieldKey?: string;
   required?: boolean;
@@ -637,6 +654,7 @@ function Field({
         {label}
         {required ? <span className="text-red-500"> *</span> : null}
       </label>
+      {hint ? <p className="mb-2 text-xs text-ink-muted dark:text-slate-300">{hint}</p> : null}
       {children}
       {error ? <p className="mt-1 text-xs text-red-500">{error}</p> : null}
     </div>

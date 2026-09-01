@@ -855,6 +855,7 @@ export default function CompleteProfilePage() {
 function Field({
   label,
   error,
+  hint,
   children,
   fieldKey,
   required = false,
@@ -862,6 +863,7 @@ function Field({
 }: {
   label: string;
   error?: string;
+  hint?: string;
   children: React.ReactNode;
   fieldKey?: string;
   required?: boolean;
@@ -878,6 +880,7 @@ function Field({
           </span>
         )}
       </label>
+      {hint ? <p className="mb-2 text-xs text-ink-muted dark:text-slate-300">{hint}</p> : null}
       {children}
       {error && <p className="mt-1 text-xs text-red-500">{error}</p>}
     </div>

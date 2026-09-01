@@ -159,20 +159,30 @@ export function AdminCompanyCatalogPanel({
         </div>
       ) : null}
 
-      <form onSubmit={handleCreate} className="grid gap-3 sm:grid-cols-[1fr_1fr_auto]">
-        <Input
-          value={nameEn}
-          onChange={(e) => setNameEn(e.target.value)}
-          placeholder={t('nameEnPlaceholder')}
-          className="h-11"
-        />
-        <Input
-          value={nameAr}
-          onChange={(e) => setNameAr(e.target.value)}
-          placeholder={t('nameArPlaceholder')}
-          className="h-11"
-          dir="rtl"
-        />
+      <form onSubmit={handleCreate} className="grid gap-3 sm:grid-cols-[1fr_1fr_auto] sm:items-end">
+        <div>
+          <label className="mb-1.5 block text-sm font-medium text-primary">
+            {t('nameEnLabel')}
+          </label>
+          <Input
+            value={nameEn}
+            onChange={(e) => setNameEn(e.target.value)}
+            placeholder={t('nameEnPlaceholder')}
+            className="h-11"
+          />
+        </div>
+        <div>
+          <label className="mb-1.5 block text-sm font-medium text-primary">
+            {t('nameArLabel')}
+          </label>
+          <Input
+            value={nameAr}
+            onChange={(e) => setNameAr(e.target.value)}
+            placeholder={t('nameArPlaceholder')}
+            className="h-11"
+            dir="rtl"
+          />
+        </div>
         <Button type="submit" disabled={saving} className="h-11 gap-2">
           {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
           {t('add')}
@@ -190,18 +200,30 @@ export function AdminCompanyCatalogPanel({
           {items.map((item) => (
             <li key={item.id} className="px-4 py-3">
               {editingId === item.id ? (
-                <div className="grid gap-3 sm:grid-cols-[1fr_1fr_auto_auto]">
-                  <Input
-                    value={editNameEn}
-                    onChange={(e) => setEditNameEn(e.target.value)}
-                    className="h-10"
-                  />
-                  <Input
-                    value={editNameAr}
-                    onChange={(e) => setEditNameAr(e.target.value)}
-                    className="h-10"
-                    dir="rtl"
-                  />
+                <div className="grid gap-3 sm:grid-cols-[1fr_1fr_auto_auto] sm:items-end">
+                  <div>
+                    <label className="mb-1.5 block text-sm font-medium text-primary">
+                      {t('nameEnLabel')}
+                    </label>
+                    <Input
+                      value={editNameEn}
+                      onChange={(e) => setEditNameEn(e.target.value)}
+                      placeholder={t('nameEnPlaceholder')}
+                      className="h-10"
+                    />
+                  </div>
+                  <div>
+                    <label className="mb-1.5 block text-sm font-medium text-primary">
+                      {t('nameArLabel')}
+                    </label>
+                    <Input
+                      value={editNameAr}
+                      onChange={(e) => setEditNameAr(e.target.value)}
+                      placeholder={t('nameArPlaceholder')}
+                      className="h-10"
+                      dir="rtl"
+                    />
+                  </div>
                   <Button
                     type="button"
                     size="sm"
