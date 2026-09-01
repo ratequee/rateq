@@ -3,10 +3,14 @@ import { ensureValidAccessToken } from '@/lib/auth-session';
 
 export interface SendMarketingEmailInput {
   recipients: string[];
-  subject: string;
-  heading: string;
-  message: string;
-  ctaLabel?: string;
+  subjectEn: string;
+  subjectAr: string;
+  headingEn: string;
+  headingAr: string;
+  messageEn: string;
+  messageAr: string;
+  ctaLabelEn?: string;
+  ctaLabelAr?: string;
   ctaUrl?: string;
 }
 

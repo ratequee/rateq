@@ -73,6 +73,7 @@ import {
 } from '../email/email-review-templates';
 import {
   buildMarketingEmailHtml,
+  buildMarketingEmailSubject,
   buildMarketingEmailText,
 } from '../email/email-marketing-templates';
 
@@ -593,24 +594,33 @@ export class EmailService {
 
   async sendMarketingEmail(content: {
     to: string;
-    subject: string;
-    heading: string;
-    message: string;
-    ctaLabel?: string;
+    subjectEn: string;
+    subjectAr: string;
+    headingEn: string;
+    headingAr: string;
+    messageEn: string;
+    messageAr: string;
+    ctaLabelEn?: string;
+    ctaLabelAr?: string;
     ctaUrl?: string;
   }): Promise<void> {
     const appUrl = this.configService.get('APP_URL', { infer: true });
     const payload = {
       appUrl,
-      heading: content.heading,
-      message: content.message,
-      ctaLabel: content.ctaLabel,
+      subjectEn: content.subjectEn,
+      subjectAr: content.subjectAr,
+      headingEn: content.headingEn,
+      headingAr: content.headingAr,
+      messageEn: content.messageEn,
+      messageAr: content.messageAr,
+      ctaLabelEn: content.ctaLabelEn,
+      ctaLabelAr: content.ctaLabelAr,
       ctaUrl: content.ctaUrl,
     };
 
     await this.send({
       to: content.to,
-      subject: content.subject,
+      subject: buildMarketingEmailSubject(payload),
       text: buildMarketingEmailText(payload),
       html: buildMarketingEmailHtml(payload),
     });

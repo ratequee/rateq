@@ -7,13 +7,16 @@ import { Input } from '@/components/ui/input';
 import { useRequireAdmin } from '@/hooks/use-require-admin';
 import { adminEmailMarketingApi } from '@/lib/admin-email-marketing-api';
 import { ApiError } from '@/lib/api';
+import { cn } from '@/lib/utils';
 import { AdminPermission } from '@rateq/types';
 import { Loader2, Mail, Send } from 'lucide-react';
+import Image from 'next/image';
 import { useTranslations } from 'next-intl';
 import { useMemo, useState } from 'react';
 import { toast } from 'sonner';
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+type ContentLocale = 'en' | 'ar';
 
 function parseRecipients(raw: string): string[] {
   const values = raw
@@ -24,15 +27,134 @@ function parseRecipients(raw: string): string[] {
   return [...new Set(values)];
 }
 
+function MarketingEmailPreview({
+  subjectEn,
+  subjectAr,
+  headingEn,
+  headingAr,
+  messageEn,
+  messageAr,
+  ctaLabelEn,
+  ctaLabelAr,
+  labels,
+}: {
+  subjectEn: string;
+  subjectAr: string;
+  headingEn: string;
+  headingAr: string;
+  messageEn: string;
+  messageAr: string;
+  ctaLabelEn: string;
+  ctaLabelAr: string;
+  labels: {
+    previewTitle: string;
+    previewNote: string;
+    headingPreview: string;
+    messagePreview: string;
+    englishSection: string;
+    arabicSection: string;
+    tagline: string;
+  };
+}) {
+  return (
+    <aside className="surface-card h-fit rounded-2xl border p-5 shadow-sm">
+      <div className="mb-4 flex items-center gap-2 text-sm font-semibold text-ink">
+        <Mail className="h-4 w-4 text-brand-500" />
+        {labels.previewTitle}
+      </div>
+
+      <div className="overflow-hidden rounded-2xl border border-slate-200 bg-[#f3f4f6] shadow-sm">
+        <div className="bg-gradient-to-br from-brand-500 to-[#5a0f1c] px-5 py-6 text-center">
+          <Image
+            src="/images/white_logo.svg"
+            alt="RateQ"
+            width={120}
+            height={32}
+            className="mx-auto h-8 w-auto"
+          />
+          <p className="mt-3 text-xs text-white/85">{labels.tagline}</p>
+        </div>
+
+        <div className="bg-white p-5">
+          <p className="text-[11px] font-bold uppercase tracking-[0.12em] text-brand-500">
+            RateQ Update
+          </p>
+          <h3 className="mt-2 text-lg font-bold leading-snug text-ink">
+            {headingEn.trim() || labels.headingPreview}
+          </h3>
+          <h3
+            className="mt-2 text-lg font-bold leading-snug text-ink"
+            dir="rtl"
+            style={{ textAlign: 'right' }}
+          >
+            {headingAr.trim() || labels.headingPreview}
+          </h3>
+
+          <div className="mt-5 border-t border-slate-100 pt-5">
+            <p className="text-[11px] font-bold uppercase tracking-[0.12em] text-brand-500">
+              {labels.englishSection}
+            </p>
+            <p className="mt-2 whitespace-pre-wrap text-sm leading-6 text-slate-600">
+              {messageEn.trim() || labels.messagePreview}
+            </p>
+            {ctaLabelEn.trim() ? (
+              <span className="mt-4 inline-flex rounded-full bg-gold-300 px-4 py-2 text-sm font-semibold text-brand-700 shadow-sm">
+                {ctaLabelEn.trim()}
+              </span>
+            ) : null}
+          </div>
+
+          <div className="mt-5 border-t border-slate-100 pt-5">
+            <p
+              className="text-[11px] font-bold uppercase tracking-[0.12em] text-brand-500"
+              dir="rtl"
+              style={{ textAlign: 'right' }}
+            >
+              {labels.arabicSection}
+            </p>
+            <p
+              className="mt-2 whitespace-pre-wrap text-sm leading-7 text-slate-600"
+              dir="rtl"
+              style={{ textAlign: 'right' }}
+            >
+              {messageAr.trim() || labels.messagePreview}
+            </p>
+            {ctaLabelAr.trim() ? (
+              <div className="mt-4 flex justify-end">
+                <span className="inline-flex rounded-full bg-gold-300 px-4 py-2 text-sm font-semibold text-brand-700 shadow-sm">
+                  {ctaLabelAr.trim()}
+                </span>
+              </div>
+            ) : null}
+          </div>
+        </div>
+
+        <div className="h-1 bg-gradient-to-r from-gold-300 via-brand-500 to-[#5a0f1c]" />
+      </div>
+
+      <p className="mt-3 text-xs text-ink-muted">
+        <span className="font-medium text-ink">Subject:</span> {subjectEn.trim() || '—'} |{' '}
+        {subjectAr.trim() || '—'}
+      </p>
+      <p className="mt-2 text-xs text-ink-muted">{labels.previewNote}</p>
+    </aside>
+  );
+}
+
 export default function AdminEmailMarketingPage() {
   const t = useTranslations('adminEmailMarketing');
   useRequireAdmin(AdminPermission.CONTENT);
 
   const [recipientsRaw, setRecipientsRaw] = useState('');
-  const [subject, setSubject] = useState('');
-  const [heading, setHeading] = useState('');
-  const [message, setMessage] = useState('');
-  const [ctaLabel, setCtaLabel] = useState('');
+  const [activeLocale, setActiveLocale] = useState<ContentLocale>('en');
+  const [subjectEn, setSubjectEn] = useState('');
+  const [subjectAr, setSubjectAr] = useState('');
+  const [headingEn, setHeadingEn] = useState('');
+  const [headingAr, setHeadingAr] = useState('');
+  const [messageEn, setMessageEn] = useState('');
+  const [messageAr, setMessageAr] = useState('');
+  const [ctaLabelEn, setCtaLabelEn] = useState('');
+  const [ctaLabelAr, setCtaLabelAr] = useState('');
   const [ctaUrl, setCtaUrl] = useState('');
   const [sending, setSending] = useState(false);
 
@@ -46,6 +168,8 @@ export default function AdminEmailMarketingPage() {
     [recipients],
   );
 
+  const activeLocaleLabel = activeLocale === 'en' ? t('englishTab') : t('arabicTab');
+
   const handleSend = async () => {
     if (validRecipients.length === 0) {
       toast.error(t('recipientsRequired'));
@@ -57,23 +181,34 @@ export default function AdminEmailMarketingPage() {
       return;
     }
 
-    if (!subject.trim() || !heading.trim() || !message.trim()) {
+    if (
+      !subjectEn.trim() ||
+      !subjectAr.trim() ||
+      !headingEn.trim() ||
+      !headingAr.trim() ||
+      !messageEn.trim() ||
+      !messageAr.trim()
+    ) {
       toast.error(t('fieldsRequired'));
       return;
     }
 
-    if (ctaLabel.trim() && !ctaUrl.trim()) {
+    if ((ctaLabelEn.trim() || ctaLabelAr.trim()) && !ctaUrl.trim()) {
       toast.error(t('ctaUrlRequired'));
       return;
     }
 
-    if (
-      !window.confirm(
-        t('sendConfirm', {
-          count: validRecipients.length,
-        }),
-      )
-    ) {
+    if (ctaLabelEn.trim() && !ctaLabelAr.trim()) {
+      toast.error(t('ctaLabelsRequired'));
+      return;
+    }
+
+    if (ctaLabelAr.trim() && !ctaLabelEn.trim()) {
+      toast.error(t('ctaLabelsRequired'));
+      return;
+    }
+
+    if (!window.confirm(t('sendConfirm', { count: validRecipients.length }))) {
       return;
     }
 
@@ -81,10 +216,14 @@ export default function AdminEmailMarketingPage() {
     try {
       const result = await adminEmailMarketingApi.send({
         recipients: validRecipients,
-        subject: subject.trim(),
-        heading: heading.trim(),
-        message: message.trim(),
-        ctaLabel: ctaLabel.trim() || undefined,
+        subjectEn: subjectEn.trim(),
+        subjectAr: subjectAr.trim(),
+        headingEn: headingEn.trim(),
+        headingAr: headingAr.trim(),
+        messageEn: messageEn.trim(),
+        messageAr: messageAr.trim(),
+        ctaLabelEn: ctaLabelEn.trim() || undefined,
+        ctaLabelAr: ctaLabelAr.trim() || undefined,
         ctaUrl: ctaUrl.trim() || undefined,
       });
 
@@ -102,10 +241,10 @@ export default function AdminEmailMarketingPage() {
 
   return (
     <DashboardShell role="admin">
-      <div className="mx-auto max-w-4xl">
+      <div className="mx-auto max-w-5xl">
         <DashboardPageHeader title={t('title')} subtitle={t('subtitle')} className="mb-6" />
 
-        <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
+        <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_340px]">
           <form
             className="space-y-5 surface-card rounded-2xl border p-5 shadow-sm"
             onSubmit={(event) => {
@@ -121,7 +260,7 @@ export default function AdminEmailMarketingPage() {
                 value={recipientsRaw}
                 onChange={(event) => setRecipientsRaw(event.target.value)}
                 placeholder={t('recipientsPlaceholder')}
-                rows={6}
+                rows={5}
                 className="textarea-field rounded-xl font-mono text-sm"
               />
               <p className="mt-2 text-xs text-ink-muted">
@@ -134,64 +273,137 @@ export default function AdminEmailMarketingPage() {
               ) : null}
             </div>
 
-            <div>
-              <label className="mb-1.5 block text-sm font-medium text-ink">
-                {t('subjectLabel')}
-              </label>
-              <Input
-                value={subject}
-                onChange={(event) => setSubject(event.target.value)}
-                placeholder={t('subjectPlaceholder')}
-                className="h-11"
-              />
-            </div>
-
-            <div>
-              <label className="mb-1.5 block text-sm font-medium text-ink">
-                {t('headingLabel')}
-              </label>
-              <Input
-                value={heading}
-                onChange={(event) => setHeading(event.target.value)}
-                placeholder={t('headingPlaceholder')}
-                className="h-11"
-              />
-            </div>
-
-            <div>
-              <label className="mb-1.5 block text-sm font-medium text-ink">
-                {t('messageLabel')}
-              </label>
-              <textarea
-                value={message}
-                onChange={(event) => setMessage(event.target.value)}
-                placeholder={t('messagePlaceholder')}
-                rows={8}
-                className="textarea-field rounded-xl"
-              />
-            </div>
-
             <div className="grid gap-4 sm:grid-cols-2">
               <div>
-                <label className="mb-1.5 block text-sm font-medium text-ink">{t('ctaLabel')}</label>
+                <label className="mb-1.5 block text-sm font-medium text-ink">
+                  {t('subjectEnLabel')}
+                </label>
                 <Input
-                  value={ctaLabel}
-                  onChange={(event) => setCtaLabel(event.target.value)}
-                  placeholder={t('ctaLabelPlaceholder')}
+                  value={subjectEn}
+                  onChange={(event) => setSubjectEn(event.target.value)}
+                  placeholder={t('subjectEnPlaceholder')}
                   className="h-11"
                 />
               </div>
               <div>
                 <label className="mb-1.5 block text-sm font-medium text-ink">
-                  {t('ctaUrlLabel')}
+                  {t('subjectArLabel')}
                 </label>
                 <Input
-                  value={ctaUrl}
-                  onChange={(event) => setCtaUrl(event.target.value)}
-                  placeholder={t('ctaUrlPlaceholder')}
+                  value={subjectAr}
+                  onChange={(event) => setSubjectAr(event.target.value)}
+                  placeholder={t('subjectArPlaceholder')}
                   className="h-11"
+                  dir="rtl"
                 />
               </div>
+            </div>
+
+            <div className="flex gap-2 border-b border-subtle pb-2">
+              {(['en', 'ar'] as ContentLocale[]).map((locale) => (
+                <button
+                  key={locale}
+                  type="button"
+                  onClick={() => setActiveLocale(locale)}
+                  className={cn(
+                    'dashboard-tab rounded-lg px-4 py-2 text-sm font-medium',
+                    activeLocale === locale ? 'dashboard-tab-active' : 'dashboard-tab-inactive',
+                  )}
+                >
+                  {locale === 'en' ? t('englishTab') : t('arabicTab')}
+                </button>
+              ))}
+            </div>
+
+            {activeLocale === 'en' ? (
+              <div className="space-y-4">
+                <div>
+                  <label className="mb-1.5 block text-sm font-medium text-ink">
+                    {t('headingLabel')} ({activeLocaleLabel})
+                  </label>
+                  <Input
+                    value={headingEn}
+                    onChange={(event) => setHeadingEn(event.target.value)}
+                    placeholder={t('headingEnPlaceholder')}
+                    className="h-11"
+                  />
+                </div>
+                <div>
+                  <label className="mb-1.5 block text-sm font-medium text-ink">
+                    {t('messageLabel')} ({activeLocaleLabel})
+                  </label>
+                  <textarea
+                    value={messageEn}
+                    onChange={(event) => setMessageEn(event.target.value)}
+                    placeholder={t('messageEnPlaceholder')}
+                    rows={7}
+                    className="textarea-field rounded-xl"
+                  />
+                </div>
+                <div>
+                  <label className="mb-1.5 block text-sm font-medium text-ink">
+                    {t('ctaLabel')} ({activeLocaleLabel})
+                  </label>
+                  <Input
+                    value={ctaLabelEn}
+                    onChange={(event) => setCtaLabelEn(event.target.value)}
+                    placeholder={t('ctaLabelEnPlaceholder')}
+                    className="h-11"
+                  />
+                </div>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                <div>
+                  <label className="mb-1.5 block text-sm font-medium text-ink">
+                    {t('headingLabel')} ({activeLocaleLabel})
+                  </label>
+                  <Input
+                    value={headingAr}
+                    onChange={(event) => setHeadingAr(event.target.value)}
+                    placeholder={t('headingArPlaceholder')}
+                    className="h-11"
+                    dir="rtl"
+                  />
+                </div>
+                <div>
+                  <label className="mb-1.5 block text-sm font-medium text-ink">
+                    {t('messageLabel')} ({activeLocaleLabel})
+                  </label>
+                  <textarea
+                    value={messageAr}
+                    onChange={(event) => setMessageAr(event.target.value)}
+                    placeholder={t('messageArPlaceholder')}
+                    rows={7}
+                    className="textarea-field rounded-xl"
+                    dir="rtl"
+                  />
+                </div>
+                <div>
+                  <label className="mb-1.5 block text-sm font-medium text-ink">
+                    {t('ctaLabel')} ({activeLocaleLabel})
+                  </label>
+                  <Input
+                    value={ctaLabelAr}
+                    onChange={(event) => setCtaLabelAr(event.target.value)}
+                    placeholder={t('ctaLabelArPlaceholder')}
+                    className="h-11"
+                    dir="rtl"
+                  />
+                </div>
+              </div>
+            )}
+
+            <div>
+              <label className="mb-1.5 block text-sm font-medium text-ink">
+                {t('ctaUrlLabel')}
+              </label>
+              <Input
+                value={ctaUrl}
+                onChange={(event) => setCtaUrl(event.target.value)}
+                placeholder={t('ctaUrlPlaceholder')}
+                className="h-11"
+              />
             </div>
 
             <Button type="submit" disabled={sending} className="gap-2">
@@ -204,35 +416,25 @@ export default function AdminEmailMarketingPage() {
             </Button>
           </form>
 
-          <aside className="surface-card h-fit rounded-2xl border p-5 shadow-sm">
-            <div className="mb-4 flex items-center gap-2 text-sm font-semibold text-ink">
-              <Mail className="h-4 w-4 text-brand-500" />
-              {t('previewTitle')}
-            </div>
-
-            <div className="overflow-hidden rounded-xl border border-subtle bg-white dark:bg-dm-elevated">
-              <div className="bg-brand-500 px-4 py-5 text-center text-sm font-semibold text-white">
-                RateQ
-              </div>
-              <div className="space-y-3 p-4">
-                <p className="text-base font-bold text-ink">
-                  {heading.trim() || t('headingPreview')}
-                </p>
-                <p className="whitespace-pre-wrap text-sm leading-6 text-ink-muted">
-                  {message.trim() || t('messagePreview')}
-                </p>
-                {ctaLabel.trim() ? (
-                  <div className="pt-2">
-                    <span className="inline-flex rounded-full bg-gold-300 px-4 py-2 text-sm font-semibold text-brand-700">
-                      {ctaLabel.trim()}
-                    </span>
-                  </div>
-                ) : null}
-              </div>
-            </div>
-
-            <p className="mt-4 text-xs text-ink-muted">{t('previewNote')}</p>
-          </aside>
+          <MarketingEmailPreview
+            subjectEn={subjectEn}
+            subjectAr={subjectAr}
+            headingEn={headingEn}
+            headingAr={headingAr}
+            messageEn={messageEn}
+            messageAr={messageAr}
+            ctaLabelEn={ctaLabelEn}
+            ctaLabelAr={ctaLabelAr}
+            labels={{
+              previewTitle: t('previewTitle'),
+              previewNote: t('previewNote'),
+              headingPreview: t('headingPreview'),
+              messagePreview: t('messagePreview'),
+              englishSection: t('englishTab'),
+              arabicSection: t('arabicTab'),
+              tagline: t('emailTagline'),
+            }}
+          />
         </div>
       </div>
     </DashboardShell>
