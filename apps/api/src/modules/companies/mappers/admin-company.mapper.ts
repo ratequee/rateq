@@ -65,5 +65,8 @@ export function toAdminCompanyVerificationDetail(
     createdAt: company.createdAt.toISOString(),
     updatedAt: company.updatedAt.toISOString(),
     owner: toOwner(company.owner),
+    categoryItems: [],
+    serviceItems: [],
+    activityItems: [],
   };
 }
