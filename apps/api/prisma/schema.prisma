@@ -101,6 +101,7 @@ enum AdminPermission {
   MODERATION
   CONTENT
   INVITATIONS
+  EMAIL_MARKETING
   TEAM
 }
 

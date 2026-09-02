@@ -1,0 +1,1 @@
+ALTER TYPE "AdminPermission" ADD VALUE 'EMAIL_MARKETING';

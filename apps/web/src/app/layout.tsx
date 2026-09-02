@@ -3,8 +3,8 @@ import './globals.css';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'RateQ — Coming Soon',
-  description: "Qatar's trusted review platform is launching soon.",
+  title: { default: 'RateQ', template: '%s | RateQ' },
+  description: "Qatar's trusted review platform — bilingual company ratings and reviews.",
   icons: {
     icon: [{ url: '/images/favicon.svg', type: 'image/svg+xml' }],
     shortcut: '/images/favicon.svg',

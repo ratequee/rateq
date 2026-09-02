@@ -6,10 +6,10 @@ export const ADMIN_ROUTE_PERMISSIONS: { route: string; permission: AdminPermissi
   { route: '/dashboard/admin/reviews', permission: AdminPermission.MODERATION },
   { route: '/dashboard/admin/directory', permission: AdminPermission.DIRECTORY },
   { route: '/dashboard/admin/projects', permission: AdminPermission.DIRECTORY },
-  { route: '/dashboard/admin/directory', permission: AdminPermission.INVITATIONS },
+  { route: '/dashboard/admin/reviewer-invitations', permission: AdminPermission.INVITATIONS },
   { route: '/dashboard/admin/categories', permission: AdminPermission.CONTENT },
   { route: '/dashboard/admin/blog', permission: AdminPermission.CONTENT },
-  { route: '/dashboard/admin/email-marketing', permission: AdminPermission.CONTENT },
+  { route: '/dashboard/admin/email-marketing', permission: AdminPermission.EMAIL_MARKETING },
   { route: '/dashboard/admin/settings', permission: AdminPermission.CONTENT },
   { route: '/dashboard/admin/team', permission: AdminPermission.TEAM },
 ];

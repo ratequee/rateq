@@ -25,6 +25,7 @@ const PERMISSION_LABEL_KEYS: Record<AdminPermission, string> = {
   [AdminPermission.MODERATION]: 'moderation',
   [AdminPermission.CONTENT]: 'content',
   [AdminPermission.INVITATIONS]: 'invitations',
+  [AdminPermission.EMAIL_MARKETING]: 'emailMarketing',
   [AdminPermission.TEAM]: 'team',
 };
 

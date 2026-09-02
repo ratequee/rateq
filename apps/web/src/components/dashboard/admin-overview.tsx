@@ -72,7 +72,7 @@ const PENDING_ACTION_ITEMS = [
   },
   {
     key: 'reviewerInvitationRequests',
-    href: '/dashboard/admin/directory',
+    href: '/dashboard/admin/reviewer-invitations',
     icon: UserPlus,
     permission: [AdminPermission.INVITATIONS, AdminPermission.MODERATION],
   },

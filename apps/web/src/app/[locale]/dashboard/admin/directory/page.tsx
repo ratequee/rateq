@@ -10,11 +10,7 @@ const PAGE_TITLE = 'Platform directory';
 const PAGE_SUBTITLE = 'Manage reviewers, companies, reviews, and replies.';
 
 export default function AdminDirectoryPage() {
-  useRequireAdmin([
-    AdminPermission.DIRECTORY,
-    AdminPermission.MODERATION,
-    AdminPermission.INVITATIONS,
-  ]);
+  useRequireAdmin([AdminPermission.DIRECTORY, AdminPermission.MODERATION]);
 
   return (
     <DashboardShell role="admin">

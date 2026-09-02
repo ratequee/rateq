@@ -4,7 +4,6 @@ import { AdminCompanyMetrics } from '@/components/dashboard/admin-company-metric
 import { AdminCompanyDocumentsSection } from '@/components/dashboard/admin-company-documents-section';
 import { AdminProjectsPanel } from '@/components/dashboard/admin-projects-panel';
 import { AdminReviewReportsPanel } from '@/components/dashboard/admin-review-reports-panel';
-import { AdminReviewerInvitationRequestsPanel } from '@/components/dashboard/admin-reviewer-invitation-requests-panel';
 import { ReviewsManagementPanel } from '@/components/dashboard/reviews-management-panel';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -29,7 +28,6 @@ import {
   Flag,
   FolderKanban,
   Loader2,
-  Mail,
   MessageSquareText,
   Pencil,
   Star,
@@ -41,7 +39,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import { Link } from '@/i18n/routing';
 
-type DirectoryTab = 'reviewers' | 'companies' | 'reviews' | 'projects' | 'reports' | 'invitations';
+type DirectoryTab = 'reviewers' | 'companies' | 'reviews' | 'projects' | 'reports';
 
 const DIRECTORY_TAB_PERMISSIONS: Record<DirectoryTab, AdminPermission[]> = {
   reviewers: [AdminPermission.DIRECTORY],
@@ -49,7 +47,6 @@ const DIRECTORY_TAB_PERMISSIONS: Record<DirectoryTab, AdminPermission[]> = {
   reviews: [AdminPermission.MODERATION],
   projects: [AdminPermission.DIRECTORY],
   reports: [AdminPermission.MODERATION],
-  invitations: [AdminPermission.INVITATIONS, AdminPermission.MODERATION],
 };
 
 const reviewStatusStyles: Record<string, string> = {
@@ -509,12 +506,6 @@ export function AdminDirectoryPanel() {
         icon: Flag,
         count: stats?.pendingActions.reviewReports,
       },
-      {
-        id: 'invitations',
-        label: t('tabs.invitations'),
-        icon: Mail,
-        count: stats?.pendingActions.reviewerInvitationRequests,
-      },
     ] satisfies Array<{ id: DirectoryTab; label: string; icon: typeof Users; count?: number }>
   ).filter((item) => allowedTabs.includes(item.id));
 
@@ -548,8 +539,6 @@ export function AdminDirectoryPanel() {
       {tab === 'projects' ? <AdminProjectsPanel /> : null}
 
       {tab === 'reports' ? <AdminReviewReportsPanel /> : null}
-
-      {tab === 'invitations' ? <AdminReviewerInvitationRequestsPanel /> : null}
 
       {tab === 'reviewers' ? (
         <div className="grid gap-6 xl:grid-cols-[360px_1fr]">

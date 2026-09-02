@@ -143,7 +143,7 @@ function MarketingEmailPreview({
 
 export default function AdminEmailMarketingPage() {
   const t = useTranslations('adminEmailMarketing');
-  useRequireAdmin(AdminPermission.CONTENT);
+  useRequireAdmin(AdminPermission.EMAIL_MARKETING);
 
   const [recipientsRaw, setRecipientsRaw] = useState('');
   const [activeLocale, setActiveLocale] = useState<ContentLocale>('en');

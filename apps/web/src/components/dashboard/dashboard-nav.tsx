@@ -112,7 +112,7 @@ export const DASHBOARD_NAV_ITEMS: {
     key: 'emailMarketing',
     icon: Mail,
     roles: ['admin'],
-    adminPermission: AdminPermission.CONTENT,
+    adminPermission: AdminPermission.EMAIL_MARKETING,
   },
   {
     href: '/dashboard/admin/settings',
@@ -129,7 +129,7 @@ export const DASHBOARD_NAV_ITEMS: {
     adminPermission: AdminPermission.TEAM,
   },
   {
-    href: '/dashboard/admin/directory',
+    href: '/dashboard/admin/reviewer-invitations',
     key: 'reviewerInvitations',
     icon: Mail,
     roles: ['admin'],

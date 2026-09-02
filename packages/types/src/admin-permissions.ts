@@ -5,6 +5,7 @@ export enum AdminPermission {
   MODERATION = 'MODERATION',
   CONTENT = 'CONTENT',
   INVITATIONS = 'INVITATIONS',
+  EMAIL_MARKETING = 'EMAIL_MARKETING',
   TEAM = 'TEAM',
 }
 
@@ -15,6 +16,7 @@ export const ALL_ADMIN_PERMISSIONS: AdminPermission[] = [
   AdminPermission.MODERATION,
   AdminPermission.CONTENT,
   AdminPermission.INVITATIONS,
+  AdminPermission.EMAIL_MARKETING,
   AdminPermission.TEAM,
 ];
 

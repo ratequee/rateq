@@ -10,7 +10,7 @@ import { EmailMarketingService } from './email-marketing.service';
 @ApiBearerAuth()
 @Controller('admin/email-marketing')
 @UseGuards(AdminPermissionGuard)
-@RequireAdminPermission(AdminPermission.CONTENT)
+@RequireAdminPermission(AdminPermission.EMAIL_MARKETING)
 export class AdminEmailMarketingController {
   constructor(private readonly emailMarketingService: EmailMarketingService) {}
 
