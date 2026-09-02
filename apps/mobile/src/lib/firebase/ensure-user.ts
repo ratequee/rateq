@@ -30,7 +30,7 @@ export async function ensureFirebaseUserForUpload(): Promise<User> {
   }
 
   try {
-    return await waitForFirebaseUser(2500);
+    return await waitForFirebaseUser(1000);
   } catch {
     const { customToken } = await authApi.getFirebaseCustomToken();
     const credential = await signInWithCustomToken(auth, customToken);

@@ -5,11 +5,7 @@ import { ProfilePendingBanner } from '@/components/profile/profile-pending-banne
 import { useAppToast } from '@/hooks/use-app-toast';
 import { useProfile } from '@/context/profile-context';
 import { onboardingApi } from '@/lib/api';
-import {
-  resolveCompanyDocumentUrls,
-  type CompanyExistingAssets,
-  type PickedFile,
-} from '@/lib/profile-company-assets';
+import { uploadChangedCompanyAssets, type PickedFile } from '@/lib/profile-company-assets';
 import type { CompanyProfileDetail, UpdateCompanyInput } from '@rateq/types';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -29,14 +25,6 @@ export function CompanyDocumentsEditForm({ company }: CompanyDocumentsEditFormPr
   const [logo, setLogo] = useState<PickedFile | null>(null);
   const [cover, setCover] = useState<PickedFile | null>(null);
 
-  const existing: CompanyExistingAssets = {
-    registrationDocUrl: company.registrationDocUrl,
-    establishmentCardUrl: company.establishmentCardUrl,
-    tradeLicenseUrl: company.tradeLicenseUrl,
-    logoUrl: company.logo,
-    coverUrl: company.coverUrl,
-  };
-
   const hasChanges = Boolean(registration || establishment || tradeLicense || logo || cover);
   const pendingApproval = company.profileChangeStatus === 'pending';
 
@@ -48,24 +36,39 @@ export function CompanyDocumentsEditForm({ company }: CompanyDocumentsEditFormPr
 
     setSubmitting(true);
     try {
-      const urls = await resolveCompanyDocumentUrls({
+      const urls = await uploadChangedCompanyAssets({
         registrationDocFile: registration,
         establishmentCardFile: establishment,
         tradeLicenseFile: tradeLicense,
         logoFile: logo,
         coverFile: cover,
-        existing,
       });
 
       const updates: UpdateCompanyInput = {};
-      if (registration && urls.registrationDocUrl)
+      if (registration) {
+        if (!urls.registrationDocUrl) throw new Error('upload');
         updates.registrationDocUrl = urls.registrationDocUrl;
-      if (establishment && urls.establishmentCardUrl) {
+      }
+      if (establishment) {
+        if (!urls.establishmentCardUrl) throw new Error('upload');
         updates.establishmentCardUrl = urls.establishmentCardUrl;
       }
-      if (tradeLicense && urls.tradeLicenseUrl) updates.tradeLicenseUrl = urls.tradeLicenseUrl;
-      if (logo) updates.logo = urls.logoUrl;
-      if (cover && urls.coverUrl) updates.coverUrl = urls.coverUrl;
+      if (tradeLicense) {
+        if (!urls.tradeLicenseUrl) throw new Error('upload');
+        updates.tradeLicenseUrl = urls.tradeLicenseUrl;
+      }
+      if (logo) {
+        if (!urls.logoUrl) throw new Error('upload');
+        updates.logo = urls.logoUrl;
+      }
+      if (cover) {
+        if (!urls.coverUrl) throw new Error('upload');
+        updates.coverUrl = urls.coverUrl;
+      }
+
+      if (Object.keys(updates).length === 0) {
+        throw new Error('upload');
+      }
 
       await onboardingApi.updateCompany(updates);
       await refreshOnboarding();
@@ -76,7 +79,13 @@ export function CompanyDocumentsEditForm({ company }: CompanyDocumentsEditFormPr
       setCover(null);
       toast.success(t('profile.edit.documentsSubmitted'), t('profile.edit.savedTitle'));
     } catch (err) {
-      toast.apiError(err, t('profile.edit.saveError'));
+      const message =
+        err instanceof Error && err.message === 'upload'
+          ? t('profile.edit.uploadFailed')
+          : err instanceof Error && err.message
+            ? err.message
+            : t('profile.edit.saveError');
+      toast.error(message, t('common.error'));
     } finally {
       setSubmitting(false);
     }

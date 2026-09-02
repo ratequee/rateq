@@ -1,3 +1,5 @@
+import { DocumentFullscreenViewer } from '@/components/ui/document-fullscreen-viewer';
+import { ImageFullscreenViewer } from '@/components/ui/image-fullscreen-viewer';
 import { Label } from '@/components/ui/label';
 import { getFontFamily } from '@/i18n';
 import { useAppToast } from '@/hooks/use-app-toast';
@@ -7,10 +9,16 @@ import { Ionicons } from '@expo/vector-icons';
 import * as DocumentPicker from 'expo-document-picker';
 import * as ImagePicker from 'expo-image-picker';
 import { useTranslation } from 'react-i18next';
+import { useState } from 'react';
 import { Image, Pressable, Text, View } from 'react-native';
 
+function isPdfUrl(url?: string | null): boolean {
+  if (!url) return false;
+  return /\.pdf(\?|$)/i.test(url) || url.includes('application%2Fpdf');
+}
 function isImageUrl(url?: string | null): boolean {
   if (!url) return false;
+  if (isPdfUrl(url)) return false;
   return /\.(jpe?g|png|gif|webp)(\?|$)/i.test(url) || url.includes('image%2F');
 }
 
@@ -42,6 +50,7 @@ function ImageSlot({
   onRemove?: () => void;
 }) {
   const { t } = useTranslation();
+  const [viewerVisible, setViewerVisible] = useState(false);
 
   return (
     <View className="gap-1.5">
@@ -54,19 +63,38 @@ function ImageSlot({
       <View
         className={`relative overflow-hidden border border-slate-200 bg-white dark:border-dm-border dark:bg-dm-elevated ${sizeClass}`}
       >
-        <Image source={{ uri }} className="h-full w-full" resizeMode="cover" />
+        <Pressable
+          onPress={() => setViewerVisible(true)}
+          accessibilityRole="button"
+          accessibilityLabel={t('profile.edit.tapToViewFile')}
+          className="h-full w-full"
+        >
+          <Image source={{ uri }} className="h-full w-full" resizeMode="cover" />
+          <View
+            className="absolute bottom-2 right-2 rounded-full bg-black/45 p-1.5"
+            pointerEvents="none"
+          >
+            <Ionicons name="expand-outline" size={16} color="#ffffff" />
+          </View>
+        </Pressable>
         {onRemove ? (
           <Pressable
             onPress={onRemove}
             accessibilityRole="button"
             accessibilityLabel={t('profile.edit.removeSelection')}
-            className="absolute right-1.5 top-1.5 h-7 w-7 items-center justify-center rounded-full bg-black/60"
+            className="absolute right-1.5 top-1.5 z-10 h-7 w-7 items-center justify-center rounded-full bg-black/60"
             hitSlop={8}
           >
             <Ionicons name="close" size={16} color="#ffffff" />
           </Pressable>
         ) : null}
       </View>
+
+      <ImageFullscreenViewer
+        images={[uri]}
+        visible={viewerVisible}
+        onClose={() => setViewerVisible(false)}
+      />
     </View>
   );
 }
@@ -74,13 +102,19 @@ function ImageSlot({
 function DocumentSlot({
   name,
   label,
+  uri,
+  mimeType,
   onRemove,
 }: {
   name: string;
   label: string;
+  uri: string;
+  mimeType?: string;
   onRemove?: () => void;
 }) {
   const { t } = useTranslation();
+  const [viewerVisible, setViewerVisible] = useState(false);
+  const isImage = isImageMime(mimeType) || isImageUrl(uri);
 
   return (
     <View className="gap-1.5">
@@ -91,14 +125,26 @@ function DocumentSlot({
         {label}
       </Text>
       <View className="relative flex-row items-center gap-3 rounded-2xl border border-slate-200 bg-white px-4 py-3 dark:border-dm-border dark:bg-dm-elevated">
-        <Ionicons name="document-text-outline" size={28} color="#8E2157" />
-        <Text
-          className="flex-1 text-sm font-medium text-ink dark:text-white"
-          style={{ fontFamily: getFontFamily('medium') }}
-          numberOfLines={2}
+        <Pressable
+          onPress={() => setViewerVisible(true)}
+          accessibilityRole="button"
+          accessibilityLabel={t('profile.edit.tapToViewFile')}
+          className="min-w-0 flex-1 flex-row items-center gap-3"
         >
-          {name}
-        </Text>
+          <Ionicons
+            name={isImage ? 'image-outline' : 'document-text-outline'}
+            size={28}
+            color="#8E2157"
+          />
+          <Text
+            className="min-w-0 flex-1 text-sm font-medium text-ink dark:text-white"
+            style={{ fontFamily: getFontFamily('medium') }}
+            numberOfLines={2}
+          >
+            {name}
+          </Text>
+          <Ionicons name="expand-outline" size={18} color="#64748b" />
+        </Pressable>
         {onRemove ? (
           <Pressable
             onPress={onRemove}
@@ -111,6 +157,21 @@ function DocumentSlot({
           </Pressable>
         ) : null}
       </View>
+
+      {isImage ? (
+        <ImageFullscreenViewer
+          images={[uri]}
+          visible={viewerVisible}
+          onClose={() => setViewerVisible(false)}
+        />
+      ) : (
+        <DocumentFullscreenViewer
+          uri={uri}
+          title={name}
+          visible={viewerVisible}
+          onClose={() => setViewerVisible(false)}
+        />
+      )}
     </View>
   );
 }
@@ -216,8 +277,12 @@ export function ProfileMediaPickerField({
             <ImageSlot uri={existingImageUri} sizeClass={slotSizeClass} label={currentLabel} />
           ) : null}
 
-          {hasExistingDocument ? (
-            <DocumentSlot name={t('onboarding.existingFileAttached')} label={currentLabel} />
+          {hasExistingDocument && existingUrl ? (
+            <DocumentSlot
+              name={t('onboarding.existingFileAttached')}
+              label={currentLabel}
+              uri={existingUrl}
+            />
           ) : null}
 
           {hasNewImage && newImageUri ? (
@@ -230,7 +295,13 @@ export function ProfileMediaPickerField({
           ) : null}
 
           {hasNewDocument && file ? (
-            <DocumentSlot name={file.name} label={newLabel} onRemove={onClear} />
+            <DocumentSlot
+              name={file.name}
+              label={newLabel}
+              uri={file.uri}
+              mimeType={file.mimeType}
+              onRemove={onClear}
+            />
           ) : null}
         </View>
       ) : null}

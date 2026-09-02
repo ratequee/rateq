@@ -8,13 +8,16 @@ import type {
   CompanyPublic,
   CompleteReviewerProfileInput,
   CreateCompanyInput,
+  CreateReviewerInvitationRequestInput,
   MessageResponse,
   OnboardingStatus,
   PaginatedCompaniesResponse,
   PaginatedReviewsResponse,
   ReviewPublic,
+  ReviewerInvitationRequestPublic,
   TrustedBannerItem,
   UpdateCompanyInput,
+  UpdateReviewerInvitationRequestInput,
   UserProfile,
 } from '@rateq/types';
 import type { CompanyDetail } from '@rateq/types';
@@ -196,6 +199,22 @@ export const onboardingApi = {
     apiClient<MessageResponse>('/users/me/phone/sync', {
       method: 'POST',
       body: JSON.stringify({ phone, context }),
+    }),
+  listReviewerInvitationRequests: () =>
+    apiClient<ReviewerInvitationRequestPublic[]>('/companies/me/reviewer-invitation-requests'),
+  createReviewerInvitationRequest: (data: CreateReviewerInvitationRequestInput) =>
+    apiClient<ReviewerInvitationRequestPublic>('/companies/me/reviewer-invitation-requests', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+  updateReviewerInvitationRequest: (id: string, data: UpdateReviewerInvitationRequestInput) =>
+    apiClient<ReviewerInvitationRequestPublic>(`/companies/me/reviewer-invitation-requests/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+    }),
+  deleteReviewerInvitationRequest: (id: string) =>
+    apiClient<{ deleted: true }>(`/companies/me/reviewer-invitation-requests/${id}`, {
+      method: 'DELETE',
     }),
 };
 

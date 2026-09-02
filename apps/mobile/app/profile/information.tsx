@@ -9,13 +9,24 @@ import { useAuth } from '@/context/auth-context';
 import { useProfile } from '@/context/profile-context';
 import { getFontFamily } from '@/i18n';
 import { UserRole } from '@rateq/types';
+import { useCallback, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ScrollView, Text, View } from 'react-native';
+import { RefreshControl, ScrollView, Text, View } from 'react-native';
 
 export default function ProfileInformationScreen() {
   const { t } = useTranslation();
   const { user } = useAuth();
-  const { onboarding, isLoading } = useProfile();
+  const { onboarding, isLoading, refreshOnboarding } = useProfile();
+  const [refreshing, setRefreshing] = useState(false);
+
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    try {
+      await refreshOnboarding();
+    } finally {
+      setRefreshing(false);
+    }
+  }, [refreshOnboarding]);
 
   if (isLoading || !user) return <LoadingView />;
 
@@ -29,6 +40,7 @@ export default function ProfileInformationScreen() {
       <ScrollView
         contentContainerStyle={{ padding: 16, paddingBottom: 32 }}
         keyboardShouldPersistTaps="handled"
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
       >
         <View className="mb-4 rounded-2xl border border-slate-200 bg-white px-4 py-3 dark:border-dm-border dark:bg-dm-surface">
           <Text

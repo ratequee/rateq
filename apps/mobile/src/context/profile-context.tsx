@@ -36,7 +36,10 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
     }
 
     const requestId = ++requestIdRef.current;
-    setFetchState('loading');
+    const isInitialLoad = loadedUserIdRef.current !== user.id;
+    if (isInitialLoad) {
+      setFetchState('loading');
+    }
 
     try {
       const status = await onboardingApi.getStatus();

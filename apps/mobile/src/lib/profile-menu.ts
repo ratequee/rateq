@@ -54,7 +54,7 @@ export const PROFILE_MENU_ITEMS: ProfileMenuItem[] = [
     icon: 'folder-open-outline',
     titleKey: 'profile.menu.projects',
     subtitleKey: 'profile.menu.projectsSubtitle',
-    action: { type: 'comingSoon' },
+    action: { type: 'route', href: '/profile/projects' },
     roles: [UserRole.COMPANY],
   },
   {
@@ -62,7 +62,7 @@ export const PROFILE_MENU_ITEMS: ProfileMenuItem[] = [
     icon: 'mail-outline',
     titleKey: 'profile.menu.invitations',
     subtitleKey: 'profile.menu.invitationsSubtitle',
-    action: { type: 'comingSoon' },
+    action: { type: 'route', href: '/profile/invitations' },
     roles: [UserRole.COMPANY],
   },
   {

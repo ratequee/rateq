@@ -44,6 +44,60 @@ export async function resolveCompanyAssetUrl(
   return null;
 }
 
+export async function uploadChangedCompanyAssets(input: {
+  registrationDocFile: PickedFile | null;
+  establishmentCardFile: PickedFile | null;
+  tradeLicenseFile: PickedFile | null;
+  logoFile: PickedFile | null;
+  coverFile: PickedFile | null;
+}): Promise<Partial<CompanyExistingAssets>> {
+  const tasks: Array<Promise<[keyof CompanyExistingAssets, string]>> = [];
+
+  if (input.registrationDocFile) {
+    tasks.push(
+      resolveCompanyAssetUrl(input.registrationDocFile, null, 'registration').then((url) => {
+        if (!url) throw new Error('registration');
+        return ['registrationDocUrl', url] as const;
+      }),
+    );
+  }
+  if (input.establishmentCardFile) {
+    tasks.push(
+      resolveCompanyAssetUrl(input.establishmentCardFile, null, 'establishmentCard').then((url) => {
+        if (!url) throw new Error('establishment');
+        return ['establishmentCardUrl', url] as const;
+      }),
+    );
+  }
+  if (input.tradeLicenseFile) {
+    tasks.push(
+      resolveCompanyAssetUrl(input.tradeLicenseFile, null, 'tradeLicense').then((url) => {
+        if (!url) throw new Error('tradeLicense');
+        return ['tradeLicenseUrl', url] as const;
+      }),
+    );
+  }
+  if (input.logoFile) {
+    tasks.push(
+      resolveCompanyAssetUrl(input.logoFile, null, 'logo').then((url) => {
+        if (!url) throw new Error('logo');
+        return ['logoUrl', url] as const;
+      }),
+    );
+  }
+  if (input.coverFile) {
+    tasks.push(
+      resolveCompanyAssetUrl(input.coverFile, null, 'cover').then((url) => {
+        if (!url) throw new Error('cover');
+        return ['coverUrl', url] as const;
+      }),
+    );
+  }
+
+  const uploaded = await Promise.all(tasks);
+  return Object.fromEntries(uploaded) as Partial<CompanyExistingAssets>;
+}
+
 export async function resolveCompanyDocumentUrls(input: {
   registrationDocFile: PickedFile | null;
   establishmentCardFile: PickedFile | null;

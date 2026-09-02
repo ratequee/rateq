@@ -2,6 +2,7 @@ import { Label } from '@/components/ui/label';
 import { getFontFamily } from '@/i18n';
 import { useAppToast } from '@/hooks/use-app-toast';
 import {
+  createReviewProofFile,
   isReviewProofFileWithinLimit,
   MAX_REVIEW_PROOF_FILES,
   type ReviewProofFile,
@@ -58,12 +59,14 @@ export function ReviewProofPicker({ files, onAdd, onRemove, error }: ReviewProof
     });
     if (result.canceled || !result.assets[0]) return;
     const asset = result.assets[0];
-    validateAndAdd({
-      uri: asset.uri,
-      name: asset.fileName ?? 'proof.jpg',
-      mimeType: asset.mimeType ?? 'image/jpeg',
-      size: asset.fileSize ?? 0,
-    });
+    validateAndAdd(
+      await createReviewProofFile({
+        uri: asset.uri,
+        name: asset.fileName ?? 'proof.jpg',
+        mimeType: asset.mimeType ?? 'image/jpeg',
+        reportedSize: asset.fileSize,
+      }),
+    );
   };
 
   const pickDocument = async () => {
@@ -73,12 +76,14 @@ export function ReviewProofPicker({ files, onAdd, onRemove, error }: ReviewProof
     });
     if (result.canceled || !result.assets[0]) return;
     const asset = result.assets[0];
-    validateAndAdd({
-      uri: asset.uri,
-      name: asset.name,
-      mimeType: asset.mimeType ?? 'application/pdf',
-      size: asset.size ?? 0,
-    });
+    validateAndAdd(
+      await createReviewProofFile({
+        uri: asset.uri,
+        name: asset.name,
+        mimeType: asset.mimeType ?? 'application/pdf',
+        reportedSize: asset.size,
+      }),
+    );
   };
 
   return (
