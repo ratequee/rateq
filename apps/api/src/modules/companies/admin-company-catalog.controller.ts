@@ -22,7 +22,7 @@ import { ListCompanyCatalogQueryDto } from './dto/list-company-catalog-query.dto
 @ApiBearerAuth()
 @Controller('admin/company-catalog')
 @UseGuards(AdminPermissionGuard)
-@RequireAdminPermission(AdminPermission.CONTENT)
+@RequireAdminPermission(AdminPermission.CATEGORIES)
 export class AdminCompanyCatalogController {
   constructor(private readonly catalogService: CompanyCatalogService) {}
 

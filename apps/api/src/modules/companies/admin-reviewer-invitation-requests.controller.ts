@@ -21,7 +21,7 @@ import { ReviewerInvitationRequestsService } from './reviewer-invitation-request
 @ApiBearerAuth()
 @Roles(UserRole.ADMIN)
 @UseGuards(AdminPermissionGuard)
-@RequireAdminPermission(AdminPermission.INVITATIONS, AdminPermission.MODERATION)
+@RequireAdminPermission(AdminPermission.INVITATIONS)
 @Controller('admin/reviewer-invitation-requests')
 export class AdminReviewerInvitationRequestsController {
   constructor(private readonly requestsService: ReviewerInvitationRequestsService) {}

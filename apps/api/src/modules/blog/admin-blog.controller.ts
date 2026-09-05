@@ -23,7 +23,7 @@ import { AdminListBlogPostsQueryDto } from './dto/list-blog-posts-query.dto';
 @ApiBearerAuth()
 @Controller('admin/blog')
 @UseGuards(AdminPermissionGuard)
-@RequireAdminPermission(AdminPermission.CONTENT)
+@RequireAdminPermission(AdminPermission.BLOG)
 export class AdminBlogController {
   constructor(private readonly blogService: BlogService) {}
 

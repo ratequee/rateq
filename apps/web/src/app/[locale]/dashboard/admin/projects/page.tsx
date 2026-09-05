@@ -9,7 +9,7 @@ import { useTranslations } from 'next-intl';
 
 export default function AdminProjectsPage() {
   const t = useTranslations('adminProjects');
-  const { ready, allowed } = useRequireAdmin(AdminPermission.DIRECTORY);
+  const { ready, allowed } = useRequireAdmin(AdminPermission.PROJECTS);
 
   if (!ready || !allowed) {
     return (

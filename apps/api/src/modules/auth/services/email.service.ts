@@ -29,6 +29,14 @@ import {
   type ContactFormEmailContent,
 } from '../../contact/email/contact-email-templates';
 import {
+  buildCompanyProjectPendingEmailHtml,
+  buildCompanyProjectPendingEmailText,
+  buildCompanyRegistrationPendingEmailHtml,
+  buildCompanyRegistrationPendingEmailText,
+  type CompanyProjectPendingEmailContent,
+  type CompanyRegistrationPendingEmailContent,
+} from '../email/email-admin-alert-templates';
+import {
   buildAccountDeactivatedEmailHtml,
   buildAccountDeactivatedEmailText,
   buildAccountDeletedEmailHtml,
@@ -589,6 +597,46 @@ export class EmailService {
       ),
       text: buildContactFormEmailText(content),
       html: buildContactFormEmailHtml(content),
+    });
+  }
+
+  getSupportEmail(): string {
+    return (
+      this.configService.get('SUPPORT_EMAIL', { infer: true })?.trim() ||
+      this.configService.get('CONTACT_RECIPIENT_EMAIL', { infer: true })?.trim() ||
+      'support@rateq.qa'
+    );
+  }
+
+  async sendCompanyRegistrationPendingEmail(
+    content: Omit<CompanyRegistrationPendingEmailContent, 'appUrl'>,
+  ): Promise<void> {
+    const appUrl = this.configService.get('APP_URL', { infer: true });
+    const payload = { ...content, appUrl };
+    await this.send({
+      to: this.getSupportEmail(),
+      subject: bilingualSubject(
+        `New company pending approval — ${content.companyName}`,
+        `شركة جديدة بانتظار الموافقة — ${content.companyName}`,
+      ),
+      text: buildCompanyRegistrationPendingEmailText(payload),
+      html: buildCompanyRegistrationPendingEmailHtml(payload),
+    });
+  }
+
+  async sendCompanyProjectPendingEmail(
+    content: Omit<CompanyProjectPendingEmailContent, 'appUrl'>,
+  ): Promise<void> {
+    const appUrl = this.configService.get('APP_URL', { infer: true });
+    const payload = { ...content, appUrl };
+    await this.send({
+      to: this.getSupportEmail(),
+      subject: bilingualSubject(
+        `Projects pending approval — ${content.companyName}`,
+        `مشاريع بانتظار الموافقة — ${content.companyName}`,
+      ),
+      text: buildCompanyProjectPendingEmailText(payload),
+      html: buildCompanyProjectPendingEmailHtml(payload),
     });
   }
 

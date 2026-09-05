@@ -21,7 +21,7 @@ import { CategoriesService } from './categories.service';
 @ApiBearerAuth()
 @Controller('admin/categories')
 @UseGuards(AdminPermissionGuard)
-@RequireAdminPermission(AdminPermission.CONTENT)
+@RequireAdminPermission(AdminPermission.CATEGORIES)
 export class AdminCategoriesController {
   constructor(private readonly categoriesService: CategoriesService) {}
 

@@ -106,7 +106,7 @@ function toPayload(form: SettingsForm): UpdateSiteSettingsInput {
 
 export default function AdminSiteSettingsPage() {
   const t = useTranslations('adminSettings');
-  useRequireAdmin(AdminPermission.CONTENT);
+  useRequireAdmin(AdminPermission.SETTINGS);
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);

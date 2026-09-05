@@ -5,12 +5,12 @@ export const ADMIN_ROUTE_PERMISSIONS: { route: string; permission: AdminPermissi
   { route: '/dashboard/admin/companies', permission: AdminPermission.COMPANIES },
   { route: '/dashboard/admin/reviews', permission: AdminPermission.MODERATION },
   { route: '/dashboard/admin/directory', permission: AdminPermission.DIRECTORY },
-  { route: '/dashboard/admin/projects', permission: AdminPermission.DIRECTORY },
+  { route: '/dashboard/admin/projects', permission: AdminPermission.PROJECTS },
   { route: '/dashboard/admin/reviewer-invitations', permission: AdminPermission.INVITATIONS },
-  { route: '/dashboard/admin/categories', permission: AdminPermission.CONTENT },
-  { route: '/dashboard/admin/blog', permission: AdminPermission.CONTENT },
+  { route: '/dashboard/admin/categories', permission: AdminPermission.CATEGORIES },
+  { route: '/dashboard/admin/blog', permission: AdminPermission.BLOG },
   { route: '/dashboard/admin/email-marketing', permission: AdminPermission.EMAIL_MARKETING },
-  { route: '/dashboard/admin/settings', permission: AdminPermission.CONTENT },
+  { route: '/dashboard/admin/settings', permission: AdminPermission.SETTINGS },
   { route: '/dashboard/admin/team', permission: AdminPermission.TEAM },
 ];
 

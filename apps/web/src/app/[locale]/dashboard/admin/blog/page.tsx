@@ -88,7 +88,7 @@ export default function AdminBlogPage() {
   const [coverUrl, setCoverUrl] = useState('');
   const [translations, setTranslations] = useState<TranslationForm>(emptyTranslations());
 
-  useRequireAdmin(AdminPermission.CONTENT);
+  useRequireAdmin(AdminPermission.BLOG);
 
   const loadPosts = useCallback(async () => {
     setLoading(true);

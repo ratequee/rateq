@@ -32,7 +32,7 @@ export class PlatformController {
 @ApiBearerAuth()
 @Roles(UserRole.ADMIN)
 @UseGuards(AdminPermissionGuard)
-@RequireAdminPermission(AdminPermission.CONTENT)
+@RequireAdminPermission(AdminPermission.SETTINGS)
 @Controller('admin/settings')
 export class AdminSettingsController {
   constructor(private readonly platformService: PlatformService) {}

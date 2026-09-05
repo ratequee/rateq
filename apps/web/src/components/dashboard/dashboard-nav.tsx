@@ -85,7 +85,7 @@ export const DASHBOARD_NAV_ITEMS: {
     key: 'projects',
     icon: FolderKanban,
     roles: ['admin'],
-    adminPermission: AdminPermission.DIRECTORY,
+    adminPermission: AdminPermission.PROJECTS,
   },
   {
     href: '/dashboard/company/projects',
@@ -98,14 +98,14 @@ export const DASHBOARD_NAV_ITEMS: {
     key: 'categories',
     icon: LayoutGrid,
     roles: ['admin'],
-    adminPermission: AdminPermission.CONTENT,
+    adminPermission: AdminPermission.CATEGORIES,
   },
   {
     href: '/dashboard/admin/blog',
     key: 'blog',
     icon: FileText,
     roles: ['admin'],
-    adminPermission: AdminPermission.CONTENT,
+    adminPermission: AdminPermission.BLOG,
   },
   {
     href: '/dashboard/admin/email-marketing',
@@ -119,7 +119,7 @@ export const DASHBOARD_NAV_ITEMS: {
     key: 'siteSettings',
     icon: Settings,
     roles: ['admin'],
-    adminPermission: AdminPermission.CONTENT,
+    adminPermission: AdminPermission.SETTINGS,
   },
   {
     href: '/dashboard/admin/team',

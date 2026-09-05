@@ -25,7 +25,7 @@ import { ModerationService } from './moderation.service';
 @Controller('moderation')
 @Roles(UserRole.ADMIN)
 @UseGuards(AdminPermissionGuard)
-@RequireAdminPermission(AdminPermission.DIRECTORY)
+@RequireAdminPermission(AdminPermission.PROJECTS)
 export class ModerationProjectsController {
   constructor(private readonly moderationService: ModerationService) {}
 

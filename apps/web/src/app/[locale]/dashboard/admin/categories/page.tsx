@@ -39,7 +39,7 @@ export default function AdminCategoriesPage() {
     {},
   );
 
-  useRequireAdmin(AdminPermission.CONTENT);
+  useRequireAdmin(AdminPermission.CATEGORIES);
 
   const tabs: { id: AdminCatalogTab; label: string; count?: number }[] = [
     { id: 'categories', label: t('tabCategories'), count: loading ? undefined : categories.length },

@@ -9,7 +9,7 @@ import { useTranslations } from 'next-intl';
 
 export default function AdminReviewerInvitationsPage() {
   const t = useTranslations('dashboardShell.nav');
-  useRequireAdmin([AdminPermission.INVITATIONS, AdminPermission.MODERATION]);
+  useRequireAdmin(AdminPermission.INVITATIONS);
 
   return (
     <DashboardShell role="admin">

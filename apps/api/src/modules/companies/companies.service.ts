@@ -467,6 +467,18 @@ export class CompaniesService {
     await this.phoneOtpService.clearSession(user.id, 'company');
 
     const withRelations = await this.companiesRepository.findByOwnerId(user.id);
+
+    try {
+      await this.emailService.sendCompanyRegistrationPendingEmail({
+        companyName: withRelations!.name,
+        ownerEmail: user.email,
+        city: withRelations!.city,
+        country: withRelations!.country,
+      });
+    } catch {
+      // non-blocking — registration should succeed even if the alert email fails
+    }
+
     return this.mapCompanyDetail(withRelations!);
   }
 
@@ -541,6 +553,17 @@ export class CompaniesService {
       if (projectUpdates !== undefined) {
         this.validateProjectInputs(projectUpdates);
         await this.replaceCompanyProjects(company.id, projectUpdates, 'PENDING');
+
+        try {
+          await this.emailService.sendCompanyProjectPendingEmail({
+            companyName: company.name,
+            ownerEmail: company.owner?.email ?? company.email ?? '',
+            projectCount: projectUpdates.length,
+            projectTitles: projectUpdates.map((project) => project.title),
+          });
+        } catch {
+          // non-blocking
+        }
       }
 
       if (profile.serviceIds?.length) {
@@ -590,6 +613,18 @@ export class CompaniesService {
         revisionNotes: null,
       });
       const refreshed = await this.companiesRepository.findById(reset.id);
+
+      try {
+        await this.emailService.sendCompanyRegistrationPendingEmail({
+          companyName: refreshed!.name,
+          ownerEmail: refreshed!.owner?.email ?? refreshed!.email ?? '',
+          city: refreshed!.city,
+          country: refreshed!.country,
+        });
+      } catch {
+        // non-blocking
+      }
+
       const ratingDistribution = await this.companiesRepository.getApprovedRatingDistribution(
         reset.id,
       );
@@ -880,6 +915,19 @@ export class CompaniesService {
     const created = await this.companiesRepository.findByOwnerId(owner.id);
     if (!created) {
       throw new NotFoundException('Failed to load created company');
+    }
+
+    if (!approveImmediately) {
+      try {
+        await this.emailService.sendCompanyRegistrationPendingEmail({
+          companyName: created.name,
+          ownerEmail,
+          city: created.city,
+          country: created.country,
+        });
+      } catch {
+        // non-blocking
+      }
     }
 
     const missingFields = this.collectMissingCompanyFields(created);

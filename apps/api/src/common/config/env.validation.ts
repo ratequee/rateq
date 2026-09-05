@@ -174,6 +174,11 @@ export class AppConfig {
   @IsOptional()
   @IsString()
   CONTACT_RECIPIENT_EMAIL?: string;
+
+  /** Inbox for admin action alerts (company registration, project moderation). */
+  @IsOptional()
+  @IsString()
+  SUPPORT_EMAIL?: string;
 }
 
 export function validateEnv(config: Record<string, unknown>): AppConfig {
