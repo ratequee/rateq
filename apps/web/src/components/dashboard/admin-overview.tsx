@@ -62,19 +62,19 @@ const PENDING_ACTION_ITEMS = [
     key: 'projectModeration',
     href: '/dashboard/admin/projects',
     icon: FolderKanban,
-    permission: AdminPermission.DIRECTORY,
+    permission: AdminPermission.PROJECTS,
   },
   {
     key: 'reviewReports',
     href: '/dashboard/admin/directory',
     icon: Flag,
-    permission: AdminPermission.MODERATION,
+    permission: AdminPermission.TEAM,
   },
   {
     key: 'reviewerInvitationRequests',
     href: '/dashboard/admin/reviewer-invitations',
     icon: UserPlus,
-    permission: [AdminPermission.INVITATIONS, AdminPermission.MODERATION],
+    permission: AdminPermission.INVITATIONS,
   },
 ] as const;
 

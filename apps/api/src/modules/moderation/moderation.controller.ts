@@ -121,21 +121,24 @@ export class ModerationController {
   }
 
   @Get('reports')
-  @ApiOperation({ summary: 'List pending review reports' })
+  @RequireAdminPermission(AdminPermission.TEAM)
+  @ApiOperation({ summary: 'List pending review reports (super admin only)' })
   listReports(@Query() query: PaginationDto) {
     return this.reviewReportsService.listPending(query.page, query.limit);
   }
 
   @Patch('reports/:id/approve')
+  @RequireAdminPermission(AdminPermission.TEAM)
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Approve a review report and delete the review' })
+  @ApiOperation({ summary: 'Approve a review report and delete the review (super admin only)' })
   approveReport(@Param('id') id: string, @CurrentUser() admin: AuthenticatedUser) {
     return this.reviewReportsService.approve(id, admin.id);
   }
 
   @Patch('reports/:id/reject')
+  @RequireAdminPermission(AdminPermission.TEAM)
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Reject a review report' })
+  @ApiOperation({ summary: 'Reject a review report (super admin only)' })
   rejectReport(@Param('id') id: string, @CurrentUser() admin: AuthenticatedUser) {
     return this.reviewReportsService.reject(id, admin.id);
   }

@@ -7,6 +7,7 @@ import { getLocalizedCompanyName } from '@/lib/company-display';
 import { containsArabic } from '@/lib/text-direction';
 import { useAppToast } from '@/hooks/use-app-toast';
 import { companiesApi } from '@/lib/api';
+import { shareProjectLink } from '@/lib/share';
 import type { CompanyProjectPublic, CompanyPublic } from '@rateq/types';
 import { Ionicons } from '@expo/vector-icons';
 import { Link, useLocalSearchParams, useRouter } from 'expo-router';
@@ -133,6 +134,20 @@ export default function CompanyProjectDetailScreen() {
     void Linking.openURL(href);
   };
 
+  const handleShare = async () => {
+    if (!slug || !projectSlug) return;
+    try {
+      await shareProjectLink({
+        companySlug: slug,
+        projectSlug,
+        title: project.title,
+        message: t('company.shareProjectMessage', { title: project.title, company: companyName }),
+      });
+    } catch {
+      toast.error(t('company.shareFailed'));
+    }
+  };
+
   return (
     <View className="flex-1 bg-white dark:bg-dm-bg">
       <ScrollView className="flex-1" contentContainerStyle={{ paddingBottom: 24 + insets.bottom }}>
@@ -159,6 +174,16 @@ export default function CompanyProjectDetailScreen() {
             accessibilityLabel={t('common.back')}
           >
             <Ionicons name={isRtl ? 'arrow-forward' : 'arrow-back'} size={20} color="#8E2157" />
+          </Pressable>
+
+          <Pressable
+            onPress={() => void handleShare()}
+            className="absolute right-4 z-20 h-10 w-10 items-center justify-center rounded-full bg-white shadow-md"
+            style={{ top: insets.top + 8 }}
+            accessibilityRole="button"
+            accessibilityLabel={t('company.share')}
+          >
+            <Ionicons name="share-outline" size={20} color="#8E2157" />
           </Pressable>
         </View>
 

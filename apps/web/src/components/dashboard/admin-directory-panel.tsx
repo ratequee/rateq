@@ -45,8 +45,8 @@ const DIRECTORY_TAB_PERMISSIONS: Record<DirectoryTab, AdminPermission[]> = {
   reviewers: [AdminPermission.DIRECTORY],
   companies: [AdminPermission.DIRECTORY],
   reviews: [AdminPermission.MODERATION],
-  projects: [AdminPermission.DIRECTORY],
-  reports: [AdminPermission.MODERATION],
+  projects: [AdminPermission.PROJECTS],
+  reports: [AdminPermission.TEAM],
 };
 
 const reviewStatusStyles: Record<string, string> = {

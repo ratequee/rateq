@@ -33,6 +33,22 @@ const PERMISSION_LABEL_KEYS: Record<AdminPermission, string> = {
   [AdminPermission.TEAM]: 'team',
 };
 
+function PermissionCheckboxLabel({
+  permissionKey,
+}: {
+  permissionKey: (typeof PERMISSION_LABEL_KEYS)[AdminPermission];
+}) {
+  const t = useTranslations('adminTeam');
+  return (
+    <span className="min-w-0">
+      <span className="block font-medium text-primary">{t(`permissions.${permissionKey}`)}</span>
+      <span className="mt-0.5 block text-xs leading-snug text-secondary">
+        {t(`permissions.${permissionKey}Hint`)}
+      </span>
+    </span>
+  );
+}
+
 export function AdminTeamPanel() {
   const t = useTranslations('adminTeam');
   const { user: currentUser } = useAuth();
@@ -203,23 +219,25 @@ export function AdminTeamPanel() {
           {GRANTABLE_ADMIN_PERMISSIONS.map((permission) => (
             <label
               key={`promote-${permission}`}
-              className="flex items-center gap-2 rounded-lg border border-subtle px-3 py-2 text-sm"
+              className="flex items-start gap-2 rounded-lg border border-subtle px-3 py-2.5 text-sm"
             >
               <input
                 type="checkbox"
+                className="mt-1"
                 checked={promotePermissions.includes(permission)}
                 onChange={() => togglePromotePermission(permission)}
               />
-              <span>{t(`permissions.${PERMISSION_LABEL_KEYS[permission]}`)}</span>
+              <PermissionCheckboxLabel permissionKey={PERMISSION_LABEL_KEYS[permission]} />
             </label>
           ))}
-          <label className="flex items-center gap-2 rounded-lg border border-subtle px-3 py-2 text-sm">
+          <label className="flex items-start gap-2 rounded-lg border border-subtle px-3 py-2.5 text-sm">
             <input
               type="checkbox"
+              className="mt-1"
               checked={promotePermissions.includes(AdminPermission.TEAM)}
               onChange={() => togglePromotePermission(AdminPermission.TEAM)}
             />
-            <span>{t('permissions.team')}</span>
+            <PermissionCheckboxLabel permissionKey="team" />
           </label>
         </div>
         <Button type="submit" disabled={promoting}>
@@ -255,23 +273,25 @@ export function AdminTeamPanel() {
                   {GRANTABLE_ADMIN_PERMISSIONS.map((permission) => (
                     <label
                       key={permission}
-                      className="flex items-center gap-2 rounded-lg border border-subtle px-3 py-2 text-sm"
+                      className="flex items-start gap-2 rounded-lg border border-subtle px-3 py-2.5 text-sm"
                     >
                       <input
                         type="checkbox"
+                        className="mt-1"
                         checked={permissions.includes(permission)}
                         onChange={() => togglePermission(member.id, permission)}
                       />
-                      <span>{t(`permissions.${PERMISSION_LABEL_KEYS[permission]}`)}</span>
+                      <PermissionCheckboxLabel permissionKey={PERMISSION_LABEL_KEYS[permission]} />
                     </label>
                   ))}
-                  <label className="flex items-center gap-2 rounded-lg border border-subtle px-3 py-2 text-sm">
+                  <label className="flex items-start gap-2 rounded-lg border border-subtle px-3 py-2.5 text-sm">
                     <input
                       type="checkbox"
+                      className="mt-1"
                       checked={permissions.includes(AdminPermission.TEAM)}
                       onChange={() => togglePermission(member.id, AdminPermission.TEAM)}
                     />
-                    <span>{t('permissions.team')}</span>
+                    <PermissionCheckboxLabel permissionKey="team" />
                   </label>
                 </div>
 

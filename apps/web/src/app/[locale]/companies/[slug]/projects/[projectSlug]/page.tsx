@@ -1,4 +1,5 @@
 import { CompanySocialLinksRow } from '@/components/company/company-social-links-row';
+import { ShareLinkButton } from '@/components/ui/share-link-button';
 import { ImageLightbox, SingleImageLightbox } from '@/components/ui/image-lightbox';
 import { fetchCompanyBySlug } from '@/lib/companies-data';
 import { scrollRevealProps, scrollStaggerDelay } from '@/lib/scroll-reveal';
@@ -93,8 +94,17 @@ export default async function CompanyProjectPage({
         </div>
 
         <div className="p-6 sm:p-8 lg:p-10">
-          <p className="text-sm font-medium text-brand-500">{company.name}</p>
-          <h1 className="mt-2 text-2xl font-bold text-primary sm:text-3xl">{project.title}</h1>
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div className="min-w-0 flex-1">
+              <p className="text-sm font-medium text-brand-500">{company.name}</p>
+              <h1 className="mt-2 text-2xl font-bold text-primary sm:text-3xl">{project.title}</h1>
+            </div>
+            <ShareLinkButton
+              path={`/companies/${slug}/projects/${project.slug}`}
+              name={project.title}
+              subtitle={t('shareProjectSubtitle')}
+            />
+          </div>
 
           {project.description ? (
             <p className="mt-4 max-w-3xl whitespace-pre-wrap text-sm leading-relaxed text-secondary sm:text-base">
