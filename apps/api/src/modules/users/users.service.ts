@@ -375,16 +375,19 @@ export class UsersService {
       try {
         await this.firebaseAdmin.deleteUserStorage(user.firebaseUid);
       } catch {
-        // Storage cleanup is best-effort; continue with account deletion.
+        // Storage cleanup is best-effort; continue with Auth + DB deletion.
       }
 
       try {
         await this.firebaseAdmin.deleteAuthUser(user.firebaseUid);
       } catch (error) {
-        this.logger.warn(
+        this.logger.error(
           `Firebase Auth deletion failed for ${user.firebaseUid}: ${
             error instanceof Error ? error.message : 'unknown error'
           }`,
+        );
+        throw new BadRequestException(
+          'Could not delete the Firebase Auth user. Try again or remove the user from Firebase Console.',
         );
       }
     }

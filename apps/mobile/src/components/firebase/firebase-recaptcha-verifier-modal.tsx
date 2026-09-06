@@ -4,12 +4,12 @@ import {
   ActivityIndicator,
   Button,
   Modal,
-  SafeAreaView,
   StyleSheet,
   Text,
   View,
   type ViewStyle,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { WebView, type WebViewMessageEvent } from 'react-native-webview';
 
 export interface FirebaseRecaptchaVerifierModalHandle {
@@ -317,7 +317,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   loader: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     paddingTop: 20,
     justifyContent: 'flex-start',
     alignItems: 'center',

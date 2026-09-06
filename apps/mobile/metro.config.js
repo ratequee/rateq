@@ -23,8 +23,8 @@ config.resolver = {
   sourceExts: [...config.resolver.sourceExts, 'svg', 'cjs'],
   unstable_enablePackageExports: false,
   resolveRequest: (context, moduleName, platform) => {
-    // In this pnpm monorepo the web app uses react@19 while mobile uses react@18.
-    // Metro can accidentally bundle both; force all react imports to the mobile copy.
+    // In this pnpm monorepo, force all react imports to the mobile app copy
+    // so Metro does not accidentally pick up another workspace React.
     if (moduleName === 'react' || moduleName.startsWith('react/')) {
       const subpath =
         moduleName === 'react' ? 'index.js' : `${moduleName.slice('react/'.length)}.js`;

@@ -89,7 +89,7 @@ export function ImageFullscreenViewer({
           )}
         />
 
-        <View pointerEvents="box-none" style={StyleSheet.absoluteFillObject}>
+        <View pointerEvents="box-none" style={StyleSheet.absoluteFill}>
           <Pressable
             onPress={onClose}
             hitSlop={12}

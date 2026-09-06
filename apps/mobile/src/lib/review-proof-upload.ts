@@ -1,6 +1,6 @@
-import { ensureFirebaseUserForUpload } from '@/lib/firebase/ensure-user';
 import { uploadUserFile } from '@/lib/firebase/storage';
-import * as FileSystem from 'expo-file-system';
+import { resolveUploadContentType } from '@/lib/firebase/upload-content-type';
+import * as FileSystem from 'expo-file-system/legacy';
 
 export const MAX_REVIEW_PROOF_FILES = 8;
 export const MAX_PROOF_FILE_BYTES = 10 * 1024 * 1024;
@@ -24,7 +24,7 @@ export async function resolveProofFileSize(
   if (reportedSize && reportedSize > 0) return reportedSize;
 
   try {
-    const info = await FileSystem.getInfoAsync(uri, { size: true });
+    const info = await FileSystem.getInfoAsync(uri);
     if (info.exists && typeof info.size === 'number' && info.size > 0) {
       return info.size;
     }
@@ -45,7 +45,7 @@ export async function createReviewProofFile(input: {
   return {
     uri: input.uri,
     name: input.name,
-    mimeType: input.mimeType,
+    mimeType: resolveUploadContentType(input.mimeType, input.name),
     size,
   };
 }
@@ -66,12 +66,11 @@ export async function uploadReviewProofFiles(files: ReviewProofFile[]): Promise<
     throw new Error(`You can upload up to ${MAX_REVIEW_PROOF_FILES} proof files`);
   }
 
-  await ensureFirebaseUserForUpload();
-
   const urls: string[] = [];
   for (const file of files) {
     await assertProofFileWithinLimit(file);
-    const url = await uploadUserFile('reviews/proof', file.uri, file.name, file.mimeType);
+    const mimeType = resolveUploadContentType(file.mimeType, file.name);
+    const url = await uploadUserFile('reviews/proof', file.uri, file.name, mimeType);
     urls.push(url);
   }
 

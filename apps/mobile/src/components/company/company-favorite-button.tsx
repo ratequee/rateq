@@ -1,6 +1,7 @@
 import { useAuth } from '@/context/auth-context';
 import { useAppToast } from '@/hooks/use-app-toast';
 import { companiesApi } from '@/lib/api';
+import { UserRole } from '@rateq/types';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
@@ -28,6 +29,11 @@ export function CompanyFavoriteButton({
   useEffect(() => {
     setFavorited(initialFavorited);
   }, [initialFavorited]);
+
+  // Favorites are reviewer-only.
+  if (user?.role === UserRole.COMPANY) {
+    return null;
+  }
 
   const toggle = async () => {
     if (!user) {

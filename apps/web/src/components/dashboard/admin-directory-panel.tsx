@@ -263,6 +263,7 @@ export function AdminDirectoryPanel() {
       params.set('page', String(reviewerPage));
       params.set('limit', '15');
       params.set('excludeAdmins', 'true');
+      params.set('role', 'USER');
       if (reviewerSearch.trim()) params.set('search', reviewerSearch.trim());
       const response = await usersApi.list(token, params);
       setReviewers(response.data);

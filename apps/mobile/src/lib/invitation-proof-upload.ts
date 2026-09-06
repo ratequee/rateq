@@ -1,5 +1,5 @@
-import { ensureFirebaseUserForUpload } from '@/lib/firebase/ensure-user';
 import { uploadUserFile } from '@/lib/firebase/storage';
+import { resolveUploadContentType } from '@/lib/firebase/upload-content-type';
 import type { ReviewProofFile } from '@/lib/review-proof-upload';
 import { assertProofFileWithinLimit } from '@/lib/review-proof-upload';
 
@@ -14,17 +14,11 @@ export async function uploadInvitationProofFiles(files: ReviewProofFile[]): Prom
     throw new Error(`You can upload up to ${MAX_INVITATION_PROOF_FILES} proof files`);
   }
 
-  await ensureFirebaseUserForUpload();
-
   const urls: string[] = [];
   for (const file of files) {
     await assertProofFileWithinLimit(file);
-    const url = await uploadUserFile(
-      'company/invitation-proof',
-      file.uri,
-      file.name,
-      file.mimeType,
-    );
+    const mimeType = resolveUploadContentType(file.mimeType, file.name);
+    const url = await uploadUserFile('company/invitation-proof', file.uri, file.name, mimeType);
     urls.push(url);
   }
 

@@ -50,6 +50,7 @@ export default function RootLayout() {
   }, [fontsLoaded, i18nReady]);
 
   if (!fontsLoaded || !i18nReady) {
+    // Keep splash visible; avoid a blank native root while bootstrapping.
     return null;
   }
 

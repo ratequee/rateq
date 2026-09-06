@@ -62,8 +62,8 @@ export function ReviewProofPicker({ files, onAdd, onRemove, error }: ReviewProof
     validateAndAdd(
       await createReviewProofFile({
         uri: asset.uri,
-        name: asset.fileName ?? 'proof.jpg',
-        mimeType: asset.mimeType ?? 'image/jpeg',
+        name: asset.fileName || 'proof.jpg',
+        mimeType: asset.mimeType || 'image/jpeg',
         reportedSize: asset.fileSize,
       }),
     );
@@ -79,8 +79,8 @@ export function ReviewProofPicker({ files, onAdd, onRemove, error }: ReviewProof
     validateAndAdd(
       await createReviewProofFile({
         uri: asset.uri,
-        name: asset.name,
-        mimeType: asset.mimeType ?? 'application/pdf',
+        name: asset.name || 'proof.pdf',
+        mimeType: asset.mimeType || 'application/pdf',
         reportedSize: asset.size,
       }),
     );

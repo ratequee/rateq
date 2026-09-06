@@ -13,10 +13,11 @@ export function AuthRedirect() {
     return <LoadingView />;
   }
 
-  const root = segments[0];
+  const parts = segments as string[];
+  const root = parts[0];
   const inAuth = root === '(auth)';
   const inOnboarding = root === '(onboarding)';
-  const authScreen = segments[1];
+  const authScreen = parts[1];
 
   if (!user) {
     if (!inAuth) {

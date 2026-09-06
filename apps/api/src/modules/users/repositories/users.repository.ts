@@ -85,9 +85,7 @@ export class UsersRepository {
 
     if (filters.role) {
       where.role = filters.role;
-    }
-
-    if (filters.excludeAdmins) {
+    } else if (filters.excludeAdmins) {
       where.role = { not: 'ADMIN' };
     }
 

@@ -27,6 +27,7 @@ export function isFirebaseConfigured(): boolean {
     firebaseConfig.apiKey &&
     firebaseConfig.authDomain &&
     firebaseConfig.projectId &&
+    firebaseConfig.storageBucket &&
     firebaseConfig.appId,
   );
 }

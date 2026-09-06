@@ -118,6 +118,7 @@ export default function CompleteProfilePage() {
   const [reviewerPhoneVerified, setReviewerPhoneVerified] = useState(false);
   const [companyPhoneVerified, setCompanyPhoneVerified] = useState(false);
   const [companyStep, setCompanyStep] = useState(1);
+  const [phase, setPhase] = useState<'choose-type' | 'complete-form'>('choose-type');
 
   useEffect(() => {
     if (!user) return;
@@ -144,6 +145,15 @@ export default function CompleteProfilePage() {
 
     if (onboarding?.accountType) {
       setAccountType(onboarding.accountType);
+    }
+
+    // Match mobile: skip type selection when already locked or revising a company profile.
+    if (lockedAccountType || companyRevisionRequested) {
+      setPhase('complete-form');
+    } else if (!onboarding?.accountType) {
+      setPhase('choose-type');
+    } else {
+      setPhase('complete-form');
     }
 
     if (onboarding?.reviewerProfile) {
@@ -583,60 +593,39 @@ export default function CompleteProfilePage() {
 
   const reviewerRoleDisabled = lockedAccountType === 'company';
   const companyRoleDisabled = lockedAccountType === 'reviewer';
+  const showTypeSelection =
+    showProfileForm && phase === 'choose-type' && !lockedAccountType && !companyRevisionRequested;
+  const showProfileFields = showProfileForm && phase === 'complete-form';
+  const canChangeAccountType = showProfileFields && !lockedAccountType && !companyRevisionRequested;
 
   return (
     <div className="bg-brand-500 py-10 sm:py-14">
       <div className="mx-auto max-w-lg px-4 sm:px-6">
         <div className="mb-8 text-center">
-          <h1 className="text-2xl font-bold text-white sm:text-3xl">{t('title')}</h1>
-          <p className="mt-2 text-sm text-white">{t('subtitle')}</p>
+          <h1 className="text-2xl font-bold text-white sm:text-3xl">
+            {showTypeSelection ? t('chooseAccountTypeTitle') : t('title')}
+          </h1>
+          <p className="mt-2 text-sm text-white">
+            {showTypeSelection ? t('chooseAccountTypeSubtitle') : t('subtitle')}
+          </p>
         </div>
 
         <div className="surface-card p-6 sm:p-8">
-          {!companyPending && (
-            <div className="mb-6 grid grid-cols-2 gap-3">
+          {canChangeAccountType ? (
+            <div className="mb-4 flex justify-end">
               <button
                 type="button"
-                disabled={reviewerRoleDisabled}
                 onClick={() => {
-                  if (reviewerRoleDisabled) return;
-                  setAccountType('reviewer');
+                  setPhase('choose-type');
                   setErrors({});
+                  setCompanyStep(1);
                 }}
-                className={cn(
-                  'rounded-xl border px-4 py-2 text-start transition-colors flex gap-2 items-center justify-center',
-                  accountType === 'reviewer'
-                    ? 'border-brand-500 bg-brand-50 text-brand-600 dark:bg-brand-950/40 dark:text-brand-300'
-                    : 'border-slate-200 bg-white text-ink-muted hover:border-brand-200 dark:border-dm-border dark:bg-dm-elevated dark:text-slate-200 dark:hover:border-brand-700',
-                  reviewerRoleDisabled &&
-                    'cursor-not-allowed opacity-50 hover:border-slate-200 dark:hover:border-dm-border',
-                )}
+                className="text-sm font-medium text-brand-500 hover:underline"
               >
-                <UserRound className="h-5 w-5" />
-                <p className="font-semibold">{t('reviewerOption')}</p>
-              </button>
-              <button
-                type="button"
-                disabled={companyRoleDisabled}
-                onClick={() => {
-                  if (companyRoleDisabled) return;
-                  setAccountType('company');
-                  setErrors({});
-                }}
-                className={cn(
-                  'rounded-xl border px-4 py-2 text-start transition-colors flex gap-2 items-center justify-center',
-                  accountType === 'company'
-                    ? 'border-brand-500 bg-brand-50 text-brand-600 dark:bg-brand-950/40 dark:text-brand-300'
-                    : 'border-slate-200 bg-white text-ink-muted hover:border-brand-200 dark:border-dm-border dark:bg-dm-elevated dark:text-slate-200 dark:hover:border-brand-700',
-                  companyRoleDisabled &&
-                    'cursor-not-allowed opacity-50 hover:border-slate-200 dark:hover:border-dm-border',
-                )}
-              >
-                <Building2 className="h-5 w-5" />
-                <p className="font-semibold">{t('companyOption')}</p>
+                {t('changeAccountType')}
               </button>
             </div>
-          )}
+          ) : null}
 
           {companyPending ? (
             <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800 dark:border-amber-900/60 dark:bg-amber-950/30 dark:text-amber-200">
@@ -651,7 +640,65 @@ export default function CompleteProfilePage() {
             </div>
           ) : null}
 
-          {showProfileForm && (
+          {showTypeSelection ? (
+            <div className="space-y-4">
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                <button
+                  type="button"
+                  disabled={reviewerRoleDisabled}
+                  onClick={() => {
+                    if (reviewerRoleDisabled) return;
+                    setAccountType('reviewer');
+                    setErrors({});
+                  }}
+                  className={cn(
+                    'rounded-xl border px-4 py-4 text-start transition-colors',
+                    accountType === 'reviewer'
+                      ? 'border-brand-500 bg-brand-50 text-brand-600 dark:bg-brand-950/40 dark:text-brand-300'
+                      : 'border-slate-200 bg-white text-ink-muted hover:border-brand-200 dark:border-dm-border dark:bg-dm-elevated dark:text-slate-200 dark:hover:border-brand-700',
+                    reviewerRoleDisabled &&
+                      'cursor-not-allowed opacity-50 hover:border-slate-200 dark:hover:border-dm-border',
+                  )}
+                >
+                  <UserRound className="mb-2 h-6 w-6" />
+                  <p className="font-semibold">{t('reviewerOption')}</p>
+                  <p className="mt-1 text-xs opacity-80">{t('reviewerOptionHint')}</p>
+                </button>
+                <button
+                  type="button"
+                  disabled={companyRoleDisabled}
+                  onClick={() => {
+                    if (companyRoleDisabled) return;
+                    setAccountType('company');
+                    setErrors({});
+                    setCompanyStep(1);
+                  }}
+                  className={cn(
+                    'rounded-xl border px-4 py-4 text-start transition-colors',
+                    accountType === 'company'
+                      ? 'border-brand-500 bg-brand-50 text-brand-600 dark:bg-brand-950/40 dark:text-brand-300'
+                      : 'border-slate-200 bg-white text-ink-muted hover:border-brand-200 dark:border-dm-border dark:bg-dm-elevated dark:text-slate-200 dark:hover:border-brand-700',
+                    companyRoleDisabled &&
+                      'cursor-not-allowed opacity-50 hover:border-slate-200 dark:hover:border-dm-border',
+                  )}
+                >
+                  <Building2 className="mb-2 h-6 w-6" />
+                  <p className="font-semibold">{t('companyOption')}</p>
+                  <p className="mt-1 text-xs opacity-80">{t('companyOptionHint')}</p>
+                </button>
+              </div>
+              <Button
+                type="button"
+                className="w-full"
+                disabled={!accountType}
+                onClick={() => setPhase('complete-form')}
+              >
+                {t('nextStep')}
+              </Button>
+            </div>
+          ) : null}
+
+          {showProfileFields && (
             <form onSubmit={handleSubmit} className="space-y-4">
               {accountType === 'reviewer' ? (
                 <>
