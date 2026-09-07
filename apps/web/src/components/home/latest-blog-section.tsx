@@ -32,13 +32,7 @@ export async function LatestBlogSection({
         />
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {posts.slice(0, 3).map((post, index) => (
-            <div
-              key={post.id}
-              {...scrollRevealProps(
-                index % 2 === 0 ? 'fade-left' : 'fade-right',
-                scrollStaggerDelay(index),
-              )}
-            >
+            <div key={post.id} {...scrollRevealProps('fade-up', scrollStaggerDelay(index))}>
               <BlogCard
                 post={post}
                 locale={locale}

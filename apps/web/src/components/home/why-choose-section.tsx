@@ -57,7 +57,7 @@ export async function WhyChooseSection(): Promise<JSX.Element> {
     >
       <div className="mx-auto max-w-page px-4 sm:px-6 lg:px-8">
         <div className="grid items-center gap-10 lg:grid-cols-2 lg:gap-16">
-          <div className="w-full h-full" {...scrollRevealProps('fade-left')}>
+          <div className="w-full h-full" {...scrollRevealProps('fade-up')}>
             <Image
               src={'/images/choose.svg'}
               alt={t('whyImageCaption')}
@@ -79,7 +79,7 @@ export async function WhyChooseSection(): Promise<JSX.Element> {
               {values.map(({ icon: Icon, titleKey, descKey }, index) => (
                 <li
                   key={titleKey}
-                  {...scrollRevealProps('fade-right', scrollStaggerDelay(index))}
+                  {...scrollRevealProps('fade-up', scrollStaggerDelay(index))}
                   className={cn(
                     'flex gap-4 rounded-2xl border-2 border-slate-100 bg-white p-5 shadow-sm',
                     darkCard,

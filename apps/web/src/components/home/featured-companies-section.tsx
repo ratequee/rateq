@@ -55,13 +55,7 @@ export function FeaturedCompaniesSection({ companies }: FeaturedCompaniesSection
             className="scrollbar-hide -mx-4 grid auto-cols-[minmax(280px,1fr)] grid-flow-col gap-5 overflow-x-auto px-4 pb-2 sm:mx-0 sm:auto-cols-fr sm:grid-flow-row sm:grid-cols-2 sm:overflow-visible sm:px-0 lg:grid-cols-3"
           >
             {companies.slice(0, 3).map((company, index) => (
-              <div
-                key={company.id}
-                {...scrollRevealProps(
-                  index % 2 === 0 ? 'fade-left' : 'fade-right',
-                  scrollStaggerDelay(index),
-                )}
-              >
+              <div key={company.id} {...scrollRevealProps('fade-up', scrollStaggerDelay(index))}>
                 <FeaturedCompanyCard company={company} />
               </div>
             ))}

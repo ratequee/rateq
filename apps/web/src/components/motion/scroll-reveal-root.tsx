@@ -4,8 +4,10 @@ import { usePathname } from '@/i18n/routing';
 import { useEffect, useRef, type ReactNode } from 'react';
 
 const OBSERVER_OPTIONS: IntersectionObserverInit = {
-  threshold: 0.06,
-  rootMargin: '0px 0px -4% 0px',
+  threshold: 0.01,
+  // Expand the hit box slightly so near-viewport sections (esp. mobile) reveal
+  // reliably without needing a sideways scroll to enter the intersection rect.
+  rootMargin: '48px 0px 48px 0px',
 };
 
 function revealElement(element: Element) {

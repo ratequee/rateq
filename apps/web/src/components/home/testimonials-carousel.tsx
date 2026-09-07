@@ -79,10 +79,7 @@ export function TestimonialsCarousel({ reviews }: TestimonialsCarouselProps) {
             return (
               <article
                 key={review.id}
-                {...scrollRevealProps(
-                  index % 2 === 0 ? 'fade-left' : 'fade-right',
-                  scrollStaggerDelay(index),
-                )}
+                {...scrollRevealProps('fade-up', scrollStaggerDelay(index))}
                 className={cn(
                   'flex h-full flex-col rounded-2xl border border-slate-100 bg-white p-6 shadow-sm',
                   darkCard,

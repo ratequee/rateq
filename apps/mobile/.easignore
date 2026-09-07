@@ -1,0 +1,32 @@
+# Mirror repo ignore rules for EAS upload, but keep .env so Maps / public
+# Expo env vars are available at native prebuild time.
+node_modules
+.pnp
+.pnp.js
+dist
+build
+.next
+out
+.expo
+.turbo
+*.tsbuildinfo
+.env.local
+.env.*.local
+logs
+*.log
+coverage
+.nyc_output
+.idea
+.vscode
+*.swp
+*.swo
+.DS_Store
+ios
+android
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
+*.pem
+.cache

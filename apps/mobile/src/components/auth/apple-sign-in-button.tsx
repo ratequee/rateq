@@ -1,4 +1,3 @@
-import AppleIcon from '../../../assets/images/apple.svg';
 import { AccountLinkingDialog } from '@/components/auth/account-linking-dialog';
 import { SocialSignInButton } from '@/components/auth/social-sign-in-button';
 import { useAuth } from '@/context/auth-context';
@@ -11,6 +10,7 @@ import { getFirebaseAuthErrorMessage } from '@/lib/firebase/errors';
 import { isFirebaseConfigured } from '@/lib/firebase/client';
 import { ApiError } from '@/lib/api';
 import type { AuthenticatedUser } from '@rateq/types';
+import { Ionicons } from '@expo/vector-icons';
 import * as AppleAuthentication from 'expo-apple-authentication';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -36,6 +36,11 @@ export function AppleSignInButton({ onSuccess }: AppleSignInButtonProps) {
   }, []);
 
   const handlePress = async () => {
+    if (!available) {
+      toast.error(t('auth.appleSignInUnavailable'));
+      return;
+    }
+
     setLoading(true);
     try {
       await firebaseSignInWithApple();
@@ -83,7 +88,9 @@ export function AppleSignInButton({ onSuccess }: AppleSignInButtonProps) {
     }
   };
 
-  if (!isFirebaseConfigured() || Platform.OS !== 'ios' || !available) {
+  // Always show on iOS when Firebase is configured. Expo Go reports Apple Auth as
+  // unavailable (`isAvailableAsync` → false), which previously hid the button.
+  if (!isFirebaseConfigured() || Platform.OS !== 'ios') {
     return null;
   }
 
@@ -94,7 +101,7 @@ export function AppleSignInButton({ onSuccess }: AppleSignInButtonProps) {
         loading={loading}
         onPress={() => void handlePress()}
       >
-        <AppleIcon width={22} height={22} color={resolved === 'dark' ? '#FFFFFF' : '#000000'} />
+        <Ionicons name="logo-apple" size={22} color={resolved === 'dark' ? '#FFFFFF' : '#000000'} />
       </SocialSignInButton>
 
       <AccountLinkingDialog

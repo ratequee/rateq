@@ -2,7 +2,7 @@ import { MapCompanyCallout } from '@/components/map/map-company-callout';
 import type { NearbyCompany } from '@/lib/nearby-locations';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Image, Platform, View } from 'react-native';
-import MapView, { Circle, Marker, type Region } from 'react-native-maps';
+import MapView, { Circle, Marker, PROVIDER_GOOGLE, type Region } from 'react-native-maps';
 
 interface CompaniesMapViewProps {
   companies: NearbyCompany[];
@@ -115,6 +115,7 @@ export function CompaniesMapView({
       <MapView
         ref={mapRef}
         style={{ flex: 1 }}
+        provider={Platform.OS === 'android' ? PROVIDER_GOOGLE : undefined}
         initialRegion={initialRegion}
         showsUserLocation={Platform.OS === 'ios'}
         showsMyLocationButton={false}

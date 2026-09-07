@@ -9,18 +9,29 @@ import { getFirebaseAuthErrorMessage } from '@/lib/firebase/errors';
 import { isFirebaseConfigured } from '@/lib/firebase/client';
 import { ApiError } from '@/lib/api';
 import type { AuthenticatedUser } from '@rateq/types';
-import * as Google from 'expo-auth-session/providers/google';
-import * as WebBrowser from 'expo-web-browser';
+import {
+  GoogleSignin,
+  isErrorWithCode,
+  isSuccessResponse,
+  statusCodes,
+} from '@react-native-google-signin/google-signin';
 import Constants from 'expo-constants';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { Platform } from 'react-native';
 
-WebBrowser.maybeCompleteAuthSession();
-
-function readGoogleClientId(): string | undefined {
+function readGoogleWebClientId(): string | undefined {
   return (
     process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID ?? Constants.expoConfig?.extra?.googleWebClientId
   );
+}
+
+function configureGoogleSignIn(webClientId: string) {
+  GoogleSignin.configure({
+    webClientId,
+    iosClientId: process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID,
+    offlineAccess: false,
+  });
 }
 
 interface GoogleSignInButtonProps {
@@ -34,40 +45,71 @@ export function GoogleSignInButton({ onSuccess }: GoogleSignInButtonProps) {
   const toast = useAppToast();
   const [loading, setLoading] = useState(false);
   const [linkingRequest, setLinkingRequest] = useState<AccountLinkingRequiredError | null>(null);
+  const [ready, setReady] = useState(false);
 
-  const clientId = readGoogleClientId();
-  const [request, response, promptAsync] = Google.useIdTokenAuthRequest({
-    clientId,
-    iosClientId: process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID,
-    androidClientId: process.env.EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID,
-  });
+  const webClientId = readGoogleWebClientId();
 
   useEffect(() => {
-    if (response?.type !== 'success') return;
+    if (!webClientId) return;
+    try {
+      configureGoogleSignIn(webClientId);
+      setReady(true);
+    } catch {
+      setReady(false);
+    }
+  }, [webClientId]);
 
-    const idToken = response.params.id_token;
-    if (!idToken) return;
+  const handlePress = async () => {
+    if (!webClientId) return;
 
-    void (async () => {
-      setLoading(true);
-      try {
-        const sessionUser = await loginWithGoogleIdToken(idToken);
-        await (onSuccess ? onSuccess(sessionUser) : redirectAfterAuth(sessionUser));
-      } catch (err) {
-        if (isAccountLinkingRequiredError(err)) {
-          setLinkingRequest(err);
-          return;
-        }
-        toast.error(
-          err instanceof ApiError
-            ? err.message
-            : getFirebaseAuthErrorMessage(err, t('auth.loginError')),
-        );
-      } finally {
-        setLoading(false);
+    setLoading(true);
+    try {
+      if (Platform.OS === 'android') {
+        await GoogleSignin.hasPlayServices({ showPlayServicesUpdateDialog: true });
       }
-    })();
-  }, [response, loginWithGoogleIdToken, redirectAfterAuth, toast, t, onSuccess]);
+
+      const response = await GoogleSignin.signIn();
+      if (!isSuccessResponse(response)) {
+        return;
+      }
+
+      const idToken = response.data.idToken;
+      if (!idToken) {
+        toast.error(t('auth.googleSignInNoToken'));
+        return;
+      }
+
+      const sessionUser = await loginWithGoogleIdToken(idToken);
+      await (onSuccess ? onSuccess(sessionUser) : redirectAfterAuth(sessionUser));
+    } catch (err) {
+      if (isAccountLinkingRequiredError(err)) {
+        setLinkingRequest(err);
+        return;
+      }
+
+      if (isErrorWithCode(err) && err.code === statusCodes.SIGN_IN_CANCELLED) {
+        return;
+      }
+
+      if (isErrorWithCode(err) && err.code === statusCodes.IN_PROGRESS) {
+        return;
+      }
+
+      if (isErrorWithCode(err) && err.code === statusCodes.PLAY_SERVICES_NOT_AVAILABLE) {
+        toast.error(t('auth.googlePlayServicesUnavailable'));
+        return;
+      }
+
+      // DEVELOPER_ERROR / 10 usually means SHA-1 / package name mismatch in Google Cloud
+      toast.error(
+        err instanceof ApiError
+          ? err.message
+          : getFirebaseAuthErrorMessage(err, t('auth.googleSignInError')),
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleLink = async (password: string) => {
     if (!linkingRequest) return;
@@ -89,7 +131,7 @@ export function GoogleSignInButton({ onSuccess }: GoogleSignInButtonProps) {
     }
   };
 
-  if (!isFirebaseConfigured() || !clientId) {
+  if (!isFirebaseConfigured() || !webClientId) {
     return null;
   }
 
@@ -97,9 +139,9 @@ export function GoogleSignInButton({ onSuccess }: GoogleSignInButtonProps) {
     <>
       <SocialSignInButton
         accessibilityLabel={t('auth.continueWithGoogle')}
-        disabled={!request}
+        disabled={!ready}
         loading={loading}
-        onPress={() => void promptAsync()}
+        onPress={() => void handlePress()}
       >
         <GoogleIcon width={22} height={22} />
       </SocialSignInButton>

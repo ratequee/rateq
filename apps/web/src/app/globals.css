@@ -119,33 +119,27 @@
     display: none;
   }
 
-  /* Before entering the viewport, elements stay hidden and off-position.
-     The dramatic slide/pop happens via keyframe animations once revealed. */
+  /* Pending state: opacity only. Do NOT apply large horizontal translates here —
+     IntersectionObserver uses the transformed box, so ±110% slides can leave
+     cards permanently off-screen on mobile until the user scrolls sideways. */
   .scroll-reveal-pending {
     opacity: 0;
     backface-visibility: hidden;
     will-change: transform, opacity;
   }
 
-  /* Hold the starting off-screen position so there's no pre-flash before the
-     animation fires (the observer adds .scroll-revealed to trigger motion). */
-  .scroll-reveal-pending.scroll-reveal-fade-left {
-    transform: translate3d(-110%, 0, 0);
-  }
-  .scroll-reveal-pending.scroll-reveal-fade-right {
-    transform: translate3d(110%, 0, 0);
-  }
+  /* Soft vertical/scale holds only — keep the layout box on-screen for IO. */
   .scroll-reveal-pending.scroll-reveal-fade-up {
-    transform: translate3d(0, 5rem, 0) scale(0.95);
+    transform: translate3d(0, 1.5rem, 0) scale(0.98);
   }
   .scroll-reveal-pending.scroll-reveal-pop-up {
-    transform: translate3d(0, 3rem, 0) scale(0.6);
+    transform: translate3d(0, 1.25rem, 0) scale(0.92);
   }
   .scroll-reveal-pending.scroll-reveal-scale-up {
-    transform: scale(0.7);
+    transform: scale(0.96);
   }
   .scroll-reveal-pending.scroll-reveal-fade-in {
-    transform: scale(0.98);
+    transform: none;
   }
 
   .scroll-revealed {
@@ -177,11 +171,7 @@
 @keyframes rq-reveal-left {
   0% {
     opacity: 0;
-    transform: translate3d(-110%, 0, 0) scale(0.94);
-  }
-  60% {
-    opacity: 1;
-    transform: translate3d(1.5rem, 0, 0) scale(1.015);
+    transform: translate3d(-1.5rem, 0, 0) scale(0.98);
   }
   100% {
     opacity: 1;
@@ -192,11 +182,7 @@
 @keyframes rq-reveal-right {
   0% {
     opacity: 0;
-    transform: translate3d(110%, 0, 0) scale(0.94);
-  }
-  60% {
-    opacity: 1;
-    transform: translate3d(-1.5rem, 0, 0) scale(1.015);
+    transform: translate3d(1.5rem, 0, 0) scale(0.98);
   }
   100% {
     opacity: 1;
@@ -207,11 +193,7 @@
 @keyframes rq-reveal-up {
   0% {
     opacity: 0;
-    transform: translate3d(0, 5.5rem, 0) scale(0.94);
-  }
-  60% {
-    opacity: 1;
-    transform: translate3d(0, -0.75rem, 0) scale(1.01);
+    transform: translate3d(0, 1.5rem, 0) scale(0.98);
   }
   100% {
     opacity: 1;
@@ -219,15 +201,10 @@
   }
 }
 
-/* Pop-up: jumps up toward the viewer, overshoots, then settles. */
 @keyframes rq-reveal-pop {
   0% {
     opacity: 0;
-    transform: translate3d(0, 3rem, 0) scale(0.6);
-  }
-  55% {
-    opacity: 1;
-    transform: translate3d(0, -0.5rem, 0) scale(1.06);
+    transform: translate3d(0, 1.25rem, 0) scale(0.92);
   }
   100% {
     opacity: 1;

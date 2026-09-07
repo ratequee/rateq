@@ -52,7 +52,7 @@ export async function AboutStorySection({ stats }: AboutStorySectionProps): Prom
         </div>
 
         <div
-          {...scrollRevealProps('fade-left')}
+          {...scrollRevealProps('fade-up')}
           className="mt-20 grid items-center gap-10 lg:grid-cols-2 lg:gap-16"
         >
           <div className="relative w-full overflow-hidden rounded-2xl">
