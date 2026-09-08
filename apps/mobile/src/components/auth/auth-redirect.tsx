@@ -39,8 +39,8 @@ export function AuthRedirect() {
   }
 
   if (target === '/(onboarding)/complete-profile') {
-    // Allow dedicated OTP screen when completing profile (change number / missing Firebase phone).
-    if (onVerifyPhone) {
+    // Allow verification hub / OTP while finishing profile phone setup.
+    if (onVerifyPhone || authScreen === 'check-email') {
       return null;
     }
     if (!inOnboarding) {

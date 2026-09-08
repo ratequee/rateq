@@ -33,8 +33,7 @@ import { Image, Pressable, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { getFontFamily } from '@/i18n';
 
-const VERIFY_PHONE_HREF =
-  '/(auth)/verify-phone?next=/(onboarding)/complete-profile&context=reviewer&sync=1' as Href;
+const VERIFY_PHONE_HUB = '/(auth)/check-email?needPhone=1&context=reviewer' as Href;
 
 type OnboardingPhase = 'choose-type' | 'complete-form';
 
@@ -170,7 +169,7 @@ export default function CompleteProfileScreen() {
       return;
     }
 
-    router.replace(VERIFY_PHONE_HREF);
+    router.replace(VERIFY_PHONE_HUB);
   }, [user, isLoading, phase, accountType, onboarding, phone, router]);
 
   const accountOptions = useMemo(

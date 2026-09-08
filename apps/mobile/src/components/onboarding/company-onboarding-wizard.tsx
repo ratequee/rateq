@@ -40,8 +40,7 @@ import { Image, Pressable, ScrollView, Text, View } from 'react-native';
 import { getFontFamily } from '@/i18n';
 import { useAuth } from '@/context/auth-context';
 
-const COMPANY_VERIFY_PHONE_HREF =
-  '/(auth)/verify-phone?next=/(onboarding)/complete-profile&context=company&sync=1' as Href;
+const COMPANY_VERIFY_PHONE_HUB = '/(auth)/check-email?needPhone=1&context=company' as Href;
 
 interface CompanyOnboardingWizardProps {
   existingCompany?: CompanyProfileDetail | null;
@@ -367,7 +366,7 @@ export function CompanyOnboardingWizard({
       setCompanyPhoneVerified(true);
       return;
     }
-    router.replace(COMPANY_VERIFY_PHONE_HREF);
+    router.replace(COMPANY_VERIFY_PHONE_HUB);
   }, [existingCompany, router]);
 
   const validationMessages = useMemo(

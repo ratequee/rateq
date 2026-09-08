@@ -45,6 +45,15 @@ export default function VerifyPhoneScreen() {
   const context =
     params.context === 'company' || params.context === 'reviewer' ? params.context : null;
   const syncToProfile = params.sync === '1' || Boolean(context);
+  const isProfilePhoneFlow =
+    (typeof nextPath === 'string' && nextPath.includes('complete-profile')) ||
+    syncToProfile ||
+    Boolean(context);
+  const fallbackHref = (
+    isProfilePhoneFlow
+      ? `/(auth)/check-email?needPhone=1${context ? `&context=${context}` : ''}`
+      : '/(auth)/register'
+  ) as Href;
 
   const [phone, setPhone] = useState('');
   const [ready, setReady] = useState(false);
@@ -67,14 +76,14 @@ export default function VerifyPhoneScreen() {
         extractQatarPhoneDigits(linked ?? '');
 
       if (!isValidQatarPhoneDigits(initialPhone)) {
-        router.replace('/(auth)/register');
+        router.replace(fallbackHref);
         return;
       }
 
       setPhone(initialPhone);
       setReady(true);
     })();
-  }, [params.phone, router]);
+  }, [params.phone, router, fallbackHref]);
 
   useEffect(() => {
     if (resendCooldown <= 0) return;
@@ -115,7 +124,7 @@ export default function VerifyPhoneScreen() {
     const auth = getFirebaseAuth();
     if (!auth.currentUser) {
       toast.error(t('auth.phoneVerifySignInRequired'));
-      router.replace('/(auth)/register');
+      router.replace(isProfilePhoneFlow ? ('/(auth)/login' as Href) : ('/(auth)/register' as Href));
       return;
     }
 
@@ -202,9 +211,7 @@ export default function VerifyPhoneScreen() {
   };
 
   const displayPhone = phone ? formatQatarPhoneForSubmit(phone) : '—';
-  const backHref = nextPath.startsWith('/(onboarding)')
-    ? ('/(onboarding)/complete-profile' as const)
-    : ('/(auth)/register' as const);
+  const backHref = fallbackHref;
 
   if (!ready) {
     return null;
@@ -220,9 +227,7 @@ export default function VerifyPhoneScreen() {
             className="text-center text-sm font-semibold text-brand-500 dark:text-gold-300"
             style={{ fontFamily: getFontFamily('semibold') }}
           >
-            {nextPath.startsWith('/(onboarding)')
-              ? t('onboarding.previousStep')
-              : t('auth.backToRegister')}
+            {isProfilePhoneFlow ? t('auth.backToVerification') : t('auth.backToRegister')}
           </Text>
         </Pressable>
       }

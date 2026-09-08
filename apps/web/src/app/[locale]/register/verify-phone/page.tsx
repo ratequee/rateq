@@ -58,6 +58,11 @@ export default function RegisterVerifyPhonePage() {
   const nextPath = searchParams.get('next') || '/register';
   const context = (searchParams.get('context') as 'reviewer' | 'company' | null) ?? null;
   const syncToProfile = searchParams.get('sync') === '1' || Boolean(context);
+  const isProfilePhoneFlow =
+    nextPath.includes('complete-profile') || syncToProfile || Boolean(context);
+  const fallbackPath = isProfilePhoneFlow
+    ? `/check-email?needPhone=1${context ? `&context=${context}` : ''}`
+    : '/register';
 
   const pending = getPendingRegistration();
   const phoneFromQuery = searchParams.get('phone') ?? '';
@@ -77,9 +82,9 @@ export default function RegisterVerifyPhonePage() {
 
   useEffect(() => {
     if (!isValidQatarPhoneDigits(phone)) {
-      router.replace('/register');
+      router.replace(fallbackPath);
     }
-  }, [phone, router]);
+  }, [phone, router, fallbackPath]);
 
   useEffect(() => {
     if (resendCooldown <= 0) return;
@@ -99,12 +104,12 @@ export default function RegisterVerifyPhonePage() {
     const auth = getFirebaseAuth();
     if (!auth.currentUser) {
       toast.error(ta('phoneVerifySignInRequired'));
-      router.replace('/register');
+      router.replace(isProfilePhoneFlow ? '/login' : '/register');
       return;
     }
 
     const linked = getLinkedFirebasePhoneNumber();
-    if (linked && isSamePhoneNumber(linked, formatQatarPhoneForSubmit(phone))) {
+    if (linked && phone && isSamePhoneNumber(linked, formatQatarPhoneForSubmit(phone))) {
       void completeVerification(formatQatarPhoneForSubmit(phone));
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps -- run once on mount
@@ -248,9 +253,9 @@ export default function RegisterVerifyPhonePage() {
             <button
               type="button"
               className="font-semibold text-brand-500 hover:underline"
-              onClick={() => router.replace('/register')}
+              onClick={() => router.replace(fallbackPath)}
             >
-              {ta('backToRegister')}
+              {isProfilePhoneFlow ? ta('backToVerification') : ta('backToRegister')}
             </button>
           </p>
         </div>

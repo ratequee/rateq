@@ -165,10 +165,10 @@ export default function CompleteProfilePage() {
     const linked = getLinkedFirebasePhoneNumber();
     if (linked) return;
 
-    // Social / incomplete signup without phone — require dedicated OTP page first.
+    // Incomplete signup without phone — send to verification hub (not registration).
     if (showProfileForm && phase === 'complete-form') {
       const context = accountType === 'company' ? 'company' : 'reviewer';
-      router.replace(`/register/verify-phone?next=/complete-profile&context=${context}&sync=1`);
+      router.replace(`/check-email?needPhone=1&context=${context}`);
     }
   }, [
     user,

@@ -3,6 +3,7 @@
 import { useAuth } from '@/components/providers/auth-provider';
 import { useRouter } from '@/i18n/routing';
 import { useProfile } from '@/components/providers/profile-provider';
+import { getLinkedFirebasePhoneNumber } from '@/lib/firebase/phone-auth';
 import { canAccessDashboard, getPostAuthRedirect } from '@/lib/profile-routing';
 import { useEffect } from 'react';
 
@@ -35,6 +36,15 @@ export function useRedirectVerifiedFromCheckEmail(): void {
 
   useEffect(() => {
     if (isLoading || profileLoading || adminAccessLoading || !user?.isVerified) return;
+
+    // Stay when a verified user still needs phone before profile completion.
+    const hasProfilePhone = Boolean(
+      onboarding?.reviewerProfile?.phone || onboarding?.company?.phone,
+    );
+    if (!onboarding?.isProfileComplete && !hasProfilePhone && !getLinkedFirebasePhoneNumber()) {
+      return;
+    }
+
     router.replace(getPostAuthRedirect(user, onboarding, adminAccess));
   }, [user, onboarding, isLoading, profileLoading, adminAccessLoading, adminAccess, router]);
 }
