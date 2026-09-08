@@ -334,7 +334,7 @@ export class UsersService {
       }
     }
 
-    return toUserProfile(updated);
+    return this.findById(targetId);
   }
 
   async adminDelete(targetId: string, actor: AuthenticatedUser): Promise<MessageResponse> {

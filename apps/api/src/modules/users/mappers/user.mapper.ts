@@ -15,6 +15,7 @@ export function toSafeUser(user: User): SafeUser {
 export function toUserProfile(
   user: User & {
     profile?: { fullName: string; phone?: string; city: string; country: string } | null;
+    ownedCompanies?: Array<{ id: string }> | null;
   },
 ): UserProfile {
   return {
@@ -24,6 +25,9 @@ export function toUserProfile(
     adminPermissions: adminPermissionsService.toPermissions(user),
     isVerified: user.isVerified,
     isActive: user.isActive,
+    isProfileComplete: Boolean(
+      user.profile || (user.ownedCompanies && user.ownedCompanies.length > 0),
+    ),
     reviewCount: user.reviewCount,
     displayName: user.displayName,
     fullName: user.profile?.fullName ?? null,

@@ -19,12 +19,16 @@ export class UsersRepository {
   findById(id: string): Promise<
     | (User & {
         profile?: { fullName: string; phone: string; city: string; country: string } | null;
+        ownedCompanies?: Array<{ id: string }>;
       })
     | null
   > {
     return this.prisma.user.findUnique({
       where: { id },
-      include: { profile: { select: { fullName: true, phone: true, city: true, country: true } } },
+      include: {
+        profile: { select: { fullName: true, phone: true, city: true, country: true } },
+        ownedCompanies: { select: { id: true }, take: 1 },
+      },
     });
   }
 
@@ -52,6 +56,7 @@ export class UsersRepository {
       orderBy: { createdAt: 'desc' },
       include: {
         profile: { select: { fullName: true, phone: true, city: true, country: true } },
+        ownedCompanies: { select: { id: true }, take: 1 },
       },
     });
   }

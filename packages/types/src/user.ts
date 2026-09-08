@@ -9,6 +9,8 @@ export interface UserProfile {
   adminPermissions: AdminPermission[];
   isVerified: boolean;
   isActive: boolean;
+  /** True when the user has a reviewer profile or owns a company. */
+  isProfileComplete: boolean;
   reviewCount: number;
   displayName?: string | null;
   fullName?: string | null;

@@ -607,6 +607,16 @@ export function AdminDirectoryPanel() {
                       {t('reviewCount', { count: user.reviewCount })}
                       {!user.isActive ? ` · ${t('inactive')}` : ''}
                     </span>
+                    <span
+                      className={cn(
+                        'mt-1 inline-flex w-fit rounded-full px-2 py-0.5 text-[11px] font-medium',
+                        user.isProfileComplete
+                          ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-300'
+                          : 'bg-amber-50 text-amber-700 dark:bg-amber-950/50 dark:text-amber-300',
+                      )}
+                    >
+                      {user.isProfileComplete ? t('profileComplete') : t('profileIncomplete')}
+                    </span>
                   </button>
                 ))}
                 {!reviewers.length ? (
@@ -673,17 +683,46 @@ export function AdminDirectoryPanel() {
                         {[reviewerDetail.city, reviewerDetail.country].filter(Boolean).join(', ')}
                       </p>
                     ) : null}
+                    <p className="mt-2 text-sm text-secondary">
+                      {t('profileStatus')}:{' '}
+                      <span
+                        className={cn(
+                          'font-medium',
+                          reviewerDetail.isProfileComplete
+                            ? 'text-emerald-700 dark:text-emerald-300'
+                            : 'text-amber-700 dark:text-amber-300',
+                        )}
+                      >
+                        {reviewerDetail.isProfileComplete
+                          ? t('profileComplete')
+                          : t('profileIncomplete')}
+                      </span>
+                    </p>
                   </div>
-                  <span
-                    className={cn(
-                      'inline-flex rounded-full px-3 py-1 text-xs font-medium',
-                      reviewerDetail.isActive
-                        ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-300'
-                        : 'bg-red-50 text-red-700 dark:bg-red-950/50 dark:text-red-400',
-                    )}
-                  >
-                    {reviewerDetail.isActive ? t('active') : t('inactive')}
-                  </span>
+                  <div className="flex flex-col items-end gap-2">
+                    <span
+                      className={cn(
+                        'inline-flex rounded-full px-3 py-1 text-xs font-medium',
+                        reviewerDetail.isActive
+                          ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-300'
+                          : 'bg-red-50 text-red-700 dark:bg-red-950/50 dark:text-red-400',
+                      )}
+                    >
+                      {reviewerDetail.isActive ? t('active') : t('inactive')}
+                    </span>
+                    <span
+                      className={cn(
+                        'inline-flex rounded-full px-3 py-1 text-xs font-medium',
+                        reviewerDetail.isProfileComplete
+                          ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-300'
+                          : 'bg-amber-50 text-amber-700 dark:bg-amber-950/50 dark:text-amber-300',
+                      )}
+                    >
+                      {reviewerDetail.isProfileComplete
+                        ? t('profileComplete')
+                        : t('profileIncomplete')}
+                    </span>
+                  </div>
                 </div>
                 <div className="flex flex-wrap gap-2 border-b border-subtle pb-4">
                   <Button
