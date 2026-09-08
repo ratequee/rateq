@@ -157,8 +157,7 @@ export default function CompleteProfileScreen() {
 
   useEffect(() => {
     if (!user || isLoading) return;
-    if (phase !== 'complete-form' || accountType !== 'reviewer') return;
-    if (onboarding?.reviewerProfile?.phone) return;
+    if (onboarding?.reviewerProfile?.phone || onboarding?.company?.phone) return;
 
     const linked = getLinkedFirebasePhoneNumber();
     if (linked) {
@@ -169,8 +168,16 @@ export default function CompleteProfileScreen() {
       return;
     }
 
+    // Redirect as soon as they land on complete-profile without a verified phone.
     router.replace(VERIFY_PHONE_HUB);
-  }, [user, isLoading, phase, accountType, onboarding, phone, router]);
+  }, [user, isLoading, onboarding, phone, router]);
+
+  const needsPhoneBeforeProfile =
+    Boolean(user) &&
+    !isLoading &&
+    !onboarding?.reviewerProfile?.phone &&
+    !onboarding?.company?.phone &&
+    !getLinkedFirebasePhoneNumber();
 
   const accountOptions = useMemo(
     () => [
@@ -275,7 +282,7 @@ export default function CompleteProfileScreen() {
     router.replace('/(auth)/login');
   };
 
-  if (isLoading || !user) {
+  if (isLoading || !user || needsPhoneBeforeProfile) {
     return <LoadingView />;
   }
 

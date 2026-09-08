@@ -21,7 +21,13 @@ import {
   formatQatarPhoneForSubmit,
   isValidQatarPhoneDigits,
 } from '@/lib/qatar-phone';
-import { validateAuthFields, type AuthFieldErrors } from '@/lib/validation/auth-fields';
+import {
+  getPasswordRequirements,
+  validateEmailField,
+  validateStrongAuthPassword,
+  type AuthFieldErrors,
+  type PasswordRequirementKey,
+} from '@/lib/validation/auth-fields';
 import { useAppToast } from '@/hooks/use-app-toast';
 import { getFontFamily } from '@/i18n';
 import { Ionicons } from '@expo/vector-icons';
@@ -74,14 +80,23 @@ export default function RegisterScreen() {
       emailRequired: t('auth.validationEmailRequired'),
       emailInvalid: t('auth.validationEmailInvalid'),
       passwordRequired: t('auth.validationPasswordRequired'),
-      passwordMin: t('auth.validationPasswordMin'),
+      passwordWeak: t('auth.validationPasswordWeak'),
     }),
     [t],
   );
 
+  const passwordRequirements = useMemo(() => getPasswordRequirements(password), [password]);
+  const passwordRequirementItems: Array<{ key: PasswordRequirementKey; label: string }> = [
+    { key: 'minLength', label: t('auth.passwordReqMinLength') },
+    { key: 'uppercase', label: t('auth.passwordReqUppercase') },
+    { key: 'digit', label: t('auth.passwordReqDigit') },
+    { key: 'special', label: t('auth.passwordReqSpecial') },
+  ];
+
   const handleContinueToPhone = async () => {
     const errors: AuthFieldErrors & { name?: string; phone?: string } = {
-      ...validateAuthFields({ email, password }, validationMessages),
+      ...validateEmailField(email, validationMessages),
+      ...validateStrongAuthPassword(password, validationMessages),
     };
     if (!name.trim()) {
       errors.name = t('auth.validationNameRequired');
@@ -222,19 +237,41 @@ export default function RegisterScreen() {
         </AuthFieldGroup>
 
         {!phoneVerified ? (
-          <AuthFieldGroup label={t('auth.password')} required error={fieldErrors.password}>
-            <PasswordInput
-              value={password}
-              onChangeText={setPassword}
-              autoComplete="new-password"
-              placeholder={t('auth.passwordPlaceholder')}
-              className="h-12 rounded-2xl border-slate-200 bg-slate-50 dark:border-dm-border dark:bg-dm-elevated"
-              toggleLabels={{
-                show: t('auth.showPassword'),
-                hide: t('auth.hidePassword'),
-              }}
-            />
-          </AuthFieldGroup>
+          <View>
+            <AuthFieldGroup label={t('auth.password')} required error={fieldErrors.password}>
+              <PasswordInput
+                value={password}
+                onChangeText={setPassword}
+                autoComplete="new-password"
+                placeholder={t('auth.passwordPlaceholder')}
+                className="h-12 rounded-2xl border-slate-200 bg-slate-50 dark:border-dm-border dark:bg-dm-elevated"
+                toggleLabels={{
+                  show: t('auth.showPassword'),
+                  hide: t('auth.hidePassword'),
+                }}
+              />
+            </AuthFieldGroup>
+            <View className="mt-2 gap-1.5">
+              {passwordRequirementItems.map(({ key, label }) => {
+                const met = passwordRequirements[key];
+                return (
+                  <View key={key} className="flex-row items-center gap-1.5">
+                    <Ionicons
+                      name={met ? 'checkmark-circle' : 'ellipse-outline'}
+                      size={14}
+                      color={met ? '#059669' : '#dc2626'}
+                    />
+                    <Text
+                      className={`text-xs ${met ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600'}`}
+                      style={{ fontFamily: getFontFamily('regular') }}
+                    >
+                      {label}
+                    </Text>
+                  </View>
+                );
+              })}
+            </View>
+          </View>
         ) : null}
 
         <AuthFieldGroup label={t('onboarding.phone')} required error={fieldErrors.phone}>

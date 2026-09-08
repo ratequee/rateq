@@ -165,21 +165,20 @@ export default function CompleteProfilePage() {
     const linked = getLinkedFirebasePhoneNumber();
     if (linked) return;
 
-    // Incomplete signup without phone — send to verification hub (not registration).
-    if (showProfileForm && phase === 'complete-form') {
-      const context = accountType === 'company' ? 'company' : 'reviewer';
-      router.replace(`/check-email?needPhone=1&context=${context}`);
+    // Incomplete signup without phone — redirect as soon as they land here.
+    if (showProfileForm) {
+      router.replace('/check-email?needPhone=1');
     }
-  }, [
-    user,
-    profileLoading,
-    isEmailVerified,
-    onboarding,
-    showProfileForm,
-    phase,
-    accountType,
-    router,
-  ]);
+  }, [user, profileLoading, isEmailVerified, onboarding, showProfileForm, router]);
+
+  const needsPhoneBeforeProfile =
+    Boolean(user) &&
+    !profileLoading &&
+    isEmailVerified &&
+    showProfileForm &&
+    !onboarding?.reviewerProfile?.phone &&
+    !onboarding?.company?.phone &&
+    !getLinkedFirebasePhoneNumber();
 
   useEffect(() => {
     if (accountType !== 'company') return;
@@ -651,11 +650,16 @@ export default function CompleteProfilePage() {
   const reviewerRoleDisabled = lockedAccountType === 'company';
   const companyRoleDisabled = lockedAccountType === 'reviewer';
   const showTypeSelection =
-    showProfileForm && phase === 'choose-type' && !lockedAccountType && !companyRevisionRequested;
-  const showProfileFields = showProfileForm && phase === 'complete-form';
+    showProfileForm &&
+    phase === 'choose-type' &&
+    !lockedAccountType &&
+    !companyRevisionRequested &&
+    !needsPhoneBeforeProfile;
+  const showProfileFields =
+    showProfileForm && phase === 'complete-form' && !needsPhoneBeforeProfile;
   const canChangeAccountType = showProfileFields && !lockedAccountType && !companyRevisionRequested;
 
-  if (!isEmailVerified) {
+  if (!isEmailVerified || needsPhoneBeforeProfile) {
     return (
       <div className="flex min-h-[50vh] items-center justify-center bg-brand-500">
         <p className="text-sm text-white">Loading…</p>

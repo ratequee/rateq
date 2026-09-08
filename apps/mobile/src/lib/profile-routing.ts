@@ -1,5 +1,6 @@
 import type { AuthenticatedUser, OnboardingStatus } from '@rateq/types';
 import { UserRole } from '@rateq/types';
+import { getLinkedFirebasePhoneNumber } from '@/lib/firebase/phone-auth';
 
 export type MobileAppRoute =
   | '/(auth)/login'
@@ -55,6 +56,13 @@ export function getPostAuthRoute(
   }
 
   if (!canAccessDashboard(user, onboarding)) {
+    const hasProfilePhone = Boolean(
+      onboarding?.reviewerProfile?.phone || onboarding?.company?.phone,
+    );
+    // Incomplete accounts without a verified phone go to the verification hub first.
+    if (!hasProfilePhone && !getLinkedFirebasePhoneNumber()) {
+      return '/(auth)/check-email';
+    }
     return '/(onboarding)/complete-profile';
   }
 

@@ -27,18 +27,21 @@ import {
   isValidQatarPhoneDigits,
 } from '@/lib/qatar-phone';
 import {
+  getPasswordRequirements,
   sanitizeDisplayName,
   sanitizeEmail,
   sanitizePassword,
   validateRegisterFields,
+  type PasswordRequirementKey,
   type RegisterFieldErrors,
 } from '@/lib/validation/auth-fields';
 import { useTranslations } from 'next-intl';
 import { useSearchParams } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import { Logo } from '@/components/brand/logo';
 import { CheckCircle2, Eye, EyeOff } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 export default function RegisterPage() {
   const t = useTranslations('auth');
@@ -103,6 +106,14 @@ export default function RegisterPage() {
       whitespace: tp('validationPasswordWhitespace'),
     },
   };
+
+  const passwordRequirements = useMemo(() => getPasswordRequirements(password), [password]);
+  const passwordRequirementItems: Array<{ key: PasswordRequirementKey; label: string }> = [
+    { key: 'minLength', label: tp('passwordReqMinLength') },
+    { key: 'uppercase', label: tp('passwordReqUppercase') },
+    { key: 'digit', label: tp('passwordReqDigit') },
+    { key: 'special', label: tp('passwordReqSpecial') },
+  ];
 
   const { refreshOnboarding } = useProfile();
 
@@ -298,7 +309,26 @@ export default function RegisterPage() {
               {fieldErrors.password && (
                 <p className="mt-1 text-sm text-red-600">{fieldErrors.password}</p>
               )}
-              <p className="mt-1 text-xs text-ink-muted dark:text-white/75">{tp('passwordHint')}</p>
+              <ul className="mt-2 space-y-1">
+                {passwordRequirementItems.map(({ key, label }) => {
+                  const met = passwordRequirements[key];
+                  return (
+                    <li
+                      key={key}
+                      className={cn(
+                        'flex items-center gap-1.5 text-xs',
+                        met ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600',
+                      )}
+                    >
+                      <CheckCircle2
+                        className={cn('h-3.5 w-3.5 shrink-0', !met && 'opacity-40')}
+                        aria-hidden
+                      />
+                      {label}
+                    </li>
+                  );
+                })}
+              </ul>
             </div>
           ) : null}
 

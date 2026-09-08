@@ -1,6 +1,15 @@
 import type { ReviewPublic } from '@rateq/types';
 
-export type DashboardReviewRowStatus = 'pending' | 'approved' | 'rejected' | 'useful';
+export type DashboardReviewRowStatus =
+  | 'pending'
+  | 'resolution_pending'
+  | 'modified'
+  | 'proceeded'
+  | 'withdrawn'
+  | 'approved'
+  | 'rejected'
+  | 'deleted'
+  | 'useful';
 
 export interface DashboardReviewRow {
   id: string;
@@ -18,12 +27,19 @@ export function mapReviewStatus(status: string): DashboardReviewRowStatus {
     case 'APPROVED':
       return 'approved';
     case 'REJECTED':
-    case 'WITHDRAWN':
       return 'rejected';
-    case 'PENDING':
+    case 'WITHDRAWN':
+      return 'withdrawn';
+    case 'DELETED':
+      return 'deleted';
     case 'RESOLUTION_PENDING':
+      return 'resolution_pending';
     case 'MODIFIED':
+      return 'modified';
     case 'PROCEEDED':
+      return 'proceeded';
+    case 'PENDING':
+      return 'pending';
     default:
       return 'pending';
   }

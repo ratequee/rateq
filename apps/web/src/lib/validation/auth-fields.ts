@@ -1,6 +1,34 @@
 const NAME_PATTERN = /^[\p{L}]+(?:\s+[\p{L}]+)*$/u;
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+/** Legacy / login: at least one letter and one digit. */
 const PASSWORD_PATTERN = /^(?=.*[a-zA-Z])(?=.*\d).+$/;
+const PASSWORD_UPPERCASE = /[A-Z]/;
+const PASSWORD_DIGIT = /\d/;
+const PASSWORD_SPECIAL = /[^A-Za-z0-9]/;
+
+export type PasswordRequirementKey = 'minLength' | 'uppercase' | 'digit' | 'special';
+
+export type PasswordRequirements = Record<PasswordRequirementKey, boolean>;
+
+export function getPasswordRequirements(password: string): PasswordRequirements {
+  return {
+    minLength: password.length >= 8,
+    uppercase: PASSWORD_UPPERCASE.test(password),
+    digit: PASSWORD_DIGIT.test(password),
+    special: PASSWORD_SPECIAL.test(password),
+  };
+}
+
+export function arePasswordRequirementsMet(password: string): boolean {
+  const requirements = getPasswordRequirements(password);
+  return (
+    requirements.minLength &&
+    requirements.uppercase &&
+    requirements.digit &&
+    requirements.special &&
+    !/\s/.test(password)
+  );
+}
 
 export type RegisterFieldErrors = {
   name?: string;
@@ -103,6 +131,35 @@ export function validatePassword(
   return undefined;
 }
 
+/** Strong password for new registrations. */
+export function validateStrongPassword(
+  password: string,
+  messages: {
+    required: string;
+    max?: string;
+    weak: string;
+    whitespace?: string;
+  },
+): string | undefined {
+  if (!password) {
+    return messages.required;
+  }
+
+  if (/\s/.test(password)) {
+    return messages.whitespace ?? messages.weak;
+  }
+
+  if (password.length > 128) {
+    return messages.max ?? messages.weak;
+  }
+
+  if (!arePasswordRequirementsMet(password)) {
+    return messages.weak;
+  }
+
+  return undefined;
+}
+
 export function validateRegisterFields(
   fields: { name: string; email: string; password: string },
   messages: {
@@ -115,7 +172,7 @@ export function validateRegisterFields(
 
   const nameError = validateDisplayName(fields.name, messages.name);
   const emailError = validateEmailAddress(fields.email, messages.email);
-  const passwordError = validatePassword(fields.password, messages.password);
+  const passwordError = validateStrongPassword(fields.password, messages.password);
 
   if (nameError) errors.name = nameError;
   if (emailError) errors.email = emailError;

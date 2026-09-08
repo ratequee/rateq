@@ -1,6 +1,7 @@
 import type { AdminAccess, AuthenticatedUser, OnboardingStatus } from '@rateq/types';
 import { UserRole, canAccessAdminDashboard } from '@rateq/types';
 import { getFirstAllowedAdminRoute } from '@/lib/admin-permissions';
+import { getLinkedFirebasePhoneNumber } from '@/lib/firebase/phone-auth';
 import { getStoredProfile } from '@/lib/profile-storage';
 
 export function getCompanyVerificationStatus(
@@ -132,6 +133,13 @@ export function getPostAuthRedirect(
   }
 
   if (!canAccessDashboard(user, onboarding, access)) {
+    const hasProfilePhone = Boolean(
+      onboarding?.reviewerProfile?.phone || onboarding?.company?.phone,
+    );
+    // Incomplete accounts without a verified phone go to the verification hub first.
+    if (!hasProfilePhone && !getLinkedFirebasePhoneNumber()) {
+      return '/check-email?needPhone=1';
+    }
     return '/complete-profile';
   }
 
