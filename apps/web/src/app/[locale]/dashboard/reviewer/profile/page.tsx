@@ -13,7 +13,7 @@ import { useRequireCompleteProfile } from '@/hooks/use-require-verified-auth';
 import { waitForFirebaseUser } from '@/lib/firebase/wait-for-user';
 import { uploadUserFile } from '@/lib/firebase/storage';
 import { onboardingApi } from '@/lib/onboarding-api';
-import { ApiError } from '@/lib/api';
+import { useUserFacingError } from '@/hooks/use-user-facing-error';
 import { sanitizeDisplayName } from '@/lib/validation/auth-fields';
 import {
   hasValidationErrors,
@@ -27,6 +27,7 @@ import { toast } from 'sonner';
 function ReviewerSettingsForm({ profile }: { profile: ReviewerProfile }) {
   const t = useTranslations('profilePage');
   const ta = useTranslations('authPage');
+  const resolveError = useUserFacingError();
   const { user } = useAuth();
   const { refreshOnboarding } = useProfile();
 
@@ -94,8 +95,7 @@ function ReviewerSettingsForm({ profile }: { profile: ReviewerProfile }) {
       await refreshOnboarding();
       toast.success(t('profileUpdated'));
     } catch (err) {
-      const message = err instanceof ApiError ? err.message : t('saveError');
-      toast.error(message);
+      toast.error(resolveError(err, t('saveError')));
     } finally {
       setSubmitting(false);
     }

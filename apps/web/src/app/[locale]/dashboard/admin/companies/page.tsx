@@ -5,10 +5,10 @@ import { DashboardPageHeader } from '@/components/dashboard/dashboard-page-heade
 import { DashboardShell } from '@/components/dashboard/dashboard-shell';
 import { Button } from '@/components/ui/button';
 import { useRequireAdmin } from '@/hooks/use-require-admin';
+import { useUserFacingError } from '@/hooks/use-user-facing-error';
 import { Link } from '@/i18n/routing';
 import { AdminPermission } from '@rateq/types';
 import { adminApi } from '@/lib/admin-api';
-import { ApiError } from '@/lib/api';
 import type {
   AdminCompanyVerificationDetail,
   AdminCompanyVerificationSummary,
@@ -33,6 +33,7 @@ const PAGE_SUBTITLE =
 
 export default function AdminCompanyVerificationsPage() {
   const t = useTranslations('adminCompanies');
+  const resolveError = useUserFacingError();
   const locale = useLocale();
   const searchParams = useSearchParams();
   const initialFilter = (searchParams.get('filter') as FilterStatus | null) ?? 'pending';
@@ -97,7 +98,7 @@ export default function AdminCompanyVerificationsPage() {
         if (first) setSelectedId(first.id);
       }
     } catch (err) {
-      const message = err instanceof ApiError ? err.message : t('loadError');
+      const message = resolveError(err, t('loadError'));
       toast.error(message);
       setItems([]);
     } finally {
@@ -129,7 +130,7 @@ export default function AdminCompanyVerificationsPage() {
       })
       .catch((err) => {
         if (!cancelled) {
-          const message = err instanceof ApiError ? err.message : t('loadError');
+          const message = resolveError(err, t('loadError'));
           toast.error(message);
           setDetail(null);
         }
@@ -168,7 +169,7 @@ export default function AdminCompanyVerificationsPage() {
       await loadList();
       await loadFilterCounts();
     } catch (err) {
-      const message = err instanceof ApiError ? err.message : t('actionError');
+      const message = resolveError(err, t('actionError'));
       toast.error(message);
     } finally {
       setActing(false);
@@ -192,7 +193,7 @@ export default function AdminCompanyVerificationsPage() {
       const refreshed = await adminApi.getCompanyVerification(selectedId);
       setDetail(refreshed);
     } catch (err) {
-      const message = err instanceof ApiError ? err.message : t('actionError');
+      const message = resolveError(err, t('actionError'));
       toast.error(message);
     } finally {
       setProfileChangeActing(false);

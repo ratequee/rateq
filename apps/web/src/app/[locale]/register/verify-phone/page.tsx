@@ -14,13 +14,6 @@ import {
   startFirebasePhoneVerification,
 } from '@/lib/firebase/phone-auth';
 import { getFirebaseAuth } from '@/lib/firebase/client';
-import { ApiError } from '@/lib/api';
-import {
-  getFirebaseAuthErrorMessage,
-  isFirebaseInvalidAppCredentialError,
-  isFirebasePhoneAlreadyLinkedError,
-  isFirebasePhoneRegionNotEnabledError,
-} from '@/lib/firebase/errors';
 import {
   extractQatarPhoneDigits,
   formatQatarPhoneForSubmit,
@@ -28,6 +21,7 @@ import {
 } from '@/lib/qatar-phone';
 import { getPendingRegistration, markPendingPhoneVerified } from '@/lib/pending-registration';
 import { ensureValidAccessToken } from '@/lib/auth-session';
+import { useUserFacingError } from '@/hooks/use-user-facing-error';
 import { useSearchParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { useEffect, useId, useState } from 'react';
@@ -35,24 +29,10 @@ import { toast } from 'sonner';
 
 const RESEND_COOLDOWN_SECONDS = 60;
 
-function getPhoneErrorMessage(
-  err: unknown,
-  t: (key: string) => string,
-  fallbackKey: 'phoneOtpSendError' | 'phoneOtpVerifyError',
-): string {
-  if (isFirebasePhoneAlreadyLinkedError(err)) return t('phoneAlreadyLinked');
-  if (isFirebasePhoneRegionNotEnabledError(err)) return t('phoneRegionNotEnabled');
-  if (isFirebaseInvalidAppCredentialError(err)) return t('phoneInvalidAppCredential');
-  if (err instanceof ApiError) return err.message;
-  if (err instanceof Error && err.message) {
-    return getFirebaseAuthErrorMessage(err, t(fallbackKey));
-  }
-  return t(fallbackKey);
-}
-
 export default function RegisterVerifyPhonePage() {
   const t = useTranslations('profilePage');
   const ta = useTranslations('authPage');
+  const resolveError = useUserFacingError();
   const router = useRouter();
   const searchParams = useSearchParams();
   const nextPath = searchParams.get('next') || '/register';
@@ -153,7 +133,7 @@ export default function RegisterVerifyPhonePage() {
       toast.success(t('phoneOtpSent'));
     } catch (err) {
       setRecaptchaAttempt((n) => n + 1);
-      toast.error(getPhoneErrorMessage(err, t, 'phoneOtpSendError'));
+      toast.error(resolveError(err, t('phoneOtpSendError')));
     } finally {
       setSending(false);
     }
@@ -170,7 +150,7 @@ export default function RegisterVerifyPhonePage() {
       await confirmFirebasePhoneVerification(otpCode.trim());
       await completeVerification(formatQatarPhoneForSubmit(phone));
     } catch (err) {
-      toast.error(getPhoneErrorMessage(err, t, 'phoneOtpVerifyError'));
+      toast.error(resolveError(err, t('phoneOtpVerifyError')));
     } finally {
       setVerifying(false);
     }

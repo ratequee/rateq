@@ -14,7 +14,8 @@ import { getAccessToken } from '@/lib/auth-storage';
 import { getPostAuthRedirect } from '@/lib/profile-routing';
 import { isAccountDeactivatedApiError } from '@/lib/account-status';
 import type { AuthenticatedUser } from '@rateq/types';
-import { getFirebaseAuthErrorMessage } from '@/lib/firebase/errors';
+import { useUserFacingError } from '@/hooks/use-user-facing-error';
+import { resolveUserErrorKey } from '@rateq/utils';
 import {
   validateLoginFields,
   sanitizeEmail,
@@ -31,6 +32,8 @@ export default function LoginPage() {
   const t = useTranslations('auth');
   const tp = useTranslations('authPage');
   const tn = useTranslations('nav');
+  const te = useTranslations('errors');
+  const resolveError = useUserFacingError();
   const { login } = useAuth();
   const { refreshOnboarding } = useProfile();
   const router = useRouter();
@@ -105,17 +108,34 @@ export default function LoginPage() {
       await redirectAfterAuth(sessionUser);
     } catch (err) {
       if (isAccountDeactivatedApiError(err)) {
-        toast.error(tp('accountDeactivated'));
+        toast.error(te('accountDeactivated'));
         return;
       }
 
       if (isEmailNotVerifiedError(err)) {
-        toast.error(tp('loginEmailNotVerified'));
+        toast.error(te('emailNotVerified'));
         router.push(`/check-email?email=${encodeURIComponent(err.email)}`);
         return;
       }
 
-      toast.error(getFirebaseAuthErrorMessage(err, tp('loginError')));
+      const key = resolveUserErrorKey(err);
+      if (key === 'invalidEmail' || key === 'noAccountForEmail') {
+        setFieldErrors({ email: te(key) });
+        return;
+      }
+      if (key === 'incorrectPassword') {
+        setFieldErrors({ password: te(key) });
+        return;
+      }
+      if (key === 'invalidCredentials') {
+        setFieldErrors({
+          email: te('invalidCredentials'),
+          password: te('incorrectPassword'),
+        });
+        return;
+      }
+
+      toast.error(resolveError(err, tp('loginError')));
     } finally {
       setLoading(false);
     }

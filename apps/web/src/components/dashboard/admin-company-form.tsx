@@ -10,12 +10,11 @@ import { Input } from '@/components/ui/input';
 import { QatarPhoneInput } from '@/components/ui/qatar-phone-input';
 import { Link, useRouter } from '@/i18n/routing';
 import { adminApi } from '@/lib/admin-api';
-import { ApiError } from '@/lib/api';
+import { useUserFacingError } from '@/hooks/use-user-facing-error';
 import { fetchCategoriesClient } from '@/lib/categories-api';
 import { fetchCompanyCatalogClient } from '@/lib/company-catalog-api';
 import type { CompanyMapLocation } from '@/lib/company-location';
 import { approximateRegistrationDateFromYears } from '@/lib/company-years';
-import { getFirebaseStorageErrorMessage } from '@/lib/firebase/errors';
 import {
   isRemoteImage,
   isRemotePdf,
@@ -94,6 +93,7 @@ interface AdminCompanyFormProps {
 export function AdminCompanyForm({ mode, companyId, initialValues }: AdminCompanyFormProps) {
   const t = useTranslations('adminCompanyForm');
   const tp = useTranslations('profilePage');
+  const resolveError = useUserFacingError();
   const router = useRouter();
 
   const [submitting, setSubmitting] = useState(false);
@@ -348,11 +348,7 @@ export function AdminCompanyForm({ mode, companyId, initialValues }: AdminCompan
       toast.success(t('updateSuccess'));
       router.push('/dashboard/admin/directory');
     } catch (err) {
-      const message =
-        err instanceof ApiError
-          ? err.message
-          : getFirebaseStorageErrorMessage(err, t('errors.uploadFailed'));
-      toast.error(message);
+      toast.error(resolveError(err, t('errors.uploadFailed')));
     } finally {
       setSubmitting(false);
     }

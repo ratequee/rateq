@@ -9,7 +9,6 @@ import { Input } from '@/components/ui/input';
 import { QatarPhoneInput } from '@/components/ui/qatar-phone-input';
 import { useRedirectVerifiedFromCheckEmail } from '@/hooks/use-require-verified-auth';
 import { Link, useRouter } from '@/i18n/routing';
-import { getFirebaseAuthErrorMessage } from '@/lib/firebase/errors';
 import { getLinkedFirebasePhoneNumber } from '@/lib/firebase/phone-auth';
 import {
   extractQatarPhoneDigits,
@@ -17,6 +16,8 @@ import {
   isValidQatarPhoneDigits,
 } from '@/lib/qatar-phone';
 import { validateEmailAddress, validatePassword } from '@/lib/validation/auth-fields';
+import { useUserFacingError } from '@/hooks/use-user-facing-error';
+import { resolveUserErrorKey } from '@rateq/utils';
 import { useTranslations } from 'next-intl';
 import { useSearchParams } from 'next/navigation';
 import { Suspense, useEffect, useMemo, useState } from 'react';
@@ -26,6 +27,7 @@ import { CheckCircle2 } from 'lucide-react';
 function CheckEmailContent() {
   const tp = useTranslations('authPage');
   const tProfile = useTranslations('profilePage');
+  const resolveError = useUserFacingError();
   const { user, resendVerificationEmail } = useAuth();
   const { onboarding } = useProfile();
   const router = useRouter();
@@ -94,10 +96,10 @@ function CheckEmailContent() {
       await resendVerificationEmail(email, password);
       toast.success(tp('verificationEmailResent'));
     } catch (err) {
-      if (err instanceof Error && err.message.includes('already verified')) {
+      if (resolveUserErrorKey(err) === 'emailAlreadyVerified') {
         toast.success(tp('emailAlreadyVerified'));
       } else {
-        toast.error(getFirebaseAuthErrorMessage(err, tp('verificationEmailResendError')));
+        toast.error(resolveError(err, tp('verificationEmailResendError')));
       }
     } finally {
       setLoading(false);

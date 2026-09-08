@@ -14,7 +14,6 @@ import { authApi } from '@/lib/api';
 import { getAccessToken } from '@/lib/auth-storage';
 import { getPostAuthRedirect } from '@/lib/profile-routing';
 import type { AuthenticatedUser } from '@rateq/types';
-import { getFirebaseAuthErrorMessage } from '@/lib/firebase/errors';
 import { getLinkedFirebasePhoneNumber, isSamePhoneNumber } from '@/lib/firebase/phone-auth';
 import {
   clearPendingRegistration,
@@ -35,6 +34,8 @@ import {
   type PasswordRequirementKey,
   type RegisterFieldErrors,
 } from '@/lib/validation/auth-fields';
+import { useUserFacingError } from '@/hooks/use-user-facing-error';
+import { resolveUserErrorKey } from '@rateq/utils';
 import { useTranslations } from 'next-intl';
 import { useSearchParams } from 'next/navigation';
 import { useEffect, useMemo, useState } from 'react';
@@ -47,7 +48,9 @@ export default function RegisterPage() {
   const t = useTranslations('auth');
   const tp = useTranslations('authPage');
   const tn = useTranslations('nav');
+  const te = useTranslations('errors');
   const tProfile = useTranslations('profilePage');
+  const resolveError = useUserFacingError();
   const { beginRegistration, finishRegistration } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -184,7 +187,21 @@ export default function RegisterPage() {
         return;
       }
 
-      toast.error(getFirebaseAuthErrorMessage(err, tp('registerError')));
+      const key = resolveUserErrorKey(err);
+      if (key === 'emailAlreadyInUse') {
+        setFieldErrors({ email: te(key) });
+        return;
+      }
+      if (key === 'weakPassword') {
+        setFieldErrors({ password: te(key) });
+        return;
+      }
+      if (key === 'invalidEmail') {
+        setFieldErrors({ email: te(key) });
+        return;
+      }
+
+      toast.error(resolveError(err, tp('registerError')));
     } finally {
       setLoading(false);
     }
@@ -208,7 +225,7 @@ export default function RegisterPage() {
         router.push(`/check-email?email=${encodeURIComponent(err.email)}`);
         return;
       }
-      toast.error(getFirebaseAuthErrorMessage(err, tp('registerError')));
+      toast.error(resolveError(err, tp('registerError')));
     } finally {
       setLoading(false);
     }

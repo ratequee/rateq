@@ -3,7 +3,6 @@ import { Input } from '@/components/ui/input';
 import { AuthFieldGroup } from '@/components/auth/auth-field-group';
 import { AuthScreenLayout } from '@/components/auth/auth-screen-layout';
 import { useAuth } from '@/context/auth-context';
-import { getFirebaseAuthErrorMessage } from '@/lib/firebase/errors';
 import { validateEmailField } from '@/lib/validation/auth-fields';
 import { useAppToast } from '@/hooks/use-app-toast';
 import { getFontFamily } from '@/i18n';
@@ -46,7 +45,7 @@ export default function ForgotPasswordScreen() {
       setSubmitted(true);
       toast.success(t('auth.forgotPasswordSuccess'));
     } catch (err) {
-      toast.error(getFirebaseAuthErrorMessage(err, t('auth.forgotPasswordError')));
+      toast.apiError(err, t('auth.forgotPasswordError'));
     } finally {
       setLoading(false);
     }

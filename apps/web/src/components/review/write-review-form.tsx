@@ -4,11 +4,12 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { StarRating } from '@/components/ui/star-rating';
-import { ApiError, reviewsApi } from '@/lib/api';
+import { reviewsApi } from '@/lib/api';
 import { isAccountDeactivatedApiError } from '@/lib/account-status';
 import { ensureValidAccessToken } from '@/lib/auth-session';
 import { uploadReviewProofFiles } from '@/lib/review-proof-upload';
 import { getDeviceFingerprint } from '@/lib/device-fingerprint';
+import { useUserFacingError } from '@/hooks/use-user-facing-error';
 import {
   sanitizeReviewContent,
   sanitizeReviewTitle,
@@ -35,6 +36,7 @@ export function WriteReviewForm({
   onCancel,
 }: WriteReviewFormProps) {
   const t = useTranslations('review');
+  const resolveError = useUserFacingError();
   const [overallRating, setOverallRating] = useState(5);
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
@@ -108,8 +110,7 @@ export function WriteReviewForm({
         return;
       }
 
-      const message = err instanceof ApiError ? err.message : t('submitError');
-      toast.error(message);
+      toast.error(resolveError(err, t('submitError')));
     } finally {
       setLoading(false);
     }

@@ -12,7 +12,6 @@ import {
   resetFirebasePhoneVerification,
   startFirebasePhoneVerification,
 } from '@/lib/firebase/phone-auth';
-import { getPhoneVerificationErrorMessage } from '@/lib/firebase/phone-errors';
 import { getFirebaseWebConfig } from '@/lib/firebase/client';
 import {
   extractQatarPhoneDigits,
@@ -135,15 +134,7 @@ export function PhoneVerificationField({
       setResendCooldown(RESEND_COOLDOWN_SECONDS);
       toast.success(t('onboarding.phoneOtpSentMessage'), t('onboarding.phoneOtpSentTitle'));
     } catch (err) {
-      toast.error(
-        getPhoneVerificationErrorMessage(
-          err,
-          t('onboarding.phoneOtpSendError'),
-          t('onboarding.phoneAlreadyLinked'),
-          t('onboarding.phoneRegionNotEnabled'),
-          t('onboarding.phoneInvalidCredential'),
-        ),
-      );
+      toast.apiError(err, t('onboarding.phoneOtpSendError'));
     } finally {
       setSending(false);
     }
@@ -173,15 +164,7 @@ export function PhoneVerificationField({
       await completePhoneSync(normalizePhoneNumber(phone));
     } catch (err) {
       onVerifiedChange(false);
-      toast.error(
-        getPhoneVerificationErrorMessage(
-          err,
-          t('onboarding.phoneOtpVerifyError'),
-          t('onboarding.phoneAlreadyLinked'),
-          t('onboarding.phoneRegionNotEnabled'),
-          t('onboarding.phoneInvalidCredential'),
-        ),
-      );
+      toast.apiError(err, t('onboarding.phoneOtpVerifyError'));
     } finally {
       setVerifying(false);
     }

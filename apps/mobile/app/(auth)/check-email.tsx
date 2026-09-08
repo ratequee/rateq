@@ -6,7 +6,6 @@ import { QatarPhoneInput } from '@/components/ui/qatar-phone-input';
 import { AuthScreenLayout } from '@/components/auth/auth-screen-layout';
 import { useAuth } from '@/context/auth-context';
 import { useProfile } from '@/context/profile-context';
-import { getFirebaseAuthErrorMessage } from '@/lib/firebase/errors';
 import { getLinkedFirebasePhoneNumber } from '@/lib/firebase/phone-auth';
 import {
   extractQatarPhoneDigits,
@@ -15,6 +14,7 @@ import {
 } from '@/lib/qatar-phone';
 import { validateAuthFields } from '@/lib/validation/auth-fields';
 import { useAppToast } from '@/hooks/use-app-toast';
+import { resolveUserErrorKey } from '@rateq/utils';
 import { getFontFamily } from '@/i18n';
 import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter, type Href } from 'expo-router';
@@ -88,10 +88,10 @@ export default function CheckEmailScreen() {
       await resendVerificationEmail(email.trim(), password);
       toast.success(t('auth.verificationEmailResent'));
     } catch (err) {
-      if (err instanceof Error && err.message.includes('already verified')) {
+      if (resolveUserErrorKey(err) === 'emailAlreadyVerified') {
         toast.info(t('auth.emailAlreadyVerified'));
       } else {
-        toast.error(getFirebaseAuthErrorMessage(err, t('auth.verificationEmailResendError')));
+        toast.apiError(err, t('auth.verificationEmailResendError'));
       }
     } finally {
       setLoading(false);

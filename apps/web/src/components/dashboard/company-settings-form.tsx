@@ -14,7 +14,7 @@ import { extractQatarPhoneDigits } from '@/lib/qatar-phone';
 import { useProfile } from '@/components/providers/profile-provider';
 import { onboardingApi } from '@/lib/onboarding-api';
 import { fetchCategoriesClient } from '@/lib/categories-api';
-import { ApiError } from '@/lib/api';
+import { useUserFacingError } from '@/hooks/use-user-facing-error';
 import { ensureValidAccessToken } from '@/lib/auth-session';
 import {
   companyNeedsCategorySelection,
@@ -36,6 +36,7 @@ function buildCompanyLocation(company: CompanyProfileDetail): CompanyMapLocation
 
 function CompanySettingsForm({ company }: { company: CompanyProfileDetail }) {
   const t = useTranslations('profilePage');
+  const resolveError = useUserFacingError();
   const { refreshOnboarding } = useProfile();
 
   const [categories, setCategories] = useState<CategoryPublic[]>([]);
@@ -127,8 +128,7 @@ function CompanySettingsForm({ company }: { company: CompanyProfileDetail }) {
         ),
       );
     } catch (err) {
-      const message = err instanceof ApiError ? err.message : t('saveError');
-      toast.error(message);
+      toast.error(resolveError(err, t('saveError')));
     } finally {
       setSubmitting(false);
     }

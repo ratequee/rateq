@@ -4,9 +4,9 @@ import { AdminCompanyForm } from '@/components/dashboard/admin-company-form';
 import { DashboardPageHeader } from '@/components/dashboard/dashboard-page-header';
 import { DashboardShell } from '@/components/dashboard/dashboard-shell';
 import { useRequireAdmin } from '@/hooks/use-require-admin';
+import { useUserFacingError } from '@/hooks/use-user-facing-error';
 import { adminApi } from '@/lib/admin-api';
 import { adminApi as adminPlatformApi } from '@/lib/admin-platform-api';
-import { ApiError } from '@/lib/api';
 import { ensureValidAccessToken } from '@/lib/auth-session';
 import { AdminPermission } from '@rateq/types';
 import type { AdminCompanyFormInitialValues } from '@/components/dashboard/admin-company-form';
@@ -18,6 +18,7 @@ import { toast } from 'sonner';
 
 export default function AdminEditCompanyPage() {
   const t = useTranslations('adminCompanyForm');
+  const resolveError = useUserFacingError();
   const params = useParams<{ id: string }>();
   const companyId = params.id;
   useRequireAdmin(AdminPermission.COMPANIES);
@@ -89,7 +90,7 @@ export default function AdminEditCompanyPage() {
         }
       } catch (err) {
         if (!cancelled) {
-          const message = err instanceof ApiError ? err.message : t('errors.loadFailed');
+          const message = resolveError(err, t('errors.loadFailed'));
           toast.error(message);
           setInitialValues(null);
         }

@@ -11,7 +11,7 @@ import { Input } from '@/components/ui/input';
 import { useProfile } from '@/components/providers/profile-provider';
 import { fetchCompanyCatalogClient } from '@/lib/company-catalog-api';
 import { onboardingApi } from '@/lib/onboarding-api';
-import { ApiError } from '@/lib/api';
+import { useUserFacingError } from '@/hooks/use-user-facing-error';
 import { formatRegistrationDateInput } from '@/lib/company-years';
 import { CatalogMultiSelect } from '@/components/profile/catalog-multi-select';
 import type {
@@ -88,6 +88,7 @@ function buildPublicProfileUpdates(
 
 function CompanyPublicProfileFormFields({ company }: { company: CompanyProfileDetail }) {
   const t = useTranslations('profilePage');
+  const resolveError = useUserFacingError();
   const { refreshOnboarding } = useProfile();
 
   const [nameEn, setNameEn] = useState(() => company.name ?? '');
@@ -183,8 +184,7 @@ function CompanyPublicProfileFormFields({ company }: { company: CompanyProfileDe
         ),
       );
     } catch (err) {
-      const message = err instanceof ApiError ? err.message : t('saveError');
-      toast.error(message);
+      toast.error(resolveError(err, t('saveError')));
     } finally {
       setSubmitting(false);
     }

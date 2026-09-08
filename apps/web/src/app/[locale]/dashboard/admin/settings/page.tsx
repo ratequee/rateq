@@ -6,8 +6,8 @@ import { DashboardShell } from '@/components/dashboard/dashboard-shell';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useRequireAdmin } from '@/hooks/use-require-admin';
+import { useUserFacingError } from '@/hooks/use-user-facing-error';
 import { adminApi } from '@/lib/admin-api';
-import { ApiError } from '@/lib/api';
 import {
   AdminPermission,
   type LegalDocumentPoint,
@@ -106,6 +106,7 @@ function toPayload(form: SettingsForm): UpdateSiteSettingsInput {
 
 export default function AdminSiteSettingsPage() {
   const t = useTranslations('adminSettings');
+  const resolveError = useUserFacingError();
   useRequireAdmin(AdminPermission.SETTINGS);
 
   const [loading, setLoading] = useState(true);
@@ -118,7 +119,7 @@ export default function AdminSiteSettingsPage() {
       const settings = await adminApi.getSiteSettings();
       setForm(toForm(settings));
     } catch (err) {
-      const message = err instanceof ApiError ? err.message : t('loadError');
+      const message = resolveError(err, t('loadError'));
       toast.error(message);
     } finally {
       setLoading(false);
@@ -148,7 +149,7 @@ export default function AdminSiteSettingsPage() {
       setForm(toForm(updated));
       toast.success(t('saveSuccess'));
     } catch (err) {
-      const message = err instanceof ApiError ? err.message : t('saveError');
+      const message = resolveError(err, t('saveError'));
       toast.error(message);
     } finally {
       setSaving(false);

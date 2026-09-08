@@ -5,7 +5,7 @@ import { AccountLinkingDialog } from '@/components/auth/account-linking-dialog';
 import { useAuth } from '@/components/providers/auth-provider';
 import { isAccountDeactivatedApiError } from '@/lib/account-status';
 import { AccountLinkingRequiredError, isAccountLinkingRequiredError } from '@/lib/auth-flow-errors';
-import { getFirebaseAuthErrorMessage } from '@/lib/firebase/errors';
+import { useUserFacingError } from '@/hooks/use-user-facing-error';
 import { useTranslations } from 'next-intl';
 import Image from 'next/image';
 import { useState } from 'react';
@@ -17,6 +17,8 @@ interface GoogleSignInButtonProps {
 
 export function GoogleSignInButton({ onSuccess }: GoogleSignInButtonProps) {
   const tp = useTranslations('authPage');
+  const te = useTranslations('errors');
+  const resolveError = useUserFacingError();
   const { loginWithGoogle, linkOAuthWithPassword } = useAuth();
   const [loading, setLoading] = useState(false);
   const [linkingRequest, setLinkingRequest] = useState<AccountLinkingRequiredError | null>(null);
@@ -33,10 +35,10 @@ export function GoogleSignInButton({ onSuccess }: GoogleSignInButtonProps) {
         return;
       }
       if (isAccountDeactivatedApiError(error)) {
-        toast.error(tp('accountDeactivated'));
+        toast.error(te('accountDeactivated'));
         return;
       }
-      toast.error(getFirebaseAuthErrorMessage(error, tp('loginError')));
+      toast.error(resolveError(error, tp('loginError')));
     } finally {
       setLoading(false);
     }
@@ -53,10 +55,10 @@ export function GoogleSignInButton({ onSuccess }: GoogleSignInButtonProps) {
       await onSuccess(user);
     } catch (error) {
       if (isAccountDeactivatedApiError(error)) {
-        toast.error(tp('accountDeactivated'));
+        toast.error(te('accountDeactivated'));
         return;
       }
-      toast.error(getFirebaseAuthErrorMessage(error, tp('loginError')));
+      toast.error(resolveError(error, tp('loginError')));
     } finally {
       setLoading(false);
     }

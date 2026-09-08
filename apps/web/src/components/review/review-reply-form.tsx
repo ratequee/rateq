@@ -3,29 +3,14 @@
 import { useAuth } from '@/components/providers/auth-provider';
 import { useProfile } from '@/components/providers/profile-provider';
 import { Button } from '@/components/ui/button';
-import { ApiError, reviewsApi } from '@/lib/api';
+import { reviewsApi } from '@/lib/api';
 import { ensureValidAccessToken } from '@/lib/auth-session';
 import { canCompanyReplyToReview } from '@/lib/review-reply';
+import { useUserFacingError } from '@/hooks/use-user-facing-error';
 import type { ReviewPublic } from '@rateq/types';
 import { useTranslations } from 'next-intl';
 import { useState } from 'react';
 import { toast } from 'sonner';
-
-function mapReplySubmitError(
-  err: ApiError,
-  t: ReturnType<typeof useTranslations<'review'>>,
-): string {
-  if (err.statusCode === 409) {
-    if (err.message.includes('already exists')) {
-      return t('replyAlreadyApproved');
-    }
-    if (err.message.includes('pending admin review')) {
-      return t('replyAlreadyPending');
-    }
-  }
-
-  return err.message || t('replySubmitError');
-}
 
 interface ReviewReplyFormProps {
   review: ReviewPublic;
@@ -42,6 +27,7 @@ export function ReviewReplyForm({
   trustedOwner = false,
 }: ReviewReplyFormProps) {
   const t = useTranslations('review');
+  const resolveError = useUserFacingError();
   const { user } = useAuth();
   const { onboarding } = useProfile();
   const [content, setContent] = useState('');
@@ -71,8 +57,7 @@ export function ReviewReplyForm({
       setContent('');
       onReplied?.(updated);
     } catch (err) {
-      const message = err instanceof ApiError ? mapReplySubmitError(err, t) : t('replySubmitError');
-      toast.error(message);
+      toast.error(resolveError(err, t('replySubmitError')));
     } finally {
       setLoading(false);
     }

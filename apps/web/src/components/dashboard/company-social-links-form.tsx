@@ -5,7 +5,7 @@ import { DashboardProfileLoading } from '@/components/dashboard/dashboard-profil
 import { Button } from '@/components/ui/button';
 import { useProfile } from '@/components/providers/profile-provider';
 import { onboardingApi } from '@/lib/onboarding-api';
-import { ApiError } from '@/lib/api';
+import { useUserFacingError } from '@/hooks/use-user-facing-error';
 import type { CompanyProfileDetail, CompanySocialLinks } from '@rateq/types';
 import { useTranslations } from 'next-intl';
 import { useState } from 'react';
@@ -13,6 +13,7 @@ import { toast } from 'sonner';
 
 function CompanySocialLinksFormFields({ company }: { company: CompanyProfileDetail }) {
   const t = useTranslations('profilePage');
+  const resolveError = useUserFacingError();
   const { refreshOnboarding } = useProfile();
 
   const [socialLinks, setSocialLinks] = useState<CompanySocialLinks>(
@@ -45,8 +46,7 @@ function CompanySocialLinksFormFields({ company }: { company: CompanyProfileDeta
       await refreshOnboarding();
       toast.success(t('socialLinksUpdated'));
     } catch (err) {
-      const message = err instanceof ApiError ? err.message : t('saveError');
-      toast.error(message);
+      toast.error(resolveError(err, t('saveError')));
     } finally {
       setSubmitting(false);
     }

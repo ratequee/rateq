@@ -3,8 +3,8 @@
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { adminApi } from '@/lib/admin-api';
-import { ApiError } from '@/lib/api';
 import { cn } from '@/lib/utils';
+import { useUserFacingError } from '@/hooks/use-user-facing-error';
 import type { CompanyCatalogItemPublic, CompanyCatalogType } from '@rateq/types';
 import { Loader2, Pencil, Plus, Trash2, X } from 'lucide-react';
 import { useTranslations } from 'next-intl';
@@ -25,6 +25,7 @@ export function AdminCompanyCatalogPanel({
   onCountChange,
 }: AdminCompanyCatalogPanelProps = {}) {
   const t = useTranslations('adminCatalog');
+  const resolveError = useUserFacingError();
   const [type, setType] = useState<CompanyCatalogType>(fixedType ?? 'service');
   const [items, setItems] = useState<CompanyCatalogItemPublic[]>([]);
   const [loading, setLoading] = useState(true);
@@ -47,7 +48,7 @@ export function AdminCompanyCatalogPanel({
       setItems(nextItems);
       onCountChange?.(type, nextItems.length);
     } catch (err) {
-      const message = err instanceof ApiError ? err.message : t('loadError');
+      const message = resolveError(err, t('loadError'));
       toast.error(message);
       setItems([]);
     } finally {
@@ -78,7 +79,7 @@ export function AdminCompanyCatalogPanel({
       await load();
       toast.success(t('created'));
     } catch (err) {
-      const message = err instanceof ApiError ? err.message : t('saveError');
+      const message = resolveError(err, t('saveError'));
       toast.error(message);
     } finally {
       setSaving(false);
@@ -113,7 +114,7 @@ export function AdminCompanyCatalogPanel({
       await load();
       toast.success(t('updated'));
     } catch (err) {
-      const message = err instanceof ApiError ? err.message : t('saveError');
+      const message = resolveError(err, t('saveError'));
       toast.error(message);
     } finally {
       setEditSaving(false);
@@ -127,7 +128,7 @@ export function AdminCompanyCatalogPanel({
       await load();
       toast.success(t('deleted'));
     } catch (err) {
-      const message = err instanceof ApiError ? err.message : t('deleteError');
+      const message = resolveError(err, t('deleteError'));
       toast.error(message);
     }
   };

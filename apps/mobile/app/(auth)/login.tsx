@@ -7,8 +7,7 @@ import { AuthFieldGroup } from '@/components/auth/auth-field-group';
 import { AuthScreenLayout } from '@/components/auth/auth-screen-layout';
 import { useAuth } from '@/context/auth-context';
 import { isEmailNotVerifiedError } from '@/lib/auth-flow-errors';
-import { ApiError } from '@/lib/api';
-import { getFirebaseAuthErrorMessage } from '@/lib/firebase/errors';
+import { resolveUserErrorKey } from '@rateq/utils';
 import { validateAuthFields, type AuthFieldErrors } from '@/lib/validation/auth-fields';
 import { useRedirectAfterAuth } from '@/hooks/use-redirect-after-auth';
 import { useAppToast } from '@/hooks/use-app-toast';
@@ -56,11 +55,25 @@ export default function LoginScreen() {
         router.replace(`/(auth)/check-email?email=${encodeURIComponent(err.email)}`);
         return;
       }
-      toast.error(
-        err instanceof ApiError
-          ? err.message
-          : getFirebaseAuthErrorMessage(err, t('auth.loginError')),
-      );
+
+      const key = resolveUserErrorKey(err);
+      if (key === 'invalidEmail' || key === 'noAccountForEmail') {
+        setFieldErrors({ email: t(`errors.${key}`) });
+        return;
+      }
+      if (key === 'incorrectPassword') {
+        setFieldErrors({ password: t(`errors.${key}`) });
+        return;
+      }
+      if (key === 'invalidCredentials') {
+        setFieldErrors({
+          email: t('errors.invalidCredentials'),
+          password: t('errors.incorrectPassword'),
+        });
+        return;
+      }
+
+      toast.apiError(err, t('auth.loginError'));
     } finally {
       setLoading(false);
     }

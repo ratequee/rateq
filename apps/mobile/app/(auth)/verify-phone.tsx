@@ -15,7 +15,6 @@ import {
   resetFirebasePhoneVerification,
   startFirebasePhoneVerification,
 } from '@/lib/firebase/phone-auth';
-import { getPhoneVerificationErrorMessage } from '@/lib/firebase/phone-errors';
 import { getPendingRegistration, markPendingPhoneVerified } from '@/lib/pending-registration';
 import {
   extractQatarPhoneDigits,
@@ -131,15 +130,7 @@ export default function VerifyPhoneScreen() {
     const linked = getLinkedFirebasePhoneNumber();
     if (linked && isSamePhoneNumber(linked, formatQatarPhoneForSubmit(phone))) {
       void completeVerification(formatQatarPhoneForSubmit(phone)).catch((err) => {
-        toast.error(
-          getPhoneVerificationErrorMessage(
-            err,
-            t('onboarding.phoneOtpVerifyError'),
-            t('onboarding.phoneAlreadyLinked'),
-            t('onboarding.phoneRegionNotEnabled'),
-            t('onboarding.phoneInvalidCredential'),
-          ),
-        );
+        toast.apiError(err, t('onboarding.phoneOtpVerifyError'));
       });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps -- run once when ready
@@ -171,15 +162,7 @@ export default function VerifyPhoneScreen() {
       setResendCooldown(RESEND_COOLDOWN_SECONDS);
       toast.success(t('onboarding.phoneOtpSentMessage'), t('onboarding.phoneOtpSentTitle'));
     } catch (err) {
-      toast.error(
-        getPhoneVerificationErrorMessage(
-          err,
-          t('onboarding.phoneOtpSendError'),
-          t('onboarding.phoneAlreadyLinked'),
-          t('onboarding.phoneRegionNotEnabled'),
-          t('onboarding.phoneInvalidCredential'),
-        ),
-      );
+      toast.apiError(err, t('onboarding.phoneOtpSendError'));
     } finally {
       setSending(false);
     }
@@ -196,15 +179,7 @@ export default function VerifyPhoneScreen() {
       await confirmFirebasePhoneVerification(otpCode.trim());
       await completeVerification(formatQatarPhoneForSubmit(phone));
     } catch (err) {
-      toast.error(
-        getPhoneVerificationErrorMessage(
-          err,
-          t('onboarding.phoneOtpVerifyError'),
-          t('onboarding.phoneAlreadyLinked'),
-          t('onboarding.phoneRegionNotEnabled'),
-          t('onboarding.phoneInvalidCredential'),
-        ),
-      );
+      toast.apiError(err, t('onboarding.phoneOtpVerifyError'));
     } finally {
       setVerifying(false);
     }

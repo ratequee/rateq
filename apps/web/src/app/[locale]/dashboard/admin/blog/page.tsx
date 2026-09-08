@@ -8,9 +8,9 @@ import { DashboardShell } from '@/components/dashboard/dashboard-shell';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useRequireAdmin } from '@/hooks/use-require-admin';
+import { useUserFacingError } from '@/hooks/use-user-facing-error';
 import { AdminPermission } from '@rateq/types';
 import { adminBlogApi } from '@/lib/admin-blog-api';
-import { ApiError } from '@/lib/api';
 import { cn } from '@/lib/utils';
 import type {
   BlogLocale,
@@ -78,6 +78,7 @@ function fromAdminPost(post: BlogPostAdmin): {
 
 export default function AdminBlogPage() {
   const t = useTranslations('adminBlog');
+  const resolveError = useUserFacingError();
   const [posts, setPosts] = useState<BlogPostAdmin[]>([]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
@@ -202,7 +203,7 @@ export default function AdminBlogPage() {
       resetForm();
       await loadPosts();
     } catch (err) {
-      const message = err instanceof ApiError ? err.message : t('saveError');
+      const message = resolveError(err, t('saveError'));
       toast.error(message);
     } finally {
       setSubmitting(false);
@@ -219,7 +220,7 @@ export default function AdminBlogPage() {
       await loadPosts();
       toast.success(t('deleted'));
     } catch (err) {
-      const message = err instanceof ApiError ? err.message : t('deleteError');
+      const message = resolveError(err, t('deleteError'));
       toast.error(message);
     } finally {
       setDeletingId(null);

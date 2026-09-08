@@ -1,8 +1,8 @@
 'use client';
 
 import { adminApi } from '@/lib/admin-platform-api';
-import { ApiError } from '@/lib/api';
 import { ensureValidAccessToken } from '@/lib/auth-session';
+import { useUserFacingError } from '@/hooks/use-user-facing-error';
 import type { AdminActivityLog } from '@rateq/types';
 import { Loader2 } from 'lucide-react';
 import { useLocale, useTranslations } from 'next-intl';
@@ -11,6 +11,7 @@ import { toast } from 'sonner';
 
 export function AdminActivityPanel() {
   const t = useTranslations('adminActivity');
+  const resolveError = useUserFacingError();
   const locale = useLocale();
   const [items, setItems] = useState<AdminActivityLog[]>([]);
   const [loading, setLoading] = useState(true);
@@ -27,13 +28,12 @@ export function AdminActivityPanel() {
       setItems(result.data);
       setTotalPages(result.meta.totalPages);
     } catch (err) {
-      const message = err instanceof ApiError ? err.message : t('loadError');
-      toast.error(message);
+      toast.error(resolveError(err, t('loadError')));
       setItems([]);
     } finally {
       setLoading(false);
     }
-  }, [page, t]);
+  }, [page, t, resolveError]);
 
   useEffect(() => {
     void load();

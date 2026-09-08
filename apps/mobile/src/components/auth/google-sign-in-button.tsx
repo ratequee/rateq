@@ -5,9 +5,7 @@ import { useAuth } from '@/context/auth-context';
 import { useRedirectAfterAuth } from '@/hooks/use-redirect-after-auth';
 import { useAppToast } from '@/hooks/use-app-toast';
 import { AccountLinkingRequiredError, isAccountLinkingRequiredError } from '@/lib/auth-flow-errors';
-import { getFirebaseAuthErrorMessage } from '@/lib/firebase/errors';
 import { isFirebaseConfigured } from '@/lib/firebase/client';
-import { ApiError } from '@/lib/api';
 import type { AuthenticatedUser } from '@rateq/types';
 import {
   GoogleSignin,
@@ -101,11 +99,7 @@ export function GoogleSignInButton({ onSuccess }: GoogleSignInButtonProps) {
       }
 
       // DEVELOPER_ERROR / 10 usually means SHA-1 / package name mismatch in Google Cloud
-      toast.error(
-        err instanceof ApiError
-          ? err.message
-          : getFirebaseAuthErrorMessage(err, t('auth.googleSignInError')),
-      );
+      toast.apiError(err, t('auth.googleSignInError'));
     } finally {
       setLoading(false);
     }
@@ -121,11 +115,7 @@ export function GoogleSignInButton({ onSuccess }: GoogleSignInButtonProps) {
       toast.success(t('auth.linkAccountSuccess'));
       await (onSuccess ? onSuccess(sessionUser) : redirectAfterAuth(sessionUser));
     } catch (err) {
-      toast.error(
-        err instanceof ApiError
-          ? err.message
-          : getFirebaseAuthErrorMessage(err, t('auth.loginError')),
-      );
+      toast.apiError(err, t('auth.loginError'));
     } finally {
       setLoading(false);
     }

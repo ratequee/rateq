@@ -8,8 +8,6 @@ import { AuthFieldGroup } from '@/components/auth/auth-field-group';
 import { AuthScreenLayout } from '@/components/auth/auth-screen-layout';
 import { useAuth } from '@/context/auth-context';
 import { isEmailVerificationPendingError, isOAuthOnlyAccountError } from '@/lib/auth-flow-errors';
-import { ApiError } from '@/lib/api';
-import { getFirebaseAuthErrorMessage } from '@/lib/firebase/errors';
 import { getLinkedFirebasePhoneNumber, isSamePhoneNumber } from '@/lib/firebase/phone-auth';
 import {
   clearPendingRegistration,
@@ -28,6 +26,7 @@ import {
   type AuthFieldErrors,
   type PasswordRequirementKey,
 } from '@/lib/validation/auth-fields';
+import { resolveUserErrorKey } from '@rateq/utils';
 import { useAppToast } from '@/hooks/use-app-toast';
 import { getFontFamily } from '@/i18n';
 import { Ionicons } from '@expo/vector-icons';
@@ -144,11 +143,21 @@ export default function RegisterScreen() {
         return;
       }
 
-      toast.error(
-        err instanceof ApiError
-          ? err.message
-          : getFirebaseAuthErrorMessage(err, t('auth.registerError')),
-      );
+      const key = resolveUserErrorKey(err);
+      if (key === 'emailAlreadyInUse') {
+        setFieldErrors({ email: t(`errors.${key}`) });
+        return;
+      }
+      if (key === 'weakPassword') {
+        setFieldErrors({ password: t(`errors.${key}`) });
+        return;
+      }
+      if (key === 'invalidEmail') {
+        setFieldErrors({ email: t(`errors.${key}`) });
+        return;
+      }
+
+      toast.apiError(err, t('auth.registerError'));
     } finally {
       setLoading(false);
     }
@@ -171,11 +180,7 @@ export default function RegisterScreen() {
         return;
       }
 
-      toast.error(
-        err instanceof ApiError
-          ? err.message
-          : getFirebaseAuthErrorMessage(err, t('auth.registerError')),
-      );
+      toast.apiError(err, t('auth.registerError'));
     } finally {
       setLoading(false);
     }

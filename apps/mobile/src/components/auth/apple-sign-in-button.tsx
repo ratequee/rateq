@@ -6,9 +6,7 @@ import { useRedirectAfterAuth } from '@/hooks/use-redirect-after-auth';
 import { useAppToast } from '@/hooks/use-app-toast';
 import { AccountLinkingRequiredError, isAccountLinkingRequiredError } from '@/lib/auth-flow-errors';
 import { firebaseSignInWithApple } from '@/lib/firebase/apple-auth';
-import { getFirebaseAuthErrorMessage } from '@/lib/firebase/errors';
 import { isFirebaseConfigured } from '@/lib/firebase/client';
-import { ApiError } from '@/lib/api';
 import type { AuthenticatedUser } from '@rateq/types';
 import { Ionicons } from '@expo/vector-icons';
 import * as AppleAuthentication from 'expo-apple-authentication';
@@ -58,11 +56,7 @@ export function AppleSignInButton({ onSuccess }: AppleSignInButtonProps) {
       ) {
         return;
       }
-      toast.error(
-        err instanceof ApiError
-          ? err.message
-          : getFirebaseAuthErrorMessage(err, t('auth.loginError')),
-      );
+      toast.apiError(err, t('auth.loginError'));
     } finally {
       setLoading(false);
     }
@@ -78,11 +72,7 @@ export function AppleSignInButton({ onSuccess }: AppleSignInButtonProps) {
       toast.success(t('auth.linkAccountSuccess'));
       await (onSuccess ? onSuccess(sessionUser) : redirectAfterAuth(sessionUser));
     } catch (err) {
-      toast.error(
-        err instanceof ApiError
-          ? err.message
-          : getFirebaseAuthErrorMessage(err, t('auth.loginError')),
-      );
+      toast.apiError(err, t('auth.loginError'));
     } finally {
       setLoading(false);
     }

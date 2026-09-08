@@ -6,9 +6,9 @@ import { DashboardShell } from '@/components/dashboard/dashboard-shell';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useRequireAdmin } from '@/hooks/use-require-admin';
+import { useUserFacingError } from '@/hooks/use-user-facing-error';
 import { adminApi } from '@/lib/admin-api';
 import { fetchCategoriesClient } from '@/lib/categories-api';
-import { ApiError } from '@/lib/api';
 import { AdminPermission } from '@rateq/types';
 import type { CategoryPublic, CompanyCatalogType } from '@rateq/types';
 import { cn } from '@/lib/utils';
@@ -22,6 +22,7 @@ type AdminCatalogTab = 'categories' | 'services' | 'activities';
 export default function AdminCategoriesPage() {
   const t = useTranslations('adminCategories');
   const tc = useTranslations('adminCatalog');
+  const resolveError = useUserFacingError();
   const [activeTab, setActiveTab] = useState<AdminCatalogTab>('categories');
   const [categories, setCategories] = useState<CategoryPublic[]>([]);
   const [nameEn, setNameEn] = useState('');
@@ -102,7 +103,7 @@ export default function AdminCategoriesPage() {
       ]);
       toast.success(t('orderUpdated'));
     } catch (err) {
-      toast.error(err instanceof ApiError ? err.message : t('orderError'));
+      toast.error(resolveError(err, t('orderError')));
       await loadCategories();
     }
   };
@@ -129,7 +130,7 @@ export default function AdminCategoriesPage() {
       await loadCategories();
       toast.success(t('created'));
     } catch (err) {
-      const message = err instanceof ApiError ? err.message : t('createError');
+      const message = resolveError(err, t('createError'));
       toast.error(message);
     } finally {
       setSubmitting(false);
@@ -144,7 +145,7 @@ export default function AdminCategoriesPage() {
       await loadCategories();
       toast.success(t('deleted'));
     } catch (err) {
-      const message = err instanceof ApiError ? err.message : t('deleteError');
+      const message = resolveError(err, t('deleteError'));
       toast.error(message);
     } finally {
       setDeletingId(null);
@@ -182,7 +183,7 @@ export default function AdminCategoriesPage() {
       await loadCategories();
       toast.success(t('updated'));
     } catch (err) {
-      const message = err instanceof ApiError ? err.message : t('createError');
+      const message = resolveError(err, t('createError'));
       toast.error(message);
     } finally {
       setEditSaving(false);

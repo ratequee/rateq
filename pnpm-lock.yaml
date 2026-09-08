@@ -189,6 +189,9 @@ importers:
       '@rateq/types':
         specifier: workspace:*
         version: link:../../packages/types
+      '@rateq/utils':
+        specifier: workspace:*
+        version: link:../../packages/utils
       '@react-native-async-storage/async-storage':
         specifier: 2.2.0
         version: 2.2.0(react-native@0.86.3(@babel/core@7.29.0)(@react-native/metro-config@0.87.1(@babel/core@7.29.0))(@types/react@19.2.14)(react@19.2.3))
@@ -349,6 +352,9 @@ importers:
       '@rateq/ui':
         specifier: workspace:*
         version: link:../../packages/ui
+      '@rateq/utils':
+        specifier: workspace:*
+        version: link:../../packages/utils
       '@tailwindcss/typography':
         specifier: ^0.5.20
         version: 0.5.20(tailwindcss@3.4.19(yaml@2.9.0))

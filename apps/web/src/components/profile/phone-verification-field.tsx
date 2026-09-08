@@ -13,19 +13,14 @@ import {
   startFirebasePhoneVerification,
 } from '@/lib/firebase/phone-auth';
 import { getFirebaseAuth } from '@/lib/firebase/client';
-import { ApiError } from '@/lib/api';
-import {
-  isFirebaseInvalidAppCredentialError,
-  isFirebasePhoneAlreadyLinkedError,
-  isFirebasePhoneRegionNotEnabledError,
-  getFirebaseAuthErrorMessage,
-} from '@/lib/firebase/errors';
 import {
   extractQatarPhoneDigits,
   formatQatarPhoneForSubmit,
   isValidQatarPhoneDigits,
 } from '@/lib/qatar-phone';
 import { cn } from '@/lib/utils';
+import { getUserFacingError } from '@/lib/user-facing-error';
+import type { UserErrorKey } from '@rateq/utils';
 import { onAuthStateChanged } from 'firebase/auth';
 import { CheckCircle2, Info } from 'lucide-react';
 import { useTranslations } from 'next-intl';
@@ -33,32 +28,6 @@ import { useEffect, useId, useState } from 'react';
 import { toast } from 'sonner';
 
 const RESEND_COOLDOWN_SECONDS = 60;
-
-function getPhoneVerificationErrorMessage(
-  err: unknown,
-  t: (key: string) => string,
-  fallbackKey: 'phoneOtpSendError' | 'phoneOtpVerifyError',
-): string {
-  if (isFirebasePhoneAlreadyLinkedError(err)) {
-    return t('phoneAlreadyLinked');
-  }
-  if (isFirebasePhoneRegionNotEnabledError(err)) {
-    return t('phoneRegionNotEnabled');
-  }
-  if (isFirebaseInvalidAppCredentialError(err)) {
-    return t('phoneInvalidAppCredential');
-  }
-  if (err instanceof ApiError) {
-    if (err.message.toLowerCase().includes('already linked to another account')) {
-      return t('phoneAlreadyLinked');
-    }
-    return err.message;
-  }
-  if (err instanceof Error && err.message) {
-    return getFirebaseAuthErrorMessage(err, t(fallbackKey));
-  }
-  return t(fallbackKey);
-}
 
 type PhoneVerificationContext = 'reviewer' | 'company';
 
@@ -89,6 +58,11 @@ export function PhoneVerificationField({
 }: PhoneVerificationFieldProps) {
   const t = useTranslations('profilePage');
   const ta = useTranslations('authPage');
+  const te = useTranslations('errors');
+  const resolvePhoneError = (
+    err: unknown,
+    fallbackKey: 'phoneOtpSendError' | 'phoneOtpVerifyError',
+  ) => getUserFacingError(err, (key: UserErrorKey) => te(key), t(fallbackKey));
   const recaptchaContainerId = useId().replace(/:/g, '');
   const [otpCode, setOtpCode] = useState('');
   const [sending, setSending] = useState(false);
@@ -189,7 +163,7 @@ export function PhoneVerificationField({
       setResendCooldown(RESEND_COOLDOWN_SECONDS);
       toast.success(t('phoneOtpSent'));
     } catch (err) {
-      toast.error(getPhoneVerificationErrorMessage(err, t, 'phoneOtpSendError'));
+      toast.error(resolvePhoneError(err, 'phoneOtpSendError'));
     } finally {
       setSending(false);
     }
@@ -207,7 +181,7 @@ export function PhoneVerificationField({
       await completePhoneSync(normalizePhoneNumber(trimmed));
     } catch (err) {
       onVerifiedChange(false);
-      toast.error(getPhoneVerificationErrorMessage(err, t, 'phoneOtpVerifyError'));
+      toast.error(resolvePhoneError(err, 'phoneOtpVerifyError'));
     } finally {
       setVerifying(false);
     }
@@ -225,7 +199,7 @@ export function PhoneVerificationField({
       await completePhoneSync(normalizePhoneNumber(phone));
     } catch (err) {
       onVerifiedChange(false);
-      toast.error(getPhoneVerificationErrorMessage(err, t, 'phoneOtpVerifyError'));
+      toast.error(resolvePhoneError(err, 'phoneOtpVerifyError'));
     } finally {
       setVerifying(false);
     }

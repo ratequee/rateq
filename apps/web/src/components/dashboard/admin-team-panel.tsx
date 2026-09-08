@@ -3,7 +3,7 @@
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { adminApi } from '@/lib/admin-platform-api';
-import { ApiError, usersApi } from '@/lib/api';
+import { usersApi } from '@/lib/api';
 import { ensureValidAccessToken } from '@/lib/auth-session';
 import {
   AdminPermission,
@@ -13,6 +13,7 @@ import {
   type UserProfile,
 } from '@rateq/types';
 import { useAuth } from '@/components/providers/auth-provider';
+import { useUserFacingError } from '@/hooks/use-user-facing-error';
 import { Loader2, Shield } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { useCallback, useEffect, useState } from 'react';
@@ -51,6 +52,7 @@ function PermissionCheckboxLabel({
 
 export function AdminTeamPanel() {
   const t = useTranslations('adminTeam');
+  const resolveError = useUserFacingError();
   const { user: currentUser } = useAuth();
   const [members, setMembers] = useState<UserProfile[]>([]);
   const [loading, setLoading] = useState(true);
@@ -74,7 +76,7 @@ export function AdminTeamPanel() {
         Object.fromEntries(data.map((member) => [member.id, [...member.adminPermissions]])),
       );
     } catch (err) {
-      const message = err instanceof ApiError ? err.message : t('loadError');
+      const message = resolveError(err, t('loadError'));
       toast.error(message);
       setMembers([]);
     } finally {
@@ -113,7 +115,7 @@ export function AdminTeamPanel() {
       await load();
       toast.success(t('saved'));
     } catch (err) {
-      const message = err instanceof ApiError ? err.message : t('saveError');
+      const message = resolveError(err, t('saveError'));
       toast.error(message);
     } finally {
       setSavingId(null);
@@ -152,7 +154,7 @@ export function AdminTeamPanel() {
       await load();
       toast.success(t('promoted'));
     } catch (err) {
-      const message = err instanceof ApiError ? err.message : t('promoteError');
+      const message = resolveError(err, t('promoteError'));
       toast.error(message);
     } finally {
       setPromoting(false);
@@ -186,7 +188,7 @@ export function AdminTeamPanel() {
       await load();
       toast.success(t('demoted'));
     } catch (err) {
-      const message = err instanceof ApiError ? err.message : t('demoteError');
+      const message = resolveError(err, t('demoteError'));
       toast.error(message);
     } finally {
       setDemotingId(null);

@@ -9,9 +9,10 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { StarRating } from '@/components/ui/star-rating';
 import { adminApi } from '@/lib/admin-platform-api';
-import { ApiError, reviewsApi, usersApi } from '@/lib/api';
+import { reviewsApi, usersApi } from '@/lib/api';
 import { ensureValidAccessToken } from '@/lib/auth-session';
 import { useAuth } from '@/components/providers/auth-provider';
+import { useUserFacingError } from '@/hooks/use-user-facing-error';
 import { cn } from '@/lib/utils';
 import { ReviewReplyStatusBadge } from '@/components/review/review-reply-status-badge';
 import type {
@@ -221,6 +222,7 @@ export function AdminDirectoryPanel() {
   const t = useTranslations('adminDirectory');
   const tr = useTranslations('dashboardReviews');
   const tc = useTranslations('adminCompanies');
+  const resolveError = useUserFacingError();
   const locale = useLocale();
   const { adminAccess } = useAuth();
   const permissions = adminAccess?.permissions ?? [];
@@ -290,7 +292,7 @@ export function AdminDirectoryPanel() {
       }
       if (!response.data.length) setSelectedReviewerId(null);
     } catch (err) {
-      toast.error(err instanceof ApiError ? err.message : t('loadError'));
+      toast.error(resolveError(err, t('loadError')));
       setReviewers([]);
     } finally {
       setListLoading(false);
@@ -314,7 +316,7 @@ export function AdminDirectoryPanel() {
       }
       if (!response.data.length) setSelectedCompanyId(null);
     } catch (err) {
-      toast.error(err instanceof ApiError ? err.message : t('loadError'));
+      toast.error(resolveError(err, t('loadError')));
       setCompanies([]);
     } finally {
       setListLoading(false);
@@ -344,7 +346,7 @@ export function AdminDirectoryPanel() {
         setReviewerDetail(await adminApi.getUserDetail(token, selectedReviewerId));
       } catch (err) {
         if (!cancelled) {
-          toast.error(err instanceof ApiError ? err.message : t('loadError'));
+          toast.error(resolveError(err, t('loadError')));
           setReviewerDetail(null);
         }
       } finally {
@@ -372,7 +374,7 @@ export function AdminDirectoryPanel() {
         setCompanyDetail(await adminApi.getCompanyDetail(token, selectedCompanyId));
       } catch (err) {
         if (!cancelled) {
-          toast.error(err instanceof ApiError ? err.message : t('loadError'));
+          toast.error(resolveError(err, t('loadError')));
           setCompanyDetail(null);
         }
       } finally {
@@ -409,7 +411,7 @@ export function AdminDirectoryPanel() {
       }
       await loadStats();
     } catch (err) {
-      toast.error(err instanceof ApiError ? err.message : tr('actionError'));
+      toast.error(resolveError(err, tr('actionError')));
     } finally {
       setActing(false);
     }

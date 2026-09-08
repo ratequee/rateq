@@ -6,7 +6,7 @@ import { useAuth } from '@/components/providers/auth-provider';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Link } from '@/i18n/routing';
-import { getFirebaseAuthErrorMessage } from '@/lib/firebase/errors';
+import { useUserFacingError } from '@/hooks/use-user-facing-error';
 import { useTranslations } from 'next-intl';
 import { useState } from 'react';
 import { toast } from 'sonner';
@@ -14,6 +14,7 @@ import { toast } from 'sonner';
 export default function ForgotPasswordPage() {
   const t = useTranslations('auth');
   const tp = useTranslations('authPage');
+  const resolveError = useUserFacingError();
   const { resetPassword } = useAuth();
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
@@ -28,7 +29,7 @@ export default function ForgotPasswordPage() {
       setSubmitted(true);
       toast.success(tp('forgotPasswordSuccess'));
     } catch (err) {
-      toast.error(getFirebaseAuthErrorMessage(err, tp('forgotPasswordError')));
+      toast.error(resolveError(err, tp('forgotPasswordError')));
     } finally {
       setLoading(false);
     }

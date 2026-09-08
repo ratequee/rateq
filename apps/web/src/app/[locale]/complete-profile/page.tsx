@@ -14,7 +14,7 @@ import { onboardingApi } from '@/lib/onboarding-api';
 import { fetchCategoriesClient } from '@/lib/categories-api';
 import { fetchCompanyCatalogClient } from '@/lib/company-catalog-api';
 import { ApiError } from '@/lib/api';
-import { getFirebaseStorageErrorMessage } from '@/lib/firebase/errors';
+import { useUserFacingError } from '@/hooks/use-user-facing-error';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -61,6 +61,7 @@ import { toast } from 'sonner';
 export default function CompleteProfilePage() {
   const t = useTranslations('profilePage');
   const ta = useTranslations('authPage');
+  const resolveError = useUserFacingError();
   const { user, refreshSession } = useAuth();
   const { onboarding, refreshOnboarding, isLoading: profileLoading } = useProfile();
   const router = useRouter();
@@ -545,16 +546,14 @@ export default function CompleteProfilePage() {
         router.push('/dashboard/reviewer');
       } catch (err) {
         if (err instanceof ApiError && err.statusCode === 401) {
-          toast.error(t('sessionExpired'));
+          toast.error(resolveError(err, t('sessionExpired')));
           router.push('/login');
           return;
         }
         const message =
-          err instanceof ApiError
+          err instanceof Error && err.message === t('errors.required')
             ? err.message
-            : err instanceof Error && err.message === t('errors.required')
-              ? err.message
-              : getFirebaseStorageErrorMessage(err, t('errors.uploadPermissionDenied'));
+            : resolveError(err, t('errors.uploadPermissionDenied'));
         toast.error(message);
       } finally {
         setSubmitting(false);
@@ -631,16 +630,14 @@ export default function CompleteProfilePage() {
       toast.success(companyRevisionRequested ? t('companyResubmitted') : t('companySubmitted'));
     } catch (err) {
       if (err instanceof ApiError && err.statusCode === 401) {
-        toast.error(t('sessionExpired'));
+        toast.error(resolveError(err, t('sessionExpired')));
         router.push('/login');
         return;
       }
       const message =
-        err instanceof ApiError
+        err instanceof Error && err.message === t('errors.required')
           ? err.message
-          : err instanceof Error && err.message === t('errors.required')
-            ? err.message
-            : getFirebaseStorageErrorMessage(err, t('errors.uploadPermissionDenied'));
+          : resolveError(err, t('errors.uploadPermissionDenied'));
       toast.error(message);
     } finally {
       setSubmitting(false);

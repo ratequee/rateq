@@ -1,5 +1,6 @@
 import { FirebaseError } from 'firebase/app';
-import { getFirebaseAuthErrorMessage as baseMessage } from '@/lib/firebase/errors';
+import { getUserFacingError } from '@/lib/user-facing-error';
+import type { UserErrorKey } from '@rateq/utils';
 
 const PHONE_ALREADY_LINKED_ERROR_CODES = new Set([
   'auth/credential-already-in-use',
@@ -27,15 +28,11 @@ export function isFirebaseInvalidAppCredentialError(error: unknown): boolean {
   );
 }
 
+/** Prefer shared localized mapper over raw Firebase English messages. */
 export function getPhoneVerificationErrorMessage(
   error: unknown,
-  fallback: string,
-  alreadyLinkedMessage: string,
-  regionMessage: string,
-  credentialMessage: string,
+  t: (key: UserErrorKey) => string,
+  fallback?: string,
 ): string {
-  if (isFirebasePhoneAlreadyLinkedError(error)) return alreadyLinkedMessage;
-  if (isFirebasePhoneRegionNotEnabledError(error)) return regionMessage;
-  if (isFirebaseInvalidAppCredentialError(error)) return credentialMessage;
-  return baseMessage(error, fallback);
+  return getUserFacingError(error, t, fallback);
 }
