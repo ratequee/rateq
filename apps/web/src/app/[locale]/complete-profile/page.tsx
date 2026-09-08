@@ -37,11 +37,21 @@ import { cn } from '@/lib/utils';
 import { approximateRegistrationDateFromYears } from '@/lib/company-years';
 import { isRemoteImage, isRemotePdf } from '@/lib/profile-company-assets';
 import { getSuggestedDisplayName } from '@/lib/user-display-name';
-import { PhoneVerificationField } from '@/components/profile/phone-verification-field';
+import { phoneVerificationApi } from '@/lib/phone-verification-api';
+import { getLinkedFirebasePhoneNumber } from '@/lib/firebase/phone-auth';
 import { extractQatarPhoneDigits, formatQatarPhoneForSubmit } from '@/lib/qatar-phone';
+import { QatarPhoneInput } from '@/components/ui/qatar-phone-input';
 import { CompanyProfileMultiStepFields } from '@/components/profile/company-profile-multi-step-fields';
 import type { CompanyMapLocation } from '@/lib/company-location';
-import { Building2, ExternalLink, FileText, Upload, UserRound, X } from 'lucide-react';
+import {
+  Building2,
+  CheckCircle2,
+  ExternalLink,
+  FileText,
+  Upload,
+  UserRound,
+  X,
+} from 'lucide-react';
 import type { CategoryPublic, CompanyCatalogItemPublic } from '@rateq/types';
 import { Link, useRouter } from '@/i18n/routing';
 import { useTranslations } from 'next-intl';
@@ -54,7 +64,7 @@ export default function CompleteProfilePage() {
   const { user, refreshSession } = useAuth();
   const { onboarding, refreshOnboarding, isLoading: profileLoading } = useProfile();
   const router = useRouter();
-  useRequireVerifiedAuth();
+  const { isAllowed: isEmailVerified } = useRequireVerifiedAuth();
 
   const lockedAccountType = getLockedAccountType(onboarding);
   const companyPending = isCompanyPendingApproval(onboarding);
@@ -125,8 +135,51 @@ export default function CompleteProfilePage() {
     if (onboarding?.reviewerProfile?.phone) {
       setPhone(extractQatarPhoneDigits(onboarding.reviewerProfile.phone));
       setReviewerPhoneVerified(true);
+      return;
+    }
+    const linked = getLinkedFirebasePhoneNumber();
+    if (linked) {
+      setPhone(extractQatarPhoneDigits(linked));
+      setReviewerPhoneVerified(true);
     }
   }, [user, onboarding]);
+
+  useEffect(() => {
+    if (!user) return;
+    if (onboarding?.company?.phone) {
+      setCompanyPhone(extractQatarPhoneDigits(onboarding.company.phone));
+      setCompanyPhoneVerified(true);
+      return;
+    }
+    const linked = getLinkedFirebasePhoneNumber();
+    if (linked) {
+      setCompanyPhone(extractQatarPhoneDigits(linked));
+      setCompanyPhoneVerified(true);
+    }
+  }, [user, onboarding]);
+
+  useEffect(() => {
+    if (!user || profileLoading || !isEmailVerified) return;
+    if (onboarding?.reviewerProfile?.phone || onboarding?.company?.phone) return;
+
+    const linked = getLinkedFirebasePhoneNumber();
+    if (linked) return;
+
+    // Social / incomplete signup without phone — require dedicated OTP page first.
+    if (showProfileForm && phase === 'complete-form') {
+      const context = accountType === 'company' ? 'company' : 'reviewer';
+      router.replace(`/register/verify-phone?next=/complete-profile&context=${context}&sync=1`);
+    }
+  }, [
+    user,
+    profileLoading,
+    isEmailVerified,
+    onboarding,
+    showProfileForm,
+    phase,
+    accountType,
+    router,
+  ]);
 
   useEffect(() => {
     if (accountType !== 'company') return;
@@ -469,6 +522,8 @@ export default function CompleteProfilePage() {
 
       setSubmitting(true);
       try {
+        await phoneVerificationApi.syncPhone(formatQatarPhoneForSubmit(phone), 'reviewer');
+
         let avatarUrl: string | null = reviewerAvatarUrl;
         if (avatar) {
           await waitForFirebaseUser();
@@ -517,6 +572,8 @@ export default function CompleteProfilePage() {
 
     setSubmitting(true);
     try {
+      await phoneVerificationApi.syncPhone(formatQatarPhoneForSubmit(companyPhone), 'company');
+
       const { registrationDocUrl, establishmentCardUrl, tradeLicenseUrl, logoUrl, coverUrl } =
         await resolveCompanyDocumentUrls({
           registrationDocFile,
@@ -597,6 +654,14 @@ export default function CompleteProfilePage() {
     showProfileForm && phase === 'choose-type' && !lockedAccountType && !companyRevisionRequested;
   const showProfileFields = showProfileForm && phase === 'complete-form';
   const canChangeAccountType = showProfileFields && !lockedAccountType && !companyRevisionRequested;
+
+  if (!isEmailVerified) {
+    return (
+      <div className="flex min-h-[50vh] items-center justify-center bg-brand-500">
+        <p className="text-sm text-white">Loading…</p>
+      </div>
+    );
+  }
 
   return (
     <div className="bg-brand-500 py-10 sm:py-14">
@@ -710,17 +775,35 @@ export default function CompleteProfilePage() {
                       className="h-11"
                     />
                   </Field>
-                  <PhoneVerificationField
-                    phone={phone}
-                    onPhoneChange={setPhone}
-                    context="reviewer"
-                    verified={reviewerPhoneVerified}
-                    onVerifiedChange={setReviewerPhoneVerified}
-                    onVerified={() => void refreshSession()}
-                    error={errors.phone || errors.phoneVerification}
-                    label={t('phone')}
-                    fieldKey="phone"
-                  />
+                  <div data-field="phone" className="space-y-2">
+                    <label className="mb-1.5 block text-sm font-medium text-ink dark:text-white">
+                      {t('phone')}
+                      <span className="text-red-600"> *</span>
+                    </label>
+                    <div className="flex flex-col gap-2 sm:flex-row">
+                      <QatarPhoneInput
+                        id="phone"
+                        value={phone}
+                        onChange={() => undefined}
+                        className="flex-1 [&_input]:border-emerald-200 [&_input]:bg-emerald-50/50"
+                        disabled
+                      />
+                      {reviewerPhoneVerified ? (
+                        <div className="inline-flex h-11 shrink-0 items-center justify-center gap-1.5 rounded-md border border-emerald-200 bg-emerald-50 px-4 text-sm font-semibold text-emerald-700">
+                          <CheckCircle2 className="h-4 w-4" aria-hidden />
+                          {t('phoneVerifiedLabel')}
+                        </div>
+                      ) : null}
+                    </div>
+                    <p className="text-xs text-ink-muted dark:text-slate-400">
+                      {t('phoneVerifiedAtRegistration')}
+                    </p>
+                    {errors.phone || errors.phoneVerification ? (
+                      <p className="text-sm text-red-600">
+                        {errors.phone || errors.phoneVerification}
+                      </p>
+                    ) : null}
+                  </div>
                   <div className="grid gap-4 sm:grid-cols-2">
                     <Field label={t('city')} error={errors.city} fieldKey="city" required>
                       <Input

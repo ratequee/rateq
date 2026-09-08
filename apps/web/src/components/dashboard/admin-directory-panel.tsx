@@ -61,16 +61,32 @@ function AdminCompanyContactDetails({
   address,
   crNumber,
   validationDate,
+  registeredAt,
 }: {
   phone?: string | null;
   address?: string | null;
   crNumber?: string | null;
   validationDate?: string | null;
+  registeredAt?: string | null;
 }) {
   const t = useTranslations('adminCompanies');
+  const td = useTranslations('adminDirectory');
   const locale = useLocale();
 
   const items: Array<{ label: string; value: string }> = [];
+  if (registeredAt) {
+    items.push({
+      label: td('registeredAt'),
+      value: new Date(registeredAt).toLocaleString(locale, {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+      }),
+    });
+  }
   if (phone) items.push({ label: t('phone'), value: phone });
   if (address) items.push({ label: t('address'), value: address });
   if (crNumber) items.push({ label: t('crNumber'), value: crNumber });
@@ -205,6 +221,7 @@ export function AdminDirectoryPanel() {
   const t = useTranslations('adminDirectory');
   const tr = useTranslations('dashboardReviews');
   const tc = useTranslations('adminCompanies');
+  const locale = useLocale();
   const { adminAccess } = useAuth();
   const permissions = adminAccess?.permissions ?? [];
   const canModerateReviews = hasAdminPermission(permissions, AdminPermission.MODERATION);
@@ -746,6 +763,17 @@ export function AdminDirectoryPanel() {
                         <span className="mt-0.5 block text-xs text-secondary">
                           {company.city}, {company.country}
                         </span>
+                        <span className="mt-0.5 block text-xs text-secondary">
+                          {t('registeredAt')}:{' '}
+                          {new Date(company.createdAt).toLocaleString(locale, {
+                            year: 'numeric',
+                            month: 'short',
+                            day: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit',
+                            second: '2-digit',
+                          })}
+                        </span>
                       </div>
                       <AdminCompanyMetrics
                         reviewCount={company.reviewCount}
@@ -812,6 +840,17 @@ export function AdminDirectoryPanel() {
                     <p className="mt-1 text-sm text-secondary">
                       {t('verificationStatus', {
                         status: tc(`status.${companyDetail.verificationStatus}`),
+                      })}
+                    </p>
+                    <p className="mt-1 text-sm text-secondary">
+                      {t('registeredAt')}:{' '}
+                      {new Date(companyDetail.createdAt).toLocaleString(locale, {
+                        year: 'numeric',
+                        month: 'short',
+                        day: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit',
+                        second: '2-digit',
                       })}
                     </p>
                   </div>
@@ -900,6 +939,7 @@ export function AdminDirectoryPanel() {
                   address={companyDetail.address}
                   crNumber={companyDetail.crNumber}
                   validationDate={companyDetail.validationDate}
+                  registeredAt={companyDetail.createdAt}
                 />
                 <AdminCompanyDocumentsSection
                   registrationDocUrl={companyDetail.registrationDocUrl}

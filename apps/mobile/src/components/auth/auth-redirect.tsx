@@ -18,8 +18,11 @@ export function AuthRedirect() {
   const inAuth = root === '(auth)';
   const inOnboarding = root === '(onboarding)';
   const authScreen = parts[1];
+  const onVerifyPhone = inAuth && authScreen === 'verify-phone';
 
   if (!user) {
+    // Allow register / verify-phone / other auth screens during unfinished registration
+    // (Firebase signed in, RateQ JWT not yet issued).
     if (!inAuth) {
       return <Redirect href="/(auth)/login" />;
     }
@@ -36,6 +39,10 @@ export function AuthRedirect() {
   }
 
   if (target === '/(onboarding)/complete-profile') {
+    // Allow dedicated OTP screen when completing profile (change number / missing Firebase phone).
+    if (onVerifyPhone) {
+      return null;
+    }
     if (!inOnboarding) {
       return <Redirect href="/(onboarding)/complete-profile" />;
     }

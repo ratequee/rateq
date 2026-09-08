@@ -6,7 +6,7 @@ import { useProfile } from '@/components/providers/profile-provider';
 import { canAccessDashboard, getPostAuthRedirect } from '@/lib/profile-routing';
 import { useEffect } from 'react';
 
-export function useRequireVerifiedAuth(): void {
+export function useRequireVerifiedAuth(): { isAllowed: boolean } {
   const { user, isLoading } = useAuth();
   const router = useRouter();
 
@@ -19,10 +19,13 @@ export function useRequireVerifiedAuth(): void {
     }
 
     if (!user.isVerified) {
-      router.replace('/check-email');
-      return;
+      router.replace(`/check-email?email=${encodeURIComponent(user.email)}`);
     }
   }, [user, isLoading, router]);
+
+  return {
+    isAllowed: !isLoading && Boolean(user?.isVerified),
+  };
 }
 
 export function useRedirectVerifiedFromCheckEmail(): void {
@@ -36,7 +39,7 @@ export function useRedirectVerifiedFromCheckEmail(): void {
   }, [user, onboarding, isLoading, profileLoading, adminAccessLoading, adminAccess, router]);
 }
 
-export function useRequireCompleteProfile(): void {
+export function useRequireCompleteProfile(): { isAllowed: boolean } {
   const { user, isLoading, adminAccess, adminAccessLoading } = useAuth();
   const { onboarding, isLoading: profileLoading } = useProfile();
   const router = useRouter();
@@ -48,11 +51,20 @@ export function useRequireCompleteProfile(): void {
       return;
     }
     if (!user.isVerified) {
-      router.replace('/check-email');
+      router.replace(`/check-email?email=${encodeURIComponent(user.email)}`);
       return;
     }
     if (!canAccessDashboard(user, onboarding, adminAccess)) {
       router.replace('/complete-profile');
     }
   }, [user, onboarding, isLoading, profileLoading, adminAccessLoading, adminAccess, router]);
+
+  return {
+    isAllowed:
+      !isLoading &&
+      !profileLoading &&
+      !adminAccessLoading &&
+      Boolean(user?.isVerified) &&
+      Boolean(user && canAccessDashboard(user, onboarding, adminAccess)),
+  };
 }

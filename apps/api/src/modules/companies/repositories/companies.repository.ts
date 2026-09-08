@@ -315,10 +315,11 @@ export class CompaniesRepository {
 
   findProjectsForModeration(filters: {
     status?: 'PENDING' | 'APPROVED' | 'REJECTED';
+    search?: string;
     page: number;
     limit: number;
   }) {
-    const where = filters.status ? { status: filters.status } : {};
+    const where = this.buildProjectsModerationWhere(filters);
     return this.prisma.companyProject.findMany({
       where,
       orderBy: { createdAt: 'desc' },
@@ -338,10 +339,33 @@ export class CompaniesRepository {
     });
   }
 
-  countProjectsForModeration(status?: 'PENDING' | 'APPROVED' | 'REJECTED') {
+  countProjectsForModeration(filters: {
+    status?: 'PENDING' | 'APPROVED' | 'REJECTED';
+    search?: string;
+  }) {
     return this.prisma.companyProject.count({
-      where: status ? { status } : {},
+      where: this.buildProjectsModerationWhere(filters),
     });
+  }
+
+  private buildProjectsModerationWhere(filters: {
+    status?: 'PENDING' | 'APPROVED' | 'REJECTED';
+    search?: string;
+  }): Prisma.CompanyProjectWhereInput {
+    const where: Prisma.CompanyProjectWhereInput = {};
+    if (filters.status) {
+      where.status = filters.status;
+    }
+
+    const search = filters.search?.trim();
+    if (search) {
+      where.OR = [
+        { title: { contains: search, mode: 'insensitive' } },
+        { company: { name: { contains: search, mode: 'insensitive' } } },
+      ];
+    }
+
+    return where;
   }
 
   getReviewStats(companyId: string): Promise<CompanyReviewStats> {

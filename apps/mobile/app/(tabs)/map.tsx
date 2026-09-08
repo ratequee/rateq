@@ -13,7 +13,7 @@ import type { CompanyPublic } from '@rateq/types';
 import { Ionicons } from '@expo/vector-icons';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { FlatList, Keyboard, Pressable, Text, View } from 'react-native';
+import { FlatList, Keyboard, Pressable, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 function filterNearbyCompanies(companies: NearbyCompany[], searchQuery: string) {
@@ -49,6 +49,7 @@ export default function MapScreen() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [mapFocusKey, setMapFocusKey] = useState(0);
+  const [markerRefreshKey, setMarkerRefreshKey] = useState(0);
   const prevViewRef = useRef<MapScreenView>(view);
 
   const load = useCallback(async () => {
@@ -119,8 +120,12 @@ export default function MapScreen() {
     const switchedToMap = prevViewRef.current !== 'map' && view === 'map';
     prevViewRef.current = view;
 
-    if (switchedToMap && appliedQuery.trim()) {
-      focusMapOnFirstMatch(appliedQuery);
+    if (switchedToMap) {
+      // Force marker bitmaps to re-capture after the map tab is shown again.
+      setMarkerRefreshKey((key) => key + 1);
+      if (appliedQuery.trim()) {
+        focusMapOnFirstMatch(appliedQuery);
+      }
     }
   }, [view, appliedQuery, focusMapOnFirstMatch]);
 
@@ -142,97 +147,116 @@ export default function MapScreen() {
 
   if (loading) return <LoadingView />;
 
+  const showMap = view === 'map';
+
   return (
     <SafeAreaView className="flex-1 bg-white dark:bg-dm-bg" edges={['top']}>
       <MapViewToggle value={view} onChange={setView} />
 
-      {view === 'map' ? (
-        <View className="relative flex-1">
-          <CompaniesMapView
-            companies={filteredCompanies}
-            selectedId={selectedId}
-            onSelect={setSelectedId}
-            mapCenter={origin}
-            userLocation={userLocation.status === 'granted' ? origin : null}
-            zoomLevel={userLocation.status === 'granted' ? 'near' : 'wide'}
-            focusKey={mapFocusKey}
-          />
+      {/* Keep map mounted when switching to list — remounting blanks Android marker logos. */}
+      <View className="relative flex-1">
+        <View
+          collapsable={false}
+          pointerEvents={showMap ? 'auto' : 'none'}
+          style={
+            showMap
+              ? { flex: 1 }
+              : {
+                  ...StyleSheet.absoluteFillObject,
+                  opacity: 0,
+                }
+          }
+        >
+          <View className="relative flex-1">
+            <CompaniesMapView
+              companies={filteredCompanies}
+              selectedId={selectedId}
+              onSelect={setSelectedId}
+              mapCenter={origin}
+              userLocation={userLocation.status === 'granted' ? origin : null}
+              zoomLevel={userLocation.status === 'granted' ? 'near' : 'wide'}
+              focusKey={mapFocusKey}
+              markerRefreshKey={markerRefreshKey}
+            />
 
-          <View className="absolute left-4 right-4 top-4">
-            <View className="flex-row items-center gap-2">
-              <Input
-                className="flex-1 rounded-full border-0 bg-white shadow-md"
-                placeholder={t('map.searchPlaceholder')}
-                value={query}
-                onChangeText={setQuery}
-                onSubmitEditing={onSearch}
-                returnKeyType="search"
-              />
-              <Pressable
-                onPress={onSearch}
-                className="h-12 w-12 items-center justify-center rounded-full bg-brand-500 shadow-md"
-              >
-                <Ionicons name="search" size={20} color="#ffffff" />
-              </Pressable>
+            <View className="absolute left-4 right-4 top-4">
+              <View className="flex-row items-center gap-2">
+                <Input
+                  className="flex-1 rounded-full border-0 bg-white shadow-md"
+                  placeholder={t('map.searchPlaceholder')}
+                  value={query}
+                  onChangeText={setQuery}
+                  onSubmitEditing={onSearch}
+                  returnKeyType="search"
+                />
+                <Pressable
+                  onPress={onSearch}
+                  className="h-12 w-12 items-center justify-center rounded-full bg-brand-500 shadow-md"
+                >
+                  <Ionicons name="search" size={20} color="#ffffff" />
+                </Pressable>
+              </View>
             </View>
           </View>
         </View>
-      ) : (
-        <View className="flex-1 bg-slate-50 dark:bg-dm-bg">
-          <Text
-            className={cn(
-              'px-4 pb-2 pt-4 text-sm text-ink-muted dark:text-white/75',
-              textAlignClass,
-            )}
-            style={[{ fontFamily: getFontFamily('regular') }, textStyle]}
-          >
-            {t('map.companiesByDistance')}
-          </Text>
 
-          {error ? (
-            <Text className="px-4 py-2 text-center text-sm text-red-600">{error}</Text>
-          ) : null}
+        {showMap ? null : (
+          <View className="flex-1 bg-slate-50 dark:bg-dm-bg">
+            <Text
+              className={cn(
+                'px-4 pb-2 pt-4 text-sm text-ink-muted dark:text-white/75',
+                textAlignClass,
+              )}
+              style={[{ fontFamily: getFontFamily('regular') }, textStyle]}
+            >
+              {t('map.companiesByDistance')}
+            </Text>
 
-          <FlatList
-            data={filteredCompanies}
-            keyExtractor={(item) => item.id}
-            contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 24, flexGrow: 1 }}
-            keyboardShouldPersistTaps="handled"
-            ListHeaderComponent={
-              <View className="pb-3">
-                <View className="flex-row items-center gap-2">
-                  <Input
-                    className="flex-1 rounded-full border-slate-200 bg-white"
-                    placeholder={t('map.searchPlaceholder')}
-                    value={query}
-                    onChangeText={setQuery}
-                    onSubmitEditing={onSearch}
-                    returnKeyType="search"
-                  />
-                  <Pressable
-                    onPress={onSearch}
-                    className="h-12 w-12 items-center justify-center rounded-full bg-brand-500"
+            {error ? (
+              <Text className="px-4 py-2 text-center text-sm text-red-600">{error}</Text>
+            ) : null}
+
+            <FlatList
+              data={filteredCompanies}
+              keyExtractor={(item) => item.id}
+              contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 24, flexGrow: 1 }}
+              keyboardShouldPersistTaps="handled"
+              ListHeaderComponent={
+                <View className="pb-3">
+                  <View className="flex-row items-center gap-2">
+                    <Input
+                      className="flex-1 rounded-full border-slate-200 bg-white"
+                      placeholder={t('map.searchPlaceholder')}
+                      value={query}
+                      onChangeText={setQuery}
+                      onSubmitEditing={onSearch}
+                      returnKeyType="search"
+                    />
+                    <Pressable
+                      onPress={onSearch}
+                      className="h-12 w-12 items-center justify-center rounded-full bg-brand-500"
+                    >
+                      <Ionicons name="search" size={20} color="#ffffff" />
+                    </Pressable>
+                  </View>
+                  <Text
+                    className={cn('mt-2 text-xs text-ink-muted dark:text-white/60', textAlignClass)}
+                    style={[{ fontFamily: getFontFamily('regular') }, textStyle]}
                   >
-                    <Ionicons name="search" size={20} color="#ffffff" />
-                  </Pressable>
+                    {locationHint}
+                  </Text>
                 </View>
-                <Text
-                  className={cn('mt-2 text-xs text-ink-muted dark:text-white/60', textAlignClass)}
-                  style={[{ fontFamily: getFontFamily('regular') }, textStyle]}
-                >
-                  {locationHint}
+              }
+              ListEmptyComponent={
+                <Text className="py-12 text-center text-sm text-ink-muted dark:text-white/70">
+                  {t('map.noResults')}
                 </Text>
-              </View>
-            }
-            ListEmptyComponent={
-              <Text className="py-12 text-center text-sm text-ink-muted dark:text-white/70">
-                {t('map.noResults')}
-              </Text>
-            }
-            renderItem={({ item }) => <NearbyCompanyListCard company={item} />}
-          />
-        </View>
-      )}
+              }
+              renderItem={({ item }) => <NearbyCompanyListCard company={item} />}
+            />
+          </View>
+        )}
+      </View>
     </SafeAreaView>
   );
 }

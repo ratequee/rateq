@@ -82,60 +82,71 @@ function CheckEmailContent() {
           <p className="mt-2 text-center text-sm text-ink-muted dark:text-slate-300">
             {tp('checkEmailSubtitle')}
           </p>
-          {emailFromQuery && (
+          {emailFromQuery ? (
             <p className="mt-3 text-center text-sm font-medium text-ink dark:text-white">
               {emailFromQuery}
             </p>
-          )}
+          ) : null}
         </div>
 
-        <div className="mt-8 space-y-4 rounded-xl border border-brand-100 bg-brand-50/40 p-4 text-sm leading-relaxed text-ink-muted dark:border-brand-900/60 dark:bg-brand-950/30 dark:text-slate-200">
-          <p>{tp('checkEmailInstructions')}</p>
-          <p>{tp('checkEmailSpamHint')}</p>
-        </div>
-
-        <form onSubmit={handleResend} className="mt-6 space-y-4">
-          <p className="text-sm font-medium text-ink dark:text-white">
-            {tp('resendVerificationTitle')}
-          </p>
-          <div>
-            <Input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder={tp('emailPlaceholder')}
-              autoComplete="email"
-              className="h-11"
-            />
-            {fieldErrors.email && <p className="mt-1 text-sm text-red-600">{fieldErrors.email}</p>}
+        <section className="mt-8 space-y-4 rounded-xl border border-brand-100 bg-brand-50/40 p-5 dark:border-brand-900/60 dark:bg-brand-950/30">
+          <h3 className="text-sm font-semibold text-ink dark:text-white">
+            {tp('checkEmailReceivedTitle')}
+          </h3>
+          <div className="space-y-2 text-sm leading-relaxed text-ink-muted dark:text-slate-200">
+            <p>{tp('checkEmailInstructions')}</p>
+            <p>{tp('checkEmailSpamHint')}</p>
           </div>
-          <div>
-            <Input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder={tp('passwordPlaceholder')}
-              autoComplete="current-password"
-              className="h-11"
-            />
-            {fieldErrors.password && (
-              <p className="mt-1 text-sm text-red-600">{fieldErrors.password}</p>
-            )}
-          </div>
-          <Button type="submit" className="w-full" disabled={loading}>
-            {loading ? tp('sendingVerificationEmail') : tp('resendVerificationButton')}
-          </Button>
-        </form>
-
-        <p className="mt-6 text-center text-sm text-ink-muted dark:text-slate-300">
-          {tp('alreadyVerified')}{' '}
-          <Link
-            href="/login"
-            className="font-semibold text-brand-500 hover:text-brand-600 hover:underline dark:text-brand-300 dark:hover:text-white"
-          >
-            {tp('backToLogin')}
+          <Link href="/login" className="block">
+            <Button
+              type="button"
+              size="lg"
+              className="w-full bg-gold-400 text-white hover:bg-gold-500"
+            >
+              {tp('checkEmailLoginButton')}
+            </Button>
           </Link>
-        </p>
+        </section>
+
+        <section className="mt-6 space-y-4 rounded-xl border border-default p-5">
+          <h3 className="text-sm font-semibold text-ink dark:text-white">
+            {tp('checkEmailNotReceivedTitle')}
+          </h3>
+          <p className="text-sm text-ink-muted dark:text-slate-300">
+            {tp('checkEmailNotReceivedSubtitle')}
+          </p>
+          <form onSubmit={handleResend} className="space-y-4">
+            <div>
+              <Input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder={tp('emailPlaceholder')}
+                autoComplete="email"
+                className="h-11"
+              />
+              {fieldErrors.email ? (
+                <p className="mt-1 text-sm text-red-600">{fieldErrors.email}</p>
+              ) : null}
+            </div>
+            <div>
+              <Input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder={tp('passwordPlaceholder')}
+                autoComplete="current-password"
+                className="h-11"
+              />
+              {fieldErrors.password ? (
+                <p className="mt-1 text-sm text-red-600">{fieldErrors.password}</p>
+              ) : null}
+            </div>
+            <Button type="submit" variant="outline" className="w-full" disabled={loading}>
+              {loading ? tp('sendingVerificationEmail') : tp('resendVerificationButton')}
+            </Button>
+          </form>
+        </section>
       </div>
     </AuthLayout>
   );

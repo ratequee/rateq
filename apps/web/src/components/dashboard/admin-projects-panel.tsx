@@ -1,6 +1,7 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { ImageLightbox, SingleImageLightbox } from '@/components/ui/image-lightbox';
 import { ensureValidAccessToken } from '@/lib/auth-session';
 import { reviewsApi, ApiError } from '@/lib/api';
@@ -12,18 +13,18 @@ import { useLocale, useTranslations } from 'next-intl';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
 
-const statusStyles: Record<CompanyProjectStatus, string> = {
-  PENDING: 'bg-amber-50 text-amber-700 dark:bg-amber-950/50 dark:text-amber-300',
-  APPROVED: 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-300',
-  REJECTED: 'bg-red-50 text-red-700 dark:bg-red-950/50 dark:text-red-400',
-};
-
 const STATUS_OPTIONS: Array<CompanyProjectStatus | 'all'> = [
   'all',
   CompanyProjectStatus.PENDING,
   CompanyProjectStatus.APPROVED,
   CompanyProjectStatus.REJECTED,
 ];
+
+const statusStyles: Record<CompanyProjectStatus, string> = {
+  PENDING: 'bg-amber-50 text-amber-700 dark:bg-amber-950/50 dark:text-amber-300',
+  APPROVED: 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-300',
+  REJECTED: 'bg-red-50 text-red-700 dark:bg-red-950/50 dark:text-red-400',
+};
 
 export function AdminProjectsPanel() {
   const t = useTranslations('adminProjects');
@@ -32,6 +33,8 @@ export function AdminProjectsPanel() {
   const [meta, setMeta] = useState<PaginatedAdminProjectsResponse['meta'] | null>(null);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [status, setStatus] = useState<CompanyProjectStatus | 'all'>(CompanyProjectStatus.PENDING);
+  const [searchInput, setSearchInput] = useState('');
+  const [search, setSearch] = useState('');
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(true);
   const [acting, setActing] = useState(false);
@@ -54,6 +57,7 @@ export function AdminProjectsPanel() {
         params.set('page', String(page));
         params.set('limit', '20');
         if (status !== 'all') params.set('status', status);
+        if (search) params.set('search', search);
 
         const response = await reviewsApi.listAdminProjects(token, params);
         if (seq !== loadSeq.current) return;
@@ -78,7 +82,7 @@ export function AdminProjectsPanel() {
         if (seq === loadSeq.current && !options?.silent) setLoading(false);
       }
     },
-    [page, status, t],
+    [page, search, status, t],
   );
 
   const loadStatusCounts = useCallback(async () => {
@@ -88,6 +92,7 @@ export function AdminProjectsPanel() {
       STATUS_OPTIONS.map((option) => {
         const params = new URLSearchParams({ page: '1', limit: '1' });
         if (option !== 'all') params.set('status', option);
+        if (search) params.set('search', search);
         return reviewsApi.listAdminProjects(token, params);
       }),
     );
@@ -96,7 +101,7 @@ export function AdminProjectsPanel() {
         STATUS_OPTIONS.map((option, index) => [option, responses[index]?.meta.total ?? 0]),
       ),
     );
-  }, []);
+  }, [search]);
 
   useEffect(() => {
     void loadProjects();
@@ -173,8 +178,39 @@ export function AdminProjectsPanel() {
     });
   };
 
+  const handleSearchSubmit = (event: React.FormEvent) => {
+    event.preventDefault();
+    setPage(1);
+    setSearch(searchInput.trim());
+  };
+
   return (
     <div className="space-y-6">
+      <form onSubmit={handleSearchSubmit} className="flex flex-wrap items-center gap-3">
+        <Input
+          value={searchInput}
+          onChange={(event) => setSearchInput(event.target.value)}
+          placeholder={t('searchPlaceholder')}
+          className="max-w-md"
+        />
+        <Button type="submit" variant="outline">
+          {t('search')}
+        </Button>
+        {search ? (
+          <Button
+            type="button"
+            variant="ghost"
+            onClick={() => {
+              setSearchInput('');
+              setSearch('');
+              setPage(1);
+            }}
+          >
+            {t('clearSearch')}
+          </Button>
+        ) : null}
+      </form>
+
       <div className="flex flex-wrap items-center gap-3">
         {STATUS_OPTIONS.map((option) => (
           <button

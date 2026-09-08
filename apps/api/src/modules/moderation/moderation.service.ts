@@ -573,14 +573,19 @@ export class ModerationService {
   async listProjects(query: ListProjectsQueryDto): Promise<PaginatedAdminProjectsResponse> {
     const page = query.page ?? 1;
     const limit = query.limit ?? 20;
+    const search = query.search?.trim() || undefined;
 
     const [items, total] = await Promise.all([
       this.companiesRepository.findProjectsForModeration({
         status: query.status,
+        search,
         page,
         limit,
       }),
-      this.companiesRepository.countProjectsForModeration(query.status),
+      this.companiesRepository.countProjectsForModeration({
+        status: query.status,
+        search,
+      }),
     ]);
 
     return {

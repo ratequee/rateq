@@ -2,7 +2,7 @@ import { Button } from '@/components/ui/button';
 import { DatePickerField } from '@/components/ui/date-picker-field';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { PhoneVerificationField } from '@/components/profile/phone-verification-field';
+import { QatarPhoneInput } from '@/components/ui/qatar-phone-input';
 import { useAppToast } from '@/hooks/use-app-toast';
 import { catalogApi, categoriesApi, onboardingApi } from '@/lib/api';
 import {
@@ -11,6 +11,7 @@ import {
   type CompanyMapLocation,
 } from '@/lib/company-location';
 import { reverseGeocodePlace } from '@/lib/geocoding';
+import { getLinkedFirebasePhoneNumber } from '@/lib/firebase/phone-auth';
 import {
   resolveCompanyDocumentUrls,
   type CompanyExistingAssets,
@@ -28,14 +29,19 @@ import {
 } from '@/lib/validation/profile-fields';
 import type { CompanyProfileDetail } from '@rateq/types';
 import type { CategoryPublic, CompanyCatalogItemPublic } from '@rateq/types';
+import { Ionicons } from '@expo/vector-icons';
 import * as DocumentPicker from 'expo-document-picker';
 import * as ImagePicker from 'expo-image-picker';
 import * as Location from 'expo-location';
+import { useRouter, type Href } from 'expo-router';
 import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Image, Pressable, ScrollView, Text, View } from 'react-native';
 import { getFontFamily } from '@/i18n';
 import { useAuth } from '@/context/auth-context';
+
+const COMPANY_VERIFY_PHONE_HREF =
+  '/(auth)/verify-phone?next=/(onboarding)/complete-profile&context=company&sync=1' as Href;
 
 interface CompanyOnboardingWizardProps {
   existingCompany?: CompanyProfileDetail | null;
@@ -247,6 +253,7 @@ export function CompanyOnboardingWizard({
 }: CompanyOnboardingWizardProps) {
   const { t } = useTranslation();
   const { refreshSession } = useAuth();
+  const router = useRouter();
   const toast = useAppToast();
 
   const [step, setStep] = useState(1);
@@ -322,6 +329,9 @@ export function CompanyOnboardingWizard({
         : '',
     );
     setCompanyPhone(extractQatarPhoneDigits(existingCompany.phone ?? ''));
+    if (existingCompany.phone) {
+      setCompanyPhoneVerified(true);
+    }
     setCategoryIds(
       existingCompany.categoryIds?.length
         ? existingCompany.categoryIds
@@ -348,6 +358,17 @@ export function CompanyOnboardingWizard({
       coverUrl: existingCompany.coverUrl,
     });
   }, [existingCompany]);
+
+  useEffect(() => {
+    if (existingCompany?.phone) return;
+    const linked = getLinkedFirebasePhoneNumber();
+    if (linked) {
+      setCompanyPhone(extractQatarPhoneDigits(linked));
+      setCompanyPhoneVerified(true);
+      return;
+    }
+    router.replace(COMPANY_VERIFY_PHONE_HREF);
+  }, [existingCompany, router]);
 
   const validationMessages = useMemo(
     () => ({
@@ -440,6 +461,8 @@ export function CompanyOnboardingWizard({
 
     setSubmitting(true);
     try {
+      await onboardingApi.syncPhone(formatQatarPhoneForSubmit(companyPhone), 'company');
+
       const assets = await resolveCompanyDocumentUrls({
         registrationDocFile,
         establishmentCardFile,
@@ -684,15 +707,39 @@ export function CompanyOnboardingWizard({
             </View>
           </View>
 
-          <PhoneVerificationField
-            phone={companyPhone}
-            onPhoneChange={setCompanyPhone}
-            context="company"
-            verified={companyPhoneVerified}
-            onVerifiedChange={setCompanyPhoneVerified}
-            error={errors.companyPhone || errors.companyPhoneVerification}
-            label={t('onboarding.phone')}
-          />
+          <View>
+            <Label required>{t('onboarding.phone')}</Label>
+            <View className="flex-row items-start gap-2">
+              <QatarPhoneInput
+                value={companyPhone}
+                onChange={() => undefined}
+                editable={false}
+                className="flex-1 border-emerald-200 bg-emerald-50/50 dark:border-emerald-900/60 dark:bg-emerald-950/20"
+              />
+              {companyPhoneVerified ? (
+                <View className="h-12 flex-row items-center gap-1.5 rounded-xl border border-emerald-200 bg-emerald-50 px-3 dark:border-emerald-900/60 dark:bg-emerald-950/30">
+                  <Ionicons name="checkmark-circle" size={18} color="#059669" />
+                  <Text
+                    className="text-sm font-semibold text-emerald-700 dark:text-emerald-300"
+                    style={{ fontFamily: getFontFamily('semibold') }}
+                  >
+                    {t('onboarding.phoneVerifiedLabel')}
+                  </Text>
+                </View>
+              ) : null}
+            </View>
+            <Text
+              className="mt-1.5 text-xs text-ink-muted dark:text-white/70"
+              style={{ fontFamily: getFontFamily('regular') }}
+            >
+              {t('onboarding.phoneVerifiedAtRegistration')}
+            </Text>
+            {errors.companyPhone || errors.companyPhoneVerification ? (
+              <Text className="mt-1 text-sm text-red-500">
+                {errors.companyPhone || errors.companyPhoneVerification}
+              </Text>
+            ) : null}
+          </View>
 
           <View className="gap-2">
             <Label required>{t('onboarding.category')}</Label>

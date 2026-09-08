@@ -3,7 +3,8 @@
 import { CatalogMultiSelect } from '@/components/profile/catalog-multi-select';
 import { CategorySubcategoryPicker } from '@/components/profile/category-subcategory-picker';
 import { CompanyAddressMapField } from '@/components/profile/company-address-map-field';
-import { PhoneVerificationField } from '@/components/profile/phone-verification-field';
+import { QatarPhoneInput } from '@/components/ui/qatar-phone-input';
+import { CheckCircle2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import type { CompanyMapLocation } from '@/lib/company-location';
@@ -137,9 +138,9 @@ export function CompanyProfileMultiStepFields({
   companyLocation,
   setCompanyLocation,
   companyPhone,
-  setCompanyPhone,
+  setCompanyPhone: _setCompanyPhone,
   companyPhoneVerified,
-  setCompanyPhoneVerified,
+  setCompanyPhoneVerified: _setCompanyPhoneVerified,
   categoryIds,
   setCategoryIds,
   categories,
@@ -281,16 +282,35 @@ export function CompanyProfileMultiStepFields({
             locationError={errors.companyLocation}
             fieldKey="companyAddress"
           />
-          <PhoneVerificationField
-            phone={companyPhone}
-            onPhoneChange={setCompanyPhone}
-            context="company"
-            verified={companyPhoneVerified}
-            onVerifiedChange={setCompanyPhoneVerified}
-            error={errors.companyPhone || errors.companyPhoneVerification}
-            label={t('phone')}
-            fieldKey="companyPhone"
-          />
+          <div data-field="companyPhone" className="space-y-2">
+            <label className="mb-1.5 block text-sm font-medium text-ink dark:text-white">
+              {t('phone')}
+              <span className="text-red-600"> *</span>
+            </label>
+            <div className="flex flex-col gap-2 sm:flex-row">
+              <QatarPhoneInput
+                id="companyPhone"
+                value={companyPhone}
+                onChange={() => undefined}
+                className="flex-1 [&_input]:border-emerald-200 [&_input]:bg-emerald-50/50"
+                disabled
+              />
+              {companyPhoneVerified ? (
+                <div className="inline-flex h-11 shrink-0 items-center justify-center gap-1.5 rounded-md border border-emerald-200 bg-emerald-50 px-4 text-sm font-semibold text-emerald-700">
+                  <CheckCircle2 className="h-4 w-4" aria-hidden />
+                  {t('phoneVerifiedLabel')}
+                </div>
+              ) : null}
+            </div>
+            <p className="text-xs text-ink-muted dark:text-slate-400">
+              {t('phoneVerifiedAtRegistration')}
+            </p>
+            {errors.companyPhone || errors.companyPhoneVerification ? (
+              <p className="text-sm text-red-600">
+                {errors.companyPhone || errors.companyPhoneVerification}
+              </p>
+            ) : null}
+          </div>
           <CategorySubcategoryPicker
             label={t('category')}
             hint={t('categoriesSubcategoriesHint')}

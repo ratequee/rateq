@@ -3,13 +3,14 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { RoleSelector } from '@/components/auth/role-selector';
 import { CompanyOnboardingWizard } from '@/components/onboarding/company-onboarding-wizard';
-import { PhoneVerificationField } from '@/components/profile/phone-verification-field';
+import { QatarPhoneInput } from '@/components/ui/qatar-phone-input';
 import { LoadingView } from '@/components/ui/loading-view';
 import { useAuth } from '@/context/auth-context';
 import { useProfile } from '@/context/profile-context';
 import { useRedirectAfterAuth } from '@/hooks/use-redirect-after-auth';
 import { useAppToast } from '@/hooks/use-app-toast';
 import { onboardingApi } from '@/lib/api';
+import { getLinkedFirebasePhoneNumber } from '@/lib/firebase/phone-auth';
 import { uploadUserImage } from '@/lib/firebase/storage';
 import { extractQatarPhoneDigits, formatQatarPhoneForSubmit } from '@/lib/qatar-phone';
 import {
@@ -23,13 +24,17 @@ import {
   validateReviewerProfileFields,
 } from '@/lib/validation/profile-fields';
 import type { AccountType, OnboardingStatus } from '@rateq/types';
+import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
-import { useRouter } from 'expo-router';
+import { useRouter, type Href } from 'expo-router';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Image, Pressable, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { getFontFamily } from '@/i18n';
+
+const VERIFY_PHONE_HREF =
+  '/(auth)/verify-phone?next=/(onboarding)/complete-profile&context=reviewer&sync=1' as Href;
 
 type OnboardingPhase = 'choose-type' | 'complete-form';
 
@@ -135,14 +140,38 @@ export default function CompleteProfileScreen() {
       const profile = onboarding.reviewerProfile;
       setFullName(profile.fullName);
       setPhone(extractQatarPhoneDigits(profile.phone));
+      setPhoneVerified(true);
       setCity(profile.city);
       setCountry(profile.country);
       setBio(profile.bio);
       setAvatarUri(profile.avatarUrl);
+    } else {
+      const linked = getLinkedFirebasePhoneNumber();
+      if (linked) {
+        setPhone(extractQatarPhoneDigits(linked));
+        setPhoneVerified(true);
+      }
     }
 
     hasInitializedPhase.current = true;
   }, [onboarding, companyRevision]);
+
+  useEffect(() => {
+    if (!user || isLoading) return;
+    if (phase !== 'complete-form' || accountType !== 'reviewer') return;
+    if (onboarding?.reviewerProfile?.phone) return;
+
+    const linked = getLinkedFirebasePhoneNumber();
+    if (linked) {
+      if (!phone) {
+        setPhone(extractQatarPhoneDigits(linked));
+        setPhoneVerified(true);
+      }
+      return;
+    }
+
+    router.replace(VERIFY_PHONE_HREF);
+  }, [user, isLoading, phase, accountType, onboarding, phone, router]);
 
   const accountOptions = useMemo(
     () => [
@@ -208,6 +237,8 @@ export default function CompleteProfileScreen() {
 
     setSubmitting(true);
     try {
+      await onboardingApi.syncPhone(formatQatarPhoneForSubmit(phone), 'reviewer');
+
       let avatarUrl = avatarUri!;
       if (!avatarUri!.startsWith('http')) {
         avatarUrl = await uploadUserImage('avatar', avatarUri!, 'avatar.jpg');
@@ -345,15 +376,39 @@ export default function CompleteProfileScreen() {
               ) : null}
             </View>
 
-            <PhoneVerificationField
-              phone={phone}
-              onPhoneChange={setPhone}
-              context="reviewer"
-              verified={phoneVerified}
-              onVerifiedChange={setPhoneVerified}
-              error={fieldErrors.phone || fieldErrors.phoneVerification}
-              label={t('onboarding.phone')}
-            />
+            <View>
+              <Label required>{t('onboarding.phone')}</Label>
+              <View className="flex-row items-start gap-2">
+                <QatarPhoneInput
+                  value={phone}
+                  onChange={() => undefined}
+                  editable={false}
+                  className="flex-1 border-emerald-200 bg-emerald-50/50 dark:border-emerald-900/60 dark:bg-emerald-950/20"
+                />
+                {phoneVerified ? (
+                  <View className="h-12 flex-row items-center gap-1.5 rounded-xl border border-emerald-200 bg-emerald-50 px-3 dark:border-emerald-900/60 dark:bg-emerald-950/30">
+                    <Ionicons name="checkmark-circle" size={18} color="#059669" />
+                    <Text
+                      className="text-sm font-semibold text-emerald-700 dark:text-emerald-300"
+                      style={{ fontFamily: getFontFamily('semibold') }}
+                    >
+                      {t('onboarding.phoneVerifiedLabel')}
+                    </Text>
+                  </View>
+                ) : null}
+              </View>
+              <Text
+                className="mt-1.5 text-xs text-ink-muted dark:text-white/70"
+                style={{ fontFamily: getFontFamily('regular') }}
+              >
+                {t('onboarding.phoneVerifiedAtRegistration')}
+              </Text>
+              {fieldErrors.phone || fieldErrors.phoneVerification ? (
+                <Text className="mt-1 text-sm text-red-500">
+                  {fieldErrors.phone || fieldErrors.phoneVerification}
+                </Text>
+              ) : null}
+            </View>
 
             <View>
               <Label required>{t('onboarding.city')}</Label>

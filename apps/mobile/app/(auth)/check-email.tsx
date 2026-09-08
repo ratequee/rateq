@@ -7,7 +7,7 @@ import { useAuth } from '@/context/auth-context';
 import { getFirebaseAuthErrorMessage } from '@/lib/firebase/errors';
 import { validateAuthFields } from '@/lib/validation/auth-fields';
 import { useAppToast } from '@/hooks/use-app-toast';
-import { Link, useLocalSearchParams } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Text, View } from 'react-native';
@@ -16,6 +16,7 @@ import { getFontFamily } from '@/i18n';
 export default function CheckEmailScreen() {
   const { t } = useTranslation();
   const { resendVerificationEmail } = useAuth();
+  const router = useRouter();
   const { email: emailParam } = useLocalSearchParams<{ email?: string }>();
   const toast = useAppToast();
   const [email, setEmail] = useState(emailParam ?? '');
@@ -57,25 +58,7 @@ export default function CheckEmailScreen() {
   };
 
   return (
-    <AuthScreenLayout
-      title={t('auth.checkEmailTitle')}
-      subtitle={t('auth.checkEmailSubtitle')}
-      footer={
-        <Text
-          className="text-center text-sm text-ink-muted dark:text-white/85"
-          style={{ fontFamily: getFontFamily('regular') }}
-        >
-          <Link href="/(auth)/login" asChild>
-            <Text
-              className="font-semibold text-brand-500 dark:text-gold-300"
-              style={{ fontFamily: getFontFamily('semibold') }}
-            >
-              {t('auth.backToLogin')}
-            </Text>
-          </Link>
-        </Text>
-      }
-    >
+    <AuthScreenLayout title={t('auth.checkEmailTitle')} subtitle={t('auth.checkEmailSubtitle')}>
       <View className="gap-5">
         {emailParam ? (
           <Text
@@ -86,7 +69,13 @@ export default function CheckEmailScreen() {
           </Text>
         ) : null}
 
-        <View className="rounded-xl border border-brand-100 bg-brand-50/40 p-4 dark:border-brand-900/60 dark:bg-brand-950/30">
+        <View className="gap-4 rounded-2xl border border-brand-100 bg-brand-50/40 p-4 dark:border-brand-900/60 dark:bg-brand-950/30">
+          <Text
+            className="text-sm font-semibold text-ink dark:text-white"
+            style={{ fontFamily: getFontFamily('semibold') }}
+          >
+            {t('auth.checkEmailReceivedTitle')}
+          </Text>
           <Text
             className="text-sm leading-5 text-ink-muted dark:text-white/85"
             style={{ fontFamily: getFontFamily('regular') }}
@@ -94,58 +83,73 @@ export default function CheckEmailScreen() {
             {t('auth.checkEmailInstructions')}
           </Text>
           <Text
-            className="mt-2 text-sm leading-5 text-ink-muted dark:text-white/85"
+            className="text-sm leading-5 text-ink-muted dark:text-white/85"
             style={{ fontFamily: getFontFamily('regular') }}
           >
             {t('auth.checkEmailSpamHint')}
           </Text>
-        </View>
-
-        <Text
-          className="text-sm font-medium text-ink dark:text-white"
-          style={{ fontFamily: getFontFamily('medium') }}
-        >
-          {t('auth.resendVerificationTitle')}
-        </Text>
-
-        <View>
-          <Label required>{t('auth.email')}</Label>
-          <Input
-            value={email}
-            onChangeText={setEmail}
-            keyboardType="email-address"
-            autoCapitalize="none"
-            placeholder={t('auth.emailPlaceholder')}
+          <Button
+            title={t('auth.checkEmailLoginButton')}
+            variant="gold"
+            size="lg"
+            className="w-full rounded-2xl"
+            onPress={() => router.push('/(auth)/login')}
           />
-          {fieldErrors.email ? (
-            <Text className="mt-1 text-sm text-red-500">{fieldErrors.email}</Text>
-          ) : null}
         </View>
 
-        <View>
-          <Label required>{t('auth.password')}</Label>
-          <PasswordInput
-            value={password}
-            onChangeText={setPassword}
-            placeholder={t('auth.passwordPlaceholder')}
-            toggleLabels={{
-              show: t('auth.showPassword'),
-              hide: t('auth.hidePassword'),
-            }}
+        <View className="gap-4 rounded-2xl border border-slate-200 p-4 dark:border-dm-border">
+          <Text
+            className="text-sm font-semibold text-ink dark:text-white"
+            style={{ fontFamily: getFontFamily('semibold') }}
+          >
+            {t('auth.checkEmailNotReceivedTitle')}
+          </Text>
+          <Text
+            className="text-sm leading-5 text-ink-muted dark:text-white/85"
+            style={{ fontFamily: getFontFamily('regular') }}
+          >
+            {t('auth.checkEmailNotReceivedSubtitle')}
+          </Text>
+
+          <View>
+            <Label required>{t('auth.email')}</Label>
+            <Input
+              value={email}
+              onChangeText={setEmail}
+              keyboardType="email-address"
+              autoCapitalize="none"
+              placeholder={t('auth.emailPlaceholder')}
+            />
+            {fieldErrors.email ? (
+              <Text className="mt-1 text-sm text-red-500">{fieldErrors.email}</Text>
+            ) : null}
+          </View>
+
+          <View>
+            <Label required>{t('auth.password')}</Label>
+            <PasswordInput
+              value={password}
+              onChangeText={setPassword}
+              placeholder={t('auth.passwordPlaceholder')}
+              toggleLabels={{
+                show: t('auth.showPassword'),
+                hide: t('auth.hidePassword'),
+              }}
+            />
+            {fieldErrors.password ? (
+              <Text className="mt-1 text-sm text-red-500">{fieldErrors.password}</Text>
+            ) : null}
+          </View>
+
+          <Button
+            title={loading ? t('auth.sendingVerification') : t('auth.resendVerification')}
+            variant="outline"
+            size="lg"
+            className="w-full rounded-2xl"
+            onPress={handleResend}
+            loading={loading}
           />
-          {fieldErrors.password ? (
-            <Text className="mt-1 text-sm text-red-500">{fieldErrors.password}</Text>
-          ) : null}
         </View>
-
-        <Button
-          title={loading ? t('auth.sendingVerification') : t('auth.resendVerification')}
-          variant="gold"
-          size="lg"
-          className="w-full rounded-2xl"
-          onPress={handleResend}
-          loading={loading}
-        />
       </View>
     </AuthScreenLayout>
   );

@@ -11,8 +11,11 @@ import type { AuthenticatedUser, AuthResponse } from '@rateq/types';
 import { authApi, setTokenGetter } from '@/lib/api';
 import { EmailNotVerifiedError, EmailVerificationPendingError } from '@/lib/auth-flow-errors';
 import { getFirebaseAuth, isFirebaseConfigured } from '@/lib/firebase/client';
+import { FirebaseError } from 'firebase/app';
+import { updateProfile } from 'firebase/auth';
 import {
   firebaseSendEmailVerification,
+  firebaseSendPasswordReset,
   firebaseSignIn,
   firebaseSignInWithGoogleIdToken,
   firebaseSignOut,
@@ -32,10 +35,13 @@ interface AuthContextValue {
   isLoading: boolean;
   login: (email: string, password: string) => Promise<AuthenticatedUser>;
   register: (data: { email: string; password: string; name?: string }) => Promise<void>;
+  beginRegistration: (data: { email: string; password: string; name?: string }) => Promise<void>;
+  finishRegistration: (email: string) => Promise<void>;
   loginWithGoogleIdToken: (idToken: string) => Promise<AuthenticatedUser>;
   completeOAuthSession: () => Promise<AuthenticatedUser>;
   linkOAuthWithPassword: (email: string, password: string) => Promise<AuthenticatedUser>;
   resendVerificationEmail: (email: string, password: string) => Promise<void>;
+  resetPassword: (email: string) => Promise<void>;
   logout: () => Promise<void>;
   refreshSession: () => Promise<AuthenticatedUser | null>;
 }
@@ -154,6 +160,56 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     throw new EmailVerificationPendingError(normalizedEmail);
   }, []);
 
+  const beginRegistration = useCallback(
+    async (data: { email: string; password: string; name?: string }) => {
+      if (!isFirebaseConfigured()) {
+        throw new Error('Firebase is not configured');
+      }
+
+      const normalizedEmail = data.email.trim().toLowerCase();
+
+      try {
+        await firebaseSignUp(normalizedEmail, data.password, data.name);
+      } catch (error) {
+        if (error instanceof FirebaseError && error.code === 'auth/email-already-in-use') {
+          const credential = await firebaseSignIn(normalizedEmail, data.password);
+          await reloadFirebaseUser(credential.user);
+          if (credential.user.emailVerified) {
+            throw new Error('This email is already registered. Please log in.');
+          }
+          if (data.name?.trim() && !credential.user.displayName) {
+            await updateProfile(credential.user, { displayName: data.name.trim() });
+          }
+          return;
+        }
+        throw error;
+      }
+    },
+    [],
+  );
+
+  const finishRegistration = useCallback(async (email: string) => {
+    if (!isFirebaseConfigured()) {
+      throw new Error('Firebase is not configured');
+    }
+
+    const current = getFirebaseAuth().currentUser;
+    if (!current) {
+      throw new Error('Sign in again to finish registration');
+    }
+
+    const normalizedEmail = email.trim().toLowerCase();
+
+    try {
+      await firebaseSendEmailVerification(current);
+    } catch {
+      throw new Error('Could not send verification email. Please try again.');
+    }
+
+    await firebaseSignOut();
+    throw new EmailVerificationPendingError(normalizedEmail);
+  }, []);
+
   const resendVerificationEmail = useCallback(async (email: string, password: string) => {
     if (!isFirebaseConfigured()) {
       throw new Error('Firebase is not configured');
@@ -170,6 +226,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     await firebaseSendEmailVerification(credential.user);
     await firebaseSignOut();
+  }, []);
+
+  const resetPassword = useCallback(async (email: string) => {
+    if (!isFirebaseConfigured()) {
+      throw new Error('Firebase is not configured');
+    }
+
+    await firebaseSendPasswordReset(email.trim().toLowerCase());
   }, []);
 
   const loginWithGoogleIdToken = useCallback(async (idToken: string) => {
@@ -255,10 +319,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       isLoading,
       login,
       register,
+      beginRegistration,
+      finishRegistration,
       loginWithGoogleIdToken,
       completeOAuthSession,
       linkOAuthWithPassword,
       resendVerificationEmail,
+      resetPassword,
       logout,
       refreshSession,
     }),
@@ -267,10 +334,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       isLoading,
       login,
       register,
+      beginRegistration,
+      finishRegistration,
       loginWithGoogleIdToken,
       completeOAuthSession,
       linkOAuthWithPassword,
       resendVerificationEmail,
+      resetPassword,
       logout,
       refreshSession,
     ],

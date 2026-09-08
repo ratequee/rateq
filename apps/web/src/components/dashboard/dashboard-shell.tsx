@@ -23,7 +23,7 @@ export function DashboardShell({ children, role }: DashboardShellProps) {
   const tNav = useTranslations('nav');
   const { logout } = useAuth();
   const router = useRouter();
-  useRequireVerifiedAuth();
+  const { isAllowed } = useRequireVerifiedAuth();
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const searchInputRef = useRef<HTMLInputElement>(null);
@@ -55,6 +55,14 @@ export function DashboardShell({ children, role }: DashboardShellProps) {
       router.push(href);
     }
   };
+
+  if (!isAllowed) {
+    return (
+      <div className="surface-page flex min-h-screen items-center justify-center">
+        <p className="text-sm text-secondary">{t('loading')}</p>
+      </div>
+    );
+  }
 
   return (
     <div className="surface-page min-h-screen">

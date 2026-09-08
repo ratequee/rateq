@@ -114,6 +114,21 @@ export default function LoginScreen() {
           />
         </AuthFieldGroup>
 
+        <Link
+          href={{
+            pathname: '/(auth)/forgot-password',
+            params: email.trim() ? { email: email.trim() } : undefined,
+          }}
+          asChild
+        >
+          <Text
+            className="-mt-2 self-end text-sm font-semibold text-brand-500 dark:text-gold-300"
+            style={{ fontFamily: getFontFamily('semibold') }}
+          >
+            {t('auth.forgotPassword')}
+          </Text>
+        </Link>
+
         <Button
           title={loading ? t('auth.signingIn') : t('auth.login')}
           variant="gold"

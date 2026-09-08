@@ -5,6 +5,22 @@ export interface AuthFieldErrors {
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
+export function validateEmailField(
+  email: string,
+  messages: {
+    emailRequired: string;
+    emailInvalid: string;
+  },
+): Pick<AuthFieldErrors, 'email'> {
+  const errors: Pick<AuthFieldErrors, 'email'> = {};
+  const trimmed = email.trim();
+
+  if (!trimmed) errors.email = messages.emailRequired;
+  else if (!EMAIL_RE.test(trimmed)) errors.email = messages.emailInvalid;
+
+  return errors;
+}
+
 export function validateAuthFields(
   fields: { email: string; password: string },
   messages: {
@@ -14,11 +30,9 @@ export function validateAuthFields(
     passwordMin: string;
   },
 ): AuthFieldErrors {
-  const errors: AuthFieldErrors = {};
-  const email = fields.email.trim();
-
-  if (!email) errors.email = messages.emailRequired;
-  else if (!EMAIL_RE.test(email)) errors.email = messages.emailInvalid;
+  const errors: AuthFieldErrors = {
+    ...validateEmailField(fields.email, messages),
+  };
 
   if (!fields.password) errors.password = messages.passwordRequired;
   else if (fields.password.length < 8) errors.password = messages.passwordMin;

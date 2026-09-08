@@ -42,6 +42,10 @@ interface AuthContextValue {
   /** @deprecated Use adminAccessLoading */
   firebaseAdminLoading: boolean;
   login: (email: string, password: string) => Promise<AuthenticatedUser>;
+  /** Creates Firebase account and stays signed in for phone verification. */
+  beginRegistration: (data: { email: string; password: string; name?: string }) => Promise<void>;
+  /** Sends email verification and signs out after phone is verified. */
+  finishRegistration: (email: string) => Promise<void>;
   register: (data: { email: string; password: string; name?: string }) => Promise<void>;
   loginWithGoogle: () => Promise<AuthenticatedUser>;
   loginWithApple: () => Promise<AuthenticatedUser>;
@@ -185,6 +189,60 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     },
     [ensureEmailVerifiedSession],
   );
+
+  const beginRegistration = useCallback(
+    async (data: { email: string; password: string; name?: string }) => {
+      if (!isFirebaseConfigured()) {
+        throw new Error('Firebase is not configured');
+      }
+
+      const normalizedEmail = data.email.trim().toLowerCase();
+
+      try {
+        await firebaseSignUp(normalizedEmail, data.password, data.name);
+      } catch (error) {
+        const { FirebaseError } = await import('firebase/app');
+        if (error instanceof FirebaseError && error.code === 'auth/email-already-in-use') {
+          const credential = await firebaseSignIn(normalizedEmail, data.password);
+          await reloadFirebaseUser(credential.user);
+          if (credential.user.emailVerified) {
+            throw new Error('This email is already registered. Please log in.');
+          }
+          if (data.name?.trim() && !credential.user.displayName) {
+            const { updateProfile } = await import('firebase/auth');
+            await updateProfile(credential.user, { displayName: data.name.trim() });
+          }
+          return;
+        }
+        throw error;
+      }
+    },
+    [],
+  );
+
+  const finishRegistration = useCallback(async (email: string) => {
+    if (!isFirebaseConfigured()) {
+      throw new Error('Firebase is not configured');
+    }
+
+    const { getFirebaseAuth } = await import('@/lib/firebase/client');
+    const auth = getFirebaseAuth();
+    const current = auth.currentUser;
+    if (!current) {
+      throw new Error('Sign in again to finish registration');
+    }
+
+    const normalizedEmail = email.trim().toLowerCase();
+
+    try {
+      await firebaseSendEmailVerification(current);
+    } catch {
+      throw new Error('Could not send verification email. Please try again.');
+    }
+
+    await firebaseSignOut();
+    throw new EmailVerificationPendingError(normalizedEmail);
+  }, []);
 
   const register = useCallback(async (data: { email: string; password: string; name?: string }) => {
     if (!isFirebaseConfigured()) {
@@ -340,6 +398,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       isFirebaseAdmin: adminAccess?.allowed ?? false,
       firebaseAdminLoading: adminAccessLoading,
       login,
+      beginRegistration,
+      finishRegistration,
       register,
       loginWithGoogle,
       loginWithApple,
@@ -356,6 +416,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       adminAccess,
       adminAccessLoading,
       login,
+      beginRegistration,
+      finishRegistration,
       register,
       loginWithGoogle,
       loginWithApple,

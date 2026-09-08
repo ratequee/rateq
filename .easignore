@@ -1,0 +1,67 @@
+# Used by EAS Build upload. Overrides .gitignore for the upload set.
+# Keep parity with .gitignore, but include local .env so app.config.js can
+# resolve EXPO_PUBLIC_GOOGLE_MAPS_API_KEY during remote prebuild if EAS env
+# vars are missing. Prefer setting vars in EAS Environment as the primary source.
+
+# Dependencies
+node_modules
+.pnp
+.pnp.js
+
+# Build outputs
+dist
+build
+.next
+out
+.expo
+.turbo
+*.tsbuildinfo
+
+# Environment — include project .env for Maps / Expo public config on EAS
+.env.local
+.env.*.local
+!.env
+!apps/mobile/.env
+!.env.example
+
+# Logs
+logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Testing
+coverage
+.nyc_output
+
+# IDE
+.idea
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+*.swp
+*.swo
+.DS_Store
+
+# Prisma
+apps/api/prisma/migrations/**/migration_lock.toml
+
+# Mobile native dirs (generated on EAS)
+apps/mobile/.expo
+apps/mobile/ios
+apps/mobile/android
+*.jks
+*.p8
+*.p12
+*.mobileprovision
+
+# Docker
+.docker
+
+# Misc
+*.pem
+.cache
+.vercel
+rateq-theme-export/

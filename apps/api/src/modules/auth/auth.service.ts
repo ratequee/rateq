@@ -89,6 +89,13 @@ export class AuthService {
 
   async loginWithFirebase(dto: FirebaseLoginDto): Promise<AuthResponse> {
     const firebaseUser = await this.firebaseAdmin.verifyIdToken(dto.idToken);
+
+    if (!firebaseUser.emailVerified) {
+      throw new ForbiddenException(
+        'Verify your email before continuing. Check your inbox for the verification link.',
+      );
+    }
+
     const displayName = firebaseUser.name?.trim();
 
     let user =
