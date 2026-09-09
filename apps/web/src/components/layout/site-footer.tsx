@@ -76,7 +76,11 @@ export async function SiteFooter(): Promise<JSX.Element> {
   return (
     <footer className="bg-black pt-[100px] text-white">
       <div className="mx-auto max-w-page px-4 py-12 sm:px-6 sm:py-16 lg:px-8">
-        <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-4 lg:gap-8">
+        <div className="flex justify-center border-b border-white/15 pb-10 sm:pb-12">
+          <DicIncubatedBadge />
+        </div>
+
+        <div className="mt-10 grid gap-10 sm:mt-12 sm:grid-cols-2 lg:grid-cols-4 lg:gap-8">
           <div className="sm:col-span-2 lg:col-span-1">
             <Logo variant="light" />
             <p className="mt-4 max-w-xs text-sm leading-relaxed text-white">{aboutText}</p>
@@ -169,34 +173,29 @@ export async function SiteFooter(): Promise<JSX.Element> {
         </div>
 
         <div className="mt-12 border-t border-white/15 pt-6">
-          <div className="flex flex-col items-center gap-5">
-            <div className="rounded-xl bg-white px-4 py-3 shadow-sm dark:bg-transparent dark:px-0 dark:py-0 dark:shadow-none">
-              <DicIncubatedBadge />
+          <div className="flex flex-col items-center justify-between gap-4 text-sm sm:flex-row">
+            <p>
+              © {year} {tc('appName')}. {t('rights')}
+            </p>
+            <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-2 text-white/80">
+              <Link href="/privacy" className="transition-colors hover:text-gold-300">
+                {t('privacy')}
+              </Link>
+              <Link href="/terms" className="transition-colors hover:text-gold-300">
+                {t('terms')}
+              </Link>
             </div>
-            <div className="flex w-full flex-col items-center justify-between gap-4 text-sm sm:flex-row">
-              <p>
-                © {year} {tc('appName')}. {t('rights')}
-              </p>
-              <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-2 text-white/80">
-                <Link href="/privacy" className="transition-colors hover:text-gold-300">
-                  {t('privacy')}
-                </Link>
-                <Link href="/terms" className="transition-colors hover:text-gold-300">
-                  {t('terms')}
-                </Link>
-              </div>
-              <p className="text-white/70">
-                {t('broughtToLifeBy')}{' '}
-                <a
-                  href="https://qwebdigital.com/"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="font-medium text-white underline-offset-2 hover:underline"
-                >
-                  Qweb Digital
-                </a>
-              </p>
-            </div>
+            <p className="text-white/70">
+              {t('broughtToLifeBy')}{' '}
+              <a
+                href="https://qwebdigital.com/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="font-medium text-white underline-offset-2 hover:underline"
+              >
+                Qweb Digital
+              </a>
+            </p>
           </div>
         </div>
       </div>
