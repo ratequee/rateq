@@ -8,7 +8,6 @@ import { canCompanyReplyToReview } from '@/lib/review-reply';
 import { fetchCategoriesClient } from '@/lib/categories-api';
 import { getCategoryLabel, getLocalizedCategoryName } from '@/lib/category-label';
 import { reviewsApi } from '@/lib/api';
-import { ApiError } from '@/lib/api';
 import { cn } from '@/lib/utils';
 import type { CategoryPublic, PaginatedReviewsResponse, ReviewPublic } from '@rateq/types';
 import { ReviewReplyStatus, ReviewStatus } from '@rateq/types';
@@ -17,6 +16,7 @@ import { Loader2, MessageSquareText } from 'lucide-react';
 import { ReviewProofAttachments } from '@/components/dashboard/review-proof-attachments';
 import { ReviewReplyForm } from '@/components/review/review-reply-form';
 import { ReviewReplyStatusBadge } from '@/components/review/review-reply-status-badge';
+import { useUserFacingError } from '@/hooks/use-user-facing-error';
 import { useLocale, useTranslations } from 'next-intl';
 import { useSearchParams } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
@@ -101,6 +101,7 @@ function isResolutionDeadlinePassed(review: ReviewPublic): boolean {
 export function ReviewsManagementPanel({ mode, companyId }: ReviewsManagementPanelProps) {
   const t = useTranslations('dashboardReviews');
   const locale = useLocale();
+  const resolveError = useUserFacingError();
   const router = useRouter();
   const searchParams = useSearchParams();
   const [categories, setCategories] = useState<CategoryPublic[]>([]);
@@ -195,15 +196,14 @@ export function ReviewsManagementPanel({ mode, companyId }: ReviewsManagementPan
         });
       } catch (err) {
         if (seq !== loadSeq.current) return;
-        const message = err instanceof ApiError ? err.message : t('loadError');
-        toast.error(message);
+        toast.error(resolveError(err, t('loadError')));
         setReviews([]);
         setMeta(null);
       } finally {
         if (seq === loadSeq.current && !options?.silent) setLoading(false);
       }
     },
-    [mode, companyId, page, status, categoryId, search, t],
+    [mode, companyId, page, resolveError, status, categoryId, search, t],
   );
 
   const loadStatusCounts = useCallback(async () => {
@@ -260,8 +260,7 @@ export function ReviewsManagementPanel({ mode, companyId }: ReviewsManagementPan
       await loadStatusCounts();
       router.refresh();
     } catch (err) {
-      const message = err instanceof ApiError ? err.message : t('actionError');
-      toast.error(message);
+      toast.error(resolveError(err, t('actionError')));
       await loadReviews({ silent: true });
       await loadStatusCounts();
     } finally {

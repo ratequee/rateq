@@ -9,7 +9,8 @@ import { useProfile } from '@/context/profile-context';
 import { getFontFamily } from '@/i18n';
 import { fetchAllCompanyReviews } from '@/lib/fetch-all-company-reviews';
 import { fetchAllMyReviews } from '@/lib/fetch-all-my-reviews';
-import { ApiError } from '@/lib/api';
+import { getUserFacingError } from '@/lib/user-facing-error';
+import type { UserErrorKey } from '@rateq/utils';
 import type { ReviewPublic } from '@rateq/types';
 import { ReviewStatus, UserRole } from '@rateq/types';
 import { useRouter } from 'expo-router';
@@ -61,7 +62,9 @@ export default function ActivityScreen() {
       const data = await fetchAllMyReviews();
       setReviews(data);
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : t('common.error'));
+      setError(
+        getUserFacingError(err, (key: UserErrorKey) => t(`errors.${key}`), t('common.error')),
+      );
     }
   }, [companyId, isCompany, t, user]);
 

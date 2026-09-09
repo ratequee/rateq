@@ -3,8 +3,9 @@
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ImageLightbox, SingleImageLightbox } from '@/components/ui/image-lightbox';
+import { useUserFacingError } from '@/hooks/use-user-facing-error';
 import { ensureValidAccessToken } from '@/lib/auth-session';
-import { reviewsApi, ApiError } from '@/lib/api';
+import { reviewsApi } from '@/lib/api';
 import { cn } from '@/lib/utils';
 import type { AdminCompanyProjectListItem, PaginatedAdminProjectsResponse } from '@rateq/types';
 import { CompanyProjectStatus } from '@rateq/types';
@@ -29,6 +30,7 @@ const statusStyles: Record<CompanyProjectStatus, string> = {
 export function AdminProjectsPanel() {
   const t = useTranslations('adminProjects');
   const locale = useLocale();
+  const resolveError = useUserFacingError();
   const [projects, setProjects] = useState<AdminCompanyProjectListItem[]>([]);
   const [meta, setMeta] = useState<PaginatedAdminProjectsResponse['meta'] | null>(null);
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -76,13 +78,12 @@ export function AdminProjectsPanel() {
         );
       } catch (err) {
         if (seq !== loadSeq.current) return;
-        const message = err instanceof ApiError ? err.message : t('loadError');
-        toast.error(message);
+        toast.error(resolveError(err, t('loadError')));
       } finally {
         if (seq === loadSeq.current && !options?.silent) setLoading(false);
       }
     },
-    [page, search, status, t],
+    [page, resolveError, search, status, t],
   );
 
   const loadStatusCounts = useCallback(async () => {
@@ -141,8 +142,7 @@ export function AdminProjectsPanel() {
       await loadProjects({ silent: true });
       await loadStatusCounts();
     } catch (err) {
-      const message = err instanceof ApiError ? err.message : t('actionError');
-      toast.error(message);
+      toast.error(resolveError(err, t('actionError')));
       await loadProjects({ silent: true });
       await loadStatusCounts();
     } finally {

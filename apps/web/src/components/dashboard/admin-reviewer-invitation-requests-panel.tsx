@@ -2,7 +2,7 @@
 
 import { Button } from '@/components/ui/button';
 import { adminApi } from '@/lib/admin-api';
-import { ApiError } from '@/lib/api';
+import { useUserFacingError } from '@/hooks/use-user-facing-error';
 import type { ReviewerInvitationRequestPublic } from '@rateq/types';
 import { ExternalLink, Loader2, Trash2 } from 'lucide-react';
 import { useTranslations } from 'next-intl';
@@ -17,6 +17,7 @@ const statusStyles: Record<string, string> = {
 
 export function AdminReviewerInvitationRequestsPanel() {
   const t = useTranslations('adminReviewerInvitations');
+  const resolveError = useUserFacingError();
   const [requests, setRequests] = useState<ReviewerInvitationRequestPublic[]>([]);
   const [loading, setLoading] = useState(true);
   const [actingId, setActingId] = useState<string | null>(null);
@@ -54,8 +55,7 @@ export function AdminReviewerInvitationRequestsPanel() {
       }
       await load();
     } catch (err) {
-      const message = err instanceof ApiError ? err.message : t('actionError');
-      toast.error(message);
+      toast.error(resolveError(err, t('actionError')));
     } finally {
       setActingId(null);
     }

@@ -2,7 +2,9 @@ import { CategoryFilterChips } from '@/components/companies/category-filter-chip
 import { FeaturedCompanyCard } from '@/components/home/featured-company-card';
 import { Input } from '@/components/ui/input';
 import { LoadingView } from '@/components/ui/loading-view';
-import { ApiError, categoriesApi, companiesApi } from '@/lib/api';
+import { categoriesApi, companiesApi } from '@/lib/api';
+import { getUserFacingError } from '@/lib/user-facing-error';
+import type { UserErrorKey } from '@rateq/utils';
 import type { CategoryPublic, CompanyPublic } from '@rateq/types';
 import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams } from 'expo-router';
@@ -53,7 +55,9 @@ export default function CompaniesScreen() {
         const result = await companiesApi.search(params);
         setCompanies(result.data);
       } catch (err) {
-        setError(err instanceof ApiError ? err.message : t('common.error'));
+        setError(
+          getUserFacingError(err, (key: UserErrorKey) => t(`errors.${key}`), t('common.error')),
+        );
       }
     },
     [t],

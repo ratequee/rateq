@@ -3,7 +3,9 @@ import { LoadingView } from '@/components/ui/loading-view';
 import { useAppDirection } from '@/hooks/use-app-direction';
 import { getFontFamily } from '@/i18n';
 import { cn } from '@/lib/cn';
-import { ApiError, categoriesApi } from '@/lib/api';
+import { categoriesApi } from '@/lib/api';
+import { getUserFacingError } from '@/lib/user-facing-error';
+import type { UserErrorKey } from '@rateq/utils';
 import type { CategoryPublic } from '@rateq/types';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
@@ -27,7 +29,9 @@ export default function CategoriesScreen() {
       const cats = await categoriesApi.list();
       setCategories(cats);
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : t('common.error'));
+      setError(
+        getUserFacingError(err, (key: UserErrorKey) => t(`errors.${key}`), t('common.error')),
+      );
     }
   }, [t]);
 

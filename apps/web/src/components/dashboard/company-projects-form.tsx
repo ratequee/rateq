@@ -7,8 +7,8 @@ import { useProfile } from '@/components/providers/profile-provider';
 import { uploadUserFile } from '@/lib/firebase/storage';
 import { waitForFirebaseUser } from '@/lib/firebase/wait-for-user';
 import { onboardingApi } from '@/lib/onboarding-api';
-import { ApiError } from '@/lib/api';
 import { ensureValidAccessToken } from '@/lib/auth-session';
+import { useUserFacingError } from '@/hooks/use-user-facing-error';
 import { cn } from '@/lib/utils';
 import type { CompanyProfileDetail, UpdateCompanyProjectInput } from '@rateq/types';
 import { CompanyProjectStatus } from '@rateq/types';
@@ -512,6 +512,7 @@ async function buildProjectPayload(
 
 function CompanyProjectsFormFields({ company }: { company: CompanyProfileDetail }) {
   const t = useTranslations('profilePage');
+  const resolveError = useUserFacingError();
   const { refreshOnboarding } = useProfile();
   const [projects, setProjects] = useState<ProjectDraft[]>(() => buildProjectDrafts(company));
   const [saving, setSaving] = useState(false);
@@ -549,8 +550,7 @@ function CompanyProjectsFormFields({ company }: { company: CompanyProfileDetail 
         toast.success(isVerified ? t('projectsSubmittedForApproval') : t('projectsUpdated'));
       }
     } catch (err) {
-      const message = err instanceof ApiError ? err.message : t('saveError');
-      toast.error(message);
+      toast.error(resolveError(err, t('saveError')));
       throw err;
     } finally {
       setSaving(false);

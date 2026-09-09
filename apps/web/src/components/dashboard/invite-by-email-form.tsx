@@ -2,7 +2,7 @@
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { ApiError } from '@/lib/api';
+import { useUserFacingError } from '@/hooks/use-user-facing-error';
 import { sanitizeEmail } from '@/lib/validation/auth-fields';
 import { Loader2, Mail } from 'lucide-react';
 import { useTranslations } from 'next-intl';
@@ -25,6 +25,7 @@ export function InviteByEmailForm({
   invitations,
 }: InviteByEmailFormProps) {
   const t = useTranslations('invitations');
+  const resolveError = useUserFacingError();
   const [email, setEmail] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
@@ -42,8 +43,7 @@ export function InviteByEmailForm({
       setEmail('');
       toast.success(t('inviteSent'));
     } catch (err) {
-      const message = err instanceof ApiError ? err.message : t('inviteError');
-      toast.error(message);
+      toast.error(resolveError(err, t('inviteError')));
     } finally {
       setSubmitting(false);
     }

@@ -6,9 +6,11 @@ import { LoadingView } from '@/components/ui/loading-view';
 import { useUserLocation } from '@/hooks/use-user-location';
 import { useAppDirection } from '@/hooks/use-app-direction';
 import { getFontFamily } from '@/i18n';
-import { ApiError, companiesApi } from '@/lib/api';
+import { companiesApi } from '@/lib/api';
 import { cn } from '@/lib/cn';
 import { enrichCompaniesWithNearbyLocations, type NearbyCompany } from '@/lib/nearby-locations';
+import { getUserFacingError } from '@/lib/user-facing-error';
+import type { UserErrorKey } from '@rateq/utils';
 import type { CompanyPublic } from '@rateq/types';
 import { Ionicons } from '@expo/vector-icons';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
@@ -60,7 +62,9 @@ export default function MapScreen() {
       );
       setCompanies(result.data);
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : t('common.error'));
+      setError(
+        getUserFacingError(err, (key: UserErrorKey) => t(`errors.${key}`), t('common.error')),
+      );
     }
   }, [t]);
 

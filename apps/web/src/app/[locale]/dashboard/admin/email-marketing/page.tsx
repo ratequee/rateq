@@ -5,8 +5,8 @@ import { DashboardShell } from '@/components/dashboard/dashboard-shell';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useRequireAdmin } from '@/hooks/use-require-admin';
+import { useUserFacingError } from '@/hooks/use-user-facing-error';
 import { adminEmailMarketingApi } from '@/lib/admin-email-marketing-api';
-import { ApiError } from '@/lib/api';
 import { cn } from '@/lib/utils';
 import { AdminPermission } from '@rateq/types';
 import { Loader2, Mail, Send } from 'lucide-react';
@@ -143,6 +143,7 @@ function MarketingEmailPreview({
 
 export default function AdminEmailMarketingPage() {
   const t = useTranslations('adminEmailMarketing');
+  const resolveError = useUserFacingError();
   useRequireAdmin(AdminPermission.EMAIL_MARKETING);
 
   const [recipientsRaw, setRecipientsRaw] = useState('');
@@ -233,7 +234,7 @@ export default function AdminEmailMarketingPage() {
         toast.success(t('sendSuccess', { count: result.sent }));
       }
     } catch (err) {
-      toast.error(err instanceof ApiError ? err.message : t('sendError'));
+      toast.error(resolveError(err, t('sendError')));
     } finally {
       setSending(false);
     }
