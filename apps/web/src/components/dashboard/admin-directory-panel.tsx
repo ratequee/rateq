@@ -1085,7 +1085,10 @@ export function AdminDirectoryPanel() {
                             setPendingDelete({
                               type: 'owner',
                               ownerId: companyDetail.ownerId!,
-                              ownerEmail: companyDetail.ownerEmail ?? companyDetail.email,
+                              ownerEmail:
+                                companyDetail.ownerEmail ??
+                                companyDetail.email ??
+                                companyDetail.name,
                               companyName: companyDetail.name,
                             })
                           }
