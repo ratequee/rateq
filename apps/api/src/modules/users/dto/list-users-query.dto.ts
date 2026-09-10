@@ -1,14 +1,19 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { UserRole } from '@rateq/types';
-import { Transform } from 'class-transformer';
+import { Transform, type TransformFnParams } from 'class-transformer';
 import { IsBoolean, IsEnum, IsOptional, IsString, MaxLength } from 'class-validator';
 import { PaginationDto } from '../../../common/dto/pagination.dto';
 
-const toBoolean = ({ value }: { value: unknown }): boolean | undefined => {
-  if (value === undefined || value === null || value === '') return undefined;
-  if (typeof value === 'boolean') return value;
-  if (value === 'true' || value === '1') return true;
-  if (value === 'false' || value === '0') return false;
+/**
+ * Parse query booleans safely. With `enableImplicitConversion`, Nest can turn the
+ * string "false" into boolean `true` via Boolean("false") — always read the raw
+ * query value from `obj[key]` first.
+ */
+const toBoolean = ({ obj, key, value }: TransformFnParams): boolean | undefined => {
+  const raw = (obj as Record<string, unknown> | undefined)?.[key] ?? value;
+  if (raw === undefined || raw === null || raw === '') return undefined;
+  if (raw === true || raw === 'true' || raw === '1' || raw === 1) return true;
+  if (raw === false || raw === 'false' || raw === '0' || raw === 0) return false;
   return undefined;
 };
 

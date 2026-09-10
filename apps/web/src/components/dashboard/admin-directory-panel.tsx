@@ -294,7 +294,8 @@ export function AdminDirectoryPanel() {
         params.set('ownsCompany', 'true');
       } else {
         params.set('role', 'USER');
-        params.set('ownsCompany', 'false');
+        // Use 0 — Nest enableImplicitConversion can coerce the string "false" to true.
+        params.set('ownsCompany', '0');
       }
       if (reviewerSearch.trim()) params.set('search', reviewerSearch.trim());
       const response = await usersApi.list(token, params);
