@@ -24,6 +24,15 @@ export class ListUsersQueryDto extends PaginationDto {
   @IsBoolean()
   excludeAdmins?: boolean;
 
+  @ApiPropertyOptional({
+    description:
+      'When true, only users who own a company. When false, exclude users who own a company.',
+  })
+  @IsOptional()
+  @Transform(toBoolean)
+  @IsBoolean()
+  ownsCompany?: boolean;
+
   @ApiPropertyOptional()
   @IsOptional()
   @Transform(toBoolean)

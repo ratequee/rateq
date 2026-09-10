@@ -6,6 +6,8 @@ import { paginationSkip } from '../../../common/utils/pagination.util';
 export interface ListUsersFilters {
   role?: UserRole;
   excludeAdmins?: boolean;
+  /** When true, only users who own at least one company. When false, exclude company owners. */
+  ownsCompany?: boolean;
   isVerified?: boolean;
   search?: string;
   page: number;
@@ -92,6 +94,12 @@ export class UsersRepository {
       where.role = filters.role;
     } else if (filters.excludeAdmins) {
       where.role = { not: 'ADMIN' };
+    }
+
+    if (filters.ownsCompany === true) {
+      where.ownedCompanies = { some: {} };
+    } else if (filters.ownsCompany === false) {
+      where.ownedCompanies = { none: {} };
     }
 
     if (filters.isVerified !== undefined) {

@@ -33,6 +33,7 @@ export class AdminService {
     const [
       totalCompanies,
       totalReviewers,
+      totalCompanyOwners,
       statusGroups,
       topCompanies,
       topReviewers,
@@ -47,7 +48,19 @@ export class AdminService {
     ] = await Promise.all([
       this.prisma.company.count({ where: { verificationStatus: 'APPROVED' } }),
       this.prisma.user.count({
-        where: { role: 'USER', isActive: true, profile: { isNot: null } },
+        where: {
+          role: 'USER',
+          isActive: true,
+          profile: { isNot: null },
+          ownedCompanies: { none: {} },
+        },
+      }),
+      this.prisma.user.count({
+        where: {
+          isActive: true,
+          role: { not: 'ADMIN' },
+          ownedCompanies: { some: {} },
+        },
       }),
       this.prisma.review.groupBy({ by: ['status'], _count: { id: true } }),
       this.prisma.company.findMany({
@@ -64,7 +77,12 @@ export class AdminService {
         },
       }),
       this.prisma.user.findMany({
-        where: { role: 'USER', isActive: true, profile: { isNot: null } },
+        where: {
+          role: 'USER',
+          isActive: true,
+          profile: { isNot: null },
+          ownedCompanies: { none: {} },
+        },
         orderBy: { reviewCount: 'desc' },
         take: 5,
         include: { profile: { select: { fullName: true, avatarUrl: true, phone: true } } },
@@ -109,6 +127,7 @@ export class AdminService {
     return {
       totalCompanies,
       totalReviewers,
+      totalCompanyOwners,
       /** Published reviews only (APPROVED). */
       totalReviews: statusMap.APPROVED ?? 0,
       pendingReviews: statusMap.PENDING ?? 0,

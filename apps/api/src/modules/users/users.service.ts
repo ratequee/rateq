@@ -177,6 +177,7 @@ export class UsersService {
     const filters = {
       role: query.role as PrismaUserRole | undefined,
       excludeAdmins: query.excludeAdmins,
+      ownsCompany: query.ownsCompany,
       isVerified: query.isVerified,
       search: query.search,
       page: query.page,

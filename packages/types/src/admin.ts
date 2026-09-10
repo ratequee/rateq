@@ -33,6 +33,7 @@ export interface AdminPendingActions {
 export interface AdminPlatformStats {
   totalCompanies: number;
   totalReviewers: number;
+  totalCompanyOwners: number;
   totalReviews: number;
   pendingReviews: number;
   approvedReviews: number;

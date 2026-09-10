@@ -33,6 +33,7 @@ import {
   Pencil,
   Star,
   Trash2,
+  UserCog,
   Users,
 } from 'lucide-react';
 import { useLocale, useTranslations } from 'next-intl';
@@ -40,10 +41,17 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import { Link } from '@/i18n/routing';
 
-type DirectoryTab = 'reviewers' | 'companies' | 'reviews' | 'projects' | 'reports';
+type DirectoryTab =
+  | 'reviewers'
+  | 'companyOwners'
+  | 'companies'
+  | 'reviews'
+  | 'projects'
+  | 'reports';
 
 const DIRECTORY_TAB_PERMISSIONS: Record<DirectoryTab, AdminPermission[]> = {
   reviewers: [AdminPermission.DIRECTORY],
+  companyOwners: [AdminPermission.DIRECTORY],
   companies: [AdminPermission.DIRECTORY],
   reviews: [AdminPermission.MODERATION],
   projects: [AdminPermission.PROJECTS],
@@ -282,7 +290,12 @@ export function AdminDirectoryPanel() {
       params.set('page', String(reviewerPage));
       params.set('limit', '15');
       params.set('excludeAdmins', 'true');
-      params.set('role', 'USER');
+      if (tab === 'companyOwners') {
+        params.set('ownsCompany', 'true');
+      } else {
+        params.set('role', 'USER');
+        params.set('ownsCompany', 'false');
+      }
       if (reviewerSearch.trim()) params.set('search', reviewerSearch.trim());
       const response = await usersApi.list(token, params);
       setReviewers(response.data);
@@ -297,7 +310,7 @@ export function AdminDirectoryPanel() {
     } finally {
       setListLoading(false);
     }
-  }, [reviewerPage, reviewerSearch, selectedReviewerId, t]);
+  }, [reviewerPage, reviewerSearch, selectedReviewerId, t, tab]);
 
   const loadCompanies = useCallback(async () => {
     setListLoading(true);
@@ -324,7 +337,7 @@ export function AdminDirectoryPanel() {
   }, [companyPage, companySearch, selectedCompanyId, t]);
 
   useEffect(() => {
-    if (tab === 'reviewers') void loadReviewers();
+    if (tab === 'reviewers' || tab === 'companyOwners') void loadReviewers();
   }, [tab, loadReviewers]);
 
   useEffect(() => {
@@ -332,7 +345,7 @@ export function AdminDirectoryPanel() {
   }, [tab, loadCompanies]);
 
   useEffect(() => {
-    if (tab !== 'reviewers' || !selectedReviewerId) {
+    if ((tab !== 'reviewers' && tab !== 'companyOwners') || !selectedReviewerId) {
       setReviewerDetail(null);
       return;
     }
@@ -392,7 +405,7 @@ export function AdminDirectoryPanel() {
     try {
       await action();
       toast.success(successMessage);
-      if (tab === 'reviewers') {
+      if (tab === 'reviewers' || tab === 'companyOwners') {
         await loadReviewers();
         if (selectedReviewerId) {
           const token = await ensureValidAccessToken();
@@ -427,12 +440,17 @@ export function AdminDirectoryPanel() {
   };
 
   const handleDeleteReviewer = async (userId: string) => {
-    if (!window.confirm(t('deleteReviewerConfirm'))) return;
+    const confirmMessage =
+      tab === 'companyOwners' ? t('deleteOwnerConfirm') : t('deleteReviewerConfirm');
+    if (!window.confirm(confirmMessage)) return;
     const token = await ensureValidAccessToken();
     if (!token) return;
     setSelectedReviewerId(null);
     setReviewerDetail(null);
-    await runAction(() => adminApi.deleteUser(token, userId), t('deleteSuccess'));
+    await runAction(
+      () => adminApi.deleteUser(token, userId),
+      tab === 'companyOwners' ? t('deleteOwnerSuccess') : t('deleteSuccess'),
+    );
   };
 
   const handleToggleCompanyOwnerActive = async (ownerId: string, isActive: boolean) => {
@@ -508,6 +526,12 @@ export function AdminDirectoryPanel() {
     [
       { id: 'reviewers', label: t('tabs.reviewers'), icon: Users, count: stats?.totalReviewers },
       {
+        id: 'companyOwners',
+        label: t('tabs.companyOwners'),
+        icon: UserCog,
+        count: stats?.totalCompanyOwners,
+      },
+      {
         id: 'companies',
         label: t('tabs.companies'),
         icon: Building2,
@@ -542,7 +566,16 @@ export function AdminDirectoryPanel() {
           <button
             key={id}
             type="button"
-            onClick={() => setTab(id)}
+            onClick={() => {
+              setTab(id);
+              if (id === 'reviewers' || id === 'companyOwners') {
+                setReviewerPage(1);
+                setReviewerSearch('');
+                setReviewerSearchInput('');
+                setSelectedReviewerId(null);
+                setReviewerDetail(null);
+              }
+            }}
             className={cn(
               'dashboard-tab inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-medium',
               tab === id ? 'dashboard-tab-active' : 'dashboard-tab-inactive',
@@ -560,7 +593,7 @@ export function AdminDirectoryPanel() {
 
       {tab === 'reports' ? <AdminReviewReportsPanel /> : null}
 
-      {tab === 'reviewers' ? (
+      {tab === 'reviewers' || tab === 'companyOwners' ? (
         <div className="grid gap-6 xl:grid-cols-[360px_1fr]">
           <div className="rounded-2xl surface-card border p-4 shadow-sm">
             <form
@@ -574,7 +607,9 @@ export function AdminDirectoryPanel() {
               <Input
                 value={reviewerSearchInput}
                 onChange={(event) => setReviewerSearchInput(event.target.value)}
-                placeholder={t('searchReviewers')}
+                placeholder={
+                  tab === 'companyOwners' ? t('searchCompanyOwners') : t('searchReviewers')
+                }
               />
               <Button type="submit" variant="outline">
                 {t('search')}
@@ -622,7 +657,9 @@ export function AdminDirectoryPanel() {
                   </button>
                 ))}
                 {!reviewers.length ? (
-                  <p className="py-8 text-center text-sm text-secondary">{t('emptyReviewers')}</p>
+                  <p className="py-8 text-center text-sm text-secondary">
+                    {tab === 'companyOwners' ? t('emptyCompanyOwners') : t('emptyReviewers')}
+                  </p>
                 ) : null}
               </div>
             )}
@@ -659,7 +696,9 @@ export function AdminDirectoryPanel() {
                 <Loader2 className="h-6 w-6 animate-spin text-brand-500" />
               </div>
             ) : !reviewerDetail ? (
-              <p className="py-16 text-center text-sm text-secondary">{t('selectReviewer')}</p>
+              <p className="py-16 text-center text-sm text-secondary">
+                {tab === 'companyOwners' ? t('selectCompanyOwner') : t('selectReviewer')}
+              </p>
             ) : (
               <div className="space-y-5">
                 <div className="flex flex-wrap items-start justify-between gap-3">
@@ -733,7 +772,13 @@ export function AdminDirectoryPanel() {
                     disabled={acting}
                     onClick={() => void handleToggleReviewerActive(reviewerDetail)}
                   >
-                    {reviewerDetail.isActive ? t('deactivate') : t('activate')}
+                    {reviewerDetail.isActive
+                      ? tab === 'companyOwners'
+                        ? t('deactivateOwner')
+                        : t('deactivate')
+                      : tab === 'companyOwners'
+                        ? t('activateOwner')
+                        : t('activate')}
                   </Button>
                   <Button
                     type="button"
@@ -741,7 +786,7 @@ export function AdminDirectoryPanel() {
                     disabled={acting}
                     onClick={() => void handleDeleteReviewer(reviewerDetail.id)}
                   >
-                    {t('deleteAccount')}
+                    {tab === 'companyOwners' ? t('deleteOwner') : t('deleteAccount')}
                   </Button>
                 </div>
                 <div>
