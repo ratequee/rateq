@@ -53,7 +53,7 @@ function CheckEmailContent() {
   }, [user, onboarding]);
 
   const hasProfilePhone = Boolean(onboarding?.reviewerProfile?.phone || onboarding?.company?.phone);
-  const phoneVerified = Boolean(linkedPhone || hasProfilePhone);
+  const phoneVerified = Boolean(linkedPhone || hasProfilePhone || user?.phoneVerified);
   const needsEmailVerification = !user || !user.isVerified;
   const needsPhoneVerification = useMemo(() => {
     if (forceNeedPhone && !phoneVerified) return true;

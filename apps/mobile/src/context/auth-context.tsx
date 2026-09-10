@@ -23,7 +23,7 @@ import {
   getFirebaseIdToken,
   reloadFirebaseUser,
 } from '@/lib/firebase/auth';
-import { clearAuth, getStoredUser, saveAuth } from '@/lib/storage';
+import { clearAuth, getStoredUser, saveAuth, saveStoredUser } from '@/lib/storage';
 import { ensureValidAccessToken, hasStoredRefreshSession } from '@/lib/auth-session';
 import { ensureFirebaseUser } from '@/lib/firebase/ensure-user';
 import {
@@ -45,6 +45,7 @@ interface AuthContextValue {
   resetPassword: (email: string) => Promise<void>;
   logout: () => Promise<void>;
   refreshSession: () => Promise<AuthenticatedUser | null>;
+  patchSessionUser: (patch: Partial<AuthenticatedUser>) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -168,6 +169,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
 
       const normalizedEmail = data.email.trim().toLowerCase();
+      const existing = getFirebaseAuth().currentUser;
+
+      // Already signed in as this email (e.g. returned from phone verify) — do not create again.
+      if (existing?.email?.toLowerCase() === normalizedEmail) {
+        await reloadFirebaseUser(existing);
+        if (existing.emailVerified) {
+          // Already past email verification — restore RateQ session instead of dead-ending signup.
+          try {
+            const sessionUser = await exchangeFirebaseSession();
+            setUser(sessionUser);
+          } catch {
+            // ignore — still surface registered error below
+          }
+          throw new Error('This email is already registered. Please log in.');
+        }
+        if (data.name?.trim() && !existing.displayName) {
+          await updateProfile(existing, { displayName: data.name.trim() });
+        }
+        return;
+      }
 
       try {
         await firebaseSignUp(normalizedEmail, data.password, data.name);
@@ -278,6 +299,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     try {
       const me = await authApi.me();
+      await saveStoredUser(me);
       setUser(me);
       return me;
     } catch {
@@ -290,6 +312,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return null;
     }
   }, []);
+
+  const patchSessionUser = useCallback(
+    async (patch: Partial<AuthenticatedUser>) => {
+      const current = (await getStoredUser()) ?? user;
+      if (!current) return;
+      const next = { ...current, ...patch };
+      await saveStoredUser(next);
+      setUser(next);
+    },
+    [user],
+  );
 
   useEffect(() => {
     void (async () => {
@@ -312,6 +345,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       try {
         const me = await authApi.me();
+        await saveStoredUser(me);
         setUser(me);
       } catch {
         // Keep stored user — do not clear a still-valid 7-day refresh session.
@@ -345,6 +379,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       resetPassword,
       logout,
       refreshSession,
+      patchSessionUser,
     }),
     [
       user,
@@ -360,6 +395,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       resetPassword,
       logout,
       refreshSession,
+      patchSessionUser,
     ],
   );
 

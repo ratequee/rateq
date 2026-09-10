@@ -130,6 +130,7 @@ export class AuthService {
     }
 
     user = await this.syncFirebaseAdminRole(user, firebaseUser.uid);
+    user = await this.syncFirebasePhoneIfNeeded(user, firebaseUser.uid);
 
     if (!user.isActive) {
       throw new UnauthorizedException('Account has been deactivated');
@@ -141,6 +142,34 @@ export class AuthService {
       user: toAuthenticatedUser(user),
       tokens,
     };
+  }
+
+  /**
+   * Phone may be verified on Firebase during registration before a RateQ JWT exists.
+   * Pull it onto the User row on first Firebase login so routing stops forcing phone OTP again.
+   */
+  private async syncFirebasePhoneIfNeeded(user: User, firebaseUid: string): Promise<User> {
+    if (user.phoneVerified || !this.firebaseAdmin.isConfigured()) {
+      return user;
+    }
+
+    let firebasePhone: string | null = null;
+    try {
+      firebasePhone = await this.firebaseAdmin.getVerifiedPhoneNumber(firebaseUid);
+    } catch {
+      return user;
+    }
+
+    if (!firebasePhone) {
+      return user;
+    }
+
+    const other = await this.authRepository.findOtherUserWithVerifiedPhone(user.id, firebasePhone);
+    if (other) {
+      return user;
+    }
+
+    return this.authRepository.markPhoneVerified(user.id, firebasePhone);
   }
 
   async refresh(rawRefreshToken: string): Promise<AuthTokens> {

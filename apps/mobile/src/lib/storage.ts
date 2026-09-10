@@ -7,6 +7,10 @@ const USER_KEY = 'rateq_user';
 
 export async function saveAuth(tokens: AuthTokens, user: AuthenticatedUser): Promise<void> {
   await saveTokens(tokens);
+  await saveStoredUser(user);
+}
+
+export async function saveStoredUser(user: AuthenticatedUser): Promise<void> {
   await SecureStore.setItemAsync(USER_KEY, JSON.stringify(user));
 }
 

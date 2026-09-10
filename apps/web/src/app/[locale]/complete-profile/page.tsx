@@ -138,6 +138,11 @@ export default function CompleteProfilePage() {
       setReviewerPhoneVerified(true);
       return;
     }
+    if (user.phoneVerified && user.phone) {
+      setPhone(extractQatarPhoneDigits(user.phone));
+      setReviewerPhoneVerified(true);
+      return;
+    }
     const linked = getLinkedFirebasePhoneNumber();
     if (linked) {
       setPhone(extractQatarPhoneDigits(linked));
@@ -152,6 +157,11 @@ export default function CompleteProfilePage() {
       setCompanyPhoneVerified(true);
       return;
     }
+    if (user.phoneVerified && user.phone) {
+      setCompanyPhone(extractQatarPhoneDigits(user.phone));
+      setCompanyPhoneVerified(true);
+      return;
+    }
     const linked = getLinkedFirebasePhoneNumber();
     if (linked) {
       setCompanyPhone(extractQatarPhoneDigits(linked));
@@ -161,6 +171,7 @@ export default function CompleteProfilePage() {
 
   useEffect(() => {
     if (!user || profileLoading || !isEmailVerified) return;
+    if (user.phoneVerified) return;
     if (onboarding?.reviewerProfile?.phone || onboarding?.company?.phone) return;
 
     const linked = getLinkedFirebasePhoneNumber();
@@ -177,6 +188,7 @@ export default function CompleteProfilePage() {
     !profileLoading &&
     isEmailVerified &&
     showProfileForm &&
+    !user?.phoneVerified &&
     !onboarding?.reviewerProfile?.phone &&
     !onboarding?.company?.phone &&
     !getLinkedFirebasePhoneNumber();

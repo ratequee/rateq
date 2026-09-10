@@ -30,6 +30,9 @@ export function AuthRedirect() {
   }
 
   const target = getPostAuthRoute(user, onboarding);
+  const hasDurablePhone = Boolean(
+    user.phoneVerified || onboarding?.reviewerProfile?.phone || onboarding?.company?.phone,
+  );
 
   if (target === '/(auth)/check-email') {
     // Allow dedicated OTP screen when finishing phone verification from this hub.
@@ -43,8 +46,12 @@ export function AuthRedirect() {
   }
 
   if (target === '/(onboarding)/complete-profile') {
-    // Allow verification hub / OTP while finishing profile phone setup.
-    if (onVerifyPhone || authScreen === 'check-email') {
+    // Allow OTP while finishing profile phone setup.
+    if (onVerifyPhone) {
+      return null;
+    }
+    // Stay on the phone hub only until the API (or profile) records a verified phone.
+    if (authScreen === 'check-email' && !hasDurablePhone) {
       return null;
     }
     if (!inOnboarding) {

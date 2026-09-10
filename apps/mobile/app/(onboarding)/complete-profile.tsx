@@ -145,18 +145,24 @@ export default function CompleteProfileScreen() {
       setBio(profile.bio);
       setAvatarUri(profile.avatarUrl);
     } else {
-      const linked = getLinkedFirebasePhoneNumber();
-      if (linked) {
-        setPhone(extractQatarPhoneDigits(linked));
+      if (user?.phoneVerified && user.phone) {
+        setPhone(extractQatarPhoneDigits(user.phone));
         setPhoneVerified(true);
+      } else {
+        const linked = getLinkedFirebasePhoneNumber();
+        if (linked) {
+          setPhone(extractQatarPhoneDigits(linked));
+          setPhoneVerified(true);
+        }
       }
     }
 
     hasInitializedPhase.current = true;
-  }, [onboarding, companyRevision]);
+  }, [onboarding, companyRevision, user]);
 
   useEffect(() => {
     if (!user || isLoading) return;
+    if (user.phoneVerified) return;
     if (onboarding?.reviewerProfile?.phone || onboarding?.company?.phone) return;
 
     const linked = getLinkedFirebasePhoneNumber();
@@ -175,6 +181,7 @@ export default function CompleteProfileScreen() {
   const needsPhoneBeforeProfile =
     Boolean(user) &&
     !isLoading &&
+    !user?.phoneVerified &&
     !onboarding?.reviewerProfile?.phone &&
     !onboarding?.company?.phone &&
     !getLinkedFirebasePhoneNumber();

@@ -141,7 +141,18 @@ export async function confirmFirebasePhoneVerification(code: string): Promise<vo
   if (activeMode === 'update') {
     await updatePhoneNumber(user, credential);
   } else {
-    await linkWithCredential(user, credential);
+    try {
+      await linkWithCredential(user, credential);
+    } catch (error) {
+      // Phone may already be linked to this same user after a prior successful attempt.
+      await reload(user);
+      if (auth.currentUser?.phoneNumber) {
+        // Already linked on this account (retry / partial success).
+        clearPhoneVerificationState();
+        return;
+      }
+      throw error;
+    }
   }
 
   await reload(user);

@@ -56,7 +56,7 @@ export default function CheckEmailScreen() {
   }, [emailParam]);
 
   const hasProfilePhone = Boolean(onboarding?.reviewerProfile?.phone || onboarding?.company?.phone);
-  const phoneVerified = Boolean(linkedPhone || hasProfilePhone);
+  const phoneVerified = Boolean(user?.phoneVerified || linkedPhone || hasProfilePhone);
   const needsEmailVerification = !user || !user.isVerified;
   const needsPhoneVerification = useMemo(() => {
     if (forceNeedPhone && !phoneVerified) return true;

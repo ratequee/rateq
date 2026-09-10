@@ -8,6 +8,10 @@ const USER_KEY = 'rateq_user';
 export function saveAuth(tokens: AuthTokens, user: AuthenticatedUser): void {
   localStorage.setItem(ACCESS_KEY, tokens.accessToken);
   localStorage.setItem(REFRESH_KEY, tokens.refreshToken);
+  saveStoredUser(user);
+}
+
+export function saveStoredUser(user: AuthenticatedUser): void {
   localStorage.setItem(USER_KEY, JSON.stringify(user));
 }
 

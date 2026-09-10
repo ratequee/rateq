@@ -137,7 +137,8 @@ export function getPostAuthRedirect(
       onboarding?.reviewerProfile?.phone || onboarding?.company?.phone,
     );
     // Incomplete accounts without a verified phone go to the verification hub first.
-    if (!hasProfilePhone && !getLinkedFirebasePhoneNumber()) {
+    // Prefer durable API flags over Firebase currentUser (can be briefly null after navigation).
+    if (!user.phoneVerified && !hasProfilePhone && !getLinkedFirebasePhoneNumber()) {
       return '/check-email?needPhone=1';
     }
     return '/complete-profile';

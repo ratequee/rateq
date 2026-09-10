@@ -4,6 +4,7 @@ import { AuthFieldGroup } from '@/components/auth/auth-field-group';
 import { AuthScreenLayout } from '@/components/auth/auth-screen-layout';
 import { useAppToast } from '@/hooks/use-app-toast';
 import { onboardingApi } from '@/lib/api';
+import { useAuth } from '@/context/auth-context';
 import { getFirebaseAuth } from '@/lib/firebase/client';
 import { ensureFirebaseUser } from '@/lib/firebase/ensure-user';
 import {
@@ -31,6 +32,7 @@ const RESEND_COOLDOWN_SECONDS = 60;
 export default function VerifyPhoneScreen() {
   const { t } = useTranslation();
   const toast = useAppToast();
+  const { user, refreshSession, patchSessionUser } = useAuth();
   const router = useRouter();
   const params = useLocalSearchParams<{
     phone?: string;
@@ -109,9 +111,14 @@ export default function VerifyPhoneScreen() {
 
     await markPendingPhoneVerified(extractQatarPhoneDigits(normalizedPhone));
 
-    if (syncToProfile) {
+    // Sync whenever we have a RateQ session (profile hub or post-login retry).
+    if (syncToProfile || user) {
       try {
         await onboardingApi.syncPhone(normalizedPhone, context ?? 'reviewer');
+        const refreshed = await refreshSession();
+        if (!refreshed?.phoneVerified) {
+          await patchSessionUser({ phone: normalizedPhone, phoneVerified: true });
+        }
       } catch (err) {
         completedRef.current = false;
         throw err;
@@ -119,7 +126,12 @@ export default function VerifyPhoneScreen() {
     }
 
     toast.success(t('onboarding.phoneVerifiedMessage'), t('onboarding.phoneVerifiedTitle'));
-    router.replace(nextPath as Href);
+
+    // Logged-in users always continue onboarding; registration flow returns to register.
+    const destination = (
+      user || isProfilePhoneFlow ? '/(onboarding)/complete-profile' : nextPath
+    ) as Href;
+    router.replace(destination);
   };
 
   useEffect(() => {

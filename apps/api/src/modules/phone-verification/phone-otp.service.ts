@@ -86,6 +86,14 @@ export class PhoneOtpService {
       );
     }
 
+    await this.prisma.user.update({
+      where: { id: userId },
+      data: {
+        phone: normalizedPhone,
+        phoneVerified: true,
+      },
+    });
+
     const session: PhoneVerificationSession = {
       phone: normalizedPhone,
       verified: true,

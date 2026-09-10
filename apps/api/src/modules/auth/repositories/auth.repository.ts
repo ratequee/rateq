@@ -69,6 +69,26 @@ export class AuthRepository {
     });
   }
 
+  markPhoneVerified(userId: string, phone: string): Promise<User> {
+    return this.prisma.user.update({
+      where: { id: userId },
+      data: {
+        phone: phone.trim(),
+        phoneVerified: true,
+      },
+    });
+  }
+
+  findOtherUserWithVerifiedPhone(userId: string, phone: string): Promise<User | null> {
+    return this.prisma.user.findFirst({
+      where: {
+        phone: phone.trim(),
+        phoneVerified: true,
+        NOT: { id: userId },
+      },
+    });
+  }
+
   updateUserRole(userId: string, role: UserRole): Promise<User> {
     return this.prisma.user.update({
       where: { id: userId },

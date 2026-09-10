@@ -11,7 +11,13 @@ import {
   type ReactNode,
 } from 'react';
 import { authApi } from '@/lib/api';
-import { clearAuth, getAccessToken, getStoredUser, saveAuth } from '@/lib/auth-storage';
+import {
+  clearAuth,
+  getAccessToken,
+  getStoredUser,
+  saveAuth,
+  saveStoredUser,
+} from '@/lib/auth-storage';
 import { ensureValidAccessToken, hasStoredRefreshSession } from '@/lib/auth-session';
 import { EmailNotVerifiedError, EmailVerificationPendingError } from '@/lib/auth-flow-errors';
 import {
@@ -197,6 +203,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
 
       const normalizedEmail = data.email.trim().toLowerCase();
+      const { getFirebaseAuth } = await import('@/lib/firebase/client');
+      const existing = getFirebaseAuth().currentUser;
+
+      if (existing?.email?.toLowerCase() === normalizedEmail) {
+        await reloadFirebaseUser(existing);
+        if (existing.emailVerified) {
+          try {
+            const sessionUser = await exchangeFirebaseSession();
+            setUser(sessionUser);
+          } catch {
+            // ignore
+          }
+          throw new Error('This email is already registered. Please log in.');
+        }
+        if (data.name?.trim() && !existing.displayName) {
+          const { updateProfile } = await import('firebase/auth');
+          await updateProfile(existing, { displayName: data.name.trim() });
+        }
+        return;
+      }
 
       try {
         await firebaseSignUp(normalizedEmail, data.password, data.name);
@@ -334,6 +360,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       const me = await authApi.me(token);
       syncFirebaseDisplayNameToClient(me);
+      saveStoredUser(me);
       setUser(me);
       await refreshAdminAccess();
       return me;
@@ -384,6 +411,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       try {
         const me = await authApi.me(token);
         syncFirebaseDisplayNameToClient(me);
+        saveStoredUser(me);
         setUser(me);
         await refreshAdminAccess();
       } catch {
