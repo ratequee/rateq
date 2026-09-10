@@ -2,6 +2,7 @@
 
 import { AdminCompanyMetrics } from '@/components/dashboard/admin-company-metrics';
 import { AdminCompanyDocumentsSection } from '@/components/dashboard/admin-company-documents-section';
+import { AdminDestructiveConfirm } from '@/components/dashboard/admin-destructive-confirm';
 import { AdminProjectsPanel } from '@/components/dashboard/admin-projects-panel';
 import { AdminReviewReportsPanel } from '@/components/dashboard/admin-review-reports-panel';
 import { ReviewsManagementPanel } from '@/components/dashboard/reviews-management-panel';
@@ -33,7 +34,6 @@ import {
   Pencil,
   Star,
   Trash2,
-  UserCog,
   Users,
 } from 'lucide-react';
 import { useLocale, useTranslations } from 'next-intl';
@@ -41,17 +41,15 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import { Link } from '@/i18n/routing';
 
-type DirectoryTab =
-  | 'reviewers'
-  | 'companyOwners'
-  | 'companies'
-  | 'reviews'
-  | 'projects'
-  | 'reports';
+type DirectoryTab = 'reviewers' | 'companies' | 'reviews' | 'projects' | 'reports';
+
+type PendingDestructiveAction =
+  | { type: 'reviewer'; userId: string; email: string }
+  | { type: 'company'; companyId: string; companyName: string }
+  | { type: 'owner'; ownerId: string; ownerEmail: string; companyName?: string | null };
 
 const DIRECTORY_TAB_PERMISSIONS: Record<DirectoryTab, AdminPermission[]> = {
   reviewers: [AdminPermission.DIRECTORY],
-  companyOwners: [AdminPermission.DIRECTORY],
   companies: [AdminPermission.DIRECTORY],
   reviews: [AdminPermission.MODERATION],
   projects: [AdminPermission.PROJECTS],
@@ -266,6 +264,7 @@ export function AdminDirectoryPanel() {
   const [detailLoading, setDetailLoading] = useState(false);
   const [acting, setActing] = useState(false);
   const [stats, setStats] = useState<AdminPlatformStats | null>(null);
+  const [pendingDelete, setPendingDelete] = useState<PendingDestructiveAction | null>(null);
 
   const loadStats = useCallback(async () => {
     try {
@@ -290,13 +289,9 @@ export function AdminDirectoryPanel() {
       params.set('page', String(reviewerPage));
       params.set('limit', '15');
       params.set('excludeAdmins', 'true');
-      if (tab === 'companyOwners') {
-        params.set('ownsCompany', 'true');
-      } else {
-        params.set('role', 'USER');
-        // Use 0 — Nest enableImplicitConversion can coerce the string "false" to true.
-        params.set('ownsCompany', '0');
-      }
+      params.set('role', 'USER');
+      // Use 0 — Nest enableImplicitConversion can coerce the string "false" to true.
+      params.set('ownsCompany', '0');
       if (reviewerSearch.trim()) params.set('search', reviewerSearch.trim());
       const response = await usersApi.list(token, params);
       setReviewers(response.data);
@@ -311,7 +306,7 @@ export function AdminDirectoryPanel() {
     } finally {
       setListLoading(false);
     }
-  }, [reviewerPage, reviewerSearch, selectedReviewerId, t, tab]);
+  }, [reviewerPage, reviewerSearch, selectedReviewerId, t, resolveError]);
 
   const loadCompanies = useCallback(async () => {
     setListLoading(true);
@@ -335,10 +330,10 @@ export function AdminDirectoryPanel() {
     } finally {
       setListLoading(false);
     }
-  }, [companyPage, companySearch, selectedCompanyId, t]);
+  }, [companyPage, companySearch, selectedCompanyId, t, resolveError]);
 
   useEffect(() => {
-    if (tab === 'reviewers' || tab === 'companyOwners') void loadReviewers();
+    if (tab === 'reviewers') void loadReviewers();
   }, [tab, loadReviewers]);
 
   useEffect(() => {
@@ -346,7 +341,7 @@ export function AdminDirectoryPanel() {
   }, [tab, loadCompanies]);
 
   useEffect(() => {
-    if ((tab !== 'reviewers' && tab !== 'companyOwners') || !selectedReviewerId) {
+    if (tab !== 'reviewers' || !selectedReviewerId) {
       setReviewerDetail(null);
       return;
     }
@@ -371,7 +366,7 @@ export function AdminDirectoryPanel() {
     return () => {
       cancelled = true;
     };
-  }, [tab, selectedReviewerId, t]);
+  }, [tab, selectedReviewerId, t, resolveError]);
 
   useEffect(() => {
     if (tab !== 'companies' || !selectedCompanyId) {
@@ -399,14 +394,14 @@ export function AdminDirectoryPanel() {
     return () => {
       cancelled = true;
     };
-  }, [tab, selectedCompanyId, t]);
+  }, [tab, selectedCompanyId, t, resolveError]);
 
   const runAction = async (action: () => Promise<unknown>, successMessage: string) => {
     setActing(true);
     try {
       await action();
       toast.success(successMessage);
-      if (tab === 'reviewers' || tab === 'companyOwners') {
+      if (tab === 'reviewers') {
         await loadReviewers();
         if (selectedReviewerId) {
           const token = await ensureValidAccessToken();
@@ -419,7 +414,12 @@ export function AdminDirectoryPanel() {
         if (selectedCompanyId) {
           const token = await ensureValidAccessToken();
           if (token) {
-            setCompanyDetail(await adminApi.getCompanyDetail(token, selectedCompanyId));
+            try {
+              setCompanyDetail(await adminApi.getCompanyDetail(token, selectedCompanyId));
+            } catch {
+              setSelectedCompanyId(null);
+              setCompanyDetail(null);
+            }
           }
         }
       }
@@ -440,20 +440,6 @@ export function AdminDirectoryPanel() {
     );
   };
 
-  const handleDeleteReviewer = async (userId: string) => {
-    const confirmMessage =
-      tab === 'companyOwners' ? t('deleteOwnerConfirm') : t('deleteReviewerConfirm');
-    if (!window.confirm(confirmMessage)) return;
-    const token = await ensureValidAccessToken();
-    if (!token) return;
-    setSelectedReviewerId(null);
-    setReviewerDetail(null);
-    await runAction(
-      () => adminApi.deleteUser(token, userId),
-      tab === 'companyOwners' ? t('deleteOwnerSuccess') : t('deleteSuccess'),
-    );
-  };
-
   const handleToggleCompanyOwnerActive = async (ownerId: string, isActive: boolean) => {
     const token = await ensureValidAccessToken();
     if (!token) return;
@@ -463,32 +449,35 @@ export function AdminDirectoryPanel() {
     );
   };
 
-  const handleDeleteOwner = async (ownerId: string) => {
-    if (!window.confirm(t('deleteOwnerConfirm'))) return;
+  const executePendingDelete = async () => {
+    if (!pendingDelete) return;
     const token = await ensureValidAccessToken();
     if (!token) return;
-    await runAction(() => adminApi.deleteUser(token, ownerId), t('deleteOwnerSuccess'));
-    if (tab === 'companies') {
+
+    const action = pendingDelete;
+    setPendingDelete(null);
+
+    if (action.type === 'reviewer') {
+      setSelectedReviewerId(null);
+      setReviewerDetail(null);
+      await runAction(() => adminApi.deleteUser(token, action.userId), t('deleteSuccess'));
+      return;
+    }
+
+    if (action.type === 'company') {
       setSelectedCompanyId(null);
       setCompanyDetail(null);
-      await loadCompanies();
+      await runAction(
+        () => adminApi.deleteCompany(token, action.companyId),
+        t('deleteCompanySuccess'),
+      );
+      return;
     }
-  };
 
-  const handleDeleteCompany = async (companyId: string, ownerId?: string | null) => {
-    const confirmed = ownerId
-      ? window.confirm(t('deleteCompanyAndOwnerConfirm'))
-      : window.confirm(t('deleteCompanyConfirm'));
-    if (!confirmed) return;
-
-    const token = await ensureValidAccessToken();
-    if (!token) return;
     setSelectedCompanyId(null);
     setCompanyDetail(null);
-    await runAction(
-      () => adminApi.deleteCompany(token, companyId, Boolean(ownerId)),
-      ownerId ? t('deleteCompanyAndOwnerSuccess') : t('deleteSuccess'),
-    );
+    await runAction(() => adminApi.deleteUser(token, action.ownerId), t('deleteOwnerSuccess'));
+    await loadCompanies();
   };
 
   const handleToggleCompanyStamp = async (companyId: string, enabled: boolean) => {
@@ -527,12 +516,6 @@ export function AdminDirectoryPanel() {
     [
       { id: 'reviewers', label: t('tabs.reviewers'), icon: Users, count: stats?.totalReviewers },
       {
-        id: 'companyOwners',
-        label: t('tabs.companyOwners'),
-        icon: UserCog,
-        count: stats?.totalCompanyOwners,
-      },
-      {
         id: 'companies',
         label: t('tabs.companies'),
         icon: Building2,
@@ -560,8 +543,54 @@ export function AdminDirectoryPanel() {
     }
   }, [allowedTabs, tab]);
 
+  const pendingDeleteCopy = useMemo(() => {
+    if (!pendingDelete) return null;
+    if (pendingDelete.type === 'reviewer') {
+      return {
+        title: t('deleteReviewerTitle'),
+        description: t('deleteReviewerConfirm', { email: pendingDelete.email }),
+        bullets: [t('deleteReviewerBulletReviews'), t('deleteReviewerBulletFirebase')],
+        confirmLabel: t('deleteAccount'),
+      };
+    }
+    if (pendingDelete.type === 'company') {
+      return {
+        title: t('deleteCompanyTitle'),
+        description: t('deleteCompanyConfirm', { name: pendingDelete.companyName }),
+        bullets: [
+          t('deleteCompanyBulletData'),
+          t('deleteCompanyBulletOwnerKept'),
+          t('deleteCompanyBulletCompleteProfile'),
+        ],
+        confirmLabel: t('deleteCompany'),
+      };
+    }
+    return {
+      title: t('deleteOwnerTitle'),
+      description: t('deleteOwnerConfirm', { email: pendingDelete.ownerEmail }),
+      bullets: [
+        t('deleteOwnerBulletAccount'),
+        t('deleteOwnerBulletCompanies'),
+        t('deleteOwnerBulletFirebase'),
+      ],
+      confirmLabel: t('deleteOwner'),
+    };
+  }, [pendingDelete, t]);
+
   return (
     <div className="space-y-6">
+      <AdminDestructiveConfirm
+        open={Boolean(pendingDelete && pendingDeleteCopy)}
+        title={pendingDeleteCopy?.title ?? ''}
+        description={pendingDeleteCopy?.description ?? ''}
+        bullets={pendingDeleteCopy?.bullets}
+        irreversibleLabel={t('deleteIrreversible')}
+        confirmLabel={pendingDeleteCopy?.confirmLabel ?? t('deleteAccount')}
+        cancelLabel={t('cancel')}
+        busy={acting}
+        onCancel={() => setPendingDelete(null)}
+        onConfirm={() => void executePendingDelete()}
+      />
       <div className="flex flex-wrap gap-2">
         {tabs.map(({ id, label, icon: Icon, count }) => (
           <button
@@ -569,12 +598,19 @@ export function AdminDirectoryPanel() {
             type="button"
             onClick={() => {
               setTab(id);
-              if (id === 'reviewers' || id === 'companyOwners') {
+              if (id === 'reviewers') {
                 setReviewerPage(1);
                 setReviewerSearch('');
                 setReviewerSearchInput('');
                 setSelectedReviewerId(null);
                 setReviewerDetail(null);
+              }
+              if (id === 'companies') {
+                setCompanyPage(1);
+                setCompanySearch('');
+                setCompanySearchInput('');
+                setSelectedCompanyId(null);
+                setCompanyDetail(null);
               }
             }}
             className={cn(
@@ -594,7 +630,7 @@ export function AdminDirectoryPanel() {
 
       {tab === 'reports' ? <AdminReviewReportsPanel /> : null}
 
-      {tab === 'reviewers' || tab === 'companyOwners' ? (
+      {tab === 'reviewers' ? (
         <div className="grid gap-6 xl:grid-cols-[360px_1fr]">
           <div className="rounded-2xl surface-card border p-4 shadow-sm">
             <form
@@ -608,9 +644,7 @@ export function AdminDirectoryPanel() {
               <Input
                 value={reviewerSearchInput}
                 onChange={(event) => setReviewerSearchInput(event.target.value)}
-                placeholder={
-                  tab === 'companyOwners' ? t('searchCompanyOwners') : t('searchReviewers')
-                }
+                placeholder={t('searchReviewers')}
               />
               <Button type="submit" variant="outline">
                 {t('search')}
@@ -658,9 +692,7 @@ export function AdminDirectoryPanel() {
                   </button>
                 ))}
                 {!reviewers.length ? (
-                  <p className="py-8 text-center text-sm text-secondary">
-                    {tab === 'companyOwners' ? t('emptyCompanyOwners') : t('emptyReviewers')}
-                  </p>
+                  <p className="py-8 text-center text-sm text-secondary">{t('emptyReviewers')}</p>
                 ) : null}
               </div>
             )}
@@ -697,9 +729,7 @@ export function AdminDirectoryPanel() {
                 <Loader2 className="h-6 w-6 animate-spin text-brand-500" />
               </div>
             ) : !reviewerDetail ? (
-              <p className="py-16 text-center text-sm text-secondary">
-                {tab === 'companyOwners' ? t('selectCompanyOwner') : t('selectReviewer')}
-              </p>
+              <p className="py-16 text-center text-sm text-secondary">{t('selectReviewer')}</p>
             ) : (
               <div className="space-y-5">
                 <div className="flex flex-wrap items-start justify-between gap-3">
@@ -773,21 +803,21 @@ export function AdminDirectoryPanel() {
                     disabled={acting}
                     onClick={() => void handleToggleReviewerActive(reviewerDetail)}
                   >
-                    {reviewerDetail.isActive
-                      ? tab === 'companyOwners'
-                        ? t('deactivateOwner')
-                        : t('deactivate')
-                      : tab === 'companyOwners'
-                        ? t('activateOwner')
-                        : t('activate')}
+                    {reviewerDetail.isActive ? t('deactivate') : t('activate')}
                   </Button>
                   <Button
                     type="button"
                     variant="destructive"
                     disabled={acting}
-                    onClick={() => void handleDeleteReviewer(reviewerDetail.id)}
+                    onClick={() =>
+                      setPendingDelete({
+                        type: 'reviewer',
+                        userId: reviewerDetail.id,
+                        email: reviewerDetail.email,
+                      })
+                    }
                   >
-                    {tab === 'companyOwners' ? t('deleteOwner') : t('deleteAccount')}
+                    {t('deleteAccount')}
                   </Button>
                 </div>
                 <div>
@@ -850,6 +880,16 @@ export function AdminDirectoryPanel() {
                         <span className="mt-0.5 block text-xs text-secondary">
                           {company.city}, {company.country}
                         </span>
+                        {company.ownerEmail ? (
+                          <span className="mt-0.5 block truncate text-xs text-secondary">
+                            {t('ownerEmail', { email: company.ownerEmail })}
+                            {company.ownerIsActive === false ? ` · ${t('inactive')}` : ''}
+                          </span>
+                        ) : (
+                          <span className="mt-0.5 block text-xs text-amber-700 dark:text-amber-300">
+                            {t('noOwnerAccount')}
+                          </span>
+                        )}
                         <span className="mt-0.5 block text-xs text-secondary">
                           {t('registeredAt')}:{' '}
                           {new Date(company.createdAt).toLocaleString(locale, {
@@ -920,10 +960,24 @@ export function AdminDirectoryPanel() {
                       {companyDetail.city}, {companyDetail.country}
                     </p>
                     {companyDetail.ownerEmail ? (
-                      <p className="text-sm text-secondary">
-                        {t('ownerEmail', { email: companyDetail.ownerEmail })}
+                      <p className="mt-1 flex flex-wrap items-center gap-2 text-sm text-secondary">
+                        <span>{t('ownerEmail', { email: companyDetail.ownerEmail })}</span>
+                        <span
+                          className={cn(
+                            'inline-flex rounded-full px-2 py-0.5 text-[11px] font-medium',
+                            companyDetail.ownerIsActive === false
+                              ? 'bg-amber-50 text-amber-700 dark:bg-amber-950/50 dark:text-amber-300'
+                              : 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-300',
+                          )}
+                        >
+                          {companyDetail.ownerIsActive === false ? t('inactive') : t('active')}
+                        </span>
                       </p>
-                    ) : null}
+                    ) : (
+                      <p className="mt-1 text-sm text-amber-700 dark:text-amber-300">
+                        {t('noOwnerAccount')}
+                      </p>
+                    )}
                     <p className="mt-1 text-sm text-secondary">
                       {t('verificationStatus', {
                         status: tc(`status.${companyDetail.verificationStatus}`),
@@ -947,79 +1001,100 @@ export function AdminDirectoryPanel() {
                     size="md"
                   />
                 </div>
-                <div className="flex flex-wrap gap-2 border-b border-subtle pb-4">
-                  <Link
-                    href={`/dashboard/admin/companies/${companyDetail.id}/edit`}
-                    className="inline-flex h-10 items-center gap-2 rounded-lg border border-slate-200 bg-white px-4 text-sm font-medium text-ink transition-colors hover:bg-slate-50 dark:border-dm-border dark:bg-dm-surface dark:text-slate-100 dark:hover:bg-dm-elevated"
-                  >
-                    <Pencil className="h-4 w-4" />
-                    {t('editCompany')}
-                  </Link>
-                  {companyDetail.ownerId ? (
-                    <>
+                <div className="space-y-3 border-b border-subtle pb-4">
+                  <div>
+                    <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-secondary">
+                      {t('companyActions')}
+                    </p>
+                    <div className="flex flex-wrap gap-2">
+                      <Link
+                        href={`/dashboard/admin/companies/${companyDetail.id}/edit`}
+                        className="inline-flex h-10 items-center gap-2 rounded-lg border border-slate-200 bg-white px-4 text-sm font-medium text-ink transition-colors hover:bg-slate-50 dark:border-dm-border dark:bg-dm-surface dark:text-slate-100 dark:hover:bg-dm-elevated"
+                      >
+                        <Pencil className="h-4 w-4" />
+                        {t('editCompany')}
+                      </Link>
                       <Button
                         type="button"
                         variant="outline"
                         disabled={acting}
                         onClick={() =>
-                          void handleToggleCompanyOwnerActive(
-                            companyDetail.ownerId!,
-                            companyDetail.ownerIsActive ?? true,
+                          void handleToggleCompanyStamp(
+                            companyDetail.id,
+                            companyDetail.showVerifiedStamp ?? false,
                           )
                         }
                       >
-                        {companyDetail.ownerIsActive === false
-                          ? t('activateOwner')
-                          : t('deactivateOwner')}
+                        {companyDetail.showVerifiedStamp ? t('removeStamp') : t('enableStamp')}
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        disabled={acting}
+                        onClick={() =>
+                          void handleToggleCompanyTrusted(
+                            companyDetail.id,
+                            companyDetail.isTrusted ?? false,
+                          )
+                        }
+                      >
+                        {companyDetail.isTrusted ? t('removeTrusted') : t('markTrusted')}
                       </Button>
                       <Button
                         type="button"
                         variant="destructive"
                         disabled={acting}
-                        onClick={() => {
-                          void handleDeleteOwner(companyDetail.ownerId!);
-                        }}
+                        onClick={() =>
+                          setPendingDelete({
+                            type: 'company',
+                            companyId: companyDetail.id,
+                            companyName: companyDetail.name,
+                          })
+                        }
                       >
-                        {t('deleteOwner')}
+                        {t('deleteCompany')}
                       </Button>
-                    </>
+                    </div>
+                  </div>
+                  {companyDetail.ownerId ? (
+                    <div>
+                      <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-secondary">
+                        {t('ownerAccountActions')}
+                      </p>
+                      <div className="flex flex-wrap gap-2">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          disabled={acting}
+                          onClick={() =>
+                            void handleToggleCompanyOwnerActive(
+                              companyDetail.ownerId!,
+                              companyDetail.ownerIsActive ?? true,
+                            )
+                          }
+                        >
+                          {companyDetail.ownerIsActive === false
+                            ? t('activateOwner')
+                            : t('deactivateOwner')}
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="destructive"
+                          disabled={acting}
+                          onClick={() =>
+                            setPendingDelete({
+                              type: 'owner',
+                              ownerId: companyDetail.ownerId!,
+                              ownerEmail: companyDetail.ownerEmail ?? companyDetail.email,
+                              companyName: companyDetail.name,
+                            })
+                          }
+                        >
+                          {t('deleteOwner')}
+                        </Button>
+                      </div>
+                    </div>
                   ) : null}
-                  <Button
-                    type="button"
-                    variant="outline"
-                    disabled={acting}
-                    onClick={() =>
-                      void handleToggleCompanyStamp(
-                        companyDetail.id,
-                        companyDetail.showVerifiedStamp ?? false,
-                      )
-                    }
-                  >
-                    {companyDetail.showVerifiedStamp ? t('removeStamp') : t('enableStamp')}
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    disabled={acting}
-                    onClick={() =>
-                      void handleToggleCompanyTrusted(
-                        companyDetail.id,
-                        companyDetail.isTrusted ?? false,
-                      )
-                    }
-                  >
-                    {companyDetail.isTrusted ? t('removeTrusted') : t('markTrusted')}
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="destructive"
-                    disabled={acting}
-                    onClick={() =>
-                      void handleDeleteCompany(companyDetail.id, companyDetail.ownerId)
-                    }
-                  >
-                    {t('deleteCompany')}
-                  </Button>
                 </div>
                 <AdminCompanyContactDetails
                   phone={companyDetail.phone}

@@ -79,6 +79,15 @@ export class CompaniesRepository {
     return this.prisma.company.delete({ where: { id } });
   }
 
+  countByOwnerId(ownerId: string): Promise<number> {
+    return this.prisma.company.count({ where: { ownerId } });
+  }
+
+  async deleteAllByOwnerId(ownerId: string): Promise<number> {
+    const result = await this.prisma.company.deleteMany({ where: { ownerId } });
+    return result.count;
+  }
+
   findMany(filters: SearchCompaniesFilters): Promise<Company[]> {
     const where = this.buildWhereClause(filters);
 

@@ -6,14 +6,23 @@ import {
 import { formatQatarPhoneForSubmit, isValidQatarPhoneDigits } from '@/lib/qatar-phone';
 import { getFirebaseAuth } from '@/lib/firebase/client';
 import { ensureFirebaseUser } from '@/lib/firebase/ensure-user';
+import { onboardingApi } from '@/lib/api';
 
 type PhoneVerificationMode = 'link' | 'update';
 
 let verificationId: string | null = null;
 let activeMode: PhoneVerificationMode | null = null;
 let autoVerificationCode: string | null = null;
+let pendingPhone: string | null = null;
+let pendingContext: 'reviewer' | 'company' = 'reviewer';
 
 const NATIVE_AUTO_VERIFY_TIMEOUT_SECONDS = 60;
+
+const PHONE_LINK_CONFLICT_CODES = new Set([
+  'auth/account-exists-with-different-credential',
+  'auth/credential-already-in-use',
+  'auth/phone-number-already-exists',
+]);
 
 export function normalizePhoneNumber(phone: string): string {
   const trimmed = phone.trim();
@@ -35,6 +44,21 @@ function clearPhoneVerificationState(): void {
   verificationId = null;
   activeMode = null;
   autoVerificationCode = null;
+  pendingPhone = null;
+}
+
+function getFirebaseErrorCode(error: unknown): string {
+  if (!error || typeof error !== 'object') return '';
+  if ('code' in error && typeof (error as { code?: unknown }).code === 'string') {
+    return String((error as { code: string }).code);
+  }
+  const message = 'message' in error ? String((error as { message?: unknown }).message ?? '') : '';
+  const match = message.match(/auth\/[a-z0-9-]+/i);
+  return match?.[0]?.toLowerCase() ?? '';
+}
+
+function isPhoneLinkConflictError(error: unknown): boolean {
+  return PHONE_LINK_CONFLICT_CODES.has(getFirebaseErrorCode(error));
 }
 
 /**
@@ -81,6 +105,22 @@ function requestNativePhoneVerificationId(phone: string): Promise<string> {
   });
 }
 
+async function reclaimPhoneOntoCurrentUser(phone: string): Promise<boolean> {
+  try {
+    await onboardingApi.claimPhone(phone, 'reviewer');
+    await ensureFirebaseUser();
+    const auth = getFirebaseAuth();
+    if (auth.currentUser) {
+      await reload(auth.currentUser);
+    }
+    return Boolean(
+      auth.currentUser?.phoneNumber && isSamePhoneNumber(auth.currentUser.phoneNumber, phone),
+    );
+  } catch {
+    return false;
+  }
+}
+
 /**
  * Sends SMS via the native Firebase Auth SDK, then confirms against the existing
  * JS Auth session (email/Google/Apple). Web keeps RecaptchaVerifier — do not change it.
@@ -104,8 +144,10 @@ export async function startFirebasePhoneVerification(
   }
 
   const normalizedPhone = normalizePhoneNumber(phone);
+  pendingPhone = normalizedPhone;
 
   if (refreshedUser.phoneNumber && isSamePhoneNumber(refreshedUser.phoneNumber, normalizedPhone)) {
+    clearPhoneVerificationState();
     return { smsRequired: false };
   }
 
@@ -132,27 +174,40 @@ export async function confirmFirebasePhoneVerification(code: string): Promise<vo
     throw new Error('You must be signed in to verify your phone number');
   }
 
-  if (!verificationId || !activeMode) {
+  if (!verificationId || !activeMode || !pendingPhone) {
     throw new Error('No phone verification in progress. Request a new code.');
   }
 
+  const phone = pendingPhone;
   const credential = PhoneAuthProvider.credential(verificationId, code);
 
-  if (activeMode === 'update') {
-    await updatePhoneNumber(user, credential);
-  } else {
-    try {
+  try {
+    if (activeMode === 'update') {
+      await updatePhoneNumber(user, credential);
+    } else {
       await linkWithCredential(user, credential);
-    } catch (error) {
-      // Phone may already be linked to this same user after a prior successful attempt.
-      await reload(user);
-      if (auth.currentUser?.phoneNumber) {
-        // Already linked on this account (retry / partial success).
+    }
+  } catch (error) {
+    await reload(user);
+    if (auth.currentUser?.phoneNumber && isSamePhoneNumber(auth.currentUser.phoneNumber, phone)) {
+      clearPhoneVerificationState();
+      return;
+    }
+
+    // OTP was valid, but this phone is already on another Firebase Auth user.
+    // Try reclaiming orphans; otherwise surface a clear phone-already-linked error
+    // (Firebase often returns the misleading "account exists with different credential" email message).
+    if (isPhoneLinkConflictError(error)) {
+      const reclaimed = await reclaimPhoneOntoCurrentUser(phone);
+      if (reclaimed) {
         clearPhoneVerificationState();
         return;
       }
-      throw error;
+      clearPhoneVerificationState();
+      throw new Error('Phone number is already linked to another account, use another');
     }
+
+    throw error;
   }
 
   await reload(user);

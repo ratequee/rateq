@@ -3,6 +3,7 @@ import { DatePickerField } from '@/components/ui/date-picker-field';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { QatarPhoneInput } from '@/components/ui/qatar-phone-input';
+import { ProfileMediaPickerField } from '@/components/profile/profile-media-picker-field';
 import { useAppToast } from '@/hooks/use-app-toast';
 import { catalogApi, categoriesApi, onboardingApi } from '@/lib/api';
 import {
@@ -21,7 +22,6 @@ import { formatQatarPhoneForSubmit, extractQatarPhoneDigits } from '@/lib/qatar-
 import {
   COMPANY_STEP1_KEYS,
   hasValidationErrors,
-  isProfileFileWithinLimit,
   sanitizeCompanyName,
   sanitizeCrNumber,
   validateCompanyProfileFields,
@@ -30,13 +30,11 @@ import {
 import type { CompanyProfileDetail } from '@rateq/types';
 import type { CategoryPublic, CompanyCatalogItemPublic } from '@rateq/types';
 import { Ionicons } from '@expo/vector-icons';
-import * as DocumentPicker from 'expo-document-picker';
-import * as ImagePicker from 'expo-image-picker';
 import * as Location from 'expo-location';
 import { useRouter, type Href } from 'expo-router';
 import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Image, Pressable, ScrollView, Text, View } from 'react-native';
+import { Pressable, ScrollView, Text, View } from 'react-native';
 import { getFontFamily } from '@/i18n';
 import { useAuth } from '@/context/auth-context';
 
@@ -133,113 +131,6 @@ function MultiSelectChips({
           );
         })}
       </ScrollView>
-    </View>
-  );
-}
-
-function FilePickerField({
-  label,
-  required,
-  file,
-  existingUrl,
-  onPick,
-  onClear,
-  error,
-  mode,
-}: {
-  label: string;
-  required?: boolean;
-  file: PickedFile | null;
-  existingUrl?: string | null;
-  onPick: (file: PickedFile) => void;
-  onClear: () => void;
-  error?: string;
-  mode: 'document' | 'image';
-}) {
-  const { t } = useTranslation();
-  const toast = useAppToast();
-
-  const pick = async () => {
-    if (mode === 'image') {
-      const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.Images,
-        quality: 0.9,
-      });
-      if (result.canceled || !result.assets[0]) return;
-      const asset = result.assets[0];
-      const picked: PickedFile = {
-        uri: asset.uri,
-        name: asset.fileName ?? 'image.jpg',
-        mimeType: asset.mimeType ?? 'image/jpeg',
-        size: asset.fileSize ?? 0,
-      };
-      if (!isProfileFileWithinLimit(picked.size)) {
-        toast.error(t('onboarding.fileTooLarge'));
-        return;
-      }
-      onPick(picked);
-      return;
-    }
-
-    const result = await DocumentPicker.getDocumentAsync({
-      type: ['application/pdf', 'image/*'],
-      copyToCacheDirectory: true,
-    });
-    if (result.canceled || !result.assets[0]) return;
-    const asset = result.assets[0];
-    const picked: PickedFile = {
-      uri: asset.uri,
-      name: asset.name,
-      mimeType: asset.mimeType ?? 'application/pdf',
-      size: asset.size ?? 0,
-    };
-    if (!isProfileFileWithinLimit(picked.size)) {
-      toast.error(t('onboarding.fileTooLarge'));
-      return;
-    }
-    onPick(picked);
-  };
-
-  const hasValue = Boolean(file || existingUrl);
-
-  return (
-    <View className="gap-2">
-      <Label required={required}>{label}</Label>
-      <Pressable
-        onPress={() => void pick()}
-        className="min-h-[72px] justify-center rounded-xl border border-dashed border-slate-300 bg-white px-4 py-3 dark:border-dm-border dark:bg-dm-elevated"
-      >
-        {file ? (
-          <Text
-            className="text-sm text-ink dark:text-white"
-            style={{ fontFamily: getFontFamily('regular') }}
-          >
-            {file.name}
-          </Text>
-        ) : existingUrl ? (
-          <Text
-            className="text-sm text-ink-muted dark:text-white/75"
-            style={{ fontFamily: getFontFamily('regular') }}
-          >
-            {t('onboarding.existingFileAttached')}
-          </Text>
-        ) : (
-          <Text
-            className="text-sm text-ink-muted dark:text-white/70"
-            style={{ fontFamily: getFontFamily('regular') }}
-          >
-            {t('onboarding.tapToUpload')}
-          </Text>
-        )}
-      </Pressable>
-      {hasValue ? (
-        <Button title={t('onboarding.removeFile')} variant="ghost" onPress={onClear} />
-      ) : null}
-      {error ? (
-        <Text className="text-sm text-red-500" style={{ fontFamily: getFontFamily('regular') }}>
-          {error}
-        </Text>
-      ) : null}
     </View>
   );
 }
@@ -801,7 +692,7 @@ export function CompanyOnboardingWizard({
             error={errors.validationDate}
           />
 
-          <FilePickerField
+          <ProfileMediaPickerField
             label={t('onboarding.registrationFile')}
             required
             file={registrationDocFile}
@@ -813,8 +704,9 @@ export function CompanyOnboardingWizard({
             }}
             error={errors.registrationDocFile}
             mode="document"
+            shape="wide"
           />
-          <FilePickerField
+          <ProfileMediaPickerField
             label={t('onboarding.establishmentCardFile')}
             required
             file={establishmentCardFile}
@@ -826,8 +718,9 @@ export function CompanyOnboardingWizard({
             }}
             error={errors.establishmentCardFile}
             mode="document"
+            shape="wide"
           />
-          <FilePickerField
+          <ProfileMediaPickerField
             label={t('onboarding.tradeLicenseFile')}
             required
             file={tradeLicenseFile}
@@ -839,8 +732,9 @@ export function CompanyOnboardingWizard({
             }}
             error={errors.tradeLicenseFile}
             mode="document"
+            shape="wide"
           />
-          <FilePickerField
+          <ProfileMediaPickerField
             label={t('onboarding.logoFile')}
             required
             file={logoFile}
@@ -852,14 +746,9 @@ export function CompanyOnboardingWizard({
             }}
             error={errors.logoFile}
             mode="image"
+            shape="square"
           />
-          {logoFile || existingAssets.logoUrl ? (
-            <Image
-              source={{ uri: logoFile?.uri ?? existingAssets.logoUrl ?? undefined }}
-              className="h-24 w-24 rounded-xl"
-            />
-          ) : null}
-          <FilePickerField
+          <ProfileMediaPickerField
             label={t('onboarding.coverFile')}
             required
             file={coverFile}
@@ -871,14 +760,8 @@ export function CompanyOnboardingWizard({
             }}
             error={errors.coverFile}
             mode="image"
+            shape="wide"
           />
-          {coverFile || existingAssets.coverUrl ? (
-            <Image
-              source={{ uri: coverFile?.uri ?? existingAssets.coverUrl ?? undefined }}
-              className="h-28 w-full rounded-xl"
-              resizeMode="cover"
-            />
-          ) : null}
 
           <Pressable
             onPress={() => setAcceptedLegal((value) => !value)}

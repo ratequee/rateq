@@ -5,16 +5,15 @@ import { DashboardPageHeader } from '@/components/dashboard/dashboard-page-heade
 import { DashboardShell } from '@/components/dashboard/dashboard-shell';
 import { useRequireAdmin } from '@/hooks/use-require-admin';
 import { AdminPermission } from '@rateq/types';
-
-const PAGE_TITLE = 'Platform directory';
-const PAGE_SUBTITLE = 'Manage reviewers, companies, reviews, and replies.';
+import { useTranslations } from 'next-intl';
 
 export default function AdminDirectoryPage() {
   useRequireAdmin(AdminPermission.DIRECTORY);
+  const t = useTranslations('adminDirectory');
 
   return (
     <DashboardShell role="admin">
-      <DashboardPageHeader title={PAGE_TITLE} subtitle={PAGE_SUBTITLE} />
+      <DashboardPageHeader title={t('title')} subtitle={t('subtitle')} />
       <AdminDirectoryPanel />
     </DashboardShell>
   );

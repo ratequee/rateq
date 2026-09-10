@@ -1164,7 +1164,18 @@ export class CompaniesService {
       throw new NotFoundException('Company not found');
     }
 
+    const ownerId = company.ownerId;
     await this.companiesRepository.delete(companyId);
+
+    if (ownerId) {
+      const remaining = await this.companiesRepository.countByOwnerId(ownerId);
+      if (remaining === 0) {
+        await this.prisma.user.update({
+          where: { id: ownerId },
+          data: { role: PrismaUserRole.USER },
+        });
+      }
+    }
 
     return { message: 'Company deleted successfully' };
   }

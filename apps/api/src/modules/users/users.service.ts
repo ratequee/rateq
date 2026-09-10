@@ -59,6 +59,13 @@ export class UsersService {
     return this.phoneOtpService.syncVerifiedPhone(userId, dto.phone, dto.context);
   }
 
+  async claimPhoneVerification(
+    userId: string,
+    dto: SyncPhoneVerificationDto,
+  ): Promise<MessageResponse> {
+    return this.phoneOtpService.claimVerifiedPhone(userId, dto.phone, dto.context);
+  }
+
   async getOnboardingStatus(userId: string): Promise<OnboardingStatus> {
     const [reviewerProfile, company] = await Promise.all([
       this.userProfilesRepository.findByUserId(userId),
@@ -371,6 +378,9 @@ export class UsersService {
         }`,
       );
     }
+
+    // Delete owned companies first so company reviews/projects cascade (ownerId is SetNull on user delete).
+    await this.companiesRepository.deleteAllByOwnerId(targetId);
 
     if (user.firebaseUid) {
       try {

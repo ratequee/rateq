@@ -15,7 +15,6 @@ import { parseCompanyIdList, toCompanyPublic } from '../companies/mappers/compan
 import { ReviewsRepository } from '../reviews/repositories/reviews.repository';
 import { toReviewPublic } from '../reviews/mappers/review.mapper';
 import { UsersRepository } from '../users/repositories/users.repository';
-import { UsersService } from '../users/users.service';
 import { toUserProfile } from '../users/mappers/user.mapper';
 import { PrismaService } from '../../infrastructure/database/prisma.service';
 
@@ -24,7 +23,6 @@ export class AdminService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly usersRepository: UsersRepository,
-    private readonly usersService: UsersService,
     private readonly companiesRepository: CompaniesRepository,
     private readonly reviewsRepository: ReviewsRepository,
   ) {}
@@ -166,6 +164,8 @@ export class AdminService {
           OR: [
             { name: { contains: search, mode: 'insensitive' as const } },
             { slug: { contains: search, mode: 'insensitive' as const } },
+            { email: { contains: search, mode: 'insensitive' as const } },
+            { owner: { email: { contains: search, mode: 'insensitive' as const } } },
           ],
         }
       : {};
@@ -268,11 +268,7 @@ export class AdminService {
     };
   }
 
-  async deleteCompany(
-    companyId: string,
-    actor: AuthenticatedUser,
-    deleteOwner: boolean,
-  ): Promise<MessageResponse> {
+  async deleteCompany(companyId: string, _actor: AuthenticatedUser): Promise<MessageResponse> {
     const company = await this.companiesRepository.findById(companyId);
 
     if (!company) {
@@ -282,13 +278,13 @@ export class AdminService {
     const ownerId = company.ownerId;
     await this.companiesRepository.delete(companyId);
 
-    if (deleteOwner && ownerId) {
-      await this.usersService.adminDelete(ownerId, actor);
-      return { message: 'Company and owner account deleted successfully' };
-    }
-
+    // Never delete the owner account here. If they have no companies left,
+    // demote them so routing sends them back to complete-profile.
     if (ownerId) {
-      await this.usersRepository.updateById(ownerId, { role: 'USER' });
+      const remaining = await this.companiesRepository.countByOwnerId(ownerId);
+      if (remaining === 0) {
+        await this.usersRepository.updateById(ownerId, { role: 'USER' });
+      }
     }
 
     return { message: 'Company deleted successfully' };

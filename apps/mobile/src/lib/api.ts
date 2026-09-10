@@ -200,6 +200,11 @@ export const onboardingApi = {
       method: 'POST',
       body: JSON.stringify({ phone, context }),
     }),
+  claimPhone: (phone: string, context: 'reviewer' | 'company') =>
+    apiClient<MessageResponse>('/users/me/phone/claim', {
+      method: 'POST',
+      body: JSON.stringify({ phone, context }),
+    }),
   listReviewerInvitationRequests: () =>
     apiClient<ReviewerInvitationRequestPublic[]>('/companies/me/reviewer-invitation-requests'),
   createReviewerInvitationRequest: (data: CreateReviewerInvitationRequestInput) =>

@@ -151,6 +151,50 @@ export class FirebaseAdminService implements OnModuleInit {
     }
   }
 
+  async getUidByPhoneNumber(phoneNumber: string): Promise<string | null> {
+    if (!this.initialized) {
+      throw new ServiceUnavailableException(
+        'Firebase authentication is not configured on the server',
+      );
+    }
+
+    try {
+      const record = await admin.auth().getUserByPhoneNumber(phoneNumber);
+      return record.uid;
+    } catch (error) {
+      const code =
+        error && typeof error === 'object' && 'code' in error
+          ? String((error as { code: unknown }).code)
+          : 'unknown';
+
+      if (code === 'auth/user-not-found') {
+        return null;
+      }
+
+      throw error;
+    }
+  }
+
+  async setUserPhoneNumber(firebaseUid: string, phoneNumber: string): Promise<void> {
+    if (!this.initialized) {
+      throw new ServiceUnavailableException(
+        'Firebase authentication is not configured on the server',
+      );
+    }
+
+    await admin.auth().updateUser(firebaseUid, { phoneNumber });
+  }
+
+  async clearUserPhoneNumber(firebaseUid: string): Promise<void> {
+    if (!this.initialized) {
+      throw new ServiceUnavailableException(
+        'Firebase authentication is not configured on the server',
+      );
+    }
+
+    await admin.auth().updateUser(firebaseUid, { phoneNumber: null });
+  }
+
   async deleteAuthUser(firebaseUid: string): Promise<void> {
     if (!this.initialized || !firebaseUid) return;
 

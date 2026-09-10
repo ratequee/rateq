@@ -86,6 +86,87 @@ export class PhoneOtpService {
       );
     }
 
+    return this.persistVerifiedPhone(userId, normalizedPhone, context);
+  }
+
+  /**
+   * After a client OTP succeeds but Firebase refuses to link because the phone
+   * already belongs to another Auth user (common after abandoned signups / test numbers),
+   * move the phone onto this user's Firebase UID when it is safe to reclaim.
+   */
+  async claimVerifiedPhone(
+    userId: string,
+    phone: string,
+    context: PhoneVerificationContext,
+  ): Promise<MessageResponse> {
+    const normalizedPhone = normalizePhone(phone);
+    if (!normalizedPhone || normalizedPhone.length < 8) {
+      throw new BadRequestException('Phone number is required');
+    }
+
+    await this.assertPhoneNotLinkedToOtherAccount(userId, normalizedPhone);
+
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    if (!user?.firebaseUid) {
+      throw new BadRequestException('Sign in with Firebase before verifying your phone number');
+    }
+
+    if (!this.firebaseAdmin.isConfigured()) {
+      throw new ServiceUnavailableException(
+        'Phone verification is not configured on the server. Please contact support.',
+      );
+    }
+
+    const currentPhone = await this.firebaseAdmin.getVerifiedPhoneNumber(user.firebaseUid);
+    if (currentPhone && phonesMatch(currentPhone, normalizedPhone)) {
+      return this.persistVerifiedPhone(userId, normalizedPhone, context);
+    }
+
+    const ownerUid = await this.firebaseAdmin.getUidByPhoneNumber(normalizedPhone);
+
+    if (ownerUid && ownerUid !== user.firebaseUid) {
+      await this.assertFirebasePhoneOwnerReclaimable(userId, ownerUid);
+      await this.firebaseAdmin.clearUserPhoneNumber(ownerUid);
+
+      const ownerRecord = await this.prisma.user.findUnique({
+        where: { firebaseUid: ownerUid },
+        select: { id: true, phone: true, phoneVerified: true },
+      });
+      if (
+        ownerRecord?.phoneVerified &&
+        ownerRecord.phone &&
+        phonesMatch(ownerRecord.phone, normalizedPhone)
+      ) {
+        await this.prisma.user.update({
+          where: { id: ownerRecord.id },
+          data: { phone: null, phoneVerified: false },
+        });
+      }
+    }
+
+    try {
+      await this.firebaseAdmin.setUserPhoneNumber(user.firebaseUid, normalizedPhone);
+    } catch (error) {
+      const code =
+        error && typeof error === 'object' && 'code' in error
+          ? String((error as { code?: string }).code)
+          : '';
+      if (code === 'auth/phone-number-already-exists') {
+        throw new ConflictException(
+          'Phone number is already linked to another account, use another',
+        );
+      }
+      throw error;
+    }
+
+    return this.persistVerifiedPhone(userId, normalizedPhone, context);
+  }
+
+  private async persistVerifiedPhone(
+    userId: string,
+    normalizedPhone: string,
+    context: PhoneVerificationContext,
+  ): Promise<MessageResponse> {
     await this.prisma.user.update({
       where: { id: userId },
       data: {
@@ -104,6 +185,35 @@ export class PhoneOtpService {
       .setex(this.sessionKey(userId, context), this.ttlSeconds, JSON.stringify(session));
 
     return { message: 'Phone number verified successfully' };
+  }
+
+  private async assertFirebasePhoneOwnerReclaimable(
+    currentUserId: string,
+    ownerFirebaseUid: string,
+  ): Promise<void> {
+    const owner = await this.prisma.user.findUnique({
+      where: { firebaseUid: ownerFirebaseUid },
+      select: {
+        id: true,
+        phoneVerified: true,
+        profile: { select: { id: true } },
+        ownedCompanies: { select: { id: true }, take: 1 },
+      },
+    });
+
+    // No RateQ account — orphan Firebase phone user from abandoned signup / tests.
+    if (!owner) {
+      return;
+    }
+
+    if (owner.id === currentUserId) {
+      return;
+    }
+
+    const hasProfile = Boolean(owner.profile || owner.ownedCompanies.length > 0);
+    if (owner.phoneVerified || hasProfile) {
+      throw new ConflictException('Phone number is already linked to another account, use another');
+    }
   }
 
   async assertPhoneVerified(

@@ -3,6 +3,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { RoleSelector } from '@/components/auth/role-selector';
 import { CompanyOnboardingWizard } from '@/components/onboarding/company-onboarding-wizard';
+import { ProfileMediaPickerField } from '@/components/profile/profile-media-picker-field';
 import { QatarPhoneInput } from '@/components/ui/qatar-phone-input';
 import { LoadingView } from '@/components/ui/loading-view';
 import { useAuth } from '@/context/auth-context';
@@ -12,6 +13,7 @@ import { useAppToast } from '@/hooks/use-app-toast';
 import { onboardingApi } from '@/lib/api';
 import { getLinkedFirebasePhoneNumber } from '@/lib/firebase/phone-auth';
 import { uploadUserImage } from '@/lib/firebase/storage';
+import type { PickedFile } from '@/lib/profile-company-assets';
 import { extractQatarPhoneDigits, formatQatarPhoneForSubmit } from '@/lib/qatar-phone';
 import {
   canAccessDashboard,
@@ -25,11 +27,10 @@ import {
 } from '@/lib/validation/profile-fields';
 import type { AccountType, OnboardingStatus } from '@rateq/types';
 import { Ionicons } from '@expo/vector-icons';
-import * as ImagePicker from 'expo-image-picker';
 import { useRouter, type Href } from 'expo-router';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Image, Pressable, ScrollView, Text, View } from 'react-native';
+import { Pressable, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { getFontFamily } from '@/i18n';
 
@@ -114,6 +115,7 @@ export default function CompleteProfileScreen() {
   const [country, setCountry] = useState('Qatar');
   const [bio, setBio] = useState('');
   const [avatarUri, setAvatarUri] = useState<string | null>(null);
+  const [pendingAvatar, setPendingAvatar] = useState<PickedFile | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 
@@ -204,18 +206,6 @@ export default function CompleteProfileScreen() {
     [t],
   );
 
-  const pickAvatar = async () => {
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsEditing: true,
-      aspect: [1, 1],
-      quality: 0.85,
-    });
-    if (!result.canceled && result.assets[0]) {
-      setAvatarUri(result.assets[0].uri);
-    }
-  };
-
   const submitReviewer = async () => {
     const errors = validateReviewerProfileFields(
       {
@@ -224,7 +214,7 @@ export default function CompleteProfileScreen() {
         city,
         country,
         bio,
-        hasAvatar: Boolean(avatarUri),
+        hasAvatar: Boolean(avatarUri || pendingAvatar),
         phoneVerified,
       },
       {
@@ -253,8 +243,10 @@ export default function CompleteProfileScreen() {
       await onboardingApi.syncPhone(formatQatarPhoneForSubmit(phone), 'reviewer');
 
       let avatarUrl = avatarUri!;
-      if (!avatarUri!.startsWith('http')) {
-        avatarUrl = await uploadUserImage('avatar', avatarUri!, 'avatar.jpg');
+      if (pendingAvatar || (avatarUri && !avatarUri.startsWith('http'))) {
+        const uploadUri = pendingAvatar?.uri ?? avatarUri!;
+        const uploadName = pendingAvatar?.name ?? 'avatar.jpg';
+        avatarUrl = await uploadUserImage('avatar', uploadUri, uploadName);
       }
 
       await onboardingApi.completeReviewer({
@@ -458,24 +450,34 @@ export default function CompleteProfileScreen() {
                 <Text className="mt-1 text-sm text-red-500">{fieldErrors.bio}</Text>
               ) : null}
             </View>
-            <View>
-              <Label required>{t('onboarding.avatar')}</Label>
-              <Pressable
-                onPress={() => void pickAvatar()}
-                className="mt-1 h-28 w-28 items-center justify-center overflow-hidden rounded-2xl border border-dashed border-slate-300 bg-white dark:border-dm-border dark:bg-dm-elevated"
-              >
-                {avatarUri ? (
-                  <Image source={{ uri: avatarUri }} className="h-full w-full" />
-                ) : (
-                  <Text className="text-sm text-ink-muted dark:text-white/70">
-                    {t('onboarding.uploadAvatar')}
-                  </Text>
-                )}
-              </Pressable>
-              {fieldErrors.avatar ? (
-                <Text className="mt-1 text-sm text-red-500">{fieldErrors.avatar}</Text>
-              ) : null}
-            </View>
+            <ProfileMediaPickerField
+              label={t('onboarding.avatar')}
+              required
+              mode="image"
+              shape="avatar"
+              file={pendingAvatar}
+              existingUrl={
+                avatarUri?.startsWith('http')
+                  ? avatarUri
+                  : (onboarding?.reviewerProfile?.avatarUrl ?? null)
+              }
+              onPick={(file) => {
+                setPendingAvatar(file);
+                setAvatarUri(file.uri);
+                if (fieldErrors.avatar) {
+                  setFieldErrors((prev) => {
+                    const next = { ...prev };
+                    delete next.avatar;
+                    return next;
+                  });
+                }
+              }}
+              onClear={() => {
+                setPendingAvatar(null);
+                setAvatarUri(onboarding?.reviewerProfile?.avatarUrl ?? null);
+              }}
+              error={fieldErrors.avatar}
+            />
             <Button
               title={submitting ? t('onboarding.saving') : t('onboarding.completeProfile')}
               variant="gold"

@@ -124,19 +124,43 @@ export async function confirmFirebasePhoneVerification(code: string): Promise<vo
     throw new Error('You must be signed in to verify your phone number');
   }
 
-  if (activeMode === 'link' && linkConfirmation) {
-    await linkConfirmation.confirm(code);
-    await reload(user);
-    await clearPhoneVerificationState();
-    return;
-  }
+  try {
+    if (activeMode === 'link' && linkConfirmation) {
+      await linkConfirmation.confirm(code);
+      await reload(user);
+      await clearPhoneVerificationState();
+      return;
+    }
 
-  if (activeMode === 'update' && updateVerificationId) {
-    const credential = PhoneAuthProvider.credential(updateVerificationId, code);
-    await updatePhoneNumber(user, credential);
+    if (activeMode === 'update' && updateVerificationId) {
+      const credential = PhoneAuthProvider.credential(updateVerificationId, code);
+      await updatePhoneNumber(user, credential);
+      await reload(user);
+      await clearPhoneVerificationState();
+      return;
+    }
+  } catch (error) {
     await reload(user);
-    await clearPhoneVerificationState();
-    return;
+    if (auth.currentUser?.phoneNumber) {
+      await clearPhoneVerificationState();
+      return;
+    }
+
+    const errorCode =
+      error && typeof error === 'object' && 'code' in error
+        ? String((error as { code?: string }).code)
+        : '';
+    if (
+      errorCode === 'auth/credential-already-in-use' ||
+      errorCode === 'auth/phone-number-already-exists' ||
+      errorCode === 'auth/account-exists-with-different-credential' ||
+      errorCode === 'auth/provider-already-linked'
+    ) {
+      await clearPhoneVerificationState();
+      throw new Error('Phone number is already linked to another account, use another');
+    }
+
+    throw error;
   }
 
   throw new Error('No phone verification in progress. Request a new code.');

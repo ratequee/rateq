@@ -70,6 +70,20 @@ export class UsersController {
     return this.usersService.syncPhoneVerification(user.id, dto);
   }
 
+  @Post('me/phone/claim')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary:
+      'Reclaim a phone number onto this account after Firebase link conflict (OTP already verified on client)',
+  })
+  @ApiResponse({ status: 200, type: MessageResponseDto })
+  claimPhoneVerification(
+    @CurrentUser() user: AuthenticatedUser,
+    @Body() dto: SyncPhoneVerificationDto,
+  ) {
+    return this.usersService.claimPhoneVerification(user.id, dto);
+  }
+
   @Patch('me/password')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Change password for the current user' })

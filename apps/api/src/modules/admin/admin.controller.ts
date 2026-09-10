@@ -91,14 +91,12 @@ export class AdminController {
 
   @Delete('companies/:id')
   @RequireAdminPermission(AdminPermission.DIRECTORY)
-  @ApiOperation({ summary: 'Delete company and optionally delete owner account' })
-  deleteCompany(
-    @Param('id') id: string,
-    @CurrentUser() actor: AuthenticatedUser,
-    @Query('deleteOwner') deleteOwner?: string,
-  ) {
-    const shouldDeleteOwner = deleteOwner === 'true' || deleteOwner === '1';
-    return this.adminService.deleteCompany(id, actor, shouldDeleteOwner);
+  @ApiOperation({
+    summary:
+      'Delete a company only (owner account is kept; if it was their last company they must complete profile again)',
+  })
+  deleteCompany(@Param('id') id: string, @CurrentUser() actor: AuthenticatedUser) {
+    return this.adminService.deleteCompany(id, actor);
   }
 
   @Get('team')
