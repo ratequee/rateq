@@ -47,9 +47,48 @@ loadDotEnvFile(path.join(__dirname, '.env'));
 
 const googleMapsApiKey = (process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY ?? '').trim();
 
+/**
+ * Prefer local files for development. On EAS, use file-type env vars
+ * GOOGLE_SERVICES_PLIST / GOOGLE_SERVICES_JSON (path injected by EAS) when
+ * the files are gitignored and not in the upload archive.
+ */
+function resolveGoogleServicesFile(localName, envVarName) {
+  const localPath = path.join(__dirname, localName);
+  if (fs.existsSync(localPath)) {
+    return `./${localName}`;
+  }
+
+  const fromEnv = (process.env[envVarName] ?? '').trim();
+  if (fromEnv && fs.existsSync(fromEnv)) {
+    try {
+      fs.copyFileSync(fromEnv, localPath);
+      return `./${localName}`;
+    } catch {
+      return fromEnv;
+    }
+  }
+
+  return undefined;
+}
+
+const iosGoogleServicesFile = resolveGoogleServicesFile(
+  'GoogleService-Info.plist',
+  'GOOGLE_SERVICES_PLIST',
+);
+const androidGoogleServicesFile = resolveGoogleServicesFile(
+  'google-services.json',
+  'GOOGLE_SERVICES_JSON',
+);
+
 if (process.env.EAS_BUILD === 'true' && !googleMapsApiKey) {
   throw new Error(
     'EXPO_PUBLIC_GOOGLE_MAPS_API_KEY is missing on EAS. Add it under Project → Environment variables (development/preview/production), then rebuild. Android MapView crashes without com.google.android.geo.API_KEY in AndroidManifest.xml.',
+  );
+}
+
+if (process.env.EAS_BUILD === 'true' && (!iosGoogleServicesFile || !androidGoogleServicesFile)) {
+  throw new Error(
+    'Native Firebase config missing on EAS. Keep GoogleService-Info.plist + google-services.json in apps/mobile for local builds (gitignored but uploaded via .easignore), or add EAS file env vars GOOGLE_SERVICES_PLIST and GOOGLE_SERVICES_JSON.',
   );
 }
 
@@ -72,6 +111,7 @@ const config = {
     supportsTablet: true,
     bundleIdentifier: 'com.rateq.app',
     usesAppleSignIn: true,
+    googleServicesFile: iosGoogleServicesFile,
     infoPlist: {
       ITSAppUsesNonExemptEncryption: false,
     },
@@ -85,6 +125,7 @@ const config = {
   },
   android: {
     package: 'com.rateq.app',
+    googleServicesFile: androidGoogleServicesFile,
     // Legacy launcher icon (pre-adaptive devices)
     icon: './assets/images/icon.png',
     adaptiveIcon: {
@@ -130,6 +171,16 @@ const config = {
     '@react-native-community/datetimepicker',
     'expo-apple-authentication',
     'expo-dev-client',
+    '@react-native-firebase/app',
+    '@react-native-firebase/auth',
+    [
+      'expo-build-properties',
+      {
+        ios: {
+          useFrameworks: 'static',
+        },
+      },
+    ],
     [
       '@react-native-google-signin/google-signin',
       {

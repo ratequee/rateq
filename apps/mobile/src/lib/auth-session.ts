@@ -39,6 +39,17 @@ export function isAccessTokenExpired(token: string, bufferMs = EXPIRY_BUFFER_MS)
   return Date.now() >= expiresAtMs - bufferMs;
 }
 
+/** True when SecureStore still has a refresh session (up to ~7 days). */
+export async function hasStoredRefreshSession(): Promise<boolean> {
+  const [refreshToken, user] = await Promise.all([getRefreshToken(), getStoredUser()]);
+  return Boolean(refreshToken && user);
+}
+
+/**
+ * Exchange the refresh token for a new access token.
+ * Clears the stored session only on definitive auth rejection (401/403) or
+ * missing credentials — never on network / 5xx blips.
+ */
 export async function refreshAccessToken(): Promise<string | null> {
   if (refreshInFlight) {
     return refreshInFlight;
@@ -60,8 +71,13 @@ export async function refreshAccessToken(): Promise<string | null> {
         body: JSON.stringify({ refreshToken }),
       });
 
-      if (!response.ok) {
+      if (response.status === 401 || response.status === 403) {
         await clearAuth();
+        return null;
+      }
+
+      if (!response.ok) {
+        // Transient server/network-class failure — keep the 7-day refresh session.
         return null;
       }
 
@@ -69,7 +85,7 @@ export async function refreshAccessToken(): Promise<string | null> {
       await saveTokens(body.data);
       return body.data.accessToken;
     } catch {
-      await clearAuth();
+      // Offline / fetch failure — do not log the user out.
       return null;
     } finally {
       refreshInFlight = null;

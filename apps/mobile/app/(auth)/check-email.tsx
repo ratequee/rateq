@@ -8,9 +8,9 @@ import { useAuth } from '@/context/auth-context';
 import { useProfile } from '@/context/profile-context';
 import { getLinkedFirebasePhoneNumber } from '@/lib/firebase/phone-auth';
 import {
-  extractQatarPhoneDigits,
   formatQatarPhoneForSubmit,
   isValidQatarPhoneDigits,
+  sanitizeQatarPhoneDigits,
 } from '@/lib/qatar-phone';
 import { validateAuthFields } from '@/lib/validation/auth-fields';
 import { useAppToast } from '@/hooks/use-app-toast';
@@ -65,6 +65,9 @@ export default function CheckEmailScreen() {
     return !phoneVerified;
   }, [forceNeedPhone, phoneVerified, user?.isVerified, onboarding?.isProfileComplete]);
 
+  const phoneDigits = sanitizeQatarPhoneDigits(phone);
+  const phoneIsValid = isValidQatarPhoneDigits(phoneDigits);
+
   const validationMessages = useMemo(
     () => ({
       emailRequired: t('auth.validationEmailRequired'),
@@ -99,14 +102,18 @@ export default function CheckEmailScreen() {
   };
 
   const handleContinuePhone = () => {
-    if (!isValidQatarPhoneDigits(phone)) {
+    if (!phoneDigits) {
+      setPhoneError(t('onboarding.fieldRequired'));
+      return;
+    }
+    if (!phoneIsValid) {
       setPhoneError(t('onboarding.phoneInvalid'));
       return;
     }
     setPhoneError(null);
-    const normalized = formatQatarPhoneForSubmit(phone);
+    const normalized = formatQatarPhoneForSubmit(phoneDigits);
     router.push(
-      `/(auth)/verify-phone?phone=${encodeURIComponent(normalized)}&next=/(onboarding)/complete-profile&context=${phoneContext}&sync=1` as Href,
+      `/(auth)/verify-phone?phone=${encodeURIComponent(normalized)}&next=${encodeURIComponent('/(onboarding)/complete-profile')}&context=${phoneContext}&sync=1` as Href,
     );
   };
 
@@ -246,16 +253,23 @@ export default function CheckEmailScreen() {
             <View>
               <Label required>{t('onboarding.phone')}</Label>
               <QatarPhoneInput
-                value={phone || extractQatarPhoneDigits(linkedPhone ?? '')}
-                onChange={setPhone}
+                value={phone}
+                onChange={(value) => {
+                  setPhone(value);
+                  if (phoneError) setPhoneError(null);
+                }}
               />
               {phoneError ? <Text className="mt-1 text-sm text-red-500">{phoneError}</Text> : null}
+              {!phoneError && phoneDigits.length > 0 && !phoneIsValid ? (
+                <Text className="mt-1 text-sm text-red-500">{t('onboarding.phoneInvalid')}</Text>
+              ) : null}
             </View>
             <Button
               title={t('auth.continueToVerifyPhone')}
               variant="gold"
               size="lg"
               className="w-full rounded-2xl"
+              disabled={!phoneIsValid}
               onPress={handleContinuePhone}
             />
           </View>

@@ -1,8 +1,10 @@
-# Mirror repo ignore rules for EAS upload, but keep .env so Maps / public
-# Expo env vars are available at native prebuild time.
+# Project-local mirror; root .easignore is what EAS uses for monorepo uploads.
+# Do NOT ignore GoogleService-Info.plist / google-services.json here — they are
+# gitignored but must still upload when present locally (or use EAS file envs).
 node_modules
 .pnp
 .pnp.js
+.pnpm-store
 dist
 build
 .next

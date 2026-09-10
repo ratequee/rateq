@@ -35,6 +35,16 @@ export function isAccessTokenExpired(token: string, bufferMs = EXPIRY_BUFFER_MS)
   return Date.now() >= expiresAtMs - bufferMs;
 }
 
+/** True when localStorage still has a refresh session (up to ~7 days). */
+export function hasStoredRefreshSession(): boolean {
+  return Boolean(getRefreshToken() && getStoredUser());
+}
+
+/**
+ * Exchange the refresh token for a new access token.
+ * Clears the stored session only on definitive auth rejection (401/403) or
+ * missing credentials — never on network / 5xx blips.
+ */
 export async function refreshAccessToken(): Promise<string | null> {
   if (refreshInFlight) {
     return refreshInFlight;
@@ -57,8 +67,12 @@ export async function refreshAccessToken(): Promise<string | null> {
         cache: 'no-store',
       });
 
-      if (!response.ok) {
+      if (response.status === 401 || response.status === 403) {
         clearAuth();
+        return null;
+      }
+
+      if (!response.ok) {
         return null;
       }
 
@@ -68,7 +82,6 @@ export async function refreshAccessToken(): Promise<string | null> {
       saveAuth(tokens, user);
       return tokens.accessToken;
     } catch {
-      clearAuth();
       return null;
     } finally {
       refreshInFlight = null;

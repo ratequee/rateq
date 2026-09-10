@@ -12,16 +12,13 @@ import {
   resetFirebasePhoneVerification,
   startFirebasePhoneVerification,
 } from '@/lib/firebase/phone-auth';
-import { getFirebaseWebConfig } from '@/lib/firebase/client';
 import {
   extractQatarPhoneDigits,
   formatQatarPhoneForSubmit,
   isValidQatarPhoneDigits,
 } from '@/lib/qatar-phone';
-import { FirebaseRecaptchaVerifierModal } from '@/components/firebase/firebase-recaptcha-verifier-modal';
-import type { FirebaseRecaptchaVerifierModalHandle } from '@/components/firebase/firebase-recaptcha-verifier-modal';
 import { Ionicons } from '@expo/vector-icons';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Text, View } from 'react-native';
 import { getFontFamily } from '@/i18n';
@@ -55,7 +52,6 @@ export function PhoneVerificationField({
 }: PhoneVerificationFieldProps) {
   const { t } = useTranslation();
   const toast = useAppToast();
-  const recaptchaRef = useRef<FirebaseRecaptchaVerifierModalHandle>(null);
   const [otpCode, setOtpCode] = useState('');
   const [sending, setSending] = useState(false);
   const [verifying, setVerifying] = useState(false);
@@ -112,18 +108,9 @@ export function PhoneVerificationField({
       return;
     }
 
-    const verifier = recaptchaRef.current;
-    if (!verifier) {
-      toast.error(t('onboarding.phoneRecaptchaUnavailable'));
-      return;
-    }
-
     setSending(true);
     try {
-      const { smsRequired } = await startFirebasePhoneVerification(
-        normalizePhoneNumber(phone),
-        verifier,
-      );
+      const { smsRequired } = await startFirebasePhoneVerification(normalizePhoneNumber(phone));
       if (!smsRequired) {
         setOtpSent(false);
         setAwaitingLinkedConfirm(true);
@@ -185,12 +172,6 @@ export function PhoneVerificationField({
 
   return (
     <View>
-      <FirebaseRecaptchaVerifierModal
-        ref={recaptchaRef}
-        firebaseConfig={getFirebaseWebConfig()}
-        attemptInvisibleVerification
-      />
-
       <Label required>{label}</Label>
 
       {showLinkedPhoneHint && linkedFirebasePhone ? (

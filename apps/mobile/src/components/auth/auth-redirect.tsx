@@ -32,6 +32,10 @@ export function AuthRedirect() {
   const target = getPostAuthRoute(user, onboarding);
 
   if (target === '/(auth)/check-email') {
+    // Allow dedicated OTP screen when finishing phone verification from this hub.
+    if (onVerifyPhone) {
+      return null;
+    }
     if (!inAuth || authScreen !== 'check-email') {
       return <Redirect href="/(auth)/check-email" />;
     }

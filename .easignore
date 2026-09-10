@@ -1,12 +1,17 @@
-# Used by EAS Build upload. Overrides .gitignore for the upload set.
-# Keep parity with .gitignore, but include local .env so app.config.js can
-# resolve EXPO_PUBLIC_GOOGLE_MAPS_API_KEY during remote prebuild if EAS env
-# vars are missing. Prefer setting vars in EAS Environment as the primary source.
+# Used by EAS Build upload. When present, this file replaces .gitignore for
+# what gets packed — keep it aggressive so monorepo junk is not uploaded.
+# Local GoogleService-* files are gitignored but intentionally NOT listed here
+# so `eas build` from a machine that has them still includes them. Prefer
+# EAS file env vars (GOOGLE_SERVICES_JSON / GOOGLE_SERVICES_PLIST) for CI.
 
-# Dependencies
+# Dependencies & package manager caches
 node_modules
 .pnp
 .pnp.js
+.pnpm-store
+
+# VCS (EAS does not need the full git history in the archive)
+.git
 
 # Build outputs
 dist
@@ -16,6 +21,23 @@ out
 .expo
 .turbo
 *.tsbuildinfo
+apps/web/.next
+apps/api/dist
+apps/api/coverage
+
+# Web app source/assets are not needed for the mobile native build
+apps/web/src
+apps/web/public
+apps/web/.turbo
+apps/web/.env
+apps/web/.env.local
+
+# API source/tests/prisma not needed for mobile JS bundle / prebuild
+apps/api/src
+apps/api/test
+apps/api/prisma
+apps/api/.env
+apps/api/.env.local
 
 # Environment — include project .env for Maps / Expo public config on EAS
 .env.local
@@ -36,7 +58,7 @@ yarn-error.log*
 coverage
 .nyc_output
 
-# IDE
+# IDE / OS
 .idea
 .vscode/*
 !.vscode/extensions.json
@@ -44,9 +66,7 @@ coverage
 *.swp
 *.swo
 .DS_Store
-
-# Prisma
-apps/api/prisma/migrations/**/migration_lock.toml
+.cursor
 
 # Mobile native dirs (generated on EAS)
 apps/mobile/.expo
@@ -57,11 +77,11 @@ apps/mobile/android
 *.p12
 *.mobileprovision
 
-# Docker
+# Docker / misc
 .docker
-
-# Misc
 *.pem
 .cache
 .vercel
 rateq-theme-export/
+docs/
+.cursor-homepage-figma.png

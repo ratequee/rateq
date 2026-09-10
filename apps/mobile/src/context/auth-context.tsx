@@ -24,7 +24,8 @@ import {
   reloadFirebaseUser,
 } from '@/lib/firebase/auth';
 import { clearAuth, getStoredUser, saveAuth } from '@/lib/storage';
-import { ensureValidAccessToken } from '@/lib/auth-session';
+import { ensureValidAccessToken, hasStoredRefreshSession } from '@/lib/auth-session';
+import { ensureFirebaseUser } from '@/lib/firebase/ensure-user';
 import {
   linkPendingCredentialWithPassword,
   takePendingLinkCredential,
@@ -269,7 +270,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const refreshSession = useCallback(async () => {
     const token = await ensureValidAccessToken();
     if (!token) {
-      setUser(null);
+      if (!(await hasStoredRefreshSession())) {
+        setUser(null);
+      }
       return null;
     }
 
@@ -278,8 +281,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setUser(me);
       return me;
     } catch {
-      await clearAuth();
-      setUser(null);
+      // Keep the local session on transient /me failures; tokens are still valid up to 7 days.
+      const stored = await getStoredUser();
+      if (stored) {
+        setUser(stored);
+        return stored;
+      }
       return null;
     }
   }, []);
@@ -296,7 +303,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       const token = await ensureValidAccessToken();
       if (!token) {
-        setUser(null);
+        if (!(await hasStoredRefreshSession())) {
+          setUser(null);
+        }
         setIsLoading(false);
         return;
       }
@@ -305,11 +314,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const me = await authApi.me();
         setUser(me);
       } catch {
-        await clearAuth();
-        setUser(null);
-      } finally {
-        setIsLoading(false);
+        // Keep stored user — do not clear a still-valid 7-day refresh session.
+        setUser(stored);
       }
+
+      if (isFirebaseConfigured()) {
+        try {
+          await ensureFirebaseUser();
+        } catch {
+          // Firebase may restore later; API session remains the source of truth for routing.
+        }
+      }
+
+      setIsLoading(false);
     })();
   }, []);
 

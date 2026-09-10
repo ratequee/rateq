@@ -24,11 +24,11 @@ async function waitForFirebaseUser(timeoutMs: number): Promise<User> {
 }
 
 /**
- * Firebase Storage requires `request.auth` (see Storage security rules).
- * Use the existing Firebase Auth session when available; otherwise mint a
- * custom token from the RateQ API so Storage sees a signed-in user.
+ * Ensure a Firebase Auth user is present for phone verification / Storage.
+ * Prefer the existing JS Auth session; otherwise mint a custom token from the
+ * RateQ API (same UID) so a valid JWT session can restore Firebase after app restarts.
  */
-export async function ensureFirebaseUserForUpload(): Promise<User> {
+export async function ensureFirebaseUser(): Promise<User> {
   const auth = getFirebaseAuth();
 
   if (auth.currentUser) {
@@ -48,4 +48,9 @@ export async function ensureFirebaseUserForUpload(): Promise<User> {
   const credential = await signInWithCustomToken(auth, customToken);
   await credential.user.getIdToken(true);
   return credential.user;
+}
+
+/** @deprecated Prefer `ensureFirebaseUser` — same behavior. */
+export async function ensureFirebaseUserForUpload(): Promise<User> {
+  return ensureFirebaseUser();
 }

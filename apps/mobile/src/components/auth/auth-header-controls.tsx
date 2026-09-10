@@ -1,5 +1,7 @@
+import { useAuth } from '@/context/auth-context';
 import { Pressable, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { changeLanguage } from '@/i18n';
 import { useTheme } from '@/context/theme-context';
@@ -10,6 +12,8 @@ const LOCALE_LABELS = { en: 'EN', ar: 'AR' } as const;
 
 export function AuthHeaderControls() {
   const { t, i18n } = useTranslation();
+  const router = useRouter();
+  const { user, logout } = useAuth();
   const { resolved, toggle } = useTheme();
   const locale = i18n.language === 'ar' ? 'ar' : 'en';
   const isDark = resolved === 'dark';
@@ -19,6 +23,11 @@ export function AuthHeaderControls() {
   const activeText = isDark ? 'text-white' : 'text-brand-500';
   const inactiveText = isDark ? 'text-white/80' : 'text-white/90';
   const iconColor = isDark ? '#f3f4f6' : '#ffffff';
+
+  const handleLogout = async () => {
+    await logout();
+    router.replace('/(auth)/login');
+  };
 
   return (
     <View className="flex-row items-center gap-2">
@@ -50,6 +59,17 @@ export function AuthHeaderControls() {
       >
         <Ionicons name={isDark ? 'sunny-outline' : 'moon-outline'} size={18} color={iconColor} />
       </Pressable>
+
+      {user ? (
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={t('auth.logout')}
+          onPress={() => void handleLogout()}
+          className={cn('h-9 w-9 items-center justify-center rounded-full', pillBg)}
+        >
+          <Ionicons name="log-out-outline" size={18} color={iconColor} />
+        </Pressable>
+      ) : null}
     </View>
   );
 }

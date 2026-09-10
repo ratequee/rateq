@@ -2,11 +2,10 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { AuthFieldGroup } from '@/components/auth/auth-field-group';
 import { AuthScreenLayout } from '@/components/auth/auth-screen-layout';
-import { FirebaseRecaptchaVerifierModal } from '@/components/firebase/firebase-recaptcha-verifier-modal';
-import type { FirebaseRecaptchaVerifierModalHandle } from '@/components/firebase/firebase-recaptcha-verifier-modal';
 import { useAppToast } from '@/hooks/use-app-toast';
 import { onboardingApi } from '@/lib/api';
-import { getFirebaseAuth, getFirebaseWebConfig } from '@/lib/firebase/client';
+import { getFirebaseAuth } from '@/lib/firebase/client';
+import { ensureFirebaseUser } from '@/lib/firebase/ensure-user';
 import {
   confirmFirebasePhoneVerification,
   getLinkedFirebasePhoneNumber,
@@ -61,20 +60,25 @@ export default function VerifyPhoneScreen() {
   const [verifying, setVerifying] = useState(false);
   const [otpSent, setOtpSent] = useState(false);
   const [resendCooldown, setResendCooldown] = useState(0);
-  const recaptchaRef = useRef<FirebaseRecaptchaVerifierModalHandle>(null);
   const completedRef = useRef(false);
 
   useEffect(() => {
     void (async () => {
       const pending = await getPendingRegistration();
-      const phoneFromQuery = typeof params.phone === 'string' ? params.phone : '';
+      const rawPhoneParam = params.phone;
+      const phoneFromQuery = Array.isArray(rawPhoneParam)
+        ? (rawPhoneParam[0] ?? '')
+        : typeof rawPhoneParam === 'string'
+          ? rawPhoneParam
+          : '';
       const linked = getLinkedFirebasePhoneNumber();
       const initialPhone =
+        (phoneFromQuery ? extractQatarPhoneDigits(decodeURIComponent(phoneFromQuery)) : '') ||
         pending?.phone ||
-        (phoneFromQuery ? extractQatarPhoneDigits(phoneFromQuery) : '') ||
         extractQatarPhoneDigits(linked ?? '');
 
       if (!isValidQatarPhoneDigits(initialPhone)) {
+        toast.error(t('onboarding.phoneInvalid'));
         router.replace(fallbackHref);
         return;
       }
@@ -82,7 +86,8 @@ export default function VerifyPhoneScreen() {
       setPhone(initialPhone);
       setReady(true);
     })();
-  }, [params.phone, router, fallbackHref]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- init once from route params
+  }, [params.phone]);
 
   useEffect(() => {
     if (resendCooldown <= 0) return;
@@ -120,19 +125,29 @@ export default function VerifyPhoneScreen() {
   useEffect(() => {
     if (!ready || !phone) return;
 
-    const auth = getFirebaseAuth();
-    if (!auth.currentUser) {
-      toast.error(t('auth.phoneVerifySignInRequired'));
-      router.replace(isProfilePhoneFlow ? ('/(auth)/login' as Href) : ('/(auth)/register' as Href));
-      return;
-    }
+    void (async () => {
+      try {
+        await ensureFirebaseUser();
+      } catch {
+        toast.error(t('auth.phoneVerifySignInRequired'));
+        router.replace(fallbackHref);
+        return;
+      }
 
-    const linked = getLinkedFirebasePhoneNumber();
-    if (linked && isSamePhoneNumber(linked, formatQatarPhoneForSubmit(phone))) {
-      void completeVerification(formatQatarPhoneForSubmit(phone)).catch((err) => {
-        toast.apiError(err, t('onboarding.phoneOtpVerifyError'));
-      });
-    }
+      const auth = getFirebaseAuth();
+      if (!auth.currentUser) {
+        toast.error(t('auth.phoneVerifySignInRequired'));
+        router.replace(fallbackHref);
+        return;
+      }
+
+      const linked = getLinkedFirebasePhoneNumber();
+      if (linked && isSamePhoneNumber(linked, formatQatarPhoneForSubmit(phone))) {
+        void completeVerification(formatQatarPhoneForSubmit(phone)).catch((err) => {
+          toast.apiError(err, t('onboarding.phoneOtpVerifyError'));
+        });
+      }
+    })();
     // eslint-disable-next-line react-hooks/exhaustive-deps -- run once when ready
   }, [ready, phone]);
 
@@ -142,16 +157,10 @@ export default function VerifyPhoneScreen() {
       return;
     }
 
-    const verifier = recaptchaRef.current;
-    if (!verifier) {
-      toast.error(t('onboarding.phoneRecaptchaUnavailable'));
-      return;
-    }
-
     setSending(true);
     try {
       const normalizedPhone = formatQatarPhoneForSubmit(phone);
-      const result = await startFirebasePhoneVerification(normalizePhoneNumber(phone), verifier);
+      const result = await startFirebasePhoneVerification(normalizePhoneNumber(phone));
 
       if (!result.smsRequired) {
         await completeVerification(normalizedPhone);
@@ -207,12 +216,6 @@ export default function VerifyPhoneScreen() {
         </Pressable>
       }
     >
-      <FirebaseRecaptchaVerifierModal
-        ref={recaptchaRef}
-        firebaseConfig={getFirebaseWebConfig()}
-        attemptInvisibleVerification
-      />
-
       <View className="gap-5">
         {!otpSent ? (
           <Button

@@ -12,7 +12,7 @@ import {
 } from 'react';
 import { authApi } from '@/lib/api';
 import { clearAuth, getAccessToken, getStoredUser, saveAuth } from '@/lib/auth-storage';
-import { ensureValidAccessToken } from '@/lib/auth-session';
+import { ensureValidAccessToken, hasStoredRefreshSession } from '@/lib/auth-session';
 import { EmailNotVerifiedError, EmailVerificationPendingError } from '@/lib/auth-flow-errors';
 import {
   firebaseSendEmailVerification,
@@ -325,7 +325,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const refreshSession = useCallback(async () => {
     const token = await ensureValidAccessToken();
     if (!token) {
-      setUser(null);
+      if (!hasStoredRefreshSession()) {
+        setUser(null);
+      }
       return null;
     }
 
@@ -336,8 +338,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       await refreshAdminAccess();
       return me;
     } catch {
-      clearAuth();
-      setUser(null);
+      const stored = getStoredUser();
+      if (stored) {
+        setUser(stored);
+        return stored;
+      }
       return null;
     }
   }, [refreshAdminAccess]);
@@ -367,9 +372,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       const token = await ensureValidAccessToken();
       if (!token) {
-        clearAuth();
-        setUser(null);
-        setAdminAccess(null);
+        if (!hasStoredRefreshSession()) {
+          clearAuth();
+          setUser(null);
+          setAdminAccess(null);
+        }
         setIsLoading(false);
         return;
       }
@@ -380,9 +387,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setUser(me);
         await refreshAdminAccess();
       } catch {
-        clearAuth();
-        setUser(null);
-        setAdminAccess(null);
+        setUser(stored);
       } finally {
         setIsLoading(false);
       }

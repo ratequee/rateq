@@ -1,19 +1,19 @@
+import { PhoneAuthProvider, linkWithCredential, reload, updatePhoneNumber } from 'firebase/auth';
 import {
-  linkWithPhoneNumber,
-  PhoneAuthProvider,
-  reload,
-  updatePhoneNumber,
-  type ApplicationVerifier,
-  type ConfirmationResult,
-} from 'firebase/auth';
+  getAuth as getNativeAuth,
+  verifyPhoneNumber as nativeVerifyPhoneNumber,
+} from '@react-native-firebase/auth';
 import { formatQatarPhoneForSubmit, isValidQatarPhoneDigits } from '@/lib/qatar-phone';
 import { getFirebaseAuth } from '@/lib/firebase/client';
+import { ensureFirebaseUser } from '@/lib/firebase/ensure-user';
 
 type PhoneVerificationMode = 'link' | 'update';
 
-let linkConfirmation: ConfirmationResult | null = null;
-let updateVerificationId: string | null = null;
+let verificationId: string | null = null;
 let activeMode: PhoneVerificationMode | null = null;
+let autoVerificationCode: string | null = null;
+
+const NATIVE_AUTO_VERIFY_TIMEOUT_SECONDS = 60;
 
 export function normalizePhoneNumber(phone: string): string {
   const trimmed = phone.trim();
@@ -31,18 +31,66 @@ export function normalizePhoneNumber(phone: string): string {
   return `+${digits.replace(/^\+/, '')}`;
 }
 
-async function clearPhoneVerificationState(): Promise<void> {
-  linkConfirmation = null;
-  updateVerificationId = null;
+function clearPhoneVerificationState(): void {
+  verificationId = null;
   activeMode = null;
+  autoVerificationCode = null;
 }
 
+/**
+ * Native Firebase Phone Auth (APNs / Play Integrity / native reCAPTCHA fallback).
+ * Returns a verification ID usable with the JS Auth session via PhoneAuthProvider.credential.
+ */
+function requestNativePhoneVerificationId(phone: string): Promise<string> {
+  return new Promise((resolve, reject) => {
+    let settled = false;
+    const settle = (action: () => void) => {
+      if (settled) return;
+      settled = true;
+      action();
+    };
+
+    nativeVerifyPhoneNumber(getNativeAuth(), phone, NATIVE_AUTO_VERIFY_TIMEOUT_SECONDS).on(
+      'state_changed',
+      (snapshot) => {
+        if (snapshot.state === 'error') {
+          settle(() => {
+            reject(snapshot.error ?? new Error('Phone verification failed'));
+          });
+          return;
+        }
+
+        if (!snapshot.verificationId) return;
+
+        if (snapshot.state === 'verified' && snapshot.code) {
+          autoVerificationCode = snapshot.code;
+        }
+
+        if (
+          snapshot.state === 'sent' ||
+          snapshot.state === 'timeout' ||
+          snapshot.state === 'verified'
+        ) {
+          settle(() => resolve(snapshot.verificationId));
+        }
+      },
+      (error) => {
+        settle(() => reject(error));
+      },
+    );
+  });
+}
+
+/**
+ * Sends SMS via the native Firebase Auth SDK, then confirms against the existing
+ * JS Auth session (email/Google/Apple). Web keeps RecaptchaVerifier — do not change it.
+ */
 export async function startFirebasePhoneVerification(
   phone: string,
-  verifier: ApplicationVerifier,
 ): Promise<{ smsRequired: boolean }> {
-  await clearPhoneVerificationState();
+  clearPhoneVerificationState();
 
+  await ensureFirebaseUser();
   const auth = getFirebaseAuth();
   const user = auth.currentUser;
   if (!user) {
@@ -57,50 +105,51 @@ export async function startFirebasePhoneVerification(
 
   const normalizedPhone = normalizePhoneNumber(phone);
 
-  if (refreshedUser.phoneNumber && !isSamePhoneNumber(refreshedUser.phoneNumber, normalizedPhone)) {
-    const provider = new PhoneAuthProvider(auth);
-    updateVerificationId = await provider.verifyPhoneNumber(normalizedPhone, verifier);
-    activeMode = 'update';
-    return { smsRequired: true };
-  }
-
   if (refreshedUser.phoneNumber && isSamePhoneNumber(refreshedUser.phoneNumber, normalizedPhone)) {
-    await clearPhoneVerificationState();
     return { smsRequired: false };
   }
 
-  linkConfirmation = await linkWithPhoneNumber(refreshedUser, normalizedPhone, verifier);
-  activeMode = 'link';
+  activeMode =
+    refreshedUser.phoneNumber && !isSamePhoneNumber(refreshedUser.phoneNumber, normalizedPhone)
+      ? 'update'
+      : 'link';
+
+  verificationId = await requestNativePhoneVerificationId(normalizedPhone);
+
+  if (autoVerificationCode) {
+    await confirmFirebasePhoneVerification(autoVerificationCode);
+    return { smsRequired: false };
+  }
+
   return { smsRequired: true };
 }
 
 export async function confirmFirebasePhoneVerification(code: string): Promise<void> {
+  await ensureFirebaseUser();
   const auth = getFirebaseAuth();
   const user = auth.currentUser;
   if (!user) {
     throw new Error('You must be signed in to verify your phone number');
   }
 
-  if (activeMode === 'link' && linkConfirmation) {
-    await linkConfirmation.confirm(code);
-    await reload(user);
-    await clearPhoneVerificationState();
-    return;
+  if (!verificationId || !activeMode) {
+    throw new Error('No phone verification in progress. Request a new code.');
   }
 
-  if (activeMode === 'update' && updateVerificationId) {
-    const credential = PhoneAuthProvider.credential(updateVerificationId, code);
+  const credential = PhoneAuthProvider.credential(verificationId, code);
+
+  if (activeMode === 'update') {
     await updatePhoneNumber(user, credential);
-    await reload(user);
-    await clearPhoneVerificationState();
-    return;
+  } else {
+    await linkWithCredential(user, credential);
   }
 
-  throw new Error('No phone verification in progress. Request a new code.');
+  await reload(user);
+  clearPhoneVerificationState();
 }
 
 export function resetFirebasePhoneVerification(): void {
-  void clearPhoneVerificationState();
+  clearPhoneVerificationState();
 }
 
 export function getLinkedFirebasePhoneNumber(): string | null {
