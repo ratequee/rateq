@@ -223,7 +223,7 @@ export class CompaniesRepository {
       customServices?: string[];
     }[],
     options?: { defaultStatus?: 'PENDING' | 'APPROVED' },
-  ): Promise<void> {
+  ): Promise<{ pendingReviewTitles: string[] }> {
     const defaultStatus = options?.defaultStatus ?? 'PENDING';
     const slugify = (title: string, index: number) => {
       const base =
@@ -234,10 +234,71 @@ export class CompaniesRepository {
       return `${base}-${index + 1}`.slice(0, 80);
     };
 
+    const normalizeDate = (value: string | Date | null | undefined): string | null => {
+      if (!value) return null;
+      const parsed = value instanceof Date ? value : new Date(value);
+      if (Number.isNaN(parsed.getTime())) return null;
+      return parsed.toISOString().slice(0, 10);
+    };
+
+    const normalizeStringList = (value: unknown): string[] => {
+      if (!Array.isArray(value)) return [];
+      return value
+        .filter((item): item is string => typeof item === 'string')
+        .map((item) => item.trim())
+        .filter(Boolean);
+    };
+
+    const contentFingerprint = (project: {
+      title: string;
+      imageUrl: string;
+      projectUrl?: string | null;
+      description?: string | null;
+      demoImages?: unknown;
+      clientName?: string | null;
+      location?: string | null;
+      projectDate?: string | Date | null;
+      serviceIds?: unknown;
+      customServices?: unknown;
+    }) =>
+      JSON.stringify({
+        title: project.title.trim(),
+        description: (project.description ?? '').trim(),
+        imageUrl: project.imageUrl.trim(),
+        projectUrl: (project.projectUrl ?? '').trim(),
+        demoImages: normalizeStringList(project.demoImages),
+        clientName: (project.clientName ?? '').trim(),
+        location: (project.location ?? '').trim(),
+        projectDate: normalizeDate(project.projectDate),
+        serviceIds: normalizeStringList(project.serviceIds),
+        customServices: normalizeStringList(project.customServices),
+      });
+
     return this.prisma.$transaction(async (tx) => {
+      const existing = await tx.companyProject.findMany({
+        where: { companyId },
+        select: {
+          slug: true,
+          title: true,
+          description: true,
+          imageUrl: true,
+          projectUrl: true,
+          demoImages: true,
+          clientName: true,
+          location: true,
+          projectDate: true,
+          serviceIds: true,
+          customServices: true,
+          status: true,
+        },
+      });
+      const existingBySlug = new Map(existing.map((project) => [project.slug, project]));
+
       await tx.companyProject.deleteMany({ where: { companyId } });
 
-      if (projects.length === 0) return;
+      if (projects.length === 0) {
+        return { pendingReviewTitles: [] };
+      }
 
       const usedSlugs = new Set<string>();
       const uniqueSlug = (title: string, index: number, requested?: string) => {
@@ -253,29 +314,51 @@ export class CompaniesRepository {
         return candidate;
       };
 
-      await tx.companyProject.createMany({
-        data: projects.map((project, index) => {
-          const parsedDate = project.projectDate ? new Date(project.projectDate) : null;
-          const projectDate = parsedDate && !Number.isNaN(parsedDate.getTime()) ? parsedDate : null;
+      const pendingReviewTitles: string[] = [];
+      const rows = projects.map((project, index) => {
+        const requestedSlug = project.slug?.trim();
+        const slug = uniqueSlug(project.title, index, requestedSlug);
+        const previous = requestedSlug ? existingBySlug.get(requestedSlug) : undefined;
+        const unchanged =
+          previous !== undefined && contentFingerprint(previous) === contentFingerprint(project);
 
-          return {
-            companyId,
-            slug: uniqueSlug(project.title, index, project.slug),
-            title: project.title,
-            description: project.description ?? null,
-            imageUrl: project.imageUrl,
-            projectUrl: project.projectUrl ?? '',
-            demoImages: project.demoImages ?? [],
-            clientName: project.clientName ?? null,
-            location: project.location ?? null,
-            projectDate,
-            serviceIds: project.serviceIds ?? [],
-            customServices: project.customServices ?? [],
-            status: defaultStatus,
-            sortOrder: index,
-          };
-        }),
+        // Owner saves (default PENDING): keep status for unchanged projects.
+        // Admin saves (default APPROVED): always approve.
+        const status =
+          defaultStatus === 'APPROVED'
+            ? 'APPROVED'
+            : unchanged && previous
+              ? previous.status
+              : defaultStatus;
+
+        if (defaultStatus === 'PENDING' && status === 'PENDING' && !unchanged) {
+          pendingReviewTitles.push(project.title.trim());
+        }
+
+        const parsedDate = project.projectDate ? new Date(project.projectDate) : null;
+        const projectDate = parsedDate && !Number.isNaN(parsedDate.getTime()) ? parsedDate : null;
+
+        return {
+          companyId,
+          slug,
+          title: project.title,
+          description: project.description ?? null,
+          imageUrl: project.imageUrl,
+          projectUrl: project.projectUrl ?? '',
+          demoImages: project.demoImages ?? [],
+          clientName: project.clientName ?? null,
+          location: project.location ?? null,
+          projectDate,
+          serviceIds: project.serviceIds ?? [],
+          customServices: project.customServices ?? [],
+          status,
+          sortOrder: index,
+        };
       });
+
+      await tx.companyProject.createMany({ data: rows });
+
+      return { pendingReviewTitles };
     });
   }
 

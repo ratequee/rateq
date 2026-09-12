@@ -552,17 +552,23 @@ export class CompaniesService {
 
       if (projectUpdates !== undefined) {
         this.validateProjectInputs(projectUpdates);
-        await this.replaceCompanyProjects(company.id, projectUpdates, 'PENDING');
+        const { pendingReviewTitles } = await this.replaceCompanyProjects(
+          company.id,
+          projectUpdates,
+          'PENDING',
+        );
 
-        try {
-          await this.emailService.sendCompanyProjectPendingEmail({
-            companyName: company.name,
-            ownerEmail: company.owner?.email ?? company.email ?? '',
-            projectCount: projectUpdates.length,
-            projectTitles: projectUpdates.map((project) => project.title),
-          });
-        } catch {
-          // non-blocking
+        if (pendingReviewTitles.length > 0) {
+          try {
+            await this.emailService.sendCompanyProjectPendingEmail({
+              companyName: company.name,
+              ownerEmail: company.owner?.email ?? company.email ?? '',
+              projectCount: pendingReviewTitles.length,
+              projectTitles: pendingReviewTitles,
+            });
+          } catch {
+            // non-blocking
+          }
         }
       }
 
@@ -756,9 +762,11 @@ export class CompaniesService {
     companyId: string,
     projects: NonNullable<UpdateCompanyInput['projects']>,
     defaultStatus: 'PENDING' | 'APPROVED',
-  ): Promise<void> {
+  ): Promise<{ pendingReviewTitles: string[] }> {
     try {
-      await this.companiesRepository.replaceProjects(companyId, projects, { defaultStatus });
+      return await this.companiesRepository.replaceProjects(companyId, projects, {
+        defaultStatus,
+      });
     } catch (error) {
       if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
         throw new ConflictException('Each project needs a unique URL slug');
