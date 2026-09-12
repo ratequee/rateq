@@ -25,10 +25,8 @@ import Constants from 'expo-constants';
 import { ensureValidAccessToken, refreshAccessToken } from '@/lib/auth-session';
 import { getRefreshToken } from '@/lib/storage';
 
-const API_URL =
-  (typeof process !== 'undefined' && process.env?.EXPO_PUBLIC_API_URL) ||
-  Constants.expoConfig?.extra?.apiUrl ||
-  'http://localhost:4000/api/v1';
+const extra = (Constants.expoConfig?.extra ?? {}) as { apiUrl?: string };
+const API_URL = process.env.EXPO_PUBLIC_API_URL || extra.apiUrl || 'http://localhost:4000/api/v1';
 
 export class ApiError extends Error {
   constructor(
@@ -42,14 +40,6 @@ export class ApiError extends Error {
 
 interface ApiEnvelope<T> {
   data: T;
-}
-
-type TokenGetter = () => Promise<string | null>;
-
-let tokenGetter: TokenGetter = async () => null;
-
-export function setTokenGetter(getter: TokenGetter): void {
-  tokenGetter = getter;
 }
 
 export async function apiClient<T>(
@@ -138,7 +128,7 @@ export const companiesApi = {
     apiClient<PaginatedCompaniesResponse>(`/companies?${params}`, { auth: false }),
   getTrustedBanner: () =>
     apiClient<TrustedBannerItem[]>('/companies/trusted-banner', { auth: false }),
-  getBySlug: (slug: string) => apiClient<CompanyPublic>(`/companies/${slug}`),
+  getBySlug: (slug: string) => apiClient<CompanyPublic>(`/companies/${slug}`, { auth: false }),
   listFavorites: () => apiClient<CompanyPublic[]>('/companies/me/favorites'),
   addFavorite: (companyId: string) =>
     apiClient<{ isFavorited: true }>(`/companies/${companyId}/favorite`, { method: 'POST' }),

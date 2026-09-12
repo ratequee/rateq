@@ -6,7 +6,7 @@ const DEFAULT_WEB_ORIGIN = 'https://www.rateq.qa';
 
 export function getWebAppOrigin(): string {
   const fromEnv =
-    (typeof process !== 'undefined' && process.env?.EXPO_PUBLIC_WEB_URL) ||
+    process.env.EXPO_PUBLIC_WEB_URL ||
     (Constants.expoConfig?.extra as { webUrl?: string } | undefined)?.webUrl;
 
   const raw = (fromEnv || DEFAULT_WEB_ORIGIN).trim().replace(/\/$/, '');

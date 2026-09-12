@@ -8,10 +8,8 @@ import {
   saveTokens,
 } from '@/lib/storage';
 
-const API_URL =
-  (typeof process !== 'undefined' && process.env?.EXPO_PUBLIC_API_URL) ||
-  Constants.expoConfig?.extra?.apiUrl ||
-  'http://localhost:4000/api/v1';
+const extra = (Constants.expoConfig?.extra ?? {}) as { apiUrl?: string };
+const API_URL = process.env.EXPO_PUBLIC_API_URL || extra.apiUrl || 'http://localhost:4000/api/v1';
 
 /** Refresh slightly before expiry so requests do not fail mid-flight. */
 const EXPIRY_BUFFER_MS = 60_000;

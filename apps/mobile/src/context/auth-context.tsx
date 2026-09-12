@@ -8,7 +8,7 @@ import {
   type ReactNode,
 } from 'react';
 import type { AuthenticatedUser, AuthResponse } from '@rateq/types';
-import { authApi, setTokenGetter } from '@/lib/api';
+import { authApi } from '@/lib/api';
 import { EmailNotVerifiedError, EmailVerificationPendingError } from '@/lib/auth-flow-errors';
 import { getFirebaseAuth, isFirebaseConfigured } from '@/lib/firebase/client';
 import { FirebaseError } from 'firebase/app';
@@ -75,10 +75,6 @@ async function exchangeFirebaseSession(): Promise<AuthenticatedUser> {
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<AuthenticatedUser | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    setTokenGetter(ensureValidAccessToken);
-  }, []);
 
   const logout = useCallback(async () => {
     try {

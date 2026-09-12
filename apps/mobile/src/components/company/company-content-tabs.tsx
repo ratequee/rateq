@@ -1,8 +1,8 @@
 import { CompanyProjectsTab } from '@/components/company/company-projects-tab';
 import { CompanyReviewsTab } from '@/components/company/company-reviews-tab';
 import { CompanyServicesTab } from '@/components/company/company-services-tab';
+import { useAppDirection } from '@/hooks/use-app-direction';
 import { getFontFamily } from '@/i18n';
-import { cn } from '@/lib/cn';
 import type { CompanyPublic, ReviewPublic } from '@rateq/types';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -18,6 +18,7 @@ interface CompanyContentTabsProps {
 
 export function CompanyContentTabs({ company, reviews, topMentions }: CompanyContentTabsProps) {
   const { t } = useTranslation();
+  const { textStyle } = useAppDirection();
   const [activeTab, setActiveTab] = useState<CompanyTab>('reviews');
 
   const tabs: { id: CompanyTab; label: string }[] = [
@@ -29,17 +30,17 @@ export function CompanyContentTabs({ company, reviews, topMentions }: CompanyCon
   return (
     <View className="mt-2 overflow-hidden">
       <View className="bg-brand-500 px-4 py-3">
+        {/* RtlRoot already sets direction:rtl — keep flex-start so tabs pack to the right */}
         <View className="flex-row gap-6">
           {tabs.map((tab) => (
             <Pressable key={tab.id} onPress={() => setActiveTab(tab.id)} className="pb-1">
               <Text
-                className={cn(
-                  'border-b-2 pb-2 text-sm font-semibold',
+                className={
                   activeTab === tab.id
-                    ? 'border-white text-white'
-                    : 'border-transparent text-white/55',
-                )}
-                style={{ fontFamily: getFontFamily('semibold') }}
+                    ? 'border-b-2 border-white pb-2 text-sm font-semibold text-white'
+                    : 'border-b-2 border-transparent pb-2 text-sm font-semibold text-white/55'
+                }
+                style={[{ fontFamily: getFontFamily('semibold') }, textStyle]}
               >
                 {tab.label}
               </Text>

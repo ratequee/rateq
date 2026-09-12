@@ -7,6 +7,7 @@ import { ScreenHeaderControls } from '@/components/layout/screen-header-controls
 import { Input } from '@/components/ui/input';
 import { LoadingView } from '@/components/ui/loading-view';
 import { useAppDirection } from '@/hooks/use-app-direction';
+import { useBrowseBasePath } from '@/hooks/use-browse-base-path';
 import { getFontFamily } from '@/i18n';
 import { cn } from '@/lib/cn';
 import { categoriesApi, companiesApi, reviewsApi } from '@/lib/api';
@@ -14,7 +15,7 @@ import { getUserFacingError } from '@/lib/user-facing-error';
 import type { UserErrorKey } from '@rateq/utils';
 import type { CategoryPublic, CompanyPublic, ReviewPublic, TrustedBannerItem } from '@rateq/types';
 import { Ionicons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
+import { useRouter, type Href } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
@@ -31,6 +32,10 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 export default function HomeScreen() {
   const { t } = useTranslation();
   const router = useRouter();
+  const browseBase = useBrowseBasePath();
+  const companiesHref = (
+    browseBase === '/(guest)' ? '/(guest)/companies' : '/(tabs)/companies'
+  ) as Href;
   const { textStyle, textAlignClass, labelContainerStyle } = useAppDirection();
   const [query, setQuery] = useState('');
   const [categories, setCategories] = useState<CategoryPublic[]>([]);
@@ -74,9 +79,9 @@ export default function HomeScreen() {
   const onSearch = () => {
     Keyboard.dismiss();
     router.push({
-      pathname: '/(tabs)/companies',
+      pathname: companiesHref,
       params: query.trim() ? { q: query.trim() } : undefined,
-    });
+    } as Href);
   };
 
   if (loading) return <LoadingView />;
@@ -183,9 +188,9 @@ export default function HomeScreen() {
                   category={category}
                   onPress={() =>
                     router.push({
-                      pathname: '/(tabs)/companies',
+                      pathname: companiesHref,
                       params: { categoryId: category.id },
-                    })
+                    } as Href)
                   }
                 />
               ))}
@@ -201,7 +206,7 @@ export default function HomeScreen() {
             >
               {t('home.featuredTitle')}
             </Text>
-            <Pressable onPress={() => router.push('/(tabs)/companies')}>
+            <Pressable onPress={() => router.push(companiesHref)}>
               <Text
                 className={cn('text-sm font-medium text-brand-500', textAlignClass)}
                 style={[{ fontFamily: getFontFamily('medium') }, textStyle]}

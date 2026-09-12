@@ -1,8 +1,4 @@
 import { PhoneAuthProvider, linkWithCredential, reload, updatePhoneNumber } from 'firebase/auth';
-import {
-  getAuth as getNativeAuth,
-  verifyPhoneNumber as nativeVerifyPhoneNumber,
-} from '@react-native-firebase/auth';
 import { formatQatarPhoneForSubmit, isValidQatarPhoneDigits } from '@/lib/qatar-phone';
 import { getFirebaseAuth } from '@/lib/firebase/client';
 import { ensureFirebaseUser } from '@/lib/firebase/ensure-user';
@@ -23,6 +19,12 @@ const PHONE_LINK_CONFLICT_CODES = new Set([
   'auth/credential-already-in-use',
   'auth/phone-number-already-exists',
 ]);
+
+/** Lazy-load native Firebase Auth — never import at module top (crashes cold start on release). */
+function getNativeFirebaseAuth() {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  return require('@react-native-firebase/auth') as typeof import('@react-native-firebase/auth');
+}
 
 export function normalizePhoneNumber(phone: string): string {
   const trimmed = phone.trim();
@@ -73,6 +75,9 @@ function requestNativePhoneVerificationId(phone: string): Promise<string> {
       settled = true;
       action();
     };
+
+    const { getAuth: getNativeAuth, verifyPhoneNumber: nativeVerifyPhoneNumber } =
+      getNativeFirebaseAuth();
 
     nativeVerifyPhoneNumber(getNativeAuth(), phone, NATIVE_AUTO_VERIFY_TIMEOUT_SECONDS).on(
       'state_changed',

@@ -1,6 +1,10 @@
 module.exports = function (api) {
   api.cache(true);
   return {
-    presets: [['babel-preset-expo', { jsxImportSource: 'nativewind' }], 'nativewind/babel'],
+    // require.resolve so pnpm/EAS can find the preset (not hoisted by bare name)
+    presets: [
+      [require.resolve('babel-preset-expo'), { jsxImportSource: 'nativewind' }],
+      require.resolve('nativewind/babel'),
+    ],
   };
 };

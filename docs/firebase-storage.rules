@@ -17,6 +17,10 @@ rules_version = '2';
 //   users/{firebaseUid}/admin/categories/icon/{file}
 //
 // Requires Firebase Authentication (email/Google) — uploads use request.auth.uid.
+//
+// IMPORTANT: After editing this file, publish in Firebase Console (or firebase deploy --only storage).
+// Client uploads must send a real image/* (or application/pdf) contentType — browsers often leave
+// File.type empty; the web/mobile upload helpers infer MIME from the filename.
 
 service firebase.storage {
   match /b/{bucket}/o {
@@ -33,86 +37,103 @@ service firebase.storage {
     }
 
     function isImage() {
-      return request.resource.contentType.matches('image/.*');
+      return request.resource.contentType != null
+        && request.resource.contentType.matches('image/.*');
     }
 
-    function isRegistrationDoc() {
-      return request.resource.contentType.matches('image/.*')
-        || request.resource.contentType == 'application/pdf';
+    // Browsers sometimes omit File.type; allow common image extensions as a fallback.
+    function looksLikeImageName(fileName) {
+      return fileName.matches('.*\\.(jpg|jpeg|jpe|png|webp|gif|heic|heif|JPG|JPEG|JPE|PNG|WEBP|GIF|HEIC|HEIF)$');
+    }
+
+    function looksLikePdfName(fileName) {
+      return fileName.matches('.*\\.(pdf|PDF)$');
+    }
+
+    function isImageUpload(fileName) {
+      return isImage() || looksLikeImageName(fileName);
+    }
+
+    function isRegistrationDoc(fileName) {
+      return (request.resource.contentType != null
+          && (request.resource.contentType.matches('image/.*')
+            || request.resource.contentType == 'application/pdf'))
+        || looksLikeImageName(fileName)
+        || looksLikePdfName(fileName);
     }
 
     // Public profile assets shown on marketing pages
     match /users/{userId}/avatar/{fileName} {
       allow read: if true;
-      allow create, update: if isOwner(userId) && max10MB() && isImage();
+      allow create, update: if isOwner(userId) && max10MB() && isImageUpload(fileName);
       allow delete: if isOwner(userId);
     }
 
     match /users/{userId}/company/logo/{fileName} {
       allow read: if true;
-      allow create, update: if isOwner(userId) && max10MB() && isImage();
+      allow create, update: if isOwner(userId) && max10MB() && isImageUpload(fileName);
       allow delete: if isOwner(userId);
     }
 
     match /users/{userId}/company/cover/{fileName} {
       allow read: if true;
-      allow create, update: if isOwner(userId) && max10MB() && isImage();
+      allow create, update: if isOwner(userId) && max10MB() && isImageUpload(fileName);
       allow delete: if isOwner(userId);
     }
 
     // Company registration document (PDF or image)
     match /users/{userId}/company/registration/{fileName} {
       allow read: if isSignedIn();
-      allow create, update: if isOwner(userId) && max10MB() && isRegistrationDoc();
+      allow create, update: if isOwner(userId) && max10MB() && isRegistrationDoc(fileName);
       allow delete: if isOwner(userId);
     }
 
     // Company establishment card (PDF or image)
     match /users/{userId}/company/establishment-card/{fileName} {
       allow read: if isSignedIn();
-      allow create, update: if isOwner(userId) && max10MB() && isRegistrationDoc();
+      allow create, update: if isOwner(userId) && max10MB() && isRegistrationDoc(fileName);
       allow delete: if isOwner(userId);
     }
 
     // Company trade license (PDF or image)
     match /users/{userId}/company/trade-license/{fileName} {
       allow read: if isSignedIn();
-      allow create, update: if isOwner(userId) && max10MB() && isRegistrationDoc();
+      allow create, update: if isOwner(userId) && max10MB() && isRegistrationDoc(fileName);
       allow delete: if isOwner(userId);
     }
 
     // Company project showcase images
     match /users/{userId}/company/projects/{fileName} {
       allow read: if true;
-      allow create, update: if isOwner(userId) && max10MB() && isImage();
+      allow create, update: if isOwner(userId) && max10MB() && isImageUpload(fileName);
       allow delete: if isOwner(userId);
     }
 
     // Reviewer invitation proof attachments (company dashboard)
     match /users/{userId}/company/invitation-proof/{fileName} {
       allow read: if isSignedIn();
-      allow create, update: if isOwner(userId) && max10MB() && isRegistrationDoc();
+      allow create, update: if isOwner(userId) && max10MB() && isRegistrationDoc(fileName);
       allow delete: if isOwner(userId);
     }
 
     // Review proof attachments
     match /users/{userId}/reviews/proof/{fileName} {
       allow read: if isSignedIn();
-      allow create, update: if isOwner(userId) && max10MB() && isRegistrationDoc();
+      allow create, update: if isOwner(userId) && max10MB() && isRegistrationDoc(fileName);
       allow delete: if isOwner(userId);
     }
 
     // Admin blog cover images
     match /users/{userId}/blog/cover/{fileName} {
       allow read: if true;
-      allow create, update: if isOwner(userId) && max10MB() && isImage();
+      allow create, update: if isOwner(userId) && max10MB() && isImageUpload(fileName);
       allow delete: if isOwner(userId);
     }
 
     // Admin category icons
     match /users/{userId}/admin/categories/icon/{fileName} {
       allow read: if true;
-      allow create, update: if isOwner(userId) && max10MB() && isImage();
+      allow create, update: if isOwner(userId) && max10MB() && isImageUpload(fileName);
       allow delete: if isOwner(userId);
     }
 

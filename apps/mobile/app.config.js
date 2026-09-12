@@ -96,7 +96,7 @@ if (process.env.EAS_BUILD === 'true' && (!iosGoogleServicesFile || !androidGoogl
 const config = {
   name: 'RateQ',
   slug: 'rateq',
-  version: '1.0.0',
+  version: '1.0.3',
   orientation: 'portrait',
   scheme: 'rateq',
   userInterfaceStyle: 'automatic',
@@ -107,9 +107,19 @@ const config = {
     resizeMode: 'contain',
   },
   newArchEnabled: true,
+  // Avoid expo-updates error-recovery aborting release builds on first JS/native fault.
+  runtimeVersion: {
+    policy: 'appVersion',
+  },
+  updates: {
+    enabled: false,
+    checkAutomatically: 'NEVER',
+    url: 'https://u.expo.dev/b7b85eef-0922-4aae-a8ca-ea1832cc3665',
+  },
   ios: {
     supportsTablet: true,
     bundleIdentifier: 'com.rateq.app',
+    buildNumber: '4',
     usesAppleSignIn: true,
     googleServicesFile: iosGoogleServicesFile,
     infoPlist: {
@@ -170,7 +180,10 @@ const config = {
     ],
     '@react-native-community/datetimepicker',
     'expo-apple-authentication',
-    'expo-dev-client',
+    // Dev client is only needed for the development EAS profile / local prebuild.
+    ...(!process.env.EAS_BUILD_PROFILE || process.env.EAS_BUILD_PROFILE === 'development'
+      ? ['expo-dev-client']
+      : []),
     '@react-native-firebase/app',
     '@react-native-firebase/auth',
     [
@@ -212,6 +225,17 @@ const config = {
       origin: false,
     },
     googleMapsApiKeyConfigured: Boolean(googleMapsApiKey),
+    // Fallback for release/preview when Metro env inlining is missed.
+    apiUrl: process.env.EXPO_PUBLIC_API_URL,
+    webUrl: process.env.EXPO_PUBLIC_WEB_URL,
+    firebaseApiKey: process.env.EXPO_PUBLIC_FIREBASE_API_KEY,
+    firebaseAuthDomain: process.env.EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN,
+    firebaseProjectId: process.env.EXPO_PUBLIC_FIREBASE_PROJECT_ID,
+    firebaseStorageBucket: process.env.EXPO_PUBLIC_FIREBASE_STORAGE_BUCKET,
+    firebaseMessagingSenderId: process.env.EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
+    firebaseAppId: process.env.EXPO_PUBLIC_FIREBASE_APP_ID,
+    googleWebClientId: process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID,
+    googleIosClientId: process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID,
   },
   owner: 'rateq90',
 };

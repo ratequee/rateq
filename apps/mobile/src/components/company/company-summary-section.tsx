@@ -1,5 +1,6 @@
 import { CompanySocialLinksRow } from '@/components/company/company-social-links-row';
 import { BilingualText } from '@/components/ui/bilingual-text';
+import { useAppDirection } from '@/hooks/use-app-direction';
 import { getCurrentLocale, getFontFamily } from '@/i18n';
 import type { CompanyPublic } from '@rateq/types';
 import { Ionicons } from '@expo/vector-icons';
@@ -35,6 +36,7 @@ export function CompanySummarySection({
 }: CompanySummarySectionProps) {
   const { t } = useTranslation();
   const isArabic = getCurrentLocale() === 'ar';
+  const { textStyle, textBlockStyle } = useAppDirection();
 
   const hasPhone = Boolean(company.phone?.trim());
   const hasEmail = Boolean(company.email?.trim());
@@ -89,13 +91,15 @@ export function CompanySummarySection({
               className="min-w-0 flex-1 flex-row items-center gap-2 rounded-xl border border-slate-100 bg-slate-50 px-3 py-3 dark:border-dm-border dark:bg-dm-elevated"
             >
               <Ionicons name="call-outline" size={18} color="#8E2157" />
-              <Text
-                className="flex-1 text-xs text-ink dark:text-white"
-                style={{ fontFamily: getFontFamily('regular'), lineHeight: 18 }}
-                numberOfLines={2}
-              >
-                {company.phone}
-              </Text>
+              <View className="min-w-0 flex-1" style={textBlockStyle}>
+                <Text
+                  className="text-xs text-ink dark:text-white"
+                  style={[{ fontFamily: getFontFamily('regular'), lineHeight: 18 }, textStyle]}
+                  numberOfLines={2}
+                >
+                  {company.phone}
+                </Text>
+              </View>
             </Pressable>
           ) : null}
 
@@ -109,13 +113,15 @@ export function CompanySummarySection({
               className="min-w-0 flex-1 flex-row items-center gap-2 rounded-xl border border-slate-100 bg-slate-50 px-3 py-3 dark:border-dm-border dark:bg-dm-elevated"
             >
               <Ionicons name="mail-outline" size={18} color="#8E2157" />
-              <Text
-                className="flex-1 text-xs text-ink dark:text-white"
-                style={{ fontFamily: getFontFamily('regular'), lineHeight: 18 }}
-                numberOfLines={2}
-              >
-                {company.email}
-              </Text>
+              <View className="min-w-0 flex-1" style={textBlockStyle}>
+                <Text
+                  className="text-xs text-ink dark:text-white"
+                  style={[{ fontFamily: getFontFamily('regular'), lineHeight: 18 }, textStyle]}
+                  numberOfLines={2}
+                >
+                  {company.email}
+                </Text>
+              </View>
             </Pressable>
           ) : null}
         </View>
@@ -147,22 +153,20 @@ export function CompanySummarySection({
 
       {description ? (
         <View className="mt-6 border-t border-slate-100 pt-6 dark:border-dm-border">
-          <Text
-            className="text-lg font-bold text-ink dark:text-white"
-            style={{ fontFamily: getFontFamily('bold'), lineHeight: 26 }}
-          >
-            {t('company.aboutTitle')}
-          </Text>
-          <Text
-            className="mt-3 text-sm text-ink-muted dark:text-white/80"
-            style={{
-              fontFamily: getFontFamily('regular'),
-              lineHeight: 22,
-              writingDirection: isArabic ? 'rtl' : 'ltr',
-            }}
-          >
-            {description}
-          </Text>
+          <View style={textBlockStyle}>
+            <Text
+              className="text-lg font-bold text-ink dark:text-white"
+              style={[{ fontFamily: getFontFamily('bold'), lineHeight: 26 }, textStyle]}
+            >
+              {t('company.aboutTitle')}
+            </Text>
+            <Text
+              className="mt-3 text-sm text-ink-muted dark:text-white/80"
+              style={[{ fontFamily: getFontFamily('regular'), lineHeight: 22 }, textStyle]}
+            >
+              {description}
+            </Text>
+          </View>
         </View>
       ) : null}
     </View>

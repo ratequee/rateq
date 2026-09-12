@@ -1,5 +1,5 @@
 import { forwardRef, useState } from 'react';
-import { Pressable, TextInput, View, type TextInputProps } from 'react-native';
+import { Pressable, TextInput, View, type TextInputProps, type TextStyle } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { cn } from '@/lib/cn';
 import { getFontFamily } from '@/i18n';
@@ -10,7 +10,7 @@ export const Input = forwardRef<TextInput, TextInputProps & { className?: string
   { className, style, multiline, ...props },
   ref,
 ) {
-  const { textStyle, textAlignClass } = useAppDirection();
+  const { textStyle } = useAppDirection();
   return (
     <TextInput
       ref={ref}
@@ -19,12 +19,12 @@ export const Input = forwardRef<TextInput, TextInputProps & { className?: string
       className={cn(
         'rounded-xl border border-slate-200 bg-white px-4 text-base text-ink dark:border-dm-border dark:bg-dm-elevated dark:text-white',
         multiline ? 'min-h-[88px] py-3' : 'h-12',
-        textAlignClass,
         className,
       )}
       placeholderTextColor="#9ca3af"
       style={[
-        { fontFamily: getFontFamily('regular') },
+        // Isolate from RtlRoot so physical textAlign is respected.
+        { fontFamily: getFontFamily('regular'), direction: 'ltr' } as TextStyle,
         textStyle,
         multiline ? { minHeight: 88 } : null,
         style,

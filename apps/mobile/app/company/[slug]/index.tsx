@@ -120,8 +120,9 @@ export default function CompanyDetailScreen() {
   const secondaryName = getSecondaryCompanyName(company, locale);
   const description = getLocalizedCompanyDescription(company, locale);
 
-  const canReview = user && user.role !== UserRole.COMPANY && user.isVerified;
-  const bottomPadding = canReview ? 88 + insets.bottom : 24 + insets.bottom;
+  const canReview = Boolean(user && user.role !== UserRole.COMPANY && user.isVerified);
+  const showGuestSignIn = !user;
+  const bottomPadding = canReview || showGuestSignIn ? 88 + insets.bottom : 24 + insets.bottom;
 
   return (
     <View className="flex-1 bg-white dark:bg-dm-bg">
@@ -149,6 +150,19 @@ export default function CompanyDetailScreen() {
             title={t('company.writeReview')}
             onPress={() => void handleWriteReview()}
             loading={checkingReview}
+            className="h-12 rounded-full"
+          />
+        </View>
+      ) : null}
+
+      {showGuestSignIn ? (
+        <View
+          className="absolute bottom-0 left-0 right-0 border-t border-slate-200 bg-white px-4 pt-3 dark:border-dm-border dark:bg-dm-surface"
+          style={{ paddingBottom: Math.max(insets.bottom, 12) }}
+        >
+          <Button
+            title={t('auth.signInToContinue')}
+            onPress={() => router.push('/(auth)/login')}
             className="h-12 rounded-full"
           />
         </View>

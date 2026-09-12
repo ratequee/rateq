@@ -1,3 +1,4 @@
+import { useAppDirection } from '@/hooks/use-app-direction';
 import { getFontFamily } from '@/i18n';
 import type { CompanyProjectPublic } from '@rateq/types';
 import { useRouter } from 'expo-router';
@@ -17,6 +18,7 @@ function ProjectCard({
   companySlug: string;
 }) {
   const router = useRouter();
+  const { textStyle, textBlockStyle } = useAppDirection();
 
   return (
     <Pressable
@@ -25,10 +27,10 @@ function ProjectCard({
       style={{ marginHorizontal: '1%' }}
     >
       <Image source={{ uri: project.imageUrl }} className="h-36 w-full" resizeMode="cover" />
-      <View className="min-h-[72px] justify-center bg-brand-500 px-3 py-3">
+      <View className="min-h-[72px] justify-center bg-brand-500 px-3 py-3" style={textBlockStyle}>
         <Text
           className="text-sm font-semibold text-white"
-          style={{ fontFamily: getFontFamily('semibold'), lineHeight: 20 }}
+          style={[{ fontFamily: getFontFamily('semibold'), lineHeight: 20 }, textStyle]}
           numberOfLines={3}
         >
           {project.title}

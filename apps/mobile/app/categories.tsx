@@ -1,6 +1,7 @@
 import { HomeCategoryCard } from '@/components/home/home-category-card';
 import { LoadingView } from '@/components/ui/loading-view';
 import { useAppDirection } from '@/hooks/use-app-direction';
+import { useBrowseBasePath } from '@/hooks/use-browse-base-path';
 import { getFontFamily } from '@/i18n';
 import { cn } from '@/lib/cn';
 import { categoriesApi } from '@/lib/api';
@@ -8,7 +9,7 @@ import { getUserFacingError } from '@/lib/user-facing-error';
 import type { UserErrorKey } from '@rateq/utils';
 import type { CategoryPublic } from '@rateq/types';
 import { Ionicons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
+import { useRouter, type Href } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, RefreshControl, ScrollView, Text, View } from 'react-native';
@@ -17,6 +18,10 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 export default function CategoriesScreen() {
   const { t } = useTranslation();
   const router = useRouter();
+  const browseBase = useBrowseBasePath();
+  const companiesHref = (
+    browseBase === '/(guest)' ? '/(guest)/companies' : '/(tabs)/companies'
+  ) as Href;
   const { textStyle, textAlignClass, isRtl } = useAppDirection();
   const [categories, setCategories] = useState<CategoryPublic[]>([]);
   const [loading, setLoading] = useState(true);
@@ -47,9 +52,9 @@ export default function CategoriesScreen() {
 
   const openCategory = (categoryId: string) => {
     router.push({
-      pathname: '/(tabs)/companies',
+      pathname: companiesHref,
       params: { categoryId },
-    });
+    } as Href);
   };
 
   if (loading) return <LoadingView />;

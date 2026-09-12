@@ -1,3 +1,4 @@
+import { useAppDirection } from '@/hooks/use-app-direction';
 import { getFontFamily } from '@/i18n';
 import type { CompanyCatalogLabel } from '@rateq/types';
 import { useTranslation } from 'react-i18next';
@@ -10,27 +11,36 @@ interface CompanyServicesTabProps {
 }
 
 function BilingualCatalogPill({ labelEn, labelAr }: { labelEn: string; labelAr?: string | null }) {
+  const { textStyle } = useAppDirection();
   const english = labelEn.trim();
   const arabic = labelAr?.trim();
   const showBoth = Boolean(arabic && arabic !== english);
 
   return (
-    <View className="rounded-full border border-slate-200 bg-slate-100 px-4 py-3 dark:border-dm-border dark:bg-dm-elevated">
+    <View
+      className="rounded-full border border-slate-200 bg-slate-100 px-4 py-3 dark:border-dm-border dark:bg-dm-elevated"
+      style={{ direction: 'ltr' }}
+    >
       <Text
         className="text-sm font-medium text-ink dark:text-white"
-        style={{ fontFamily: getFontFamily('medium', english), lineHeight: 20 }}
+        style={[
+          { fontFamily: getFontFamily('medium', english), lineHeight: 20, writingDirection: 'ltr' },
+          { textAlign: textStyle.textAlign },
+        ]}
       >
         {english}
       </Text>
       {showBoth ? (
         <Text
           className="mt-1.5 text-ink-muted dark:text-white/70"
-          style={{
-            fontFamily: getFontFamily('regular', arabic!),
-            writingDirection: 'rtl',
-            fontSize: 11,
-            lineHeight: 18,
-          }}
+          style={[
+            {
+              fontFamily: getFontFamily('regular', arabic!),
+              fontSize: 11,
+              lineHeight: 18,
+            },
+            textStyle,
+          ]}
         >
           {arabic}
         </Text>
@@ -48,17 +58,20 @@ function CatalogPills({
   items: CompanyCatalogLabel[];
   legacyLabels?: string[];
 }) {
+  const { textStyle, textBlockStyle } = useAppDirection();
   const hasItems = items.length > 0 || (legacyLabels?.length ?? 0) > 0;
   if (!hasItems) return null;
 
   return (
     <View className="mb-6">
-      <Text
-        className="mb-3 text-sm font-semibold text-ink dark:text-white"
-        style={{ fontFamily: getFontFamily('semibold'), lineHeight: 20 }}
-      >
-        {title}
-      </Text>
+      <View style={textBlockStyle}>
+        <Text
+          className="mb-3 text-sm font-semibold text-ink dark:text-white"
+          style={[{ fontFamily: getFontFamily('semibold'), lineHeight: 20 }, textStyle]}
+        >
+          {title}
+        </Text>
+      </View>
       <View className="flex-row flex-wrap gap-3">
         {items.map((item) => (
           <BilingualCatalogPill key={item.id} labelEn={item.label} labelAr={item.labelAr} />

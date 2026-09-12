@@ -18,6 +18,14 @@ export interface ProfileMenuItem {
 
 export const PROFILE_MENU_ITEMS: ProfileMenuItem[] = [
   {
+    id: 'admin',
+    icon: 'shield-checkmark-outline',
+    titleKey: 'profile.menu.admin',
+    subtitleKey: 'profile.menu.adminSubtitle',
+    action: { type: 'route', href: '/admin' },
+    roles: [UserRole.ADMIN],
+  },
+  {
     id: 'information',
     icon: 'person-outline',
     titleKey: 'profile.menu.information',
@@ -79,7 +87,7 @@ export const PROFILE_MENU_ITEMS: ProfileMenuItem[] = [
     titleKey: 'profile.menu.settings',
     subtitleKey: 'profile.menu.settingsSubtitle',
     action: { type: 'route', href: '/profile/settings' },
-    roles: [UserRole.USER, UserRole.COMPANY],
+    roles: [UserRole.USER, UserRole.COMPANY, UserRole.ADMIN],
   },
   {
     id: 'contact',
@@ -87,7 +95,7 @@ export const PROFILE_MENU_ITEMS: ProfileMenuItem[] = [
     titleKey: 'profile.menu.contact',
     subtitleKey: 'profile.menu.contactSubtitle',
     action: { type: 'route', href: '/profile/contact' },
-    roles: [UserRole.USER, UserRole.COMPANY],
+    roles: [UserRole.USER, UserRole.COMPANY, UserRole.ADMIN],
   },
   {
     id: 'about',
@@ -95,7 +103,7 @@ export const PROFILE_MENU_ITEMS: ProfileMenuItem[] = [
     titleKey: 'profile.menu.about',
     subtitleKey: 'profile.menu.aboutSubtitle',
     action: { type: 'route', href: '/profile/about' },
-    roles: [UserRole.USER, UserRole.COMPANY],
+    roles: [UserRole.USER, UserRole.COMPANY, UserRole.ADMIN],
   },
 ];
 

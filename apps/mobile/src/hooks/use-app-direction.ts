@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import type { ViewStyle } from 'react-native';
-import { getTextDirectionStyle, isRtlLocale } from '@/lib/rtl';
+import { getTextBlockContainerStyle, getTextDirectionStyle, isRtlLocale } from '@/lib/rtl';
 
 export function useAppDirection() {
   const { i18n } = useTranslation();
@@ -17,7 +17,9 @@ export function useAppDirection() {
     locale: i18n.language,
     isRtl: rtl,
     textStyle: getTextDirectionStyle(i18n.language),
-    textAlignClass: rtl ? 'text-right' : 'text-left',
+    textBlockStyle: getTextBlockContainerStyle(),
+    // Avoid NativeWind text-right/left — they invert under RtlRoot's direction:rtl.
+    textAlignClass: '',
     labelContainerStyle,
   };
 }

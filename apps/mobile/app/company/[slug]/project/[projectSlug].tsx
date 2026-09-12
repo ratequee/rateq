@@ -64,7 +64,7 @@ export default function CompanyProjectDetailScreen() {
   const { t, i18n } = useTranslation();
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const { isRtl, textStyle } = useAppDirection();
+  const { isRtl, textStyle, textBlockStyle } = useAppDirection();
   const locale = getCurrentLocale();
   const toast = useAppToast();
 
@@ -148,6 +148,15 @@ export default function CompanyProjectDetailScreen() {
     }
   };
 
+  const metaRowStyle = {
+    width: '100%' as const,
+    direction: 'ltr' as const,
+    flexDirection: 'row' as const,
+    flexWrap: 'wrap' as const,
+    justifyContent: isRtl ? ('flex-end' as const) : ('flex-start' as const),
+    gap: 16,
+  };
+
   return (
     <View className="flex-1 bg-white dark:bg-dm-bg">
       <ScrollView className="flex-1" contentContainerStyle={{ paddingBottom: 24 + insets.bottom }}>
@@ -166,71 +175,84 @@ export default function CompanyProjectDetailScreen() {
             </View>
           </Pressable>
 
-          <Pressable
-            onPress={() => router.back()}
-            className="absolute left-4 z-20 h-10 w-10 items-center justify-center rounded-full bg-white shadow-md"
-            style={{ top: insets.top + 8 }}
-            accessibilityRole="button"
-            accessibilityLabel={t('common.back')}
+          {/* Isolate from RtlRoot so absolute left/right stay physical. */}
+          <View
+            pointerEvents="box-none"
+            className="absolute inset-x-0"
+            style={{ top: insets.top + 8, direction: 'ltr' }}
           >
-            <Ionicons name={isRtl ? 'arrow-forward' : 'arrow-back'} size={20} color="#8E2157" />
-          </Pressable>
+            <Pressable
+              onPress={() => router.back()}
+              className="absolute h-10 w-10 items-center justify-center rounded-full bg-white shadow-md"
+              style={isRtl ? { right: 16 } : { left: 16 }}
+              accessibilityRole="button"
+              accessibilityLabel={t('common.back')}
+            >
+              <Ionicons name={isRtl ? 'arrow-forward' : 'arrow-back'} size={20} color="#8E2157" />
+            </Pressable>
 
-          <Pressable
-            onPress={() => void handleShare()}
-            className="absolute right-4 z-20 h-10 w-10 items-center justify-center rounded-full bg-white shadow-md"
-            style={{ top: insets.top + 8 }}
-            accessibilityRole="button"
-            accessibilityLabel={t('company.share')}
-          >
-            <Ionicons name="share-outline" size={20} color="#8E2157" />
-          </Pressable>
+            <Pressable
+              onPress={() => void handleShare()}
+              className="absolute h-10 w-10 items-center justify-center rounded-full bg-white shadow-md"
+              style={isRtl ? { left: 16 } : { right: 16 }}
+              accessibilityRole="button"
+              accessibilityLabel={t('company.share')}
+            >
+              <Ionicons name="share-social-outline" size={20} color="#8E2157" />
+            </Pressable>
+          </View>
         </View>
 
         <View className="px-4 pb-6 pt-5">
-          <Link href={`/company/${slug}`} asChild>
-            <Pressable>
-              <Text
-                className="text-sm font-medium text-brand-500"
-                style={{ fontFamily: getFontFamily('medium'), lineHeight: 20 }}
-              >
-                {companyName}
-              </Text>
-            </Pressable>
-          </Link>
+          <View style={textBlockStyle}>
+            <Link href={`/company/${slug}`} asChild>
+              <Pressable>
+                <Text
+                  className="text-sm font-medium text-brand-500"
+                  style={[{ fontFamily: getFontFamily('medium'), lineHeight: 20 }, textStyle]}
+                >
+                  {companyName}
+                </Text>
+              </Pressable>
+            </Link>
+          </View>
 
-          <Text
-            className="mt-3 text-2xl font-bold text-ink dark:text-white"
-            style={[
-              {
-                fontFamily: getFontFamily('bold'),
-                lineHeight: 36,
-                paddingVertical: 2,
-                writingDirection: titleIsArabic ? 'rtl' : 'ltr',
-              },
-              textStyle,
-            ]}
-          >
-            {project.title}
-          </Text>
-
-          {project.description ? (
+          <View style={[textBlockStyle, { marginTop: 12 }]}>
             <Text
-              className="mt-4 text-sm text-ink-muted dark:text-white/80"
+              className="text-2xl font-bold text-ink dark:text-white"
               style={[
                 {
-                  fontFamily: getFontFamily('regular'),
-                  lineHeight: 22,
-                  writingDirection: containsArabic(project.description) ? 'rtl' : 'ltr',
+                  fontFamily: getFontFamily('bold'),
+                  lineHeight: 36,
+                  paddingVertical: 2,
+                  writingDirection: titleIsArabic ? 'rtl' : 'ltr',
                 },
                 textStyle,
               ]}
             >
-              {project.description}
+              {project.title}
             </Text>
+          </View>
+
+          {project.description ? (
+            <View style={[textBlockStyle, { marginTop: 16 }]}>
+              <Text
+                className="text-sm text-ink-muted dark:text-white/80"
+                style={[
+                  {
+                    fontFamily: getFontFamily('regular'),
+                    lineHeight: 22,
+                    writingDirection: containsArabic(project.description) ? 'rtl' : 'ltr',
+                  },
+                  textStyle,
+                ]}
+              >
+                {project.description}
+              </Text>
+            </View>
           ) : null}
 
-          <View className="mt-5 flex-row flex-wrap gap-4">
+          <View className="mt-5" style={metaRowStyle}>
             {project.clientName ? (
               <View className="max-w-full flex-row items-center gap-1.5">
                 <Ionicons name="person-outline" size={16} color="#64748b" />
@@ -268,13 +290,22 @@ export default function CompanyProjectDetailScreen() {
 
           {serviceLabels.length > 0 ? (
             <View className="mt-6">
-              <Text
-                className="text-sm font-semibold text-ink dark:text-white"
-                style={{ fontFamily: getFontFamily('semibold'), lineHeight: 20 }}
+              <View style={textBlockStyle}>
+                <Text
+                  className="text-sm font-semibold text-ink dark:text-white"
+                  style={[{ fontFamily: getFontFamily('semibold'), lineHeight: 20 }, textStyle]}
+                >
+                  {t('company.projectServices')}
+                </Text>
+              </View>
+              <View
+                className="mt-3 flex-row flex-wrap gap-3"
+                style={{
+                  width: '100%',
+                  direction: 'ltr',
+                  justifyContent: isRtl ? 'flex-end' : 'flex-start',
+                }}
               >
-                {t('company.projectServices')}
-              </Text>
-              <View className="mt-3 flex-row flex-wrap gap-3">
                 {serviceLabels.map((label, index) => {
                   const showBoth = Boolean(label.ar?.trim() && label.ar.trim() !== label.en.trim());
                   return (
@@ -310,18 +341,28 @@ export default function CompanyProjectDetailScreen() {
 
           {galleryImages.length > 1 ? (
             <View className="mt-8">
-              <Text
-                className="mb-3 text-sm font-semibold text-ink dark:text-white"
-                style={{ fontFamily: getFontFamily('semibold'), lineHeight: 20 }}
-              >
-                {t('company.projectGallery')}
-              </Text>
+              <View style={textBlockStyle}>
+                <Text
+                  className="mb-3 text-sm font-semibold text-ink dark:text-white"
+                  style={[{ fontFamily: getFontFamily('semibold'), lineHeight: 20 }, textStyle]}
+                >
+                  {t('company.projectGallery')}
+                </Text>
+              </View>
               <ProjectGallery images={galleryImages} onImagePress={openGallery} />
             </View>
           ) : null}
 
           {project.projectUrl?.trim() ? (
-            <Pressable onPress={openProjectUrl} className="mt-6 flex-row items-center gap-2">
+            <Pressable
+              onPress={openProjectUrl}
+              className="mt-6 flex-row items-center gap-2"
+              style={{
+                direction: 'ltr',
+                justifyContent: isRtl ? 'flex-end' : 'flex-start',
+                width: '100%',
+              }}
+            >
               <Ionicons name="open-outline" size={18} color="#8E2157" />
               <Text
                 className="text-sm font-medium text-brand-500"
@@ -333,13 +374,19 @@ export default function CompanyProjectDetailScreen() {
           ) : null}
         </View>
 
-        <View className="mx-4 rounded-2xl border border-slate-200 bg-slate-50 p-5 dark:border-dm-border dark:bg-dm-elevated">
-          <Text
-            className="text-lg font-semibold text-ink dark:text-white"
-            style={{ fontFamily: getFontFamily('semibold'), lineHeight: 26 }}
-          >
-            {companyName}
-          </Text>
+        {/* Keep English card layout; only align titles for Arabic. */}
+        <View
+          className="mx-4 rounded-2xl border border-slate-200 bg-slate-50 p-5 dark:border-dm-border dark:bg-dm-elevated"
+          style={{ direction: 'ltr' }}
+        >
+          <View style={textBlockStyle}>
+            <Text
+              className="text-lg font-semibold text-ink dark:text-white"
+              style={[{ fontFamily: getFontFamily('semibold'), lineHeight: 26 }, textStyle]}
+            >
+              {companyName}
+            </Text>
+          </View>
           <View className="mt-1 flex-row items-center gap-1.5">
             <Ionicons name="business-outline" size={16} color="#64748b" />
             <Text
@@ -352,12 +399,14 @@ export default function CompanyProjectDetailScreen() {
           <CompanySocialLinksRow socialLinks={company.socialLinks} />
           <Link href={`/company/${slug}`} asChild>
             <Pressable className="mt-4">
-              <Text
-                className="text-sm font-medium text-brand-500"
-                style={{ fontFamily: getFontFamily('medium'), lineHeight: 20 }}
-              >
-                {t('company.viewCompanyProfile')}
-              </Text>
+              <View style={textBlockStyle}>
+                <Text
+                  className="text-sm font-medium text-brand-500"
+                  style={[{ fontFamily: getFontFamily('medium'), lineHeight: 20 }, textStyle]}
+                >
+                  {t('company.viewCompanyProfile')}
+                </Text>
+              </View>
             </Pressable>
           </Link>
         </View>

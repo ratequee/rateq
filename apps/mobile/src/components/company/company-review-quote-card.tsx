@@ -1,4 +1,5 @@
 import { StarRating } from '@/components/ui/star-rating';
+import { useAppDirection } from '@/hooks/use-app-direction';
 import { getFontFamily } from '@/i18n';
 import { getReviewAuthorInitial, getReviewAuthorName } from '@/lib/review-author';
 import type { ReviewPublic } from '@rateq/types';
@@ -11,18 +12,23 @@ interface CompanyReviewQuoteCardProps {
 
 export function CompanyReviewQuoteCard({ review }: CompanyReviewQuoteCardProps) {
   const { t } = useTranslation();
+  const { textStyle, textBlockStyle } = useAppDirection();
   const authorName = getReviewAuthorName(review.author, t('company.anonymousReviewer'));
 
   return (
     <View className="mb-4 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-dm-border dark:bg-dm-elevated">
-      <StarRating value={review.rating} size={16} />
+      <View className="items-start">
+        <StarRating value={review.rating} size={16} />
+      </View>
 
-      <Text
-        className="mt-4 text-sm leading-6 text-ink dark:text-white"
-        style={{ fontFamily: getFontFamily('regular', review.content) }}
-      >
-        &ldquo;{review.content}&rdquo;
-      </Text>
+      <View style={textBlockStyle}>
+        <Text
+          className="mt-4 text-sm leading-6 text-ink dark:text-white"
+          style={[{ fontFamily: getFontFamily('regular', review.content) }, textStyle]}
+        >
+          &ldquo;{review.content}&rdquo;
+        </Text>
+      </View>
 
       <View className="mt-5 flex-row items-center gap-3 border-t border-slate-100 pt-4 dark:border-dm-border">
         {review.author?.avatarUrl ? (
@@ -41,17 +47,20 @@ export function CompanyReviewQuoteCard({ review }: CompanyReviewQuoteCardProps) 
             </Text>
           </View>
         )}
-        <View className="min-w-0 flex-1">
+        <View className="min-w-0 flex-1" style={textBlockStyle}>
           <Text
             className="font-semibold text-ink dark:text-white"
-            style={{ fontFamily: getFontFamily('semibold', authorName) }}
+            style={[{ fontFamily: getFontFamily('semibold', authorName) }, textStyle]}
           >
             {authorName}
           </Text>
           {review.title ? (
             <Text
               className="mt-1 text-sm text-ink-muted dark:text-white/70"
-              style={{ fontFamily: getFontFamily('regular', review.title), lineHeight: 20 }}
+              style={[
+                { fontFamily: getFontFamily('regular', review.title), lineHeight: 20 },
+                textStyle,
+              ]}
               numberOfLines={2}
             >
               {review.title}
@@ -61,16 +70,22 @@ export function CompanyReviewQuoteCard({ review }: CompanyReviewQuoteCardProps) 
       </View>
 
       {review.reply ? (
-        <View className="mt-4 rounded-xl border border-brand-100 bg-brand-50/60 p-4 dark:border-brand-900/40 dark:bg-brand-950/20">
+        <View
+          className="mt-4 rounded-xl border border-brand-100 bg-brand-50/60 p-4 dark:border-brand-900/40 dark:bg-brand-950/20"
+          style={textBlockStyle}
+        >
           <Text
             className="text-xs font-semibold uppercase tracking-wide text-brand-600"
-            style={{ fontFamily: getFontFamily('semibold', t('company.companyReply')) }}
+            style={[
+              { fontFamily: getFontFamily('semibold', t('company.companyReply')) },
+              textStyle,
+            ]}
           >
             {t('company.companyReply')}
           </Text>
           <Text
             className="mt-2 text-sm leading-5 text-ink dark:text-white/90"
-            style={{ fontFamily: getFontFamily('regular', review.reply.content) }}
+            style={[{ fontFamily: getFontFamily('regular', review.reply.content) }, textStyle]}
           >
             {review.reply.content}
           </Text>

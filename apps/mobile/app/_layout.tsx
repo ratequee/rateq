@@ -1,6 +1,8 @@
 import '../global.css';
 import { AuthProvider } from '@/context/auth-context';
+import { GuestProvider } from '@/context/guest-context';
 import { AuthRedirect } from '@/components/auth/auth-redirect';
+import { LoadingView } from '@/components/ui/loading-view';
 import { useAppFonts } from '@/hooks/use-app-fonts';
 import { RtlRoot } from '@/components/layout/rtl-root';
 import { ProfileProvider } from '@/context/profile-context';
@@ -10,10 +12,36 @@ import { initI18n } from '@/i18n';
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
-import { useEffect, useState } from 'react';
+import { Component, useEffect, useState, type ErrorInfo, type ReactNode } from 'react';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { Text, View } from 'react-native';
 
 SplashScreen.preventAutoHideAsync().catch(() => undefined);
+
+class BootErrorBoundary extends Component<{ children: ReactNode }, { error: Error | null }> {
+  state = { error: null as Error | null };
+
+  static getDerivedStateFromError(error: Error) {
+    return { error };
+  }
+
+  componentDidCatch(error: Error, info: ErrorInfo) {
+    console.error('BootErrorBoundary', error, info.componentStack);
+  }
+
+  render() {
+    if (this.state.error) {
+      return (
+        <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24 }}>
+          <Text style={{ color: '#8E2157', fontSize: 16, textAlign: 'center' }}>
+            {this.state.error.message}
+          </Text>
+        </View>
+      );
+    }
+    return this.props.children;
+  }
+}
 
 function RootNavigator() {
   const { resolved } = useTheme();
@@ -25,7 +53,9 @@ function RootNavigator() {
       <Stack screenOptions={{ headerShown: false }}>
         <Stack.Screen name="(auth)" />
         <Stack.Screen name="(onboarding)" />
+        <Stack.Screen name="(guest)" />
         <Stack.Screen name="(tabs)" />
+        <Stack.Screen name="admin" />
         <Stack.Screen name="profile" />
         <Stack.Screen name="company" />
         <Stack.Screen name="categories" />
@@ -40,7 +70,12 @@ export default function RootLayout() {
   const [i18nReady, setI18nReady] = useState(false);
 
   useEffect(() => {
-    void initI18n().then(() => setI18nReady(true));
+    void initI18n()
+      .then(() => setI18nReady(true))
+      .catch((err) => {
+        console.error('initI18n failed', err);
+        setI18nReady(true);
+      });
   }, []);
 
   useEffect(() => {
@@ -50,23 +85,26 @@ export default function RootLayout() {
   }, [fontsLoaded, i18nReady]);
 
   if (!fontsLoaded || !i18nReady) {
-    // Keep splash visible; avoid a blank native root while bootstrapping.
-    return null;
+    return <LoadingView />;
   }
 
   return (
-    <SafeAreaProvider>
-      <ThemeProvider>
-        <ToastProvider>
-          <AuthProvider>
-            <ProfileProvider>
-              <RtlRoot>
-                <RootNavigator />
-              </RtlRoot>
-            </ProfileProvider>
-          </AuthProvider>
-        </ToastProvider>
-      </ThemeProvider>
-    </SafeAreaProvider>
+    <BootErrorBoundary>
+      <SafeAreaProvider>
+        <ThemeProvider>
+          <ToastProvider>
+            <AuthProvider>
+              <GuestProvider>
+                <ProfileProvider>
+                  <RtlRoot>
+                    <RootNavigator />
+                  </RtlRoot>
+                </ProfileProvider>
+              </GuestProvider>
+            </AuthProvider>
+          </ToastProvider>
+        </ThemeProvider>
+      </SafeAreaProvider>
+    </BootErrorBoundary>
   );
 }

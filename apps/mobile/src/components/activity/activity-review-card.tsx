@@ -24,7 +24,10 @@ export function ActivityReviewCard({ review, viewMode = 'submitted' }: ActivityR
   const dateLabel = new Date(review.createdAt).toLocaleDateString();
 
   return (
-    <View className="mb-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-dm-border dark:bg-dm-elevated">
+    <View
+      className="mb-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-dm-border dark:bg-dm-elevated"
+      style={{ direction: 'ltr' }}
+    >
       <View className="flex-row items-start justify-between gap-3">
         <View className="min-w-0 flex-1">
           {viewMode === 'submitted' && companySlug ? (
@@ -66,11 +69,13 @@ export function ActivityReviewCard({ review, viewMode = 'submitted' }: ActivityR
         </View>
       </View>
 
-      <View className="mt-3.5 flex-row items-center gap-2">
-        <StarRating value={review.rating} size={14} />
+      <View className="mt-3.5 flex-row items-center justify-between gap-2">
+        <View className="shrink-0" style={{ direction: 'ltr' }}>
+          <StarRating value={review.rating} size={14} />
+        </View>
         <Text
-          className="text-xs text-ink-muted dark:text-white/60"
-          style={{ fontFamily: getFontFamily('regular', dateLabel) }}
+          className="shrink-0 text-xs text-ink-muted dark:text-white/60"
+          style={{ fontFamily: getFontFamily('regular', dateLabel), lineHeight: 18 }}
         >
           {dateLabel}
         </Text>

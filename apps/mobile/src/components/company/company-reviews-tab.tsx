@@ -1,5 +1,6 @@
 import { CompanyReviewQuoteCard } from '@/components/company/company-review-quote-card';
 import { Input } from '@/components/ui/input';
+import { useAppDirection } from '@/hooks/use-app-direction';
 import { getFontFamily } from '@/i18n';
 import { cn } from '@/lib/cn';
 import type { ReviewPublic } from '@rateq/types';
@@ -15,6 +16,7 @@ interface CompanyReviewsTabProps {
 
 export function CompanyReviewsTab({ reviews, topMentions }: CompanyReviewsTabProps) {
   const { t } = useTranslation();
+  const { isRtl, textStyle, textBlockStyle } = useAppDirection();
   const [query, setQuery] = useState('');
   const [activeMention, setActiveMention] = useState<string | null>(null);
 
@@ -40,25 +42,35 @@ export function CompanyReviewsTab({ reviews, topMentions }: CompanyReviewsTabPro
     <View>
       <View className="relative">
         <Input
-          className="rounded-full border-slate-200 bg-white pe-12 ps-11"
+          className={cn(
+            'rounded-full border-slate-200 bg-white',
+            isRtl ? 'pe-11 ps-12' : 'pe-12 ps-11',
+          )}
           placeholder={t('company.searchReviews')}
           value={query}
           onChangeText={setQuery}
           returnKeyType="search"
         />
-        <View className="pointer-events-none absolute left-4 top-0 h-12 justify-center">
+        <View
+          className={cn(
+            'pointer-events-none absolute top-0 h-12 justify-center',
+            isRtl ? 'right-4' : 'left-4',
+          )}
+        >
           <Ionicons name="search" size={18} color="#94a3b8" />
         </View>
       </View>
 
       {topMentions.length > 0 ? (
         <View className="mt-5">
-          <Text
-            className="text-base font-bold text-ink dark:text-white"
-            style={{ fontFamily: getFontFamily('bold') }}
-          >
-            {t('company.topMentions')}
-          </Text>
+          <View style={textBlockStyle}>
+            <Text
+              className="text-base font-bold text-ink dark:text-white"
+              style={[{ fontFamily: getFontFamily('bold') }, textStyle]}
+            >
+              {t('company.topMentions')}
+            </Text>
+          </View>
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}

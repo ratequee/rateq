@@ -1,7 +1,8 @@
 import { CompanyFavoriteButton } from '@/components/company/company-favorite-button';
+import { useAppDirection } from '@/hooks/use-app-direction';
 import { getFontFamily } from '@/i18n';
 import { getLocalizedCategoryName } from '@/lib/category-label';
-import { useAppDirection } from '@/hooks/use-app-direction';
+import { cn } from '@/lib/cn';
 import type { CompanyPublic } from '@rateq/types';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
@@ -36,41 +37,50 @@ export function CompanyHeroHeader({ company, displayName }: CompanyHeroHeaderPro
         <View className="h-44 w-full bg-brand-600" />
       )}
 
-      <Pressable
-        onPress={() => router.back()}
-        className="absolute left-4 h-10 w-10 items-center justify-center rounded-full bg-white shadow-md"
-        style={{ top: insets.top + 8 }}
-        accessibilityRole="button"
-        accessibilityLabel={t('common.back')}
-      >
-        <Ionicons name={isRtl ? 'arrow-forward' : 'arrow-back'} size={20} color="#8E2157" />
-      </Pressable>
-
+      {/* Isolate from RtlRoot so absolute left/right stay physical (AR back on the right). */}
       <View
-        className="absolute right-4 flex-row flex-wrap items-center justify-end gap-2"
-        style={{ top: insets.top + 8, maxWidth: '72%' }}
+        pointerEvents="box-none"
+        className="absolute inset-x-0"
+        style={{ top: insets.top + 8, direction: 'ltr' }}
       >
-        {company.showVerifiedStamp ? (
-          <View className="rounded-md bg-gold-300 px-3 py-1.5">
-            <Text
-              className="text-xs font-semibold text-white"
-              style={{ fontFamily: getFontFamily('semibold') }}
-            >
-              {t('company.verifiedBadge')}
-            </Text>
-          </View>
-        ) : null}
-        {categoryLabel ? (
-          <View className="rounded-md bg-white/95 px-3 py-1.5">
-            <Text
-              className="text-xs font-semibold text-brand-500"
-              style={{ fontFamily: getFontFamily('semibold') }}
-            >
-              {categoryLabel}
-            </Text>
-          </View>
-        ) : null}
-        <CompanyFavoriteButton companyId={company.id} initialFavorited={company.isFavorited} />
+        <Pressable
+          onPress={() => router.back()}
+          className="absolute h-10 w-10 items-center justify-center rounded-full bg-white shadow-md"
+          style={isRtl ? { right: 16 } : { left: 16 }}
+          accessibilityRole="button"
+          accessibilityLabel={t('common.back')}
+        >
+          <Ionicons name={isRtl ? 'arrow-forward' : 'arrow-back'} size={20} color="#8E2157" />
+        </Pressable>
+
+        <View
+          className={cn('absolute flex-row flex-wrap items-center gap-2', !isRtl && 'justify-end')}
+          style={[{ maxWidth: '72%' }, isRtl ? { left: 16 } : { right: 16 }]}
+        >
+          {company.showVerifiedStamp ? (
+            <View className="shrink rounded-md bg-gold-300 px-3 py-2">
+              <Text
+                className="text-xs font-semibold text-white"
+                style={{ fontFamily: getFontFamily('semibold'), lineHeight: 18 }}
+                numberOfLines={2}
+              >
+                {t('company.verifiedBadge')}
+              </Text>
+            </View>
+          ) : null}
+          {categoryLabel ? (
+            <View className="min-w-0 shrink rounded-md bg-white/95 px-3 py-2">
+              <Text
+                className="text-xs font-semibold text-brand-500"
+                style={{ fontFamily: getFontFamily('semibold'), lineHeight: 18 }}
+                numberOfLines={2}
+              >
+                {categoryLabel}
+              </Text>
+            </View>
+          ) : null}
+          <CompanyFavoriteButton companyId={company.id} initialFavorited={company.isFavorited} />
+        </View>
       </View>
 
       <View className="-mt-10 items-center pb-2">

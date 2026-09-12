@@ -6,13 +6,14 @@ import { SocialSignInRow } from '@/components/auth/social-sign-in-row';
 import { AuthFieldGroup } from '@/components/auth/auth-field-group';
 import { AuthScreenLayout } from '@/components/auth/auth-screen-layout';
 import { useAuth } from '@/context/auth-context';
+import { useGuest } from '@/context/guest-context';
 import { isEmailNotVerifiedError } from '@/lib/auth-flow-errors';
 import { resolveUserErrorKey } from '@rateq/utils';
 import { validateAuthFields, type AuthFieldErrors } from '@/lib/validation/auth-fields';
 import { useRedirectAfterAuth } from '@/hooks/use-redirect-after-auth';
 import { useAppToast } from '@/hooks/use-app-toast';
 import { getFontFamily } from '@/i18n';
-import { Link, useRouter } from 'expo-router';
+import { Link, useRouter, type Href } from 'expo-router';
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Text, View } from 'react-native';
@@ -20,12 +21,14 @@ import { Text, View } from 'react-native';
 export default function LoginScreen() {
   const { t } = useTranslation();
   const { login } = useAuth();
+  const { enterGuestMode, isGuest } = useGuest();
   const redirectAfterAuth = useRedirectAfterAuth();
   const router = useRouter();
   const toast = useAppToast();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [guestLoading, setGuestLoading] = useState(false);
   const [fieldErrors, setFieldErrors] = useState<AuthFieldErrors>({});
 
   const validationMessages = useMemo(
@@ -76,6 +79,16 @@ export default function LoginScreen() {
       toast.apiError(err, t('auth.loginError'));
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleContinueAsGuest = async () => {
+    setGuestLoading(true);
+    try {
+      await enterGuestMode();
+      router.replace('/(guest)' as Href);
+    } finally {
+      setGuestLoading(false);
     }
   };
 
@@ -149,6 +162,16 @@ export default function LoginScreen() {
           className="mt-1 w-full rounded-2xl"
           onPress={handleSubmit}
           loading={loading}
+        />
+
+        <Button
+          title={isGuest ? t('auth.backToBrowsing') : t('auth.continueAsGuest')}
+          variant="outline"
+          size="lg"
+          className="w-full rounded-2xl"
+          onPress={() => void handleContinueAsGuest()}
+          loading={guestLoading}
+          disabled={loading}
         />
 
         <AuthDivider />

@@ -1,4 +1,5 @@
 import { useAuth } from '@/context/auth-context';
+import { useGuest } from '@/context/guest-context';
 import { useTheme } from '@/context/theme-context';
 import { changeLanguage, getFontFamily } from '@/i18n';
 import { cn } from '@/lib/cn';
@@ -13,6 +14,7 @@ export function ScreenHeaderControls() {
   const { t, i18n } = useTranslation();
   const router = useRouter();
   const { logout } = useAuth();
+  const { isGuest } = useGuest();
   const { resolved, toggle } = useTheme();
   const locale = i18n.language === 'ar' ? 'ar' : 'en';
   const isDark = resolved === 'dark';
@@ -21,6 +23,10 @@ export function ScreenHeaderControls() {
   const handleLogout = async () => {
     await logout();
     router.replace('/(auth)/login');
+  };
+
+  const handleSignIn = () => {
+    router.push('/(auth)/login');
   };
 
   return (
@@ -57,14 +63,30 @@ export function ScreenHeaderControls() {
         <Ionicons name={isDark ? 'sunny-outline' : 'moon-outline'} size={16} color={iconColor} />
       </Pressable>
 
-      <Pressable
-        accessibilityRole="button"
-        accessibilityLabel={t('auth.logout')}
-        onPress={() => void handleLogout()}
-        className="h-8 w-8 items-center justify-center rounded-full bg-slate-100 dark:bg-dm-elevated"
-      >
-        <Ionicons name="log-out-outline" size={16} color={iconColor} />
-      </Pressable>
+      {isGuest ? (
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={t('auth.login')}
+          onPress={handleSignIn}
+          className="h-8 items-center justify-center rounded-full bg-brand-500 px-3"
+        >
+          <Text
+            className="text-[11px] font-semibold text-white"
+            style={{ fontFamily: getFontFamily('semibold') }}
+          >
+            {t('auth.login')}
+          </Text>
+        </Pressable>
+      ) : (
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={t('auth.logout')}
+          onPress={() => void handleLogout()}
+          className="h-8 w-8 items-center justify-center rounded-full bg-slate-100 dark:bg-dm-elevated"
+        >
+          <Ionicons name="log-out-outline" size={16} color={iconColor} />
+        </Pressable>
+      )}
     </View>
   );
 }

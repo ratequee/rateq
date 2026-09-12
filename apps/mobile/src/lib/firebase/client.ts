@@ -1,18 +1,23 @@
 import { getApp, getApps, initializeApp, type FirebaseApp } from 'firebase/app';
 import { getAuth, getReactNativePersistence, initializeAuth, type Auth } from '@firebase/auth';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import Constants from 'expo-constants';
 
-function readEnv(key: string): string | undefined {
-  return process.env[key];
-}
+/**
+ * IMPORTANT: Expo release/preview bundles only inline *static* `process.env.EXPO_PUBLIC_*`
+ * accesses. Dynamic `process.env[key]` stays empty at runtime → Firebase looks "unconfigured"
+ * and signup fails with a generic error. Dev Metro injects .env, so this only breaks standalone.
+ */
+const extra = (Constants.expoConfig?.extra ?? {}) as Record<string, string | undefined>;
 
 const firebaseConfig = {
-  apiKey: readEnv('EXPO_PUBLIC_FIREBASE_API_KEY'),
-  authDomain: readEnv('EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN'),
-  projectId: readEnv('EXPO_PUBLIC_FIREBASE_PROJECT_ID'),
-  storageBucket: readEnv('EXPO_PUBLIC_FIREBASE_STORAGE_BUCKET'),
-  messagingSenderId: readEnv('EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID'),
-  appId: readEnv('EXPO_PUBLIC_FIREBASE_APP_ID'),
+  apiKey: process.env.EXPO_PUBLIC_FIREBASE_API_KEY ?? extra.firebaseApiKey,
+  authDomain: process.env.EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN ?? extra.firebaseAuthDomain,
+  projectId: process.env.EXPO_PUBLIC_FIREBASE_PROJECT_ID ?? extra.firebaseProjectId,
+  storageBucket: process.env.EXPO_PUBLIC_FIREBASE_STORAGE_BUCKET ?? extra.firebaseStorageBucket,
+  messagingSenderId:
+    process.env.EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID ?? extra.firebaseMessagingSenderId,
+  appId: process.env.EXPO_PUBLIC_FIREBASE_APP_ID ?? extra.firebaseAppId,
 };
 
 export function getFirebaseWebConfig() {

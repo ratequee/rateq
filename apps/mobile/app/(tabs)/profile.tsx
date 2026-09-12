@@ -7,6 +7,7 @@ import { useProfile } from '@/context/profile-context';
 import { getProfileAvatarUrl, getProfileDisplayName } from '@/lib/profile-display';
 import { getProfileMenuItems, type ProfileMenuItem } from '@/lib/profile-menu';
 import { useAppToast } from '@/hooks/use-app-toast';
+import { UserRole } from '@rateq/types';
 import { useRouter, type Href } from 'expo-router';
 import { useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -64,7 +65,9 @@ export default function ProfileScreen() {
           email={user.email}
           avatarUrl={avatarUrl}
           showNotificationDot={!user.isVerified}
-          onEditPress={() => router.push('/profile/information')}
+          onEditPress={
+            user.role === UserRole.ADMIN ? undefined : () => router.push('/profile/information')
+          }
         />
 
         <View className="px-4">

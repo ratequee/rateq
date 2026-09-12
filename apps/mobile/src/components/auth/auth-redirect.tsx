@@ -1,15 +1,20 @@
 import { LoadingView } from '@/components/ui/loading-view';
 import { useAuth } from '@/context/auth-context';
+import { useGuest } from '@/context/guest-context';
 import { useProfile } from '@/context/profile-context';
 import { getPostAuthRoute } from '@/lib/profile-routing';
-import { Redirect, useSegments } from 'expo-router';
+import { Redirect, useSegments, type Href } from 'expo-router';
+
+const GUEST_ALLOWED_ROOTS = new Set(['(guest)', '(auth)', 'company', 'categories']);
+const GUEST_HOME = '/(guest)' as Href;
 
 export function AuthRedirect() {
   const { user, isLoading: authLoading } = useAuth();
+  const { isGuest, isLoading: guestLoading } = useGuest();
   const { onboarding, isLoading: profileLoading } = useProfile();
   const segments = useSegments();
 
-  if (authLoading || (user && profileLoading)) {
+  if (authLoading || guestLoading || (user && profileLoading)) {
     return <LoadingView />;
   }
 
@@ -17,16 +22,30 @@ export function AuthRedirect() {
   const root = parts[0];
   const inAuth = root === '(auth)';
   const inOnboarding = root === '(onboarding)';
+  const inGuest = root === '(guest)';
   const authScreen = parts[1];
   const onVerifyPhone = inAuth && authScreen === 'verify-phone';
 
   if (!user) {
+    if (isGuest) {
+      // Guest navigator is isolated; allow browse routes + auth so they can sign in.
+      if (root && GUEST_ALLOWED_ROOTS.has(root)) {
+        return null;
+      }
+      return <Redirect href={GUEST_HOME} />;
+    }
+
     // Allow register / verify-phone / other auth screens during unfinished registration
     // (Firebase signed in, RateQ JWT not yet issued).
     if (!inAuth) {
       return <Redirect href="/(auth)/login" />;
     }
     return null;
+  }
+
+  // Signed-in users should never stay on the guest stack.
+  if (inGuest) {
+    return <Redirect href="/(tabs)" />;
   }
 
   const target = getPostAuthRoute(user, onboarding);

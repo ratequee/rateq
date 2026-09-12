@@ -1,9 +1,18 @@
-import { ActivityIndicator, View } from 'react-native';
+import { ActivityIndicator, StyleSheet, View } from 'react-native';
 
 export function LoadingView() {
   return (
-    <View className="flex-1 items-center justify-center bg-slate-50 dark:bg-dm-bg">
+    <View style={styles.root}>
       <ActivityIndicator size="large" color="#8E2157" />
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  root: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#f8fafc',
+  },
+});
