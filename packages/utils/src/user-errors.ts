@@ -92,6 +92,12 @@ const FIREBASE_CODE_TO_KEY: Record<string, UserErrorKey> = {
 
 /** Exact or includes-match against Nest API English messages → error keys. */
 const API_MESSAGE_RULES: Array<{ match: string | RegExp; key: UserErrorKey }> = [
+  { match: 'permission denied', key: 'forbidden' },
+  { match: 'you must be signed in to upload', key: 'sessionExpired' },
+  { match: 'firebase sign-in is not ready', key: 'sessionExpired' },
+  { match: 'each project needs a unique url slug', key: 'validationFailed' },
+  { match: 'each project can include at most 5 services', key: 'validationFailed' },
+  { match: 'awaiting admin review and cannot be edited', key: 'forbidden' },
   { match: 'email is already registered', key: 'emailAlreadyInUse' },
   { match: 'account has been deactivated', key: 'accountDeactivated' },
   { match: 'email is already verified', key: 'emailAlreadyVerified' },

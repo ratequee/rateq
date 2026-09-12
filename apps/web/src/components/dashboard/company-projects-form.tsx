@@ -5,8 +5,10 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useProfile } from '@/components/providers/profile-provider';
 import { uploadUserFile } from '@/lib/firebase/storage';
+import { isFirebaseStoragePermissionError } from '@/lib/firebase/upload-content-type';
 import { waitForFirebaseUser } from '@/lib/firebase/wait-for-user';
 import { onboardingApi } from '@/lib/onboarding-api';
+import { ApiError } from '@/lib/api';
 import { ensureValidAccessToken } from '@/lib/auth-session';
 import { useUserFacingError } from '@/hooks/use-user-facing-error';
 import { cn } from '@/lib/utils';
@@ -550,7 +552,16 @@ function CompanyProjectsFormFields({ company }: { company: CompanyProfileDetail 
         toast.success(isVerified ? t('projectsSubmittedForApproval') : t('projectsUpdated'));
       }
     } catch (err) {
-      toast.error(resolveError(err, t('saveError')));
+      // Upload failures used to look like a generic "profile save" error.
+      if (isFirebaseStoragePermissionError(err)) {
+        toast.error(t('errors.uploadPermissionDenied'));
+      } else if (err instanceof ApiError) {
+        toast.error(resolveError(err, t('projectSaveError')));
+      } else if (err instanceof Error && err.message.trim()) {
+        toast.error(err.message);
+      } else {
+        toast.error(resolveError(err, t('projectSaveError')));
+      }
       throw err;
     } finally {
       setSaving(false);

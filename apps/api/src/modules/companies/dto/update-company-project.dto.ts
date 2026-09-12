@@ -33,7 +33,7 @@ export class UpdateCompanyProjectDto {
   @ApiProperty()
   @IsString()
   @MinLength(8)
-  @MaxLength(2048)
+  @MaxLength(4096)
   imageUrl!: string;
 
   @ApiPropertyOptional()
@@ -48,7 +48,7 @@ export class UpdateCompanyProjectDto {
   @IsArray()
   @ArrayMaxSize(8)
   @IsString({ each: true })
-  @MaxLength(2048, { each: true })
+  @MaxLength(4096, { each: true })
   demoImages?: string[];
 
   @ApiPropertyOptional()

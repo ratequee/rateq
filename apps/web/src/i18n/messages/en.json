@@ -907,6 +907,7 @@
     "loginRequired": "Please log in to complete your profile.",
     "saving": "Saving...",
     "saveError": "Could not save your profile. Please try again.",
+    "projectSaveError": "Could not save projects. Please try again.",
     "sessionExpired": "Your session expired. Please log in again and resubmit.",
     "errors": {
       "required": "This field is required",
@@ -920,7 +921,7 @@
       "fixForm": "Please fix the highlighted fields before continuing.",
       "legalRequired": "Please accept the Privacy Policy and Terms & Conditions to continue.",
       "phoneNotVerified": "Verify your phone number via SMS before continuing.",
-      "uploadPermissionDenied": "File upload was denied. In Firebase Console → Storage → Rules, publish the rules from docs/firebase-storage.rules in this repo.",
+      "uploadPermissionDenied": "Project image upload was denied by Firebase Storage. Sign out/in, then retry. If it continues, open Firebase Console → Storage → Rules and publish the rules from docs/firebase-storage.rules.",
       "locationRequired": "Search your address or pin a location on the map to set city and country.",
       "profileLoading": "Profile data is still loading. Please wait a moment and try again.",
       "subcategoryRequired": "Select at least one subcategory for each category that offers them."

@@ -907,6 +907,7 @@
     "loginRequired": "يرجى تسجيل الدخول لإكمال ملفك.",
     "saving": "جاري الحفظ...",
     "saveError": "تعذر حفظ ملفك. يرجى المحاولة مرة أخرى.",
+    "projectSaveError": "تعذر حفظ المشاريع. يرجى المحاولة مرة أخرى.",
     "sessionExpired": "انتهت جلستك. يرجى تسجيل الدخول مرة أخرى وإعادة الإرسال.",
     "errors": {
       "required": "هذا الحقل مطلوب",
@@ -920,7 +921,7 @@
       "fixForm": "يرجى تصحيح الحقول المميزة قبل المتابعة.",
       "legalRequired": "يرجى الموافقة على سياسة الخصوصية والشروط والأحكام للمتابعة.",
       "phoneNotVerified": "يرجى التحقق من رقم الهاتف عبر SMS قبل المتابعة.",
-      "uploadPermissionDenied": "تم رفض رفع الملف. في Firebase Console → Storage → Rules، انشر القواعد من docs/firebase-storage.rules في المستودع.",
+      "uploadPermissionDenied": "تم رفض رفع صورة المشروع من Firebase Storage. سجّل الخروج ثم الدخول وأعد المحاولة. إذا استمر الأمر، افتح Firebase Console → Storage → Rules وانشر القواعد من docs/firebase-storage.rules.",
       "locationRequired": "ابحث عن عنوانك أو حدد موقعاً على الخريطة لتحديد المدينة والدولة.",
       "profileLoading": "بيانات الملف لا تزال قيد التحميل. انتظر قليلاً ثم حاول مرة أخرى.",
       "subcategoryRequired": "اختر فئة فرعية واحدة على الأقل لكل فئة تتضمن فئات فرعية."
